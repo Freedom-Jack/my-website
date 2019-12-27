@@ -1,4 +1,0 @@
-1. Global layout(Nav, footer, container, stylesheet, breakpoints)
-2. Jumbotron Design
-3. Sections:
-    Welcome(About me), My Projects, Interesting things(food map)
