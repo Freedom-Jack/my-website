@@ -1,17 +1,18 @@
-import React from "react";
+import React from "react"
+import injectSheet from 'react-jss'
 
-// React-JSS
-import injectSheet, {ThemeProvider} from 'react-jss'
-
-const styles = {
+const styles = theme => ({
   myDiv: {
-    color: 'red'
+    color: theme.colors.green,
+    fontSize: theme.fontSizes.large
   }
-}
+})
 
 const demo = ({ classes, children }) => {
   return (
-    <div className={classes.myDiv}>{children}</div>
+    <React.Fragment>
+      <div className={classes.myDiv}>{children}</div>
+    </React.Fragment>
   )
 }
 

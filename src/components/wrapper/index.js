@@ -1,9 +1,18 @@
-import React from "react";
+import React from "react"
+import injectSheet from "react-jss"
 
-const wrapper = () => {
+const styles = theme => ({
+    wrapper: {
+        margin: "auto",
+        width: "77.5%",
+        maxWidth: 1920
+    }
+})
+
+const wrapper = ({ classes, children }) => {
     return (
-        <div>Welcome to my page</div>
+        <div className={classes.wrapper}>{children}</div>
     )
 }
 
-export default wrapper;
+export default injectSheet(styles)(wrapper);
