@@ -2,8 +2,21 @@ import React from 'react';
 import logo from './logo.svg';
 import './App.css';
 
+// React-JSS
+import { ThemeProvider } from 'theming';
+
 // Components
 import Jumbotron from './components/jumbotron'
+import Wrapper from './components/wrapper'
+import DemoBox from './components/demo'
+
+
+// Website contents
+const theme = {
+  color: 'black',
+  background: 'white',
+};
+
 
 function App() {
   return (
@@ -25,7 +38,9 @@ function App() {
         </header>
       </div>
 
-      <Jumbotron />Yea
+      {/* My contents after */}
+      <Wrapper />
+      <DemoBox />
     </React.Fragment>
   );
 }
