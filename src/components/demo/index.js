@@ -1,9 +1,18 @@
-import React from 'react';
-import { withTheme } from 'theming';
+import React from "react";
 
-const DemoBox = props => {
-  console.log(props.theme);
-  return (<div>hello world</div>);
+// React-JSS
+import injectSheet, {ThemeProvider} from 'react-jss'
+
+const styles = {
+  myDiv: {
+    color: 'red'
+  }
 }
 
-export default withTheme(DemoBox);
+const demo = ({ classes, children }) => {
+  return (
+    <div className={classes.myDiv}>{children}</div>
+  )
+}
+
+export default injectSheet(styles)(demo);

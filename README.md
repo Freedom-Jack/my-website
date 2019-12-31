@@ -15,5 +15,5 @@ This is my personal website, ideally the page contents will stack up as the grow
 - Functional/stateless page components
 
 ---
-Author: Qijin(Jack) Xu
+Author: Qijin(Jack) Xu\
 Lastly updated: 2019-12-29
