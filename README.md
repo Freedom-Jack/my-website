@@ -15,7 +15,7 @@ This is my personal website, ideally the page contents will stack up as the grow
 - Responsive design
 - Theming
 - Functional page components
-- CSS - flexbox
+- CSS - Flexbox
 - CSS - Grid
 
 ## Reference

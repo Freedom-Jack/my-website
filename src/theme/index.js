@@ -1,12 +1,14 @@
 const theme = {
     colors: {
-        white: "white",
+        black: "#000000",
+        white: "#ffffff",
         green: "green"
     },
     fontSizes: {
-        small: "1em",
-        medium: "2em",
-        large: "3em",
+        small: "0.85em",
+        medium: "1.5em",
+        large: "2.5em",
+        huge: "3.5em",
         extra: "5em"
     }
 };

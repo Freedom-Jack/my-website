@@ -4,8 +4,8 @@ import injectSheet from "react-jss"
 const styles = theme => ({
     wrapper: {
         margin: "auto",
-        width: "77.5%",
-        maxWidth: 1920
+        width: "75%",
+        maxWidth: 1440
     }
 })
 

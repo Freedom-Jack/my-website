@@ -6,17 +6,34 @@ import { Jumbotron, Button } from "react-bootstrap"
 const styles = theme => ({
     jumbotron: {
         height: "67.5vh",
+        display: "flex",
+        flexDirection: "column",
         background: "linear-gradient(90deg, #C6FFDD, #FBD786, #f64f59)",
         backgroundSize: "500%, 500%",
         animation: "gradient 15s ease infinite"
-    },
-    content: {
-        margin: "auto"
     },
     heading: {
         color: theme.colors.white,
         fontSize: theme.fontSizes.extra,
         textAlign: "center"
+    },
+    content: {
+        margin: "35px auto",
+        width: "61.8%",
+        flexGrow: 1,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "space-around"
+    },
+    description: {
+        fontSize: theme.fontSizes.medium,
+        // textAlign: "centers"
+    },
+    author: {
+        width: "100%",
+        fontSize: theme.fontSizes.small,
+        textAlign: "right"
     },
     "@keyframes gradient": {
         '0%, 100%': {
@@ -28,16 +45,17 @@ const styles = theme => ({
     }
 })
 
-const jumbotron = ({ classes, amount }) => {
+const jumbotron = ({ classes, texts, explore }) => {
     return (
         <Jumbotron className={classes.jumbotron}>
-            <h1 className={classes.heading}>Welcome to Jack's website</h1>
-            <p>
-                This is a simple hero unit, a simple jumbotron-style component for calling extra attention to featured content or information.
+            <h1 className={classes.heading}>{texts.heading}</h1>
+            <div className={classes.content}>
+                <div className={classes.description}>{texts.description}</div>
+                <div className={classes.author}>&mdash; {texts.author}</div>
+                <p>
+                    <Button variant="outline-dark" onClick={explore}>{texts.button}</Button>
                 </p>
-            <p>
-                <Button variant="primary">Learn more</Button>
-            </p>
+            </div>
         </Jumbotron>
     )
 }
