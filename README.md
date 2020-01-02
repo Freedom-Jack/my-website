@@ -18,10 +18,12 @@ This is my personal website, ideally the page contents will stack up as the grow
 - CSS - Flexbox
 - CSS - Grid
 
-## Reference
+## References
 - React API: https://reactjs.org/
 - React-JSS API: https://cssinjs.org/react-jss
+- React Simple Maps API: https://www.react-simple-maps.io/
 - Font Awesome: https://fontawesome.com/
+- Natural Earth: https://www.naturalearthdata.com/
 
 ---
 Author: Qijin(Jack) Xu\
