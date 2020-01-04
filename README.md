@@ -2,7 +2,8 @@
 Welcome to my personal website!
 
 ## Description
-This is my personal website, ideally the page contents will stack up as the growth of my coding experience. More importantly, I want to build a website that meets the most recent website requirements, and maintain it as the requirements change.
+This is my personal website, ideally the page contents will stack up as the growth of my coding experience. More importantly, I want to build a website that meets the most recent website requirements, and maintain it as the requirements change.\
+Below are list of programming softwares that used in this project, as well as a list of targeted features.
 
 ## Tech stack
 - Bootstrap

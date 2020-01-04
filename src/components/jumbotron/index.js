@@ -27,8 +27,7 @@ const styles = theme => ({
         justifyContent: "space-around"
     },
     description: {
-        fontSize: theme.fontSizes.medium,
-        // textAlign: "centers"
+        fontSize: theme.fontSizes.medium
     },
     author: {
         width: "100%",
