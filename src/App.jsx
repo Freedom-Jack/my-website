@@ -9,7 +9,7 @@ import Bubbles from './components/bubbles'
 import Jumbotron from './components/jumbotron'
 import Wrapper from './components/wrapper'
 import DemoBox from './components/demo'
-import CompositeMap from './components/composite_map'
+import CompositeMap from './pages/home/composite_map'
 
 // Page Texts
 import { Jumbotron_Text } from './texts'

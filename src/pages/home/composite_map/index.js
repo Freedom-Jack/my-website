@@ -3,7 +3,7 @@ import injectSheet from 'react-jss'
 import { ComposableMap, Geographies, Geography, Sphere, Graticule } from "react-simple-maps"
 
 import my_map from "./resources/countries.json"
-import { Map_Data } from "../../data"
+import { Map_Data } from "./resources"
 
 const styles = theme => ({
     div1: {
