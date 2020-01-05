@@ -1,28 +1,42 @@
-import React from "react";
-import ReactDOM from "react-dom";
+import React from "react"
 import injectSheet from 'react-jss'
-import { ComposableMap, ZoomableGroup, Geographies, Geography } from "react-simple-maps";
+import { ComposableMap, Geographies, Geography, Sphere, Graticule } from "react-simple-maps"
 
-import my_map from "./countries.json"
+import my_map from "./resources/countries.json"
+import { Map_Data } from "../../data"
 
 const styles = theme => ({
     div1: {
-        backgroundColor: "#9fd3ed",
+        // backgroundColor: "#9fd3ed",
+        textAlign: "center"
     }
 })
 
 const map_style = {
-    maxHeight: "520"
+    maxWidth: "80%",
+    overflow: "visible"
 }
 
+const geo_part = (input, my_theme) => {
+    const country_name = input.properties.NAME
+    const rank = Map_Data[country_name]
 
-const composite_map = ({ classes }) => (
+    return (
+        <Geography
+            key={input.rsmKey}
+            geography={input}
+            fill={my_theme.map.gradient[rank] || my_theme.map.gradient.zero}
+        />
+    )
+}
+
+const composite_map = ({ classes, theme }) => (
     <div className={classes.div1}>
         <ComposableMap style={map_style}>
+            <Sphere stroke="#c9c9c9" strokeWidth={0.5} />
+            <Graticule stroke="#c9c9c9" strokeWidth={0.5} />
             <Geographies geography={my_map} >
-                {({ geographies }) =>
-                    geographies.map(geo => <Geography key={geo.rsmKey} geography={geo} />)
-                }
+                {({ geographies }) => geographies.map(geo => geo_part(geo, theme))}
             </Geographies>
         </ComposableMap>
     </div>

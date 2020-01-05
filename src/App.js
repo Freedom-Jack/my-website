@@ -30,7 +30,7 @@ function App() {
   return (
     <ThemeProvider theme={my_theme}>
       <React.Fragment>
-        {/* Background Bubbles theme */}
+        {/* Background Bubbles theme */} <Bubbles />
 
         <Jumbotron texts={Jumbotron_Text} explore={() => scrollToRef(intro_ref)} />
 
