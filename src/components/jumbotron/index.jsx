@@ -1,16 +1,23 @@
 import React from "react"
 import injectSheet from "react-jss"
 
+// React applied components
 import { Jumbotron, Button } from "react-bootstrap"
 
+// JSS style sheet
 const styles = theme => ({
     jumbotron: {
         height: "67.5vh",
-        display: "flex",
-        flexDirection: "column",
         background: "linear-gradient(90deg, #C6FFDD, #FBD786, #f64f59)",
         backgroundSize: "500%, 500%",
         animation: "gradient 15s ease infinite"
+    },
+    wrapper: {
+        margin: "auto",
+        height: "100%",
+        maxWidth: 1520,
+        display: "flex",
+        flexDirection: "column"
     },
     heading: {
         color: theme.colors.white,
@@ -44,16 +51,19 @@ const styles = theme => ({
     }
 })
 
+// Component
 const jumbotron = ({ classes, texts, explore }) => {
     return (
         <Jumbotron className={classes.jumbotron}>
-            <h1 className={classes.heading}>{texts.heading}</h1>
-            <div className={classes.content}>
-                <div className={classes.description}>{texts.description}</div>
-                <div className={classes.author}>&mdash; {texts.author}</div>
-                <p>
-                    <Button variant="outline-dark" onClick={explore}>{texts.button}</Button>
-                </p>
+            <div className={classes.wrapper}>
+                <h1 className={classes.heading}>{texts.heading}</h1>
+                <div className={classes.content}>
+                    <div className={classes.description}>{texts.description}</div>
+                    <div className={classes.author}>&mdash; {texts.author}</div>
+                    <p>
+                        <Button variant="outline-dark" onClick={explore}>{texts.button}</Button>
+                    </p>
+                </div>
             </div>
         </Jumbotron>
     )

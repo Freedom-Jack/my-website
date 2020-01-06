@@ -14,7 +14,7 @@ const theme = {
     map: {
         stroke: "#c9c9c9",
         gradient: {
-            zero: "#dedede",
+            zero: "#B4B4B4",
             one: "#88D398",
             two: "#75CA8D",
             three: "#63C184",

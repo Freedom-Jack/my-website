@@ -1,6 +1,7 @@
 import React from "react"
 import injectSheet from "react-jss"
 
+// JSS style sheet
 const styles = theme => ({
     wrapper: {
         margin: "auto",
@@ -9,6 +10,7 @@ const styles = theme => ({
     }
 })
 
+// Component
 const wrapper = ({ classes, children }) => {
     return (
         <div className={classes.wrapper}>{children}</div>

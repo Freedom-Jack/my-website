@@ -8,6 +8,7 @@ import { Map_Data } from "./resources"
 const styles = theme => ({
     div1: {
         // backgroundColor: "#9fd3ed",
+        border: "visible",
         textAlign: "center"
     }
 })
@@ -33,8 +34,8 @@ const geo_part = (input, my_theme) => {
 const composite_map = ({ classes, theme }) => (
     <div className={classes.div1}>
         <ComposableMap style={map_style}>
-            <Sphere stroke="#c9c9c9" strokeWidth={0.5} />
-            <Graticule stroke="#c9c9c9" strokeWidth={0.5} />
+            <Sphere stroke={theme.map.stroke} strokeWidth={0.5} />
+            <Graticule stroke={theme.map.stroke} strokeWidth={0.5} />
             <Geographies geography={my_map} >
                 {({ geographies }) => geographies.map(geo => geo_part(geo, theme))}
             </Geographies>
