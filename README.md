@@ -11,21 +11,21 @@ Below are list of programming softwares that used in this project, as well as a 
 - React-JSS
 - React-Bootstrap
 - React-Simple-Maps
+- React-Tooltips
 
 ## Targeted Features
 - Responsive design
 - Theming
 - Functional page components
-- CSS - Flexbox
-- CSS - Grid
+- CSS - Flexbox/Grid
 
 ## References
 - React API: https://reactjs.org/
 - React-JSS API: https://cssinjs.org/react-jss
-- React Simple Maps API: https://www.react-simple-maps.io/
+- React-Simple-Maps API: https://www.react-simple-maps.io/
 - Font Awesome: https://fontawesome.com/
 - Natural Earth: https://www.naturalearthdata.com/
 
 ---
 Author: Qijin(Jack) Xu\
-Lastly updated: 2019-12-31
+Lastly updated: 2020-01-06

@@ -6,8 +6,7 @@ import my_map from "./resources/countries.json"
 import { Map_Data } from "./resources"
 
 const styles = theme => ({
-    div1: {
-        // backgroundColor: "#9fd3ed",
+    container: {
         border: "visible",
         textAlign: "center"
     }
@@ -18,26 +17,33 @@ const map_style = {
     overflow: "visible"
 }
 
-const geo_part = (input, my_theme) => {
+const geo_part = (input, my_theme, setTip) => {
     const country_name = input.properties.NAME
-    const rank = Map_Data[country_name]
+    const country_rank = Map_Data[country_name] ? Map_Data[country_name]["level"] : "zero"
+    const country_info = Map_Data[country_name] ? country_name : ""
 
     return (
         <Geography
             key={input.rsmKey}
             geography={input}
-            fill={my_theme.map.gradient[rank] || my_theme.map.gradient.zero}
+            fill={my_theme.map.gradient[country_rank]}
+            onMouseEnter={() => {
+                setTip(`"${country_info}" information`);
+              }}
+            onMouseLeave={() => {
+                setTip("");
+              }}
         />
     )
 }
 
-const composite_map = ({ classes, theme }) => (
-    <div className={classes.div1}>
-        <ComposableMap style={map_style}>
+const composite_map = ({ classes, theme, setTooltipContent }) => (
+    <div className={classes.container}>
+        <ComposableMap style={map_style} data-tip="">
             <Sphere stroke={theme.map.stroke} strokeWidth={0.5} />
             <Graticule stroke={theme.map.stroke} strokeWidth={0.5} />
             <Geographies geography={my_map} >
-                {({ geographies }) => geographies.map(geo => geo_part(geo, theme))}
+                {({ geographies }) => geographies.map(geo => geo_part(geo, theme, setTooltipContent))}
             </Geographies>
         </ComposableMap>
     </div>

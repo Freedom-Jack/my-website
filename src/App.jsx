@@ -1,5 +1,6 @@
 import React from 'react'
 import { ThemeProvider } from 'theming'
+import ReactTooltip from "react-tooltip"
 
 // Themes
 import my_theme from './theme'
@@ -26,6 +27,7 @@ const scrollToRef = (ref) => window.scrollTo({
 function App() {
   // Variables declaration
   const intro_ref = React.useRef(null)  // Reference to introduction
+  const [content, setContent] = React.useState("")  // Content for the map tool-tip
 
   return (
     <ThemeProvider theme={my_theme}>
@@ -37,7 +39,12 @@ function App() {
         {/* Page contents below*/}
         <Wrapper>
           <DemoBox reference={intro_ref}>Yo check this out</DemoBox>
-          <CompositeMap/>
+          
+          <React.Fragment>
+            <CompositeMap setTooltipContent={setContent} />
+            <ReactTooltip>{content}</ReactTooltip>
+          </React.Fragment>
+          
         </Wrapper>
       </React.Fragment>
     </ThemeProvider>

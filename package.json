@@ -4,14 +4,15 @@
   "private": true,
   "dependencies": {
     "bootstrap": "^4.4.1",
-    "jss": "^10.0.2",
-    "node-sass": "^4.13.0",
-    "react": "^16.12.0",
-    "react-bootstrap": "^1.0.0-beta.16",
-    "react-dom": "^16.12.0",
+    "jss": "^10.1.1",
+    "node-sass": "^4.14.0",
+    "react": "^16.13.1",
+    "react-bootstrap": "^1.0.1",
+    "react-dom": "^16.13.1",
     "react-jss": "^8.6.1",
-    "react-scripts": "^3.3.0",
-    "react-simple-maps": "^1.0.0-beta.0"
+    "react-scripts": "^3.4.1",
+    "react-simple-maps": "^1.0.0",
+    "react-tooltip": "^4.2.5"
   },
   "scripts": {
     "start": "react-scripts start",

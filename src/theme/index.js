@@ -2,6 +2,9 @@ const theme = {
     colors: {
         black: "#000000",
         white: "#ffffff",
+        fire_red: "#CC232A",
+        dark_orange: "#F5AC27",
+        light_yellow: "#FFD84B",
         green: "green"
     },
     fontSizes: {

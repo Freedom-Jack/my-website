@@ -1,10 +1,22 @@
 const map_data = {
-    "China": "six",
-    "Taiwan": "six",
-    "Canada": "five",
-    "United States of America": "fourth",
-    "Russia": "two",
-    "Thailand": "one"
+    "China": {
+        "level": "six"
+    },
+    "Taiwan": {
+        "level": "six"
+    },
+    "Canada": {
+        "level": "five"
+    },
+    "United States of America": {
+        "level": "fourth"
+    },
+    "Russia": {
+        "level": "two"
+    },
+    "Thailand": {
+        "level": "one"
+    }
 };
 
 export default map_data;
