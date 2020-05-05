@@ -1,21 +1,21 @@
 const map_data = {
     "China": {
-        "level": "six"
+        "rank": "six"
     },
     "Taiwan": {
-        "level": "six"
+        "rank": "six"
     },
     "Canada": {
-        "level": "five"
+        "rank": "five"
     },
     "United States of America": {
-        "level": "fourth"
+        "rank": "fourth"
     },
     "Russia": {
-        "level": "two"
+        "rank": "two"
     },
     "Thailand": {
-        "level": "one"
+        "rank": "one"
     }
 };
 

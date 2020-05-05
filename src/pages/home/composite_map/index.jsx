@@ -19,7 +19,7 @@ const map_style = {
 
 const geo_part = (input, my_theme, setTip) => {
     const country_name = input.properties.NAME
-    const country_rank = Map_Data[country_name] ? Map_Data[country_name]["level"] : "zero"
+    const country_rank = Map_Data[country_name] ? Map_Data[country_name]["rank"] : "zero"
     const country_info = Map_Data[country_name] ? country_name : ""
 
     return (
@@ -50,4 +50,4 @@ const composite_map = ({ classes, theme, setTooltipContent }) => (
 
 );
 
-export default injectSheet(styles)(composite_map);
+export default injectSheet(styles)(React.memo(composite_map));
