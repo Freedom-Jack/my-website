@@ -28,7 +28,7 @@ const geo_part = (input, my_theme, setTip) => {
             geography={input}
             fill={my_theme.map.gradient[country_rank]}
             onMouseEnter={() => {
-                setTip(`"${country_info}" information`);
+                if (country_info) { setTip(`"${country_info}" information`)}
               }}
             onMouseLeave={() => {
                 setTip("");
