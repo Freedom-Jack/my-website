@@ -1,0 +1,101 @@
+/* Bubble animation styles */
+.bubble {
+  position: absolute;
+  width: 3vw; /* Reduced size for subtlety */
+  height: 3vw; /* Reduced size for subtlety */
+  pointer-events: none;
+  /* Remove fixed margins to allow better distribution */
+  top: 0;
+  left: 0;
+  /* Improved visibility for all bubbles */
+  opacity: 0.6; /* Slightly reduced opacity */
+  z-index: -1; /* Ensure bubbles stay behind content */
+}
+
+.bubble::before,
+.bubble::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  transform-origin: center;
+  animation: drift 150s ease alternate infinite;
+}
+
+.bubble::before {
+  background: hsl(210, 100%, 90%); /* Light blue */
+  opacity: 0.2; /* Reduced opacity */
+}
+
+.bubble::after {
+  background: hsl(210, 100%, 85%); /* Slightly darker light blue */
+  opacity: 0.3; /* Reduced opacity */
+  box-shadow: 0 0 4vw 1vw hsl(210, 100%, 95%); /* Reduced glow */
+  animation: 
+    drift 150s ease alternate infinite,
+    flash 5s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  0% {
+    transform: rotate(0deg) translate(0, 0);
+  }
+  50% {
+    transform: rotate(180deg) translate(20px, 20px); /* Reduced movement */
+  }
+  100% {
+    transform: rotate(360deg) translate(0, 0);
+  }
+}
+
+@keyframes flash {
+  0% {
+    opacity: 0.2;
+    box-shadow: 0 0 1.5vw 0.4vw hsl(210, 100%, 95%);
+  }
+  100% {
+    opacity: 0.4;
+    box-shadow: 0 0 4vw 1vw hsl(210, 100%, 95%);
+  }
+}
+
+/* More variation in bubble sizes */
+.bubble:nth-child(3n+1) {
+  width: 2.5vw;
+  height: 2.5vw;
+}
+
+.bubble:nth-child(3n+2) {
+  width: 3.5vw;
+  height: 3.5vw;
+}
+
+.bubble:nth-child(3n+3) {
+  width: 2vw;
+  height: 2vw;
+}
+
+/* Implementing the random factors for each bubble */
+.bubble-0::before, .bubble-0::after { animation-duration: 105s; }
+.bubble-1::before, .bubble-1::after { animation-duration: 98s; }
+.bubble-2::before, .bubble-2::after { animation-duration: 107s; }
+.bubble-3::before, .bubble-3::after { animation-duration: 102s; }
+.bubble-4::before, .bubble-4::after { animation-duration: 109s; }
+.bubble-5::before, .bubble-5::after { animation-duration: 94s; }
+.bubble-6::before, .bubble-6::after { animation-duration: 103s; }
+.bubble-7::before, .bubble-7::after { animation-duration: 95s; }
+.bubble-8::before, .bubble-8::after { animation-duration: 108s; }
+.bubble-9::before, .bubble-9::after { animation-duration: 101s; }
+.bubble-10::before, .bubble-10::after { animation-duration: 97s; }
+.bubble-11::before, .bubble-11::after { animation-duration: 104s; }
+.bubble-12::before, .bubble-12::after { animation-duration: 106s; }
+.bubble-13::before, .bubble-13::after { animation-duration: 99s; }
+.bubble-14::before, .bubble-14::after { animation-duration: 100s; }
+.bubble-15::before, .bubble-15::after { animation-duration: 110s; }
+.bubble-16::before, .bubble-16::after { animation-duration: 93s; }
+.bubble-17::before, .bubble-17::after { animation-duration: 96s; }
+.bubble-18::before, .bubble-18::after { animation-duration: 111s; }
+.bubble-19::before, .bubble-19::after { animation-duration: 92s; }
+.bubble-20::before, .bubble-20::after { animation-duration: 112s; }
+.bubble-21::before, .bubble-21::after { animation-duration: 91s; } 

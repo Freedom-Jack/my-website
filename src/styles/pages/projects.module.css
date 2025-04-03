@@ -1,0 +1,83 @@
+.pageContainer {
+  @apply container mx-auto px-4 py-12 space-y-16;
+}
+
+.headerSection {
+  @apply text-center space-y-4;
+}
+
+.headerTitle {
+  @apply text-4xl font-bold tracking-tight;
+}
+
+.headerDescription {
+  @apply text-lg text-muted-foreground max-w-2xl mx-auto;
+}
+
+.statsSection {
+  @apply space-y-6;
+}
+
+.sectionTitle {
+  @apply text-2xl font-semibold tracking-tight;
+}
+
+.sectionDescription {
+  @apply text-muted-foreground;
+}
+
+.statsGrid {
+  @apply grid grid-cols-1 md:grid-cols-3 gap-6;
+}
+
+.statNumber {
+  @apply text-3xl font-bold text-primary;
+}
+
+.languageTags {
+  @apply flex flex-wrap gap-2;
+}
+
+.languageTag {
+  @apply rounded-full bg-primary/10 px-3 py-1 text-xs text-primary;
+}
+
+.projectsSection {
+  @apply space-y-6;
+}
+
+.sectionHeader {
+  @apply flex flex-col md:flex-row justify-between items-start md:items-center gap-4;
+}
+
+.projectsGrid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+}
+
+.projectCard {
+  @apply h-full flex flex-col;
+}
+
+.projectMeta {
+  @apply flex items-center justify-between mb-4;
+}
+
+.projectLanguage {
+  @apply text-sm text-muted-foreground;
+}
+
+.projectStars {
+  @apply text-sm text-muted-foreground;
+}
+
+.projectTopics {
+  @apply flex flex-wrap gap-2 mb-4;
+}
+
+.projectTopic {
+  @apply rounded-full bg-secondary px-2 py-1 text-xs text-secondary-foreground;
+}
+
+.projectButton {
+  @apply mt-auto;
+} 

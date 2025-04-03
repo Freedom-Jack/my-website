@@ -1,0 +1,67 @@
+.pageContainer {
+  @apply flex flex-col gap-16 pb-8 pt-6 md:py-10;
+}
+
+.heroSection {
+  @apply mx-auto flex w-full max-w-[64rem] flex-col items-center justify-center gap-4 text-center;
+}
+
+.heroTitle {
+  @apply bg-gradient-to-r from-primary to-secondary bg-clip-text font-heading text-4xl font-bold tracking-tighter text-transparent sm:text-5xl md:text-6xl lg:text-7xl;
+}
+
+.heroDescription {
+  @apply mx-auto max-w-[42rem] text-muted-foreground sm:text-xl;
+}
+
+.buttonGroup {
+  @apply flex flex-wrap items-center justify-center gap-4;
+}
+
+.aboutSection {
+  @apply container mx-auto grid max-w-5xl gap-6 py-8 md:grid-cols-2 md:gap-12;
+}
+
+.aboutTag {
+  @apply inline-block rounded-lg bg-muted px-3 py-1 text-sm;
+}
+
+.aboutTitle {
+  @apply text-3xl font-bold tracking-tighter sm:text-4xl;
+}
+
+.aboutDescription {
+  @apply text-muted-foreground md:text-lg;
+}
+
+.profileCard {
+  @apply overflow-hidden rounded-xl border bg-card;
+}
+
+.profileCardInner {
+  @apply aspect-square h-full w-full relative;
+}
+
+.profileGradient {
+  @apply absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20;
+}
+
+.profileContent {
+  @apply flex h-full items-center justify-center p-8;
+}
+
+.mapSection {
+  @apply container mx-auto py-8;
+}
+
+.mapHeader {
+  @apply text-center mb-8;
+}
+
+.mapTitle {
+  @apply text-3xl font-bold tracking-tighter sm:text-4xl mb-4;
+}
+
+.mapDescription {
+  @apply mx-auto max-w-[42rem] text-muted-foreground;
+} 

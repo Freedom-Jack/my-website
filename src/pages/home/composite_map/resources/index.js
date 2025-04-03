@@ -1,1 +1,0 @@
-export {default as Map_Data} from './map_data.js'
