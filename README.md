@@ -150,7 +150,3 @@ This portfolio showcases several key competencies valued by FAANG companies:
 ## License
 
 MIT License
-
----
-
-Engineered by [Your Name] - Senior Software Engineer specializing in frontend architecture and performance optimization.
