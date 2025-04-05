@@ -11,7 +11,7 @@ interface BubbleProps {
 const Bubble = ({ index }: BubbleProps) => {
   // Generate random values for each bubble
   const scale = 0.25 + Math.random() * 0.75
-  const duration = 100 + Math.random() * 10
+  const duration = 20 + Math.random() * 10
   const delay = Math.random() * 2
   
   // Generate random starting positions across the screen

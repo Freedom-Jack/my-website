@@ -67,7 +67,7 @@ export async function getGitHubStats(username: string) {
   const originalRepos = repos
     .filter(repo => !repo.fork)
     .sort((a, b) => {
-      // First, sort by stars (weighted more heavily)
+      // First, sort by stars
       const starDiff = b.stargazers_count - a.stargazers_count;
       if (starDiff !== 0) return starDiff;
 

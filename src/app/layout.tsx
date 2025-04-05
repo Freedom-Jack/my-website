@@ -10,18 +10,17 @@ import Footer from '@/components/layout/Footer'
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
 export const metadata: Metadata = {
-  title: 'Qijin X - Software Development Engineer',
+  title: 'Qijin Xu - Software Development Engineer',
   description: 'Software Development Engineer specializing in machine learning, data analysis, and AI applications.',
-  keywords: ['software development engineer', 'machine learning', 'data analysis', 'AI', 'python', 'ML algorithms', 'recommendation systems'],
-  authors: [{ name: 'Qijin X' }],
-  creator: 'Qijin X',
+  keywords: ['software development engineer', 'machine learning', 'data engineering', 'AI', 'python', 'ML algorithms', 'LLM'],
+  authors: [{ name: 'Qijin Xu' }],
+  creator: 'Qijin Xu',
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://qijinx.com',
-    title: 'Qijin X - Software Development Engineer',
+    title: 'Qijin Xu - Software Development Engineer',
     description: 'Software Development Engineer specializing in machine learning, data analysis, and AI applications.',
-    siteName: 'Qijin X Portfolio',
+    siteName: 'Qijin Xu my-website',
   }
 }
 
@@ -44,7 +43,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
         >
