@@ -1,0 +1,17 @@
+/* Styles specific to the Profile Card component */
+
+.profileCard {
+  @apply overflow-hidden rounded-xl border bg-card;
+}
+
+.profileCardInner {
+  @apply aspect-square h-full w-full relative;
+}
+
+.profileGradient {
+  @apply absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20;
+}
+
+.profileContent {
+  @apply flex h-full items-center justify-center p-8;
+} 

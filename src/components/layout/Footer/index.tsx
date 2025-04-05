@@ -3,6 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { Github, Linkedin, Mail } from 'lucide-react'
+import { contactInfo } from '@/content/contact-info'
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
@@ -29,7 +30,7 @@ export default function Footer() {
         </div>
         <div className="flex items-center gap-4">
           <Link
-            href="https://github.com/yourusername"
+            href={contactInfo.github.url}
             target="_blank"
             rel="noreferrer"
             className="text-muted-foreground transition-colors hover:text-foreground"
@@ -38,7 +39,7 @@ export default function Footer() {
             <span className="sr-only">GitHub</span>
           </Link>
           <Link
-            href="https://linkedin.com/in/yourusername"
+            href={contactInfo.linkedin.url}
             target="_blank"
             rel="noreferrer"
             className="text-muted-foreground transition-colors hover:text-foreground"
@@ -47,7 +48,7 @@ export default function Footer() {
             <span className="sr-only">LinkedIn</span>
           </Link>
           <Link
-            href="mailto:you@example.com"
+            href={`mailto:${contactInfo.email.address}`}
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
             <Mail className="h-5 w-5" />

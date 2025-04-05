@@ -111,4 +111,8 @@
 /* Transitions for theme switching */
 .theme-transition {
   @apply transition-colors duration-300;
+}
+
+.projectsGrid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
 } 

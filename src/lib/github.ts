@@ -63,10 +63,20 @@ export async function getGitHubStats(username: string) {
     getGitHubRepos(username),
   ]);
 
-  // Filter out forked repositories and sort by stars
+  // Filter out forked repositories and sort by attractiveness
   const originalRepos = repos
     .filter(repo => !repo.fork)
-    .sort((a, b) => b.stargazers_count - a.stargazers_count);
+    .sort((a, b) => {
+      // First, sort by stars (weighted more heavily)
+      const starDiff = b.stargazers_count - a.stargazers_count;
+      if (starDiff !== 0) return starDiff;
+
+      // If stars are equal, sort by most recently updated
+      if (a.updated_at && b.updated_at) {
+        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+      }
+      return 0;
+    });
 
   return {
     user,

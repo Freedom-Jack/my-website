@@ -3,7 +3,7 @@
 }
 
 .heroSection {
-  @apply mx-auto flex w-full max-w-[64rem] flex-col items-center justify-center gap-4 text-center;
+  @apply mx-auto flex w-full max-w-[64rem] flex-col items-center justify-center gap-8 text-center;
 }
 
 .heroTitle {

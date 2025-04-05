@@ -25,8 +25,8 @@ export interface HomePageContent {
 
 export const homeContent: HomePageContent = {
   hero: {
-    title: "Full-Stack Developer\nBuilding Modern Web Experiences",
-    description: "Passionate about creating performant, scalable applications with cutting-edge technologies. Focused on delivering exceptional user experiences.",
+    title: "Software Development Engineer\nSpecializing in Machine Learning & AI",
+    description: "Passionate about building intelligent systems with modern technologies. Experienced in machine learning, data engineering, and software development.",
     cta: {
       primary: "View My Projects",
       secondary: "Explore More"
@@ -34,12 +34,12 @@ export const homeContent: HomePageContent = {
   },
   about: {
     tag: "About Me",
-    title: "Software Engineer with a Passion for Innovation",
-    description: "I specialize in building modern web applications with React, TypeScript, and Node.js. My experience includes working with cloud infrastructure, CI/CD pipelines, and developing scalable software solutions.",
+    title: "Software Development Engineer with ML Expertise",
+    description: "I specialize in software development with a focus on machine learning and AI applications. My experience includes developing recommendation systems, implementing ML algorithms, and building data pipelines. I'm passionate about creating innovative solutions that leverage data to solve complex problems.",
     cta: "Learn More",
     profile: {
-      name: "Your Name",
-      role: "Full-Stack Developer"
+      name: "Qijin X",
+      role: "Software Development Engineer"
     }
   },
   map: {

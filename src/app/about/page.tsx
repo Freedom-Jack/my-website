@@ -7,61 +7,61 @@ export default function AboutPage() {
       
       <div className="prose dark:prose-invert lg:prose-lg">
         <p>
-          As a passionate full-stack developer with expertise in modern web technologies, 
-          I build scalable, performant applications with exceptional user experiences.
+          As a passionate Software Development Engineer with expertise in machine learning and AI technologies, 
+          I build intelligent systems that derive insights from data and solve complex problems.
         </p>
         
         <h2>My Journey</h2>
         <p>
-          I've been coding since [year], starting with [language/framework]. Over the years, 
-          I've expanded my expertise to include a wide array of technologies and methodologies.
+          I've been coding and working with data throughout my academic and professional career,
+          expanding my expertise to include a wide array of technologies in the machine learning and software development space.
         </p>
         
         <h2>Professional Experience</h2>
         <ul>
           <li>
-            <strong>Company Name</strong> - Senior Developer (2020-Present)
-            <p>Led development of scalable web applications using React, TypeScript and Node.js</p>
+            <strong>Amazon</strong> - Software Development Engineer Intern (2023)
+            <p>Worked on machine learning and recommendation systems for large-scale applications</p>
           </li>
           <li>
-            <strong>Previous Company</strong> - Full-Stack Developer (2018-2020)
-            <p>Designed and implemented RESTful APIs and frontend interfaces</p>
+            <strong>StoneX</strong> - Research Assistant (2022-2023)
+            <p>Implemented machine learning algorithms and conducted data analysis for financial applications</p>
           </li>
         </ul>
         
         <h2>Education</h2>
         <p>
-          Bachelor of Science in Computer Science<br />
-          University Name, Graduation Year
+          Master's in Information Technology and Analytics<br />
+          Rutgers University, 2023
         </p>
         
         <h2>Skills</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <div>
-            <h3 className="text-lg font-semibold">Frontend</h3>
+            <h3 className="text-lg font-semibold">Machine Learning</h3>
             <ul>
-              <li>React</li>
-              <li>TypeScript</li>
-              <li>Next.js</li>
-              <li>Tailwind CSS</li>
+              <li>Deep Learning</li>
+              <li>NLP</li>
+              <li>Recommendation Systems</li>
+              <li>ML Algorithms</li>
             </ul>
           </div>
           <div>
-            <h3 className="text-lg font-semibold">Backend</h3>
+            <h3 className="text-lg font-semibold">Data</h3>
             <ul>
-              <li>Node.js</li>
-              <li>Express</li>
-              <li>GraphQL</li>
+              <li>Data Analysis</li>
+              <li>Data Pipelines</li>
               <li>SQL/NoSQL</li>
+              <li>Big Data Processing</li>
             </ul>
           </div>
           <div>
-            <h3 className="text-lg font-semibold">Tools & Methods</h3>
+            <h3 className="text-lg font-semibold">Tools & Technologies</h3>
             <ul>
+              <li>Python</li>
+              <li>TensorFlow/PyTorch</li>
               <li>Git/GitHub</li>
-              <li>CI/CD</li>
-              <li>Agile/Scrum</li>
-              <li>TDD</li>
+              <li>Cloud Platforms</li>
             </ul>
           </div>
         </div>

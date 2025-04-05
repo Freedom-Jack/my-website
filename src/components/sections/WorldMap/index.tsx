@@ -79,10 +79,21 @@ export function WorldMap({ className }: WorldMapProps) {
         }}
         onMouseEnter={() => {
           if (countryData) {
-            setTooltipContent(`
-              <div class="font-medium">${countryName}</div>
-              <div>${countryData.description || "Visited"}</div>
-            `)
+            const tooltipHtml = `
+              <div class="font-medium text-base mb-1">${countryName}</div>
+              ${countryData.description ? `<div class="mb-1">${countryData.description}</div>` : ''}
+              ${countryData.years ? `<div class="text-sm">Experience: ${countryData.years} year${countryData.years > 1 ? 's' : ''}</div>` : ''}
+              ${countryData.projects ? `
+                <div class="mt-2">
+                  <div class="text-sm font-medium">Projects:</div>
+                  <ul class="list-disc pl-4 text-xs">
+                    ${countryData.projects.map(project => `<li>${project}</li>`).join('')}
+                  </ul>
+                </div>
+              ` : ''}
+              ${!countryData.description && !countryData.years && !countryData.projects ? '<div>Visited</div>' : ''}
+            `;
+            setTooltipContent(tooltipHtml);
           }
         }}
         onMouseLeave={() => {
@@ -108,6 +119,7 @@ export function WorldMap({ className }: WorldMapProps) {
         >
           <ZoomableGroup center={[0, 0]} zoom={1}>
             <Sphere 
+              id="sphere"
               stroke={isDarkTheme ? "#4A5568" : "#CBD5E0"} 
               strokeWidth={0.5} 
               fill="transparent"
@@ -127,8 +139,8 @@ export function WorldMap({ className }: WorldMapProps) {
       </div>
       <Tooltip 
         id="world-map-tooltip"
-        html={true}
-        className="z-50 max-w-xs rounded-md bg-popover p-2 text-sm text-popover-foreground shadow-md"
+        html="true"
+        className="z-50 max-w-xs rounded-md bg-popover p-3 text-sm text-popover-foreground shadow-md"
       />
     </div>
   )

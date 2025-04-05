@@ -56,10 +56,29 @@
 
 .projectCard {
   @apply h-full flex flex-col;
+  min-height: 250px;
+}
+
+.projectTitle {
+  @apply text-lg font-semibold;
+  height: 2.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.projectDescription {
+  @apply text-sm text-muted-foreground;
+  height: 3rem;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .projectMeta {
-  @apply flex items-center justify-between mb-4;
+  @apply flex items-center gap-2 mb-1;
+  flex-wrap: wrap;
 }
 
 .projectLanguage {
@@ -70,14 +89,31 @@
   @apply text-sm text-muted-foreground;
 }
 
+.projectUpdated {
+  @apply text-xs text-muted-foreground;
+  opacity: 0.8;
+}
+
 .projectTopics {
-  @apply flex flex-wrap gap-2 mb-4;
+  @apply flex flex-wrap gap-2 mb-1;
 }
 
 .projectTopic {
-  @apply rounded-full bg-secondary px-2 py-1 text-xs text-secondary-foreground;
+  @apply text-xs px-2 py-1 rounded-full bg-primary/10 text-primary;
 }
 
 .projectButton {
-  @apply mt-auto;
+  @apply mt-1;
+  position: absolute;
+  bottom: 0.75rem;
+  left: 1rem;
+  right: 1rem;
+}
+
+.cardContent {
+  @apply relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 3rem;
 } 

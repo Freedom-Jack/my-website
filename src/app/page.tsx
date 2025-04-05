@@ -3,6 +3,7 @@
 import React, { useRef, RefObject } from 'react'
 import Link from 'next/link'
 import { WorldMap } from '@/components/sections/WorldMap'
+import { Hero } from '@/components/sections/Hero'
 import { Button } from '@/components/ui/button'
 import { Bubbles } from '@/components/animations/Bubbles'
 import styles from '@/styles/pages/home.module.css'
@@ -28,24 +29,10 @@ export default function HomePage() {
       <Bubbles />
       
       {/* Hero Section */}
-      <section className={styles.heroSection}>
-        <div className="space-y-4">
-          <h1 className={styles.heroTitle}>
-            {homeContent.hero.title}
-          </h1>
-          <p className={styles.heroDescription}>
-            {homeContent.hero.description}
-          </p>
-        </div>
-        <div className={styles.buttonGroup}>
-          <Button size="lg" asChild>
-            <Link href="/projects">{homeContent.hero.cta.primary}</Link>
-          </Button>
-          <Button variant="outline" size="lg" onClick={() => scrollToRef(aboutRef)}>
-            {homeContent.hero.cta.secondary}
-          </Button>
-        </div>
-      </section>
+      <Hero 
+        content={homeContent.hero} 
+        onSecondaryClick={() => scrollToRef(aboutRef)} 
+      />
 
       {/* About Section */}
       <section ref={aboutRef} className={styles.aboutSection}>

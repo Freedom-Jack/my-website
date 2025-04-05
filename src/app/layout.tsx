@@ -10,18 +10,18 @@ import Footer from '@/components/layout/Footer'
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
 export const metadata: Metadata = {
-  title: 'Full-Stack Developer Portfolio',
-  description: 'Personal portfolio showcasing projects and skills for FAANG applications',
-  keywords: ['developer', 'portfolio', 'react', 'next.js', 'full-stack', 'software engineer'],
-  authors: [{ name: 'Your Name' }],
-  creator: 'Your Name',
+  title: 'Qijin X - Software Development Engineer',
+  description: 'Software Development Engineer specializing in machine learning, data analysis, and AI applications.',
+  keywords: ['software development engineer', 'machine learning', 'data analysis', 'AI', 'python', 'ML algorithms', 'recommendation systems'],
+  authors: [{ name: 'Qijin X' }],
+  creator: 'Qijin X',
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://yourportfolio.com',
-    title: 'Full-Stack Developer Portfolio',
-    description: 'Personal portfolio showcasing projects and skills for FAANG applications',
-    siteName: 'Developer Portfolio',
+    url: 'https://qijinx.com',
+    title: 'Qijin X - Software Development Engineer',
+    description: 'Software Development Engineer specializing in machine learning, data analysis, and AI applications.',
+    siteName: 'Qijin X Portfolio',
   }
 }
 

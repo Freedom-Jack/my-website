@@ -31,7 +31,14 @@ export default function ProjectsPage() {
         
         // Fetch data and wait for both the fetch and minimum time
         const [response] = await Promise.all([
-          fetch('/api/github'),
+          fetch('/api/github', {
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0'
+            }
+          }),
           minimumLoadingTime
         ]);
 
@@ -133,6 +140,7 @@ export default function ProjectsPage() {
           <div>
             <h2 className={styles.sectionTitle}>{projectsContent.projects.title}</h2>
             <p className={styles.sectionDescription}>{projectsContent.projects.description}</p>
+            <p className="mt-2 text-sm text-muted-foreground">{projectsContent.projects.liveData}</p>
           </div>
           <Button asChild>
             <a href={`https://github.com/${data.user.login}`} target="_blank" rel="noopener noreferrer">
@@ -144,13 +152,20 @@ export default function ProjectsPage() {
           {data.repos.slice(0, 6).map((repo) => (
             <Card key={repo.name} className={styles.projectCard}>
               <CardHeader>
-                <CardTitle>{repo.name}</CardTitle>
-                <CardDescription>{repo.description || 'No description available'}</CardDescription>
+                <CardTitle className={styles.projectTitle}>{repo.name}</CardTitle>
+                <CardDescription className={styles.projectDescription}>
+                  {repo.description || 'No description available'}
+                </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className={styles.cardContent}>
                 <div className={styles.projectMeta}>
                   <span className={styles.projectLanguage}>{repo.language}</span>
                   <span className={styles.projectStars}>⭐ {repo.stargazers_count}</span>
+                  {repo.updated_at && (
+                    <span className={styles.projectUpdated}>
+                      Updated: {new Date(repo.updated_at).toLocaleDateString()}
+                    </span>
+                  )}
                 </div>
                 <div className={styles.projectTopics}>
                   {repo.topics.slice(0, 3).map((topic) => (
