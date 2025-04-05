@@ -139,8 +139,6 @@ export default function ProjectsPage() {
         <div className={styles.sectionHeader}>
           <div>
             <h2 className={styles.sectionTitle}>{projectsContent.projects.title}</h2>
-            <p className={styles.sectionDescription}>{projectsContent.projects.description}</p>
-            <p className="mt-2 text-sm text-muted-foreground">{projectsContent.projects.liveData}</p>
           </div>
           <Button asChild>
             <a href={`https://github.com/${data.user.login}`} target="_blank" rel="noopener noreferrer">

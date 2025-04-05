@@ -82,6 +82,18 @@
   .card-gradient {
     @apply bg-gradient-to-br from-primary/20 to-secondary/20;
   }
+
+  .prose {
+    @apply max-w-none;
+  }
+
+  .theme-transition {
+    @apply transition-colors duration-300;
+  }
+
+  .projectsGrid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+  }
 }
 
 /* Custom animations */
@@ -101,18 +113,4 @@
   100% {
     background-position: 0% 50%;
   }
-}
-
-/* Custom styles for components */
-.prose {
-  @apply max-w-none;
-}
-
-/* Transitions for theme switching */
-.theme-transition {
-  @apply transition-colors duration-300;
-}
-
-.projectsGrid {
-  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
 } 
