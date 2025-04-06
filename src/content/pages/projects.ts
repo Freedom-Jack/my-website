@@ -7,7 +7,6 @@ export interface ProjectsPageContent {
   };
   stats: {
     title: string;
-    description: string;
   };
   projects: {
     title: string;
@@ -18,11 +17,10 @@ export interface ProjectsPageContent {
 export const projectsContent: ProjectsPageContent = {
   header: {
     title: "My Projects",
-    description: "A showcase of my work in machine learning, data analysis, and software development."
+    description: "Real-time data from my GitHub profile"
   },
   stats: {
-    title: "GitHub Statistics",
-    description: "Live statistics from my GitHub profile."
+    title: "GitHub Statistics"
   },
   projects: {
     title: "Featured Projects",

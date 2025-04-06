@@ -1,71 +1,90 @@
-import React from 'react'
+import { aboutContent } from '@/content/pages/about';
+import styles from '@/styles/pages/about.module.css';
 
 export default function AboutPage() {
   return (
-    <div className="container py-12">
-      <h1 className="mb-8 text-4xl font-bold tracking-tight">About Me</h1>
-      
-      <div className="prose dark:prose-invert lg:prose-lg">
-        <p>
-          As a passionate Software Development Engineer with expertise in machine learning and AI technologies, 
-          I build intelligent systems that derive insights from data and solve complex problems.
-        </p>
-        
-        <h2>My Journey</h2>
-        <p>
-          I've been coding and working with data throughout my academic and professional career,
-          expanding my expertise to include a wide array of technologies in the machine learning and software development space.
-        </p>
-        
-        <h2>Professional Experience</h2>
-        <ul>
-          <li>
-            <strong>Amazon</strong> - Software Development Engineer Intern (2023)
-            <p>Worked on machine learning and recommendation systems for large-scale applications</p>
-          </li>
-          <li>
-            <strong>StoneX</strong> - Research Assistant (2022-2023)
-            <p>Implemented machine learning algorithms and conducted data analysis for financial applications</p>
-          </li>
-        </ul>
-        
-        <h2>Education</h2>
-        <p>
-          Master's in Information Technology and Analytics<br />
-          Rutgers University, 2023
-        </p>
-        
-        <h2>Skills</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <div>
-            <h3 className="text-lg font-semibold">Machine Learning</h3>
-            <ul>
-              <li>Deep Learning</li>
-              <li>NLP</li>
-              <li>Recommendation Systems</li>
-              <li>ML Algorithms</li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold">Data</h3>
-            <ul>
-              <li>Data Analysis</li>
-              <li>Data Pipelines</li>
-              <li>SQL/NoSQL</li>
-              <li>Big Data Processing</li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold">Tools & Technologies</h3>
-            <ul>
-              <li>Python</li>
-              <li>TensorFlow/PyTorch</li>
-              <li>Git/GitHub</li>
-              <li>Cloud Platforms</li>
-            </ul>
-          </div>
+    <div className={styles.pageContainer}>
+      {/* Header Section */}
+      <section className={styles.headerSection}>
+        <h1 className={styles.headerTitle}>{aboutContent.header.title}</h1>
+        <h2 className={styles.headerSubtitle}>{aboutContent.header.subtitle}</h2>
+        <p className={styles.headerDescription}>{aboutContent.header.description}</p>
+      </section>
+
+      {/* Bio Section */}
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>{aboutContent.sections.bio.title}</h2>
+        <div className={styles.bioContent}>
+          {aboutContent.sections.bio.content.map((paragraph, index) => (
+            <p key={index}>{paragraph}</p>
+          ))}
         </div>
-      </div>
+      </section>
+
+      {/* Skills Section */}
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>{aboutContent.sections.skills.title}</h2>
+        <div className={styles.skillsGrid}>
+          {aboutContent.sections.skills.categories.map((category, index) => (
+            <div key={index} className={styles.skillCategory}>
+              <h3 className={styles.skillCategoryTitle}>{category.title}</h3>
+              <ul className={styles.skillList}>
+                {category.items.map((skill, skillIndex) => (
+                  <li key={skillIndex} className={styles.skillItem}>
+                    {skill}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Experience Section */}
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>{aboutContent.sections.experience.title}</h2>
+        <div className={styles.experienceList}>
+          {aboutContent.sections.experience.items.map((item, index) => (
+            <div key={index} className={styles.experienceItem}>
+              <div className={styles.experienceHeader}>
+                <div>
+                  <h3 className={styles.experienceRole}>{item.role}</h3>
+                  <p className={styles.experienceCompany}>{item.company}</p>
+                </div>
+                <p className={styles.experiencePeriod}>{item.period}</p>
+              </div>
+              <ul className={styles.experienceDescription}>
+                {item.description.map((point, pointIndex) => (
+                  <li key={pointIndex}>{point}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Education Section */}
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>{aboutContent.sections.education.title}</h2>
+        <div className={styles.educationList}>
+          {aboutContent.sections.education.items.map((item, index) => (
+            <div key={index} className={styles.educationItem}>
+              <div className={styles.educationHeader}>
+                <div>
+                  <h3 className={styles.educationDegree}>{item.degree}</h3>
+                  <p className={styles.educationInstitution}>{item.institution}</p>
+                </div>
+                <p className={styles.educationPeriod}>{item.period}</p>
+              </div>
+              <ul className={styles.educationDescription}>
+                {item.description.map((point, pointIndex) => (
+                  <li key={pointIndex}>{point}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
-  )
+  );
 } 

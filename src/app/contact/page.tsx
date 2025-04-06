@@ -2,16 +2,16 @@ import React from 'react'
 import { Mail, Github, Linkedin } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { contactInfo } from '@/content/contact-info'
+import { contactContent } from '@/content/pages/contact'
 
 export default function ContactPage() {
   return (
     <div className="container py-12">
-      <h1 className="mb-8 text-4xl font-bold tracking-tight">Contact Me</h1>
+      <h1 className="mb-8 text-4xl font-bold tracking-tight">{contactContent.header.title}</h1>
       
       <div className="max-w-xl">
         <p className="mb-6 text-lg text-muted-foreground">
-          I'm always open to discussing new projects, opportunities, or collaborations.
-          Feel free to reach out through any of the channels below.
+          {contactContent.header.description}
         </p>
         
         <div className="mb-8 space-y-4">
@@ -41,12 +41,12 @@ export default function ContactPage() {
           <Button className="gap-2" asChild>
             <a href={`mailto:${contactInfo.email.address}`}>
               <Mail className="h-4 w-4" />
-              Send Email
+              {contactContent.buttons.email}
             </a>
           </Button>
           <Button variant="outline" className="gap-2" asChild>
             <a href="/QijinXu_Resume.pdf" target="_blank" rel="noopener noreferrer">
-              Download Resume
+              {contactContent.buttons.resume}
             </a>
           </Button>
         </div>

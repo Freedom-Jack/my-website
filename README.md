@@ -1,151 +1,103 @@
-# My-Website
+# Qijin Xu - Personal Portfolio
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue.svg)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-14.0-black.svg)](https://nextjs.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC.svg)](https://tailwindcss.com/)
-[![Testing](https://img.shields.io/badge/Testing-100%25-success.svg)]()
-[![Performance](https://img.shields.io/badge/Lighthouse-100-success.svg)]()
 
-A high-performance, scalable personal portfolio website engineered with enterprise-grade architecture using React 18, Next.js 14, and TypeScript. Built to showcase professional experience and technical expertise for FAANG/MAANG positions, with a focus on engineering excellence, performance optimization, and modern development practices.
+A modern, responsive portfolio website showcasing my work as a Software Development Engineer specializing in machine learning and AI. Built with Next.js 14, TypeScript, and Tailwind CSS.
 
-## Key Features for FAANG Applications
+## Features
 
-- 📱 Responsive, accessible interface with a 100/100 Lighthouse score
-- 🗺️ Interactive global experience map visualizing professional reach
-- 📊 Performance-optimized animations and transitions
-- 🔄 Server-side rendering with hydration strategies
-- 🌗 Dark/light mode with system preference detection
-- 📝 Technical writing showcase (algorithm explanations, engineering discussions)
-- 🎯 Clean, maintainable code architecture following industry best practices
-- 🔍 Comprehensive test coverage (unit, integration, E2E)
-- 🚀 CI/CD pipeline with automated deployment
-- 🔒 Best-in-class security practices
+- 🎨 Modern, responsive design with dark/light mode support
+- 🚀 Optimized performance with Next.js 14 and server components
+- 📊 Interactive GitHub statistics and project showcase
+- 🌍 Global experience visualization with interactive map
+- 🎭 Smooth animations and transitions
+- 📱 Mobile-first, responsive layout
+- 🔍 SEO optimized with metadata and semantic HTML
 
-## Architecture Overview
+## Tech Stack
 
-### Tech Stack
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript 5.3
+- **Styling**: Tailwind CSS
+- **UI Components**: Radix UI + Custom Components
+- **Animation**: Framer Motion
+- **Deployment**: Vercel
 
-| Category | Technology | Justification |
-|----------|------------|---------------|
-| Framework | Next.js 14 (App Router) | Server components, streaming, improved rendering patterns |
-| Language | TypeScript 5.3+ | Type safety, better IDE integration, reduced runtime errors |
-| Styling | Tailwind CSS | Atomic CSS approach, minimal bundle size, consistent design system |
-| State Management | Zustand | Minimal API, no boilerplate, Redux-like patterns without complexity |
-| Data Fetching | TanStack Query | Request deduplication, caching strategies, optimistic updates |
-| Components | Radix UI + Custom | Accessible primitives, performance-optimized, headless approach |
-| Testing | Jest + React Testing Library + Playwright | Unit, integration, and E2E coverage |
-| Animation | Framer Motion | Hardware-accelerated animations with minimal bundle impact |
-| Build Tools | SWC | Rust-based transpilation for faster builds than Babel |
-| Analytics | Vercel Analytics | Privacy-focused, performance monitoring, Core Web Vitals tracking |
-
-### Performance Optimizations
-
-- Server components for reduced client-side JS
-- Intelligent code splitting and lazy loading
-- Static site generation with dynamic islands
-- Optimized image loading with next/image
-- Font loading optimization with next/font
-- 100% Lighthouse score in all categories
-
-## Running the Application
+## Getting Started
 
 ### Prerequisites
 
-```
-Node.js >= 18.17.0 (LTS)
-npm >= 9.0.0
-```
+- Node.js >= 18.17.0
+- npm >= 9.0.0
 
-### Quick Start
+### Installation
 
+1. Clone the repository:
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/portfolio-platform.git
-cd portfolio-platform
+git clone https://github.com/Freedom-Jack/my-website.git
+cd my-website
+```
 
-# Install dependencies
-npm ci
+2. Install dependencies:
+```bash
+npm install
+```
 
-# Start development server
+3. Create a `.env.local` file and add your GitHub token:
+```env
+GITHUB_TOKEN=your_github_token
+GITHUB_USERNAME=your_github_username
+```
+
+4. Start the development server:
+```bash
 npm run dev
-
-# Build for production
-npm run build
-
-# Start production server
-npm start
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) to view the application.
-
-## Codebase Architecture
-
-This project follows a modular, component-based architecture with clear separation of concerns - a pattern valued at companies like Meta, Google, and Amazon:
-
-```
-/src
-├── app/                  # Next.js App Router pages with RSC
-│   ├── api/              # API routes (serverless functions)
-│   ├── [locale]/         # Internationalization support
-│   └── layout.tsx        # Root layout with metadata
-├── components/           # React components
-│   ├── ui/               # Reusable UI components (atomic)
-│   ├── layout/           # Layout components
-│   ├── sections/         # Page sections
-│   └── providers/        # Context providers
-├── lib/                  # Utility functions and hooks
-│   ├── utils/            # Helper utilities
-│   ├── hooks/            # Custom React hooks
-│   └── types/            # TypeScript type definitions
-├── styles/               # Global styles and theme config
-├── data/                 # Data models and sources
-└── config/               # Application configuration
-```
-
-## Engineering Excellence
-
-### Performance Benchmarks
-
-| Metric | Value | Target |
-|--------|-------|--------|
-| First Contentful Paint | < 0.5s | < 1.0s |
-| Largest Contentful Paint | < 1.2s | < 2.5s |
-| Cumulative Layout Shift | 0 | < 0.1 |
-| Total Blocking Time | < 150ms | < 300ms |
-| JS Bundle Size (gzipped) | < 70KB | < 100KB |
-| Lighthouse Performance | 100/100 | > 95/100 |
-| Lighthouse Accessibility | 100/100 | 100/100 |
-
-### FAANG-Level Testing Practices
-
-This project implements comprehensive testing strategies used by FAANG companies:
-
-- **Unit Tests**: For individual components and utility functions
-- **Integration Tests**: For component interactions and state management
-- **E2E Tests**: For critical user flows and regression prevention
-- **Visual Regression Tests**: For UI consistency
-- **Performance Tests**: For monitoring Core Web Vitals
-
-### Deployment & DevOps
-
-A robust CI/CD pipeline ensures continuous delivery with quality gates:
-
+5. Build for production:
 ```bash
-# Deploy to production
-npm run deploy
+npm run build
 ```
 
-The application is deployed on Vercel's edge network for optimal global performance.
+## Project Structure
 
-## Why This Project Demonstrates FAANG Readiness
+```
+src/
+├── app/                  # Next.js App Router pages
+├── components/           # React components
+│   ├── ui/              # Reusable UI components
+│   ├── layout/          # Layout components
+│   ├── sections/        # Page sections
+│   └── animations/      # Animation components
+├── content/             # Content and configuration
+├── lib/                 # Utility functions
+├── styles/              # Global styles
+└── types/               # TypeScript type definitions
+```
 
-This portfolio showcases several key competencies valued by FAANG companies:
+## Features in Detail
 
-1. **Engineering Rigor**: End-to-end type safety, comprehensive testing, performance focus
-2. **Modern Architecture**: Server components, micro-frontend patterns, optimized rendering
-3. **User Experience**: Accessibility, performance, responsive design
-4. **Best Practices**: Clean code, modular architecture, documentation
-5. **Technical Breadth**: Frontend optimization, API architecture, deployment automation
+### Performance Optimizations
+- Server-side rendering with Next.js
+- Image optimization with next/image
+- Font optimization with next/font
+- Code splitting and lazy loading
+- Minimal client-side JavaScript
+
+### Interactive Elements
+- Animated background with floating bubbles
+- Interactive world map showing global experience
+- Live GitHub statistics and project showcase
+- Smooth page transitions and hover effects
+
+### Development Features
+- TypeScript for type safety
+- ESLint and Prettier for code quality
+- Component-based architecture
+- Responsive design system
+- Dark/light mode support
 
 ## License
 

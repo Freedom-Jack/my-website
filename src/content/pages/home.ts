@@ -1,11 +1,10 @@
 export interface HomePageContent {
   hero: {
     title: string;
+    subtitle: string;
     description: string;
-    cta: {
-      primary: string;
-      secondary: string;
-    };
+    primaryCta: string;
+    secondaryCta: string;
   };
   about: {
     tag: string;
@@ -25,25 +24,24 @@ export interface HomePageContent {
 
 export const homeContent: HomePageContent = {
   hero: {
-    title: "Software Development Engineer\nSpecializing in Machine Learning & AI",
-    description: "Passionate about building intelligent systems with modern technologies. Experienced in machine learning, data engineering, and software development.",
-    cta: {
-      primary: "View My Projects",
-      secondary: "Explore More"
-    }
+    title: "Qijin Xu",
+    subtitle: "Senior Software Engineer",
+    description: "Specializing in Machine Learning & AI | Cloud Architecture | Full-Stack Development",
+    primaryCta: "View My Projects",
+    secondaryCta: "Learn More About Me"
   },
   about: {
-    tag: "About Me",
-    title: "Software Development Engineer with ML Expertise",
-    description: "I specialize in software development with a focus on machine learning and AI applications. My experience includes developing recommendation systems, implementing ML algorithms, and building data pipelines. I'm passionate about creating innovative solutions that leverage data to solve complex problems.",
-    cta: "Learn More",
+    tag: "Professional Profile",
+    title: "Driving Innovation Through Technology",
+    description: "I am a results-driven Software Engineer with expertise in machine learning, artificial intelligence, and cloud computing. With experience at leading tech companies and a strong academic background, I excel at developing scalable solutions and implementing cutting-edge technologies to solve complex problems.",
+    cta: "Explore My Background",
     profile: {
-      name: "Qijin X",
-      role: "Software Development Engineer"
+      name: "Qijin Xu",
+      role: "Senior Software Engineer"
     }
   },
   map: {
-    title: "Global Experience",
-    description: "Interactive map showcasing countries I've worked with or visited. Hover over highlighted countries to learn more."
+    title: "Global Impact",
+    description: "My work has reached users across the globe, with a focus on creating scalable, high-performance applications that deliver exceptional user experiences. From enterprise solutions to innovative AI applications, I've contributed to projects that serve millions of users worldwide."
   }
 }; 

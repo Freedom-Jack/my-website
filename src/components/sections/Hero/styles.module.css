@@ -1,0 +1,92 @@
+.heroSection {
+  @apply h-screen flex items-center justify-center relative overflow-hidden;
+  background: linear-gradient(
+    135deg,
+    hsl(var(--background)) 0%,
+    hsl(var(--muted)) 50%,
+    hsl(var(--background)) 100%
+  );
+  margin-bottom: 2rem;
+}
+
+.heroContent {
+  @apply max-w-4xl mx-auto text-center space-y-8 px-4 relative z-10;
+}
+
+.heroTitle {
+  @apply text-6xl md:text-7xl font-bold tracking-tight;
+  background: linear-gradient(90deg, 
+    hsl(var(--primary)) 0%, 
+    hsl(var(--secondary)) 50%,
+    hsl(var(--primary)) 100%);
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shine 3s ease-in-out infinite;
+  text-shadow: 0 0 20px rgba(var(--primary), 0.2);
+}
+
+.heroSubtitle {
+  @apply block text-3xl md:text-4xl mt-4;
+  color: hsl(var(--muted-foreground));
+  text-shadow: 0 0 10px rgba(var(--muted-foreground), 0.1);
+}
+
+.heroDescription {
+  @apply text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto;
+  line-height: 1.6;
+  text-shadow: 0 0 10px rgba(var(--muted-foreground), 0.1);
+}
+
+.buttonGroup {
+  @apply flex flex-col sm:flex-row gap-4 justify-center mt-12;
+}
+
+.backgroundPattern {
+  @apply absolute inset-0 opacity-20;
+  background-image: 
+    radial-gradient(circle at 25px 25px, hsl(var(--primary)) 2%, transparent 0%),
+    radial-gradient(circle at 75px 75px, hsl(var(--secondary)) 2%, transparent 0%);
+  background-size: 100px 100px;
+  animation: patternMove 20s linear infinite;
+}
+
+.heroSection::before {
+  content: '';
+  @apply absolute inset-0;
+  background: linear-gradient(
+    45deg,
+    hsl(var(--primary) / 0.1) 0%,
+    hsl(var(--secondary) / 0.1) 50%,
+    hsl(var(--primary) / 0.1) 100%
+  );
+  animation: gradientMove 10s ease infinite;
+}
+
+@keyframes shine {
+  0%, 100% {
+    background-position: 0% center;
+  }
+  50% {
+    background-position: 100% center;
+  }
+}
+
+@keyframes patternMove {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 100px 100px;
+  }
+}
+
+@keyframes gradientMove {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+} 

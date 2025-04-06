@@ -96,7 +96,6 @@ export default function ProjectsPage() {
       {/* GitHub Stats Section */}
       <section className={styles.statsSection}>
         <h2 className={styles.sectionTitle}>{projectsContent.stats.title}</h2>
-        <p className={styles.sectionDescription}>{projectsContent.stats.description}</p>
         <div className={styles.statsGrid}>
           <Card>
             <CardHeader>

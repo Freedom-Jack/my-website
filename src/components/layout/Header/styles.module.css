@@ -1,0 +1,66 @@
+.header {
+  @apply sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60;
+  border-width: 2px;
+  border-image: linear-gradient(
+    to right,
+    hsl(var(--primary)) 0%,
+    hsl(var(--secondary)) 50%,
+    hsl(var(--primary)) 100%
+  ) 1;
+}
+
+.headerContainer {
+  @apply container relative flex h-16 items-center justify-between;
+}
+
+.logo {
+  @apply text-xl font-bold tracking-tight;
+  background: linear-gradient(
+    90deg,
+    hsl(var(--primary)) 0%,
+    hsl(var(--secondary)) 50%,
+    hsl(var(--primary)) 100%
+  );
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shine 3s ease-in-out infinite;
+}
+
+.navMenu {
+  @apply absolute left-1/2 hidden -translate-x-1/2 transform md:block;
+}
+
+.navList {
+  @apply flex gap-6;
+}
+
+.navItem {
+  @apply text-sm font-medium transition-colors;
+}
+
+.navLink {
+  @apply text-muted-foreground hover:text-primary;
+}
+
+.navLinkActive {
+  @apply text-primary;
+}
+
+.mobileMenu {
+  @apply container md:hidden;
+}
+
+.mobileNav {
+  @apply flex flex-col space-y-4 py-4;
+}
+
+@keyframes shine {
+  0%, 100% {
+    background-position: 0% center;
+  }
+  50% {
+    background-position: 100% center;
+  }
+} 

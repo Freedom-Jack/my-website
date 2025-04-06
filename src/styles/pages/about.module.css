@@ -1,0 +1,167 @@
+.pageContainer {
+  @apply container mx-auto px-4 py-12 space-y-16;
+}
+
+.headerSection {
+  @apply text-center space-y-6 max-w-3xl mx-auto;
+}
+
+.headerTitle {
+  @apply text-5xl font-bold tracking-tight;
+  background: linear-gradient(90deg, 
+    hsl(var(--primary)) 0%, 
+    hsl(var(--secondary)) 50%,
+    hsl(var(--primary)) 100%);
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shine 3s ease-in-out infinite;
+}
+
+.headerSubtitle {
+  @apply text-2xl text-muted-foreground font-medium;
+}
+
+.headerDescription {
+  @apply text-lg text-muted-foreground;
+  line-height: 1.8;
+}
+
+.section {
+  @apply space-y-8;
+}
+
+.sectionTitle {
+  @apply text-3xl font-bold tracking-tight mb-8 relative inline-block;
+}
+
+.sectionTitle::after {
+  content: '';
+  @apply absolute bottom-0 left-0 w-full h-1;
+  background: linear-gradient(90deg, 
+    hsl(var(--primary)) 0%, 
+    hsl(var(--secondary)) 50%,
+    hsl(var(--primary)) 100%);
+  background-size: 200% auto;
+  animation: shine 3s ease-in-out infinite;
+}
+
+.bioContent {
+  @apply space-y-4 text-lg text-muted-foreground;
+  line-height: 1.8;
+}
+
+.skillsGrid {
+  @apply grid grid-cols-1 md:grid-cols-3 gap-8;
+}
+
+.skillCategory {
+  @apply p-6 rounded-lg border border-border;
+  background: linear-gradient(145deg, 
+    hsl(var(--background)) 0%, 
+    hsl(var(--muted)) 100%);
+  transition: transform 0.3s ease;
+}
+
+.skillCategory:hover {
+  transform: translateY(-5px);
+}
+
+.skillCategoryTitle {
+  @apply text-xl font-semibold mb-4;
+}
+
+.skillList {
+  @apply space-y-2;
+}
+
+.skillItem {
+  @apply flex items-center gap-2 text-muted-foreground;
+}
+
+.skillItem::before {
+  content: '→';
+  @apply text-primary;
+}
+
+.experienceList {
+  @apply space-y-8;
+}
+
+.experienceItem {
+  @apply p-6 rounded-lg border border-border;
+  background: linear-gradient(145deg, 
+    hsl(var(--background)) 0%, 
+    hsl(var(--muted)) 100%);
+  transition: transform 0.3s ease;
+}
+
+.experienceItem:hover {
+  transform: translateX(5px);
+}
+
+.experienceHeader {
+  @apply flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4;
+}
+
+.experienceRole {
+  @apply text-xl font-semibold;
+}
+
+.experienceCompany {
+  @apply text-primary;
+}
+
+.experiencePeriod {
+  @apply text-sm text-muted-foreground;
+}
+
+.experienceDescription {
+  @apply space-y-2 text-muted-foreground;
+}
+
+.educationList {
+  @apply space-y-8;
+}
+
+.educationItem {
+  @apply p-6 rounded-lg border border-border;
+  background: linear-gradient(145deg, 
+    hsl(var(--background)) 0%, 
+    hsl(var(--muted)) 100%);
+  transition: transform 0.3s ease;
+}
+
+.educationItem:hover {
+  transform: translateX(-5px);
+}
+
+.educationHeader {
+  @apply flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4;
+}
+
+.educationDegree {
+  @apply text-xl font-semibold;
+}
+
+.educationInstitution {
+  @apply text-primary;
+}
+
+.educationPeriod {
+  @apply text-sm text-muted-foreground;
+}
+
+.educationDescription {
+  @apply space-y-2 text-muted-foreground;
+}
+
+@keyframes shine {
+  0%, 100% {
+    background-position: 0% center;
+  }
+  50% {
+    background-position: 100% center;
+  }
+} 
