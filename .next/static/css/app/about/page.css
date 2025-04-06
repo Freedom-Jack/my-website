@@ -386,6 +386,49 @@
   color: hsl(var(--muted-foreground));
 }
 
+.about_roleKeywords__QsZJg {
+  margin-top: 0.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.about_keyword__YKBDC {
+  border-radius: 9999px;
+  background-color: hsl(var(--primary) / 0.1);
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 500;
+  color: hsl(var(--primary));
+  transition: all 0.2s ease;
+}
+
+.about_keyword__YKBDC:hover {
+  background-color: hsl(var(--primary) / 0.2);
+  transform: translateY(-1px);
+}
+
+.about_descriptionItem__LYggk {
+  color: hsl(var(--muted-foreground));
+  line-height: 1.6;
+}
+
+.about_descriptionItem__LYggk span {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+  animation-duration: 200ms;
+}
+
+.about_descriptionItem__LYggk span.primary {
+  font-weight: 600;
+  color: hsl(var(--primary));
+}
+
 @keyframes about_shine__A4xK8 {
   0%, 100% {
     background-position: 0% center;

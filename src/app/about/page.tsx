@@ -69,7 +69,16 @@ export default function AboutPage() {
                 {item.roles.map((role, roleIndex) => (
                   <div key={roleIndex} className={styles.roleItem}>
                     <div className={styles.roleHeader}>
-                      <h4 className={styles.roleTitle}>{role.title}</h4>
+                      <div>
+                        <h4 className={styles.roleTitle}>{role.title}</h4>
+                        <div className={styles.roleKeywords}>
+                          {role.keywords.map((keyword, keywordIndex) => (
+                            <span key={keywordIndex} className={styles.keyword}>
+                              {keyword}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
                       <div className={styles.rolePeriod}>
                         <span className={styles.roleDate}>{role.startDate}</span>
                         <span className={styles.roleDateSeparator}>—</span>
@@ -78,33 +87,21 @@ export default function AboutPage() {
                     </div>
                     <ul className={styles.experienceDescription}>
                       {role.description.map((point, pointIndex) => {
-                        // Keywords to highlight
-                        const keywords = [
-                          'RAG', 'Azure', 'AWS', 'ROI', 'automating', 'machine learning', 
-                          'ML', 'AI', 'cloud', 'React', 'TypeScript', 'QA', 'databases',
-                          'systems', 'frameworks', 'pipelines', 'analysis'
-                        ];
-                        
-                        // Create a regex pattern that matches any of the keywords
-                        const pattern = new RegExp(`\\b(${keywords.join('|')})\\b`, 'gi');
-                        
-                        // Split the text and wrap keywords in spans
-                        const parts = point.split(pattern);
-                        const matches = point.match(pattern) || [];
+                        // Apply highlight patterns
+                        let processedText = point;
+                        role.highlightPatterns.forEach(({ pattern }) => {
+                          const regex = new RegExp(`\\b(${pattern})\\b`, 'gi');
+                          processedText = processedText.replace(regex, (match) => {
+                            return `<span class="primary">${match}</span>`;
+                          });
+                        });
                         
                         return (
-                          <li key={pointIndex}>
-                            {parts.map((part, i) => (
-                              <React.Fragment key={i}>
-                                {part}
-                                {matches[i] && (
-                                  <span className="font-semibold text-primary">
-                                    {matches[i]}
-                                  </span>
-                                )}
-                              </React.Fragment>
-                            ))}
-                          </li>
+                          <li 
+                            key={pointIndex} 
+                            dangerouslySetInnerHTML={{ __html: processedText }}
+                            className={styles.descriptionItem}
+                          />
                         );
                       })}
                     </ul>

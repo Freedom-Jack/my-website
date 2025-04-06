@@ -200,6 +200,33 @@
   @apply space-y-1.5 text-muted-foreground;
 }
 
+.roleKeywords {
+  @apply flex flex-wrap gap-2 mt-1;
+}
+
+.keyword {
+  @apply text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium;
+  transition: all 0.2s ease;
+}
+
+.keyword:hover {
+  @apply bg-primary/20;
+  transform: translateY(-1px);
+}
+
+.descriptionItem {
+  @apply text-muted-foreground;
+  line-height: 1.6;
+}
+
+.descriptionItem :global(span) {
+  @apply transition-colors duration-200;
+}
+
+.descriptionItem :global(span.primary) {
+  @apply font-semibold text-primary;
+}
+
 @keyframes shine {
   0%, 100% {
     background-position: 0% center;

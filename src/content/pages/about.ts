@@ -25,7 +25,11 @@ export interface AboutPageContent {
           startDate: string;
           endDate: string;
           isCurrent: boolean;
+          keywords: string[];
           description: string[];
+          highlightPatterns: {
+            pattern: string;
+          }[];
         }[];
       }[];
     };
@@ -97,8 +101,14 @@ export const aboutContent: AboutPageContent = {
               startDate: "Jan 2025",
               endDate: "Present",
               isCurrent: true,
+              keywords: ["Cloud Architecture", "AI Engineering", "Insurance Tech", "Team Leadership"],
               description: [
                 "Leading enterprise cloud and AI engineering initiatives to drive transformation in the insurance sector."
+              ],
+              highlightPatterns: [
+                { pattern: "cloud" },
+                { pattern: "AI" },
+                { pattern: "insurance" }
               ]
             },
             {
@@ -106,9 +116,16 @@ export const aboutContent: AboutPageContent = {
               startDate: "Aug 2023",
               endDate: "Dec 2024",
               isCurrent: false,
+              keywords: ["RAG", "Azure", "AWS", "Multi-language Support", "Automation"],
               description: [
                 "Designed and developed a Retrieval-Augmented Generation (RAG) chatbot using Azure and AWS.",
                 "Delivered 525% ROI by automating customer service across multiple languages and regions."
+              ],
+              highlightPatterns: [
+                { pattern: "RAG" },
+                { pattern: "Azure|AWS" },
+                { pattern: "ROI" },
+                { pattern: "automating" }
               ]
             },
             {
@@ -116,9 +133,16 @@ export const aboutContent: AboutPageContent = {
               startDate: "Aug 2021",
               endDate: "Jul 2023",
               isCurrent: false,
+              keywords: ["Big Data", "Machine Learning", "Fraud Detection", "System Design"],
               description: [
                 "Managed Canada's largest automobile insurance databases and designed over 22 systems for finance and reporting.",
                 "Built a machine learning-based loss ratio score that improved fraud detection accuracy by 321%."
+              ],
+              highlightPatterns: [
+                { pattern: "databases" },
+                { pattern: "machine learning" },
+                { pattern: "fraud detection" },
+                { pattern: "321%" }
               ]
             }
           ]
@@ -131,9 +155,16 @@ export const aboutContent: AboutPageContent = {
               startDate: "Nov 2018",
               endDate: "Aug 2021",
               isCurrent: false,
+              keywords: ["Computer Vision", "ML Pipelines", "Sports Analytics", "Real-time Systems"],
               description: [
                 "Built ML pipelines for sports video analysis using PyTorch and TensorFlow.",
                 "Developed automated event detection and real-time tracking systems for hockey performance analysis."
+              ],
+              highlightPatterns: [
+                { pattern: "ML pipelines" },
+                { pattern: "PyTorch|TensorFlow" },
+                { pattern: "real-time" },
+                { pattern: "automated" }
               ]
             }
           ]
@@ -146,9 +177,15 @@ export const aboutContent: AboutPageContent = {
               startDate: "May 2019",
               endDate: "Aug 2019",
               isCurrent: false,
+              keywords: ["React", "TypeScript", "Frontend Development", "QA Automation"],
               description: [
                 "Implemented end-to-end features with React and TypeScript, and led the redesign of the company homepage.",
                 "Launched Telus product pages and built a visual regression testing framework to streamline QA."
+              ],
+              highlightPatterns: [
+                { pattern: "React|TypeScript" },
+                { pattern: "end-to-end" },
+                { pattern: "QA" }
               ]
             }
           ]

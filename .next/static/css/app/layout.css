@@ -1211,6 +1211,9 @@ video {
 .font-semibold {
   font-weight: 600;
 }
+.italic {
+  font-style: italic;
+}
 .leading-loose {
   line-height: 2;
 }
@@ -1246,6 +1249,9 @@ video {
 }
 .text-secondary-foreground {
   color: hsl(var(--secondary-foreground));
+}
+.text-secondary {
+  color: hsl(var(--secondary));
 }
 .underline {
   text-decoration-line: underline;
