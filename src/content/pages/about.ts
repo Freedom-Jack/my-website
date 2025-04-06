@@ -19,10 +19,14 @@ export interface AboutPageContent {
     experience: {
       title: string;
       items: {
-        role: string;
         company: string;
-        period: string;
-        description: string[];
+        roles: {
+          title: string;
+          startDate: string;
+          endDate: string;
+          isCurrent: boolean;
+          description: string[];
+        }[];
       }[];
     };
     education: {
@@ -30,7 +34,8 @@ export interface AboutPageContent {
       items: {
         degree: string;
         institution: string;
-        period: string;
+        startDate: string;
+        endDate: string;
         description: string[];
       }[];
     };
@@ -41,7 +46,7 @@ export const aboutContent: AboutPageContent = {
   header: {
     title: "About Me",
     subtitle: "Engineering Scalable and Intelligent Systems",
-    description: "I’m Qijin Xu, a software engineer and data architect passionate about building robust, intelligent systems. With experience spanning cloud platforms, ML pipelines, and full-stack development, I bridge engineering excellence and business impact."
+    description: "I'm Qijin Xu, a software engineer and data architect passionate about building robust, intelligent systems. With experience spanning cloud platforms, ML pipelines, and full-stack development, I bridge engineering excellence and business impact."
   },
   sections: {
     bio: {
@@ -85,47 +90,67 @@ export const aboutContent: AboutPageContent = {
       title: "Experience",
       items: [
         {
-          role: "Lead DE & SDE, Senior Consultant",
           company: "CGI",
-          period: "Jan 2025 – Present",
-          description: [
-            "Leading enterprise cloud and AI engineering initiatives to drive transformation in the insurance sector."
+          roles: [
+            {
+              title: "Lead DE & SDE, Senior Consultant",
+              startDate: "Jan 2025",
+              endDate: "Present",
+              isCurrent: true,
+              description: [
+                "Leading enterprise cloud and AI engineering initiatives to drive transformation in the insurance sector."
+              ]
+            },
+            {
+              title: "Lead DE & SDE, Consultant",
+              startDate: "Aug 2023",
+              endDate: "Dec 2024",
+              isCurrent: false,
+              description: [
+                "Designed and developed a Retrieval-Augmented Generation (RAG) chatbot using Azure and AWS.",
+                "Delivered 525% ROI by automating customer service across multiple languages and regions."
+              ]
+            },
+            {
+              title: "Data Engineer, Consultant",
+              startDate: "Aug 2021",
+              endDate: "Jul 2023",
+              isCurrent: false,
+              description: [
+                "Managed Canada's largest automobile insurance databases and designed over 22 systems for finance and reporting.",
+                "Built a machine learning-based loss ratio score that improved fraud detection accuracy by 321%."
+              ]
+            }
           ]
         },
         {
-          role: "Lead DE & SDE, Consultant",
-          company: "CGI",
-          period: "Aug 2023 – Dec 2024",
-          description: [
-            "Designed and developed a Retrieval-Augmented Generation (RAG) chatbot using Azure and AWS.",
-            "Delivered 525% ROI by automating customer service across multiple languages and regions."
-          ]
-        },
-        {
-          role: "Data Engineer, Consultant",
-          company: "CGI",
-          period: "Aug 2021 – Jul 2023",
-          description: [
-            "Managed Canada’s largest automobile insurance databases and designed over 22 systems for finance and reporting.",
-            "Built a machine learning-based loss ratio score that improved fraud detection accuracy by 321%."
-          ]
-        },
-        {
-          role: "Research Assistant",
           company: "Elder Laboratory, York University",
-          period: "Nov 2018 – Aug 2021",
-          description: [
-            "Built ML pipelines for sports video analysis using PyTorch and TensorFlow.",
-            "Developed automated event detection and real-time tracking systems for hockey performance analysis."
+          roles: [
+            {
+              title: "Research Assistant",
+              startDate: "Nov 2018",
+              endDate: "Aug 2021",
+              isCurrent: false,
+              description: [
+                "Built ML pipelines for sports video analysis using PyTorch and TensorFlow.",
+                "Developed automated event detection and real-time tracking systems for hockey performance analysis."
+              ]
+            }
           ]
         },
         {
-          role: "Full-Stack Developer Intern",
           company: "Nascent Digital",
-          period: "May 2019 – Aug 2019",
-          description: [
-            "Implemented end-to-end features with React and TypeScript, and led the redesign of the company homepage.",
-            "Launched Telus product pages and built a visual regression testing framework to streamline QA."
+          roles: [
+            {
+              title: "Full-Stack Developer Intern",
+              startDate: "May 2019",
+              endDate: "Aug 2019",
+              isCurrent: false,
+              description: [
+                "Implemented end-to-end features with React and TypeScript, and led the redesign of the company homepage.",
+                "Launched Telus product pages and built a visual regression testing framework to streamline QA."
+              ]
+            }
           ]
         }
       ]
@@ -136,7 +161,8 @@ export const aboutContent: AboutPageContent = {
         {
           degree: "B.Sc in Computer Science (Specialized Honours)",
           institution: "York University, Toronto",
-          period: "2017 – 2020",
+          startDate: "2017",
+          endDate: "2020",
           description: ["Graduated with GPA: 3.9/4.0", "First Class with Distinction"]
         }
       ]

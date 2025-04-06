@@ -24,14 +24,14 @@
 }
 
 .bubble::before {
-  background: hsl(210, 100%, 90%); /* Light blue */
-  opacity: 0.2; /* Reduced opacity */
+  background: hsl(210, 100%, 80%); /* Darker light blue */
+  opacity: 0.3; /* Increased opacity */
 }
 
 .bubble::after {
-  background: hsl(210, 100%, 85%); /* Slightly darker light blue */
-  opacity: 0.3; /* Reduced opacity */
-  box-shadow: 0 0 4vw 1vw hsl(210, 100%, 95%); /* Reduced glow */
+  background: hsl(210, 100%, 75%); /* Even darker light blue */
+  opacity: 0.4; /* Increased opacity */
+  box-shadow: 0 0 4vw 1vw hsl(210, 100%, 85%); /* Reduced glow */
   animation: 
     drift 150s ease alternate infinite,
     flash 5s ease-in-out infinite alternate;
@@ -51,12 +51,12 @@
 
 @keyframes flash {
   0% {
-    opacity: 0.2;
-    box-shadow: 0 0 1.5vw 0.4vw hsl(210, 100%, 95%);
+    opacity: 0.3;
+    box-shadow: 0 0 1.5vw 0.4vw hsl(210, 100%, 85%);
   }
   100% {
-    opacity: 0.4;
-    box-shadow: 0 0 4vw 1vw hsl(210, 100%, 95%);
+    opacity: 0.5;
+    box-shadow: 0 0 4vw 1vw hsl(210, 100%, 85%);
   }
 }
 

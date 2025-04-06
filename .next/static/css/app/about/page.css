@@ -224,6 +224,29 @@
 }
 
 .about_experienceHeader__0Kwpd {
+  margin-bottom: 1rem;
+}
+
+.about_experienceCompany__HK_MG {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 600;
+  color: hsl(var(--primary));
+}
+
+.about_rolesList__X_pDe > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(1rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(1rem * var(--tw-space-y-reverse));
+}
+
+.about_roleItem__31fPH {
+  border-left-width: 2px;
+  border-color: hsl(var(--primary) / 0.2);
+  padding-left: 1rem;
+}
+
+.about_roleHeader__chVio {
   margin-bottom: 0.5rem;
   display: flex;
   flex-direction: column;
@@ -233,26 +256,61 @@
 
 @media (min-width: 768px) {
 
-  .about_experienceHeader__0Kwpd {
+  .about_roleHeader__chVio {
     flex-direction: row;
     align-items: center;
   }
 }
 
-.about_experienceRole__oYDIS {
+.about_roleHeader__chVio {
+  min-height: 2rem;
+}
+
+.about_roleTitle__W3lCE {
+  flex: 1 1 0%;
   font-size: 1.125rem;
   line-height: 1.75rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 
-.about_experienceCompany__HK_MG {
-  color: hsl(var(--primary));
-}
-
-.about_experiencePeriod__G2uvJ {
+.about_rolePeriod__Itu6F {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  white-space: nowrap;
   font-size: 0.875rem;
   line-height: 1.25rem;
   color: hsl(var(--muted-foreground));
+}
+
+@media (min-width: 768px) {
+
+  .about_rolePeriod__Itu6F {
+    margin-left: 1rem;
+  }
+}
+
+.about_rolePeriod__Itu6F {
+  min-width: 12rem;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.about_roleDate__KBOVU {
+  display: inline-block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  min-width: 5rem;
+  text-align: center;
+  letter-spacing: -0.025em;
+}
+
+.about_roleDateSeparator__13j4D {
+  margin-left: 0.25rem;
+  margin-right: 0.25rem;
+  color: hsl(var(--muted-foreground) / 0.5);
+  width: 1.5rem;
+  text-align: center;
 }
 
 .about_experienceDescription__cpKkU > :not([hidden]) ~ :not([hidden]) {

@@ -116,19 +116,48 @@
 }
 
 .experienceHeader {
-  @apply flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2;
-}
-
-.experienceRole {
-  @apply text-lg font-semibold;
+  @apply mb-4;
 }
 
 .experienceCompany {
-  @apply text-primary;
+  @apply text-xl font-semibold text-primary;
 }
 
-.experiencePeriod {
-  @apply text-sm text-muted-foreground;
+.rolesList {
+  @apply space-y-4;
+}
+
+.roleItem {
+  @apply pl-4 border-l-2 border-primary/20;
+}
+
+.roleHeader {
+  @apply flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2;
+  min-height: 2rem;
+}
+
+.roleTitle {
+  @apply text-lg font-medium flex-1;
+}
+
+.rolePeriod {
+  @apply text-sm text-muted-foreground whitespace-nowrap md:ml-4 flex items-center justify-end gap-1;
+  min-width: 12rem;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.roleDate {
+  @apply inline-block font-mono;
+  min-width: 5rem;
+  text-align: center;
+  letter-spacing: -0.025em;
+}
+
+.roleDateSeparator {
+  @apply text-muted-foreground/50 mx-1;
+  width: 1.5rem;
+  text-align: center;
 }
 
 .experienceDescription {

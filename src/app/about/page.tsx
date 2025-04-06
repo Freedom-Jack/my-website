@@ -1,5 +1,6 @@
 import { aboutContent } from '@/content/pages/about';
 import styles from '@/styles/pages/about.module.css';
+import React from 'react';
 
 export default function AboutPage() {
   const renderSkillsList = (items: string[]) => {
@@ -62,17 +63,54 @@ export default function AboutPage() {
           {aboutContent.sections.experience.items.map((item, index) => (
             <div key={index} className={styles.experienceItem}>
               <div className={styles.experienceHeader}>
-                <div>
-                  <h3 className={styles.experienceRole}>{item.role}</h3>
-                  <p className={styles.experienceCompany}>{item.company}</p>
-                </div>
-                <p className={styles.experiencePeriod}>{item.period}</p>
+                <h3 className={styles.experienceCompany}>{item.company}</h3>
               </div>
-              <ul className={styles.experienceDescription}>
-                {item.description.map((point, pointIndex) => (
-                  <li key={pointIndex}>{point}</li>
+              <div className={styles.rolesList}>
+                {item.roles.map((role, roleIndex) => (
+                  <div key={roleIndex} className={styles.roleItem}>
+                    <div className={styles.roleHeader}>
+                      <h4 className={styles.roleTitle}>{role.title}</h4>
+                      <div className={styles.rolePeriod}>
+                        <span className={styles.roleDate}>{role.startDate}</span>
+                        <span className={styles.roleDateSeparator}>—</span>
+                        <span className={styles.roleDate}>{role.isCurrent ? "Present" : role.endDate}</span>
+                      </div>
+                    </div>
+                    <ul className={styles.experienceDescription}>
+                      {role.description.map((point, pointIndex) => {
+                        // Keywords to highlight
+                        const keywords = [
+                          'RAG', 'Azure', 'AWS', 'ROI', 'automating', 'machine learning', 
+                          'ML', 'AI', 'cloud', 'React', 'TypeScript', 'QA', 'databases',
+                          'systems', 'frameworks', 'pipelines', 'analysis'
+                        ];
+                        
+                        // Create a regex pattern that matches any of the keywords
+                        const pattern = new RegExp(`\\b(${keywords.join('|')})\\b`, 'gi');
+                        
+                        // Split the text and wrap keywords in spans
+                        const parts = point.split(pattern);
+                        const matches = point.match(pattern) || [];
+                        
+                        return (
+                          <li key={pointIndex}>
+                            {parts.map((part, i) => (
+                              <React.Fragment key={i}>
+                                {part}
+                                {matches[i] && (
+                                  <span className="font-semibold text-primary">
+                                    {matches[i]}
+                                  </span>
+                                )}
+                              </React.Fragment>
+                            ))}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           ))}
         </div>
@@ -89,7 +127,11 @@ export default function AboutPage() {
                   <h3 className={styles.educationDegree}>{item.degree}</h3>
                   <p className={styles.educationInstitution}>{item.institution}</p>
                 </div>
-                <p className={styles.educationPeriod}>{item.period}</p>
+                <div className={styles.rolePeriod}>
+                  <span className={styles.roleDate}>{item.startDate}</span>
+                  <span className={styles.roleDateSeparator}>—</span>
+                  <span className={styles.roleDate}>{item.endDate}</span>
+                </div>
               </div>
               <ul className={styles.educationDescription}>
                 {item.description.map((point, pointIndex) => (
