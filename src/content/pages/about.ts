@@ -40,105 +40,106 @@ export interface AboutPageContent {
 export const aboutContent: AboutPageContent = {
   header: {
     title: "About Me",
-    subtitle: "Crafting Digital Experiences",
-    description: "A passionate developer dedicated to creating elegant solutions to complex problems. With a keen eye for design and a love for clean code, I strive to build applications that are both beautiful and functional."
+    subtitle: "Engineering Scalable and Intelligent Systems",
+    description: "I’m Qijin Xu, a software engineer and data architect passionate about building robust, intelligent systems. With experience spanning cloud platforms, ML pipelines, and full-stack development, I bridge engineering excellence and business impact."
   },
   sections: {
     bio: {
-      title: "Who Am I?",
+      title: "Bio",
       content: [
-        "I'm a self-motivated developer with a strong passion for creating innovative digital solutions. My journey in technology began with a curiosity about how things work, which evolved into a deep love for software development.",
-        "I believe in writing clean, maintainable code and following best practices to create scalable applications. My approach combines technical expertise with creative problem-solving to deliver exceptional user experiences.",
-        "When I'm not coding, you can find me exploring new technologies, contributing to open-source projects, or sharing my knowledge with the developer community."
+        "Based in Toronto, I specialize in designing distributed systems, AI solutions, and cloud infrastructure. I'm currently a Senior Consultant at CGI, leading high-impact data and AI initiatives.",
+        "With a Computer Science degree from York University and certifications like Azure Solutions Architect Expert and PMP, I bring both technical depth and project leadership to the table.",
+        "Outside of work, I enjoy diving into new technologies, mentoring, and contributing to open-source projects."
       ]
     },
     skills: {
-      title: "Technical Expertise",
+      title: "Skills",
       categories: [
         {
-          title: "Frontend Development",
-          items: [
-            "React.js",
-            "Next.js",
-            "TypeScript",
-            "Tailwind CSS",
-            "HTML5/CSS3",
-            "Responsive Design"
-          ]
+          title: "Desgin & Architecture",
+          items: ["Microservices", "Distributed Systems", "Event-driven Architecture"]
         },
         {
-          title: "Backend Development",
-          items: [
-            "Node.js",
-            "Express",
-            "RESTful APIs",
-            "GraphQL",
-            "Database Design",
-            "Authentication"
-          ]
+          title: "Programming Languages",
+          items: ["Python", "Go", "Java", "C", "C#"]
         },
         {
-          title: "Tools & Technologies",
-          items: [
-            "Git & GitHub",
-            "Docker",
-            "CI/CD",
-            "Testing",
-            "Cloud Services",
-            "DevOps"
-          ]
+          title: "Databases & Big Data",
+          items: ["MySQL", "PostgreSQL", "SQL Server", "Kafka", "Apache Spark", "MapReduce", "Hive", "BigQuery"]
+        },
+        {
+          title: "Machine Learning",
+          items: ["PyTorch", "TensorFlow"]
+        },
+        {
+          title: "DevOps & Cloud",
+          items: ["Docker", "Kubernetes", "Jenkins", "Azure Pipelines", "GitHub Actions", "Azure", "AWS", "GCP"]
+        },
+        {
+          title: "Infrastructure as Code",
+          items: ["Terraform", "Bicep", "Azure Resource Manager", "AWS CloudFormation"]
         }
       ]
     },
     experience: {
-      title: "Professional Journey",
+      title: "Experience",
       items: [
         {
-          role: "Senior Software Engineer",
-          company: "Tech Innovations Inc.",
-          period: "2020 - Present",
+          role: "Lead DE & SDE, Senior Consultant",
+          company: "CGI",
+          period: "Jan 2025 – Present",
           description: [
-            "Led the development of multiple high-traffic web applications",
-            "Implemented modern development practices and CI/CD pipelines",
-            "Mentored junior developers and conducted code reviews"
+            "Leading enterprise cloud and AI engineering initiatives to drive transformation in the insurance sector."
           ]
         },
         {
-          role: "Software Developer",
-          company: "Digital Solutions Ltd.",
-          period: "2018 - 2020",
+          role: "Lead DE & SDE, Consultant",
+          company: "CGI",
+          period: "Aug 2023 – Dec 2024",
           description: [
-            "Developed and maintained enterprise-level applications",
-            "Collaborated with cross-functional teams on complex projects",
-            "Optimized application performance and user experience"
+            "Designed and developed a Retrieval-Augmented Generation (RAG) chatbot using Azure and AWS.",
+            "Delivered 525% ROI by automating customer service across multiple languages and regions."
+          ]
+        },
+        {
+          role: "Data Engineer, Consultant",
+          company: "CGI",
+          period: "Aug 2021 – Jul 2023",
+          description: [
+            "Managed Canada’s largest automobile insurance databases and designed over 22 systems for finance and reporting.",
+            "Built a machine learning-based loss ratio score that improved fraud detection accuracy by 321%."
+          ]
+        },
+        {
+          role: "Research Assistant",
+          company: "Elder Laboratory, York University",
+          period: "Nov 2018 – Aug 2021",
+          description: [
+            "Built ML pipelines for sports video analysis using PyTorch and TensorFlow.",
+            "Developed automated event detection and real-time tracking systems for hockey performance analysis."
+          ]
+        },
+        {
+          role: "Full-Stack Developer Intern",
+          company: "Nascent Digital",
+          period: "May 2019 – Aug 2019",
+          description: [
+            "Implemented end-to-end features with React and TypeScript, and led the redesign of the company homepage.",
+            "Launched Telus product pages and built a visual regression testing framework to streamline QA."
           ]
         }
       ]
     },
     education: {
-      title: "Academic Background",
+      title: "Education",
       items: [
         {
-          degree: "Master of Science in Computer Science",
-          institution: "Tech University",
-          period: "2016 - 2018",
-          description: [
-            "Specialized in Software Engineering",
-            "Graduated with honors",
-            "Published research on AI applications"
-          ]
-        },
-        {
-          degree: "Bachelor of Science in Computer Science",
-          institution: "State University",
-          period: "2012 - 2016",
-          description: [
-            "Major in Software Development",
-            "Minor in Mathematics",
-            "Dean's List recipient"
-          ]
+          degree: "B.Sc in Computer Science (Specialized Honours)",
+          institution: "York University, Toronto",
+          period: "2017 – 2020",
+          description: ["Graduated with GPA: 3.9/4.0", "First Class with Distinction"]
         }
       ]
     }
   }
-}; 
+};

@@ -1,13 +1,13 @@
 .pageContainer {
-  @apply container mx-auto px-4 py-12 space-y-16;
+  @apply container mx-auto px-4 py-8 space-y-8;
 }
 
 .headerSection {
-  @apply text-center space-y-6 max-w-3xl mx-auto;
+  @apply text-center space-y-4 max-w-3xl mx-auto;
 }
 
 .headerTitle {
-  @apply text-5xl font-bold tracking-tight;
+  @apply text-4xl font-bold tracking-tight;
   background: linear-gradient(90deg, 
     hsl(var(--primary)) 0%, 
     hsl(var(--secondary)) 50%,
@@ -20,20 +20,20 @@
 }
 
 .headerSubtitle {
-  @apply text-2xl text-muted-foreground font-medium;
+  @apply text-xl text-muted-foreground font-medium;
 }
 
 .headerDescription {
-  @apply text-lg text-muted-foreground;
-  line-height: 1.8;
+  @apply text-base text-muted-foreground;
+  line-height: 1.6;
 }
 
 .section {
-  @apply space-y-8;
+  @apply space-y-6;
 }
 
 .sectionTitle {
-  @apply text-3xl font-bold tracking-tight mb-8 relative inline-block;
+  @apply text-2xl font-bold tracking-tight mb-0 relative inline-block;
 }
 
 .sectionTitle::after {
@@ -48,16 +48,16 @@
 }
 
 .bioContent {
-  @apply space-y-4 text-lg text-muted-foreground;
-  line-height: 1.8;
+  @apply space-y-3 text-base text-muted-foreground;
+  line-height: 1.6;
 }
 
 .skillsGrid {
-  @apply grid grid-cols-1 md:grid-cols-3 gap-8;
+  @apply grid grid-cols-1 md:grid-cols-3 gap-6;
 }
 
 .skillCategory {
-  @apply p-6 rounded-lg border border-border;
+  @apply p-4 rounded-lg border border-border;
   background: linear-gradient(145deg, 
     hsl(var(--background)) 0%, 
     hsl(var(--muted)) 100%);
@@ -69,28 +69,42 @@
 }
 
 .skillCategoryTitle {
-  @apply text-xl font-semibold mb-4;
+  @apply text-lg font-semibold mb-4 relative text-primary;
+}
+
+.skillCategoryTitle::after {
+  content: '';
+  @apply absolute -bottom-1 left-0 w-10 h-1;
+  background: linear-gradient(90deg, 
+    hsl(var(--primary)) 0%, 
+    hsl(var(--secondary)) 100%);
+}
+
+.skillColumns {
+  @apply grid gap-x-6;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 }
 
 .skillList {
-  @apply space-y-2;
+  @apply grid grid-cols-1 gap-1.5;
 }
 
 .skillItem {
-  @apply flex items-center gap-2 text-muted-foreground;
+  @apply flex items-start gap-2 text-muted-foreground;
+  min-height: 1.75rem;
 }
 
 .skillItem::before {
   content: '→';
-  @apply text-primary;
+  @apply text-primary w-4 text-center mt-0.5;
 }
 
 .experienceList {
-  @apply space-y-8;
+  @apply space-y-6;
 }
 
 .experienceItem {
-  @apply p-6 rounded-lg border border-border;
+  @apply p-4 rounded-lg border border-border;
   background: linear-gradient(145deg, 
     hsl(var(--background)) 0%, 
     hsl(var(--muted)) 100%);
@@ -102,11 +116,11 @@
 }
 
 .experienceHeader {
-  @apply flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4;
+  @apply flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2;
 }
 
 .experienceRole {
-  @apply text-xl font-semibold;
+  @apply text-lg font-semibold;
 }
 
 .experienceCompany {
@@ -118,15 +132,15 @@
 }
 
 .experienceDescription {
-  @apply space-y-2 text-muted-foreground;
+  @apply space-y-1.5 text-muted-foreground;
 }
 
 .educationList {
-  @apply space-y-8;
+  @apply space-y-6;
 }
 
 .educationItem {
-  @apply p-6 rounded-lg border border-border;
+  @apply p-4 rounded-lg border border-border;
   background: linear-gradient(145deg, 
     hsl(var(--background)) 0%, 
     hsl(var(--muted)) 100%);
@@ -138,11 +152,11 @@
 }
 
 .educationHeader {
-  @apply flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4;
+  @apply flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2;
 }
 
 .educationDegree {
-  @apply text-xl font-semibold;
+  @apply text-lg font-semibold;
 }
 
 .educationInstitution {
@@ -154,7 +168,7 @@
 }
 
 .educationDescription {
-  @apply space-y-2 text-muted-foreground;
+  @apply space-y-1.5 text-muted-foreground;
 }
 
 @keyframes shine {

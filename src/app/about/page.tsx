@@ -2,6 +2,27 @@ import { aboutContent } from '@/content/pages/about';
 import styles from '@/styles/pages/about.module.css';
 
 export default function AboutPage() {
+  const renderSkillsList = (items: string[]) => {
+    const maxItemsPerColumn = 5;
+    const columns = Math.ceil(items.length / maxItemsPerColumn);
+    
+    return (
+      <div className={styles.skillColumns}>
+        {Array.from({ length: columns }).map((_, columnIndex) => (
+          <ul key={columnIndex} className={styles.skillList}>
+            {items
+              .slice(columnIndex * maxItemsPerColumn, (columnIndex + 1) * maxItemsPerColumn)
+              .map((skill, skillIndex) => (
+                <li key={skillIndex} className={styles.skillItem}>
+                  {skill}
+                </li>
+              ))}
+          </ul>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className={styles.pageContainer}>
       {/* Header Section */}
@@ -28,13 +49,7 @@ export default function AboutPage() {
           {aboutContent.sections.skills.categories.map((category, index) => (
             <div key={index} className={styles.skillCategory}>
               <h3 className={styles.skillCategoryTitle}>{category.title}</h3>
-              <ul className={styles.skillList}>
-                {category.items.map((skill, skillIndex) => (
-                  <li key={skillIndex} className={styles.skillItem}>
-                    {skill}
-                  </li>
-                ))}
-              </ul>
+              {renderSkillsList(category.items)}
             </div>
           ))}
         </div>
