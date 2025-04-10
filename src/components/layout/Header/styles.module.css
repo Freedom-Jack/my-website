@@ -1,12 +1,14 @@
 .header {
-  @apply sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60;
-  border-width: 2px;
-  border-image: linear-gradient(
-    to right,
-    hsl(var(--primary)) 0%,
-    hsl(var(--secondary)) 50%,
-    hsl(var(--primary)) 100%
-  ) 1;
+  @apply sticky top-0 z-50 w-full backdrop-blur supports-[backdrop-filter]:bg-background/60;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+}
+
+:global(.light) .header {
+  background-color: hsl(0, 0%, 98%);
+}
+
+:global(.dark) .header {
+  background-color: hsl(0, 0%, 12%);
 }
 
 .headerContainer {
@@ -41,11 +43,46 @@
 }
 
 .navLink {
-  @apply text-muted-foreground hover:text-primary;
+  @apply text-foreground hover:text-primary transition-colors duration-200;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  background-color: hsl(var(--background));
+}
+
+.navLink:hover {
+  @apply bg-primary/20;
 }
 
 .navLinkActive {
-  @apply text-primary;
+  @apply text-primary bg-primary/20;
+}
+
+:global(.dark) .navLink {
+  background-color: hsl(210, 40%, 96%);
+  color: hsl(222.2, 84%, 4.9%);
+}
+
+:global(.dark) .navLink:hover {
+  background-color: hsl(210, 40%, 90%);
+}
+
+:global(.dark) .navLinkActive {
+  background-color: hsl(210, 40%, 90%);
+  color: hsl(222.2, 84%, 4.9%);
+}
+
+:global(.dark) .mobileNav .navLink {
+  background-color: hsl(210, 40%, 96%);
+  color: hsl(222.2, 84%, 4.9%);
+}
+
+:global(.dark) .mobileNav .navLink:hover {
+  background-color: hsl(210, 40%, 90%);
+}
+
+:global(.dark) .mobileNav .navLinkActive {
+  background-color: hsl(210, 40%, 90%);
+  color: hsl(222.2, 84%, 4.9%);
 }
 
 .mobileMenu {
@@ -54,6 +91,21 @@
 
 .mobileNav {
   @apply flex flex-col space-y-4 py-4;
+}
+
+.mobileNav .navLink {
+  @apply text-foreground hover:text-primary transition-colors duration-200;
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
+  background-color: hsl(var(--background));
+}
+
+.mobileNav .navLink:hover {
+  @apply bg-primary/20;
+}
+
+.mobileNav .navLinkActive {
+  @apply text-primary bg-primary/20;
 }
 
 @keyframes shine {

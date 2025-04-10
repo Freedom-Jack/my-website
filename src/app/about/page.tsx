@@ -50,7 +50,24 @@ export default function AboutPage() {
           {aboutContent.sections.skills.categories.map((category, index) => (
             <div key={index} className={styles.skillCategory}>
               <h3 className={styles.skillCategoryTitle}>{category.title}</h3>
-              {renderSkillsList(category.items)}
+              <div className={styles.skillColumns + (category.items.length > 5 ? ` ${styles.hasTwoColumns}` : '')}>
+                <div className={styles.skillList}>
+                  {category.items.slice(0, 5).map((skill, index) => (
+                    <div key={index} className={styles.skillItem}>
+                      {skill}
+                    </div>
+                  ))}
+                </div>
+                {category.items.length > 5 && (
+                  <div className={styles.skillList}>
+                    {category.items.slice(5).map((skill, index) => (
+                      <div key={index} className={styles.skillItem}>
+                        {skill}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>

@@ -53,23 +53,31 @@
 }
 
 .skillsGrid {
-  @apply grid grid-cols-1 md:grid-cols-3 gap-6;
+  @apply grid grid-cols-1 md:grid-cols-3 gap-4;
 }
 
 .skillCategory {
-  @apply p-4 rounded-lg border border-border;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
   background: linear-gradient(145deg, 
     hsl(var(--background)) 0%, 
     hsl(var(--muted)) 100%);
-  transition: transform 0.3s ease;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+  align-items: flex-start;
 }
 
 .skillCategory:hover {
-  transform: translateY(-5px);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-color: var(--primary-color);
 }
 
 .skillCategoryTitle {
-  @apply text-lg font-semibold mb-4 relative text-primary;
+  @apply text-lg font-semibold mb-2 relative text-primary;
 }
 
 .skillCategoryTitle::after {
@@ -81,22 +89,39 @@
 }
 
 .skillColumns {
-  @apply grid gap-x-6;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.skillColumns.hasTwoColumns {
+  grid-template-columns: repeat(2, 1fr);
 }
 
 .skillList {
-  @apply grid grid-cols-1 gap-1.5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  max-height: 7.5rem; /* 5 items * 1.5rem (item height) */
+  overflow: hidden;
 }
 
 .skillItem {
-  @apply flex items-start gap-2 text-muted-foreground;
-  min-height: 1.75rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.375rem;
+  min-height: 1.5rem;
+  color: var(--muted-foreground);
+  font-size: 0.9375rem;
 }
 
 .skillItem::before {
   content: '→';
-  @apply text-primary w-4 text-center mt-0.5;
+  color: var(--primary);
+  width: 1rem;
+  text-align: center;
+  margin-top: 0.25rem;
 }
 
 .experienceList {

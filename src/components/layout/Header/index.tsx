@@ -22,24 +22,26 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   
   return (
-    <header className={styles.header}>
-      <div className={styles.headerContainer}>
+    <header className="sticky top-0 z-50 w-full shadow-sm bg-[hsl(var(--header-bg))]">
+      <div className="container relative flex h-16 items-center justify-between">
         <Link href="/" className={styles.logo}>
           Qijin Xu
         </Link>
         
         {/* Desktop Navigation - Centered */}
-        <NavigationMenu className={styles.navMenu}>
-          <NavigationMenuList className={styles.navList}>
+        <NavigationMenu className="absolute left-1/2 hidden -translate-x-1/2 transform md:block">
+          <NavigationMenuList className="flex gap-6">
             {navItems.map((item) => (
-              <NavigationMenuItem key={item.path} className={styles.navItem}>
+              <NavigationMenuItem key={item.path} className="text-sm font-medium transition-colors">
                 <Link 
                   href={item.path}
                   legacyBehavior
                   passHref
                 >
                   <NavigationMenuLink
-                    className={`${styles.navLink} ${pathname === item.path ? styles.navLinkActive : ''}`}
+                    className={`px-4 py-2 rounded-md transition-colors duration-200
+                      bg-[hsl(var(--header-nav-bg))] hover:bg-[hsl(var(--header-nav-hover))]
+                      ${pathname === item.path ? 'text-primary dark:text-[hsl(210,40%,90%)] bg-[hsl(var(--header-nav-hover))]' : 'text-foreground dark:text-[hsl(210,40%,90%)]'}`}
                   >
                     {item.name}
                   </NavigationMenuLink>
@@ -52,11 +54,27 @@ export default function Header() {
         <div className="flex items-center gap-4">
           <ThemeToggle />
           
+          <Button 
+            variant="default" 
+            size="sm"
+            className="bg-primary hover:bg-primary/90"
+            asChild
+          >
+            <a 
+              href="/QijinXu_Resume.pdf" 
+              download="QijinXu_Resume.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Download Resume
+            </a>
+          </Button>
+          
           {/* Mobile Menu Toggle */}
           <Button 
             variant="ghost" 
             size="icon" 
-            className="md:hidden" 
+            className="md:hidden hover:bg-primary/10" 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -66,13 +84,15 @@ export default function Header() {
       
       {/* Mobile Navigation */}
       {mobileMenuOpen && (
-        <div className={styles.mobileMenu}>
-          <nav className={styles.mobileNav}>
+        <div className="container md:hidden">
+          <nav className="flex flex-col space-y-4 py-4">
             {navItems.map((item) => (
               <Link 
                 key={item.path} 
                 href={item.path}
-                className={`${styles.navLink} ${pathname === item.path ? styles.navLinkActive : ''}`}
+                className={`px-4 py-3 rounded-md transition-colors duration-200
+                  bg-[hsl(var(--header-nav-bg))] hover:bg-[hsl(var(--header-nav-hover))]
+                  ${pathname === item.path ? 'text-primary dark:text-[hsl(210,40%,90%)] bg-[hsl(var(--header-nav-hover))]' : 'text-foreground dark:text-[hsl(210,40%,90%)]'}`}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item.name}
