@@ -43,6 +43,15 @@ export interface AboutPageContent {
         description: string[];
       }[];
     };
+    certificates: {
+      title: string;
+      items: {
+        name: string;
+        issuer: string;
+        date: string;
+        credentialId?: string;
+      }[];
+    };
   };
 }
 
@@ -65,28 +74,67 @@ export const aboutContent: AboutPageContent = {
       title: "Skills",
       categories: [
         {
-          title: "Desgin & Architecture",
-          items: ["Microservices", "Distributed Systems", "Event-driven Architecture"]
+          title: "AI & LLM Engineering",
+          items: [
+            "Large Language Models (LLM)",
+            "Retrieval-Augmented Generation (RAG)",
+            "AI Agents",
+            "Chain of Thought Reasoning",
+            "Prompt Engineering",
+            "OpenAI / HuggingFace / LangChain",
+            "Transformers",
+            "LoRA Fine-tuning"
+          ]
+        },
+        {
+          title: "Backend & System Design",
+          items: [
+            "Distributed Systems",
+            "Microservices",
+            "API Design (REST & GraphQL)",
+            "Database Design (SQL & NoSQL)",
+            "Event-driven Architecture",
+            "Message Queues (Kafka, RabbitMQ)"
+          ]
+        },
+        {
+          title: "Cloud & DevOps",
+          items: [
+            "Docker & Kubernetes",
+            "AWS (Lambda, S3, ECS)",
+            "Azure Functions",
+            "Terraform",
+            "CI/CD (GitHub Actions, Azure DevOps)"
+          ]
         },
         {
           title: "Programming Languages",
-          items: ["Python", "Go", "Java", "C", "C#"]
+          items: [
+            "Python",
+            "TypeScript",
+            "Go",
+            "Java"
+          ]
         },
         {
-          title: "Databases & Big Data",
-          items: ["MySQL", "PostgreSQL", "SQL Server", "Kafka", "Apache Spark", "MapReduce", "Hive", "BigQuery"]
+          title: "Data & ML Infrastructure",
+          items: [
+            "Vector Databases (Pinecone, Weaviate)",
+            "Embedding Models (OpenAI, Cohere)",
+            "ML Pipelines (Airflow, MLflow)",
+            "Data Warehousing (BigQuery, Snowflake)"
+          ]
         },
         {
-          title: "Machine Learning",
-          items: ["PyTorch", "TensorFlow"]
-        },
-        {
-          title: "DevOps & Cloud",
-          items: ["Docker", "Kubernetes", "Jenkins", "Azure Pipelines", "GitHub Actions", "Azure", "AWS", "GCP"]
-        },
-        {
-          title: "Infrastructure as Code",
-          items: ["Terraform", "Bicep", "Azure Resource Manager", "AWS CloudFormation"]
+          title: "Full-Stack Development",
+          items: [
+            "React / Next.js",
+            "Node.js",
+            "Tailwind CSS",
+            "tRPC",
+            "Vercel",
+            "Auth0"
+          ]
         }
       ]
     },
@@ -201,6 +249,23 @@ export const aboutContent: AboutPageContent = {
           startDate: "2017",
           endDate: "2020",
           description: ["Graduated with GPA: 3.9/4.0", "First Class with Distinction"]
+        }
+      ]
+    },
+    certificates: {
+      title: "Certifications",
+      items: [
+        {
+          name: "Microsoft Certified: Azure Administrator Associate",
+          issuer: "Microsoft",
+          date: "2023",
+          credentialId: "1234567890"
+        },
+        {
+          name: "Project Management Professional (PMP)",
+          issuer: "Project Management Institute",
+          date: "2022",
+          credentialId: "0987654321"
         }
       ]
     }

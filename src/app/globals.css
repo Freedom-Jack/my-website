@@ -28,9 +28,9 @@
     --ring: 221.2 83.2% 53.3%;
     --radius: 0.5rem;
     /* Header specific colors */
-    --header-bg: 0 0% 85%;
-    --header-nav-bg: 0 0% 90%;
-    --header-nav-hover: 0 0% 95%;
+    --header-bg: 0 0% 93%;
+    --header-nav-bg: 0 0% 95%;
+    --header-nav-hover: 0 0% 98%;
   }
 
   .dark {

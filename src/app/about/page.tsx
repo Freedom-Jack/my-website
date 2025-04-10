@@ -156,6 +156,23 @@ export default function AboutPage() {
           ))}
         </div>
       </section>
+
+      {/* Certificates Section */}
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>{aboutContent.sections.certificates.title}</h2>
+        <div className={styles.certificatesList}>
+          {aboutContent.sections.certificates.items.map((cert, index) => (
+            <div key={index} className={styles.certificateItem}>
+              <h3 className={styles.certificateName}>{cert.name}</h3>
+              <p className={styles.certificateIssuer}>{cert.issuer}</p>
+              <p className={styles.certificateDate}>Issued: {cert.date}</p>
+              {cert.credentialId && (
+                <p className={styles.certificateId}>ID: {cert.credentialId}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 } 
