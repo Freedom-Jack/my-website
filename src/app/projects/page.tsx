@@ -138,12 +138,21 @@ export default function ProjectsPage() {
         <div className={styles.projectsGrid}>
           {data.repos.slice(0, 6).map((repo) => (
             <div key={repo.name} className={styles.projectCard}>
-              <h3 className={styles.projectTitle}>{repo.name}</h3>
-              <p className={styles.projectDescription}>
-                {repo.description || 'No description available'}
-              </p>
+              <div>
+                <h3 className={styles.projectTitle}>{repo.name}</h3>
+                <p className={styles.projectDescription}>
+                  {repo.description || 'No description available'}
+                </p>
+              </div>
               <div className={styles.cardContent}>
                 <div>
+                  <div className={styles.projectTopics}>
+                    {repo.topics.slice(0, 3).map((topic) => (
+                      <span key={topic} className={styles.projectTopic}>
+                        {topic}
+                      </span>
+                    ))}
+                  </div>
                   <div className={styles.projectMeta}>
                     {repo.language && <span className={styles.projectLanguage}>{repo.language}</span>}
                     <span className={styles.projectStars}>⭐ {repo.stargazers_count}</span>
@@ -152,13 +161,6 @@ export default function ProjectsPage() {
                         Updated: {new Date(repo.updated_at).toLocaleDateString()}
                       </span>
                     )}
-                  </div>
-                  <div className={styles.projectTopics}>
-                    {repo.topics.slice(0, 3).map((topic) => (
-                      <span key={topic} className={styles.projectTopic}>
-                        {topic}
-                      </span>
-                    ))}
                   </div>
                 </div>
                 <Button asChild className={styles.projectButton}>

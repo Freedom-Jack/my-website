@@ -122,6 +122,7 @@
   height: 100%;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
 }
 
 .projectCard::before {
@@ -146,7 +147,7 @@
 }
 
 .projectTitle {
-  @apply text-xl font-bold tracking-tight;
+  @apply text-xl font-bold tracking-tight mb-2;
   background: linear-gradient(90deg, 
     hsl(var(--primary)) 0%, 
     hsl(var(--secondary)) 50%,
@@ -162,10 +163,11 @@
 .projectDescription {
   @apply text-muted-foreground leading-relaxed;
   line-height: 1.6;
+  min-height: 3rem; /* Ensure consistent height */
 }
 
 .projectMeta {
-  @apply flex flex-wrap gap-2 mt-2 mb-4;
+  @apply flex flex-wrap gap-2 mb-2;
 }
 
 .projectLanguage {
@@ -181,7 +183,7 @@
 }
 
 .projectTopics {
-  @apply flex flex-wrap gap-1 mt-2 mb-4;
+  @apply flex flex-wrap gap-1 mb-2;
 }
 
 .projectTopic {
@@ -189,12 +191,13 @@
 }
 
 .cardContent {
-  @apply flex flex-col flex-grow;
-  justify-content: space-between;
+  @apply flex flex-col;
+  gap: 1rem;
+  margin-top: 1.5rem;
 }
 
 .projectButton {
-  @apply mt-auto;
+  width: 100%;
 }
 
 .languageTags {
