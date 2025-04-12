@@ -8,6 +8,92 @@ import type { GitHubRepo, GitHubUser } from '@/lib/github'
 import styles from '@/styles/pages/projects.module.css'
 import aboutStyles from '@/styles/pages/about.module.css'
 import PageHeader from '@/components/page-header'
+import dynamic from 'next/dynamic'
+
+// Use dynamic import with no SSR to prevent hydration issues
+const DynamicProjects = dynamic(() => Promise.resolve(({ data }: { data: GitHubData }) => (
+  <>
+    {/* GitHub Stats Section */}
+    <section className={aboutStyles.section}>
+      <h2 className={aboutStyles.sectionTitle}>{projectsContent.stats.title}</h2>
+      <div className={styles.statsGrid}>
+        <div className={styles.statCard}>
+          <h3 className={styles.statTitle}>Total Repositories</h3>
+          <p className={styles.statDescription}>Public repositories on GitHub</p>
+          <p className={styles.statNumber}>{data.stats.totalRepos}</p>
+        </div>
+        
+        <div className={styles.statCard}>
+          <h3 className={styles.statTitle}>Total Stars</h3>
+          <p className={styles.statDescription}>Stars received across all repositories</p>
+          <p className={styles.statNumber}>{data.stats.totalStars}</p>
+        </div>
+        
+        <div className={styles.statCard}>
+          <h3 className={styles.statTitle}>Languages</h3>
+          <p className={styles.statDescription}>Programming languages used</p>
+          <div className={styles.languageTags}>
+            {data.stats.languages.map((lang) => (
+              <span key={lang} className={styles.languageTag}>
+                {lang}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* Projects Section */}
+    <section className={aboutStyles.section}>
+      <h2 className={aboutStyles.sectionTitle}>{projectsContent.projects.title}</h2>
+      <div className={styles.sectionHeader}>
+        <div></div>
+        <Button asChild>
+          <a href={`https://github.com/${data.user.login}`} target="_blank" rel="noopener noreferrer">
+            {projectsContent.projects.viewAll}
+          </a>
+        </Button>
+      </div>
+      <div className={styles.projectsGrid}>
+        {data.repos.slice(0, 6).map((repo) => (
+          <div key={repo.name} className={styles.projectCard}>
+            <div>
+              <h3 className={styles.projectTitle}>{repo.name}</h3>
+              <p className={styles.projectDescription}>
+                {repo.description || 'No description available'}
+              </p>
+            </div>
+            <div className={styles.cardContent}>
+              <div>
+                <div className={styles.projectTopics}>
+                  {repo.topics.slice(0, 3).map((topic) => (
+                    <span key={topic} className={styles.projectTopic}>
+                      {topic}
+                    </span>
+                  ))}
+                </div>
+                <div className={styles.projectMeta}>
+                  {repo.language && <span className={styles.projectLanguage}>{repo.language}</span>}
+                  <span className={styles.projectStars}>⭐ {repo.stargazers_count}</span>
+                  {repo.updated_at && (
+                    <span className={styles.projectUpdated}>
+                      Updated: {new Date(repo.updated_at).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <Button asChild className={styles.projectButton}>
+                <a href={repo.html_url} target="_blank" rel="noopener noreferrer">
+                  View Repository
+                </a>
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  </>
+)), { ssr: false })
 
 interface GitHubData {
   user: GitHubUser;
@@ -93,86 +179,7 @@ export default function ProjectsPage() {
         subtitle="Code, Contributions, and Collaborations"
         description={projectsContent.header.description}
       />
-
-      {/* GitHub Stats Section */}
-      <section className={aboutStyles.section}>
-        <h2 className={aboutStyles.sectionTitle}>{projectsContent.stats.title}</h2>
-        <div className={styles.statsGrid}>
-          <div className={styles.statCard}>
-            <h3 className={styles.statTitle}>Total Repositories</h3>
-            <p className={styles.statDescription}>Public repositories on GitHub</p>
-            <p className={styles.statNumber}>{data.stats.totalRepos}</p>
-          </div>
-          
-          <div className={styles.statCard}>
-            <h3 className={styles.statTitle}>Total Stars</h3>
-            <p className={styles.statDescription}>Stars received across all repositories</p>
-            <p className={styles.statNumber}>{data.stats.totalStars}</p>
-          </div>
-          
-          <div className={styles.statCard}>
-            <h3 className={styles.statTitle}>Languages</h3>
-            <p className={styles.statDescription}>Programming languages used</p>
-            <div className={styles.languageTags}>
-              {data.stats.languages.map((lang) => (
-                <span key={lang} className={styles.languageTag}>
-                  {lang}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Projects Section */}
-      <section className={aboutStyles.section}>
-        <h2 className={aboutStyles.sectionTitle}>{projectsContent.projects.title}</h2>
-        <div className={styles.sectionHeader}>
-          <div></div>
-          <Button asChild>
-            <a href={`https://github.com/${data.user.login}`} target="_blank" rel="noopener noreferrer">
-              {projectsContent.projects.viewAll}
-            </a>
-          </Button>
-        </div>
-        <div className={styles.projectsGrid}>
-          {data.repos.slice(0, 6).map((repo) => (
-            <div key={repo.name} className={styles.projectCard}>
-              <div>
-                <h3 className={styles.projectTitle}>{repo.name}</h3>
-                <p className={styles.projectDescription}>
-                  {repo.description || 'No description available'}
-                </p>
-              </div>
-              <div className={styles.cardContent}>
-                <div>
-                  <div className={styles.projectTopics}>
-                    {repo.topics.slice(0, 3).map((topic) => (
-                      <span key={topic} className={styles.projectTopic}>
-                        {topic}
-                      </span>
-                    ))}
-                  </div>
-                  <div className={styles.projectMeta}>
-                    {repo.language && <span className={styles.projectLanguage}>{repo.language}</span>}
-                    <span className={styles.projectStars}>⭐ {repo.stargazers_count}</span>
-                    {repo.updated_at && (
-                      <span className={styles.projectUpdated}>
-                        Updated: {new Date(repo.updated_at).toLocaleDateString()}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <Button asChild className={styles.projectButton}>
-                  <a href={repo.html_url} target="_blank" rel="noopener noreferrer">
-                    View Repository
-                  </a>
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      <DynamicProjects data={data} />
     </div>
   )
 } 
