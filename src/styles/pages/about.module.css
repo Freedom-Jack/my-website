@@ -81,7 +81,7 @@
 }
 
 .skillsGrid {
-  @apply grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4;
+  @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4;
 }
 
 .skillCategory {
@@ -173,7 +173,7 @@
 }
 
 .roleHeader {
-  @apply flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2;
+  @apply flex flex-col lg:flex-row lg:items-center justify-between gap-2 mb-2;
   min-height: 2rem;
 }
 
@@ -182,7 +182,7 @@
 }
 
 .rolePeriod {
-  @apply text-sm text-muted-foreground whitespace-nowrap md:ml-4 flex items-center justify-end gap-1;
+  @apply text-sm text-muted-foreground whitespace-nowrap lg:ml-4 flex items-center justify-end gap-1;
   min-width: 12rem;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
@@ -222,7 +222,7 @@
 }
 
 .educationHeader {
-  @apply flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2;
+  @apply flex flex-col lg:flex-row lg:items-center justify-between gap-2 mb-2;
 }
 
 .educationDegree {
@@ -269,7 +269,7 @@
 }
 
 .certificatesList {
-  @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+  @apply grid grid-cols-1 lg:grid-cols-2 gap-4;
 }
 
 .certificateItem {

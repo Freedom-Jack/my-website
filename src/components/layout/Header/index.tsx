@@ -14,6 +14,7 @@ const navItems = [
   { name: 'Home', path: '/' },
   { name: 'About', path: '/about' },
   { name: 'Projects', path: '/projects' },
+  { name: 'Blog', path: '/blog' },
   { name: 'Contact', path: '/contact' },
 ]
 
@@ -29,7 +30,7 @@ export default function Header() {
         </Link>
         
         {/* Desktop Navigation - Centered */}
-        <NavigationMenu className="absolute left-1/2 hidden -translate-x-1/2 transform md:block">
+        <NavigationMenu className="absolute left-1/2 hidden -translate-x-1/2 transform lg:block">
           <NavigationMenuList className="flex gap-6">
             {navItems.map((item) => (
               <NavigationMenuItem key={item.path} className="text-sm font-medium transition-colors">
@@ -57,7 +58,7 @@ export default function Header() {
           <Button 
             variant="default" 
             size="sm"
-            className="bg-primary hover:bg-primary/90"
+            className="bg-primary hover:bg-primary/90 hidden sm:inline-flex lg:inline-flex"
             asChild
           >
             <a 
@@ -74,7 +75,7 @@ export default function Header() {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="md:hidden hover:bg-primary/10" 
+            className="lg:hidden hover:bg-primary/10" 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -84,7 +85,7 @@ export default function Header() {
       
       {/* Mobile Navigation */}
       {mobileMenuOpen && (
-        <div className="container md:hidden">
+        <div className="container lg:hidden">
           <nav className="flex flex-col space-y-4 py-4">
             {navItems.map((item) => (
               <Link 
@@ -98,6 +99,24 @@ export default function Header() {
                 {item.name}
               </Link>
             ))}
+            
+            <div className="sm:hidden pt-2">
+              <Button 
+                variant="default" 
+                size="sm"
+                className="bg-primary hover:bg-primary/90 w-full"
+                asChild
+              >
+                <a 
+                  href="/QijinXu_Resume.pdf" 
+                  download="QijinXu_Resume.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Download Resume
+                </a>
+              </Button>
+            </div>
           </nav>
         </div>
       )}

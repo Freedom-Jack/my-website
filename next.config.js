@@ -60,6 +60,20 @@ const nextConfig = {
         },
       },
     };
+
+    // Handle MDX files
+    config.module.rules.push({
+      test: /\.mdx?$/,
+      use: [
+        {
+          loader: '@mdx-js/loader',
+          options: {
+            providerImportSource: '@mdx-js/react',
+          },
+        },
+      ],
+    });
+
     return config;
   },
 };

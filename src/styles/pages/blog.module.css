@@ -1,0 +1,161 @@
+.blogCard {
+  @apply p-6 rounded-lg border border-border;
+  background: linear-gradient(145deg, 
+    hsl(var(--background)) 0%, 
+    hsl(var(--muted)) 100%);
+  border-radius: 1rem;
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.blogCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, 
+    hsl(var(--primary)) 0%, 
+    hsl(var(--secondary)) 50%,
+    hsl(var(--primary)) 100%);
+  background-size: 200% auto;
+  animation: shine 3s ease-in-out infinite;
+}
+
+.blogCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-color: hsl(var(--primary));
+}
+
+.blogTitle {
+  @apply text-xl font-bold tracking-tight;
+  background: linear-gradient(90deg, 
+    hsl(var(--primary)) 0%, 
+    hsl(var(--secondary)) 50%,
+    hsl(var(--primary)) 100%);
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shine 3s ease-in-out infinite;
+  transition: all 0.3s ease;
+}
+
+.blogDate {
+  @apply text-sm text-muted-foreground font-mono;
+  letter-spacing: -0.025em;
+}
+
+.blogDescription {
+  @apply text-muted-foreground leading-relaxed;
+  line-height: 1.6;
+}
+
+.readMore {
+  @apply flex items-center text-primary font-medium;
+  transition: all 0.2s ease;
+}
+
+.blogCard:hover .readMore {
+  @apply underline;
+  transform: translateX(4px);
+}
+
+.blogContent {
+  @apply space-y-6 text-base text-muted-foreground;
+  line-height: 1.8;
+  padding: 2rem;
+  background: linear-gradient(145deg, 
+    hsl(var(--background)) 0%, 
+    hsl(var(--muted)) 100%);
+  border-radius: 1rem;
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+.blogContent::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, 
+    hsl(var(--primary)) 0%, 
+    hsl(var(--secondary)) 50%,
+    hsl(var(--primary)) 100%);
+  background-size: 200% auto;
+  animation: shine 3s ease-in-out infinite;
+}
+
+.blogContent :global(h1) {
+  @apply text-3xl font-bold mb-4 mt-8;
+  color: hsl(var(--foreground));
+}
+
+.blogContent :global(h2) {
+  @apply text-2xl font-bold mb-3 mt-6;
+  color: hsl(var(--foreground));
+}
+
+.blogContent :global(h3) {
+  @apply text-xl font-bold mb-3 mt-6;
+  color: hsl(var(--foreground));
+}
+
+.blogContent :global(p) {
+  @apply mb-4 text-muted-foreground;
+  line-height: 1.8;
+}
+
+.blogContent :global(ul), .blogContent :global(ol) {
+  @apply mb-4 ml-6 space-y-2 text-muted-foreground;
+}
+
+.blogContent :global(ul) {
+  @apply list-disc;
+}
+
+.blogContent :global(ol) {
+  @apply list-decimal;
+}
+
+.blogContent :global(a) {
+  @apply text-primary hover:underline;
+}
+
+.blogContent :global(blockquote) {
+  @apply italic border-l-4 border-primary/50 pl-4 py-2 my-4 text-muted-foreground;
+}
+
+.blogContent :global(code) {
+  @apply px-1.5 py-0.5 bg-muted rounded font-mono text-sm;
+}
+
+.blogContent :global(pre) {
+  @apply p-4 bg-muted rounded-lg overflow-x-auto my-4;
+}
+
+.blogContent :global(pre code) {
+  @apply bg-transparent p-0;
+}
+
+.blogContent :global(img) {
+  @apply rounded-lg shadow-md mx-auto my-8 max-w-full h-auto;
+}
+
+@keyframes shine {
+  0%, 100% {
+    background-position: 0% center;
+  }
+  50% {
+    background-position: 100% center;
+  }
+} 

@@ -2,11 +2,12 @@
 
 import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { projectsContent } from '@/content/pages/projects'
 import type { GitHubRepo, GitHubUser } from '@/lib/github'
 import styles from '@/styles/pages/projects.module.css'
+import aboutStyles from '@/styles/pages/about.module.css'
+import PageHeader from '@/components/page-header'
 
 interface GitHubData {
   user: GitHubUser;
@@ -86,59 +87,48 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className={styles.pageContainer}>
-      {/* Header Section */}
-      <section className={styles.headerSection}>
-        <h1 className={styles.headerTitle}>{projectsContent.header.title}</h1>
-        <p className={styles.headerDescription}>{projectsContent.header.description}</p>
-      </section>
+    <div className={aboutStyles.pageContainer}>
+      <PageHeader 
+        title={projectsContent.header.title} 
+        subtitle="Code, Contributions, and Collaborations"
+        description={projectsContent.header.description}
+      />
 
       {/* GitHub Stats Section */}
-      <section className={styles.statsSection}>
-        <h2 className={styles.sectionTitle}>{projectsContent.stats.title}</h2>
+      <section className={aboutStyles.section}>
+        <h2 className={aboutStyles.sectionTitle}>{projectsContent.stats.title}</h2>
         <div className={styles.statsGrid}>
-          <Card>
-            <CardHeader>
-              <CardTitle>Total Repositories</CardTitle>
-              <CardDescription>Public repositories on GitHub</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className={styles.statNumber}>{data.stats.totalRepos}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Total Stars</CardTitle>
-              <CardDescription>Stars received across all repositories</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className={styles.statNumber}>{data.stats.totalStars}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Languages</CardTitle>
-              <CardDescription>Programming languages used</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className={styles.languageTags}>
-                {data.stats.languages.map((lang) => (
-                  <span key={lang} className={styles.languageTag}>
-                    {lang}
-                  </span>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <div className={styles.statCard}>
+            <h3 className={styles.statTitle}>Total Repositories</h3>
+            <p className={styles.statDescription}>Public repositories on GitHub</p>
+            <p className={styles.statNumber}>{data.stats.totalRepos}</p>
+          </div>
+          
+          <div className={styles.statCard}>
+            <h3 className={styles.statTitle}>Total Stars</h3>
+            <p className={styles.statDescription}>Stars received across all repositories</p>
+            <p className={styles.statNumber}>{data.stats.totalStars}</p>
+          </div>
+          
+          <div className={styles.statCard}>
+            <h3 className={styles.statTitle}>Languages</h3>
+            <p className={styles.statDescription}>Programming languages used</p>
+            <div className={styles.languageTags}>
+              {data.stats.languages.map((lang) => (
+                <span key={lang} className={styles.languageTag}>
+                  {lang}
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Projects Section */}
-      <section className={styles.projectsSection}>
+      <section className={aboutStyles.section}>
+        <h2 className={aboutStyles.sectionTitle}>{projectsContent.projects.title}</h2>
         <div className={styles.sectionHeader}>
-          <div>
-            <h2 className={styles.sectionTitle}>{projectsContent.projects.title}</h2>
-          </div>
+          <div></div>
           <Button asChild>
             <a href={`https://github.com/${data.user.login}`} target="_blank" rel="noopener noreferrer">
               {projectsContent.projects.viewAll}
@@ -147,37 +137,37 @@ export default function ProjectsPage() {
         </div>
         <div className={styles.projectsGrid}>
           {data.repos.slice(0, 6).map((repo) => (
-            <Card key={repo.name} className={styles.projectCard}>
-              <CardHeader>
-                <CardTitle className={styles.projectTitle}>{repo.name}</CardTitle>
-                <CardDescription className={styles.projectDescription}>
-                  {repo.description || 'No description available'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className={styles.cardContent}>
-                <div className={styles.projectMeta}>
-                  <span className={styles.projectLanguage}>{repo.language}</span>
-                  <span className={styles.projectStars}>⭐ {repo.stargazers_count}</span>
-                  {repo.updated_at && (
-                    <span className={styles.projectUpdated}>
-                      Updated: {new Date(repo.updated_at).toLocaleDateString()}
-                    </span>
-                  )}
-                </div>
-                <div className={styles.projectTopics}>
-                  {repo.topics.slice(0, 3).map((topic) => (
-                    <span key={topic} className={styles.projectTopic}>
-                      {topic}
-                    </span>
-                  ))}
+            <div key={repo.name} className={styles.projectCard}>
+              <h3 className={styles.projectTitle}>{repo.name}</h3>
+              <p className={styles.projectDescription}>
+                {repo.description || 'No description available'}
+              </p>
+              <div className={styles.cardContent}>
+                <div>
+                  <div className={styles.projectMeta}>
+                    {repo.language && <span className={styles.projectLanguage}>{repo.language}</span>}
+                    <span className={styles.projectStars}>⭐ {repo.stargazers_count}</span>
+                    {repo.updated_at && (
+                      <span className={styles.projectUpdated}>
+                        Updated: {new Date(repo.updated_at).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                  <div className={styles.projectTopics}>
+                    {repo.topics.slice(0, 3).map((topic) => (
+                      <span key={topic} className={styles.projectTopic}>
+                        {topic}
+                      </span>
+                    ))}
+                  </div>
                 </div>
                 <Button asChild className={styles.projectButton}>
                   <a href={repo.html_url} target="_blank" rel="noopener noreferrer">
                     View Repository
                   </a>
                 </Button>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
       </section>
