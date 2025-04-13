@@ -62,7 +62,7 @@ export default function Header() {
             asChild
           >
             <a 
-              href="/QijinXu_Resume.pdf" 
+              href="/documents/QijinXu_Resume.pdf" 
               download="QijinXu_Resume.pdf"
               target="_blank"
               rel="noopener noreferrer"
@@ -108,7 +108,7 @@ export default function Header() {
                 asChild
               >
                 <a 
-                  href="/QijinXu_Resume.pdf" 
+                  href="/documents/QijinXu_Resume.pdf" 
                   download="QijinXu_Resume.pdf"
                   target="_blank"
                   rel="noopener noreferrer"

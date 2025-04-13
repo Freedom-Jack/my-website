@@ -2,6 +2,7 @@
 
 import React, { useRef, RefObject } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Hero } from '@/components/sections/Hero'
 import { Button } from '@/components/ui/button'
 import { Bubbles } from '@/components/animations/Bubbles'
@@ -52,13 +53,24 @@ export default function HomePage() {
           </div>
         </div>
         <div className="flex items-center justify-center">
-          <div className={styles.profileCard}>
+          <div className={`${styles.profileCard}`}>
             <div className={styles.profileCardInner}>
               <div className={styles.profileGradient} />
               <div className={styles.profileContent}>
-                <div className="text-center">
-                  <h3 className="text-2xl font-bold">{homeContent.about.profile.name}</h3>
-                  <p className="text-muted-foreground">{homeContent.about.profile.role}</p>
+                <div className="flex flex-col items-center gap-4">
+                  <div className="relative w-44 h-44 rounded-full overflow-hidden border-2 border-primary/10 shadow-md">
+                    <Image
+                      src="/images/selfie.jpg"
+                      alt={homeContent.about.profile.name}
+                      fill
+                      className="object-cover"
+                      priority
+                    />
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-2xl font-bold">{homeContent.about.profile.name}</h3>
+                    <p className="text-muted-foreground">{homeContent.about.profile.role}</p>
+                  </div>
                 </div>
               </div>
             </div>
