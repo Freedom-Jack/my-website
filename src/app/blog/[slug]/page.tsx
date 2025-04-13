@@ -8,6 +8,7 @@ import styles from '@/styles/pages/about.module.css'
 import blogStyles from '@/styles/pages/blog.module.css'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
+import { blogPostContent } from '@/content/pages/blog-post'
 
 async function getBlogPost(slug: string) {
   const filePath = path.join(process.cwd(), 'src/content/blog', slug, 'index.mdx')
@@ -48,6 +49,7 @@ async function getBlogPost(slug: string) {
 
 export default async function BlogPost({ params }: { params: { slug: string } }) {
   const post = await getBlogPost(params.slug)
+  const { backButton, header } = blogPostContent
   
   return (
     <div className={styles.pageContainer}>
@@ -56,7 +58,7 @@ export default async function BlogPost({ params }: { params: { slug: string } })
         <Link href="/blog" passHref>
           <Button variant="outline" size="sm" className="flex items-center gap-1">
             <ArrowLeft className="h-4 w-4" />
-            Back to Blog
+            {backButton.text}
           </Button>
         </Link>
       </div>
@@ -65,11 +67,7 @@ export default async function BlogPost({ params }: { params: { slug: string } })
       <section className={styles.headerSection}>
         <h1 className={styles.headerTitle}>{post.title}</h1>
         <h2 className={styles.headerSubtitle}>
-          {new Date(post.date).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          })}
+          {new Date(post.date).toLocaleDateString('en-US', header.dateFormat)}
         </h2>
         <p className={styles.headerDescription}>{post.description}</p>
       </section>

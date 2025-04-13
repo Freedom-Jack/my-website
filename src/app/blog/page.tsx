@@ -5,6 +5,7 @@ import Link from 'next/link'
 import PageHeader from '@/components/page-header'
 import styles from '@/styles/pages/about.module.css'
 import blogStyles from '@/styles/pages/blog.module.css'
+import { blogContent } from '@/content/pages/blog'
 
 async function getBlogPosts() {
   const blogDirectory = path.join(process.cwd(), 'src/content/blog')
@@ -30,17 +31,18 @@ async function getBlogPosts() {
 
 export default async function BlogPage() {
   const posts = await getBlogPosts()
+  const { header, sections } = blogContent
   
   return (
     <div className={styles.pageContainer}>
       <PageHeader 
-        title="Blog" 
-        subtitle="Thoughts and Ideas"
-        description="Explore my writing on software development, AI, and technology insights."
+        title={header.title} 
+        subtitle={header.subtitle}
+        description={header.description}
       />
       
       <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Recent Posts</h2>
+        <h2 className={styles.sectionTitle}>{sections.recentPosts.title}</h2>
         <div className="space-y-8 mt-6">
           {posts.map((post) => (
             <article key={post.slug} className={blogStyles.blogCard}>
