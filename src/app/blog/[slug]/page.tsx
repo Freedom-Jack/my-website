@@ -3,8 +3,11 @@ import path from 'path'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import matter from 'gray-matter'
 import Image from 'next/image'
+import Link from 'next/link'
 import styles from '@/styles/pages/about.module.css'
 import blogStyles from '@/styles/pages/blog.module.css'
+import { Button } from '@/components/ui/button'
+import { ArrowLeft } from 'lucide-react'
 
 async function getBlogPost(slug: string) {
   const filePath = path.join(process.cwd(), 'src/content/blog', slug, 'index.mdx')
@@ -48,6 +51,16 @@ export default async function BlogPost({ params }: { params: { slug: string } })
   
   return (
     <div className={styles.pageContainer}>
+      {/* Back to Blog Button */}
+      <div className="mb-6">
+        <Link href="/blog" passHref>
+          <Button variant="outline" size="sm" className="flex items-center gap-1">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Blog
+          </Button>
+        </Link>
+      </div>
+      
       {/* Header Section */}
       <section className={styles.headerSection}>
         <h1 className={styles.headerTitle}>{post.title}</h1>
