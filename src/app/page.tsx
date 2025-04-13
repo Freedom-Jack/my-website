@@ -2,7 +2,6 @@
 
 import React, { useRef, RefObject } from 'react'
 import Link from 'next/link'
-import { WorldMap } from '@/components/sections/WorldMap'
 import { Hero } from '@/components/sections/Hero'
 import { Button } from '@/components/ui/button'
 import { Bubbles } from '@/components/animations/Bubbles'
@@ -65,19 +64,6 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </section>
-
-      {/* Interactive World Map Section */}
-      <section className={styles.mapSection}>
-        <div className={styles.mapHeader}>
-          <h2 className={styles.mapTitle}>
-            {homeContent.map.title}
-          </h2>
-          <p className={styles.mapDescription}>
-            {homeContent.map.description}
-          </p>
-        </div>
-        <WorldMap />
       </section>
     </div>
   )

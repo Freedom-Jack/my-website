@@ -16,10 +16,6 @@ export interface HomePageContent {
       role: string;
     };
   };
-  map: {
-    title: string;
-    description: string;
-  };
 }
 
 export const homeContent: HomePageContent = {
@@ -39,9 +35,5 @@ export const homeContent: HomePageContent = {
       name: "Qijin Xu",
       role: "Senior Software Engineer"
     }
-  },
-  map: {
-    title: "Global Impact",
-    description: "My work has reached users across the globe, with a focus on creating scalable, high-performance applications that deliver exceptional user experiences. From enterprise solutions to innovative AI applications, I've contributed to projects that serve millions of users worldwide."
   }
 }; 

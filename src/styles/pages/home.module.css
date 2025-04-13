@@ -48,20 +48,4 @@
 
 .profileContent {
   @apply flex h-full items-center justify-center p-8;
-}
-
-.mapSection {
-  @apply container mx-auto py-8;
-}
-
-.mapHeader {
-  @apply text-center mb-8;
-}
-
-.mapTitle {
-  @apply text-3xl font-bold tracking-tighter sm:text-4xl mb-4;
-}
-
-.mapDescription {
-  @apply mx-auto max-w-[42rem] text-muted-foreground;
 } 
