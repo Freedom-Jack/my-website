@@ -24,7 +24,7 @@ export default function Header() {
   
   return (
     <header className="sticky top-0 z-50 w-full shadow-sm bg-[hsl(var(--header-bg))]">
-      <div className="container relative flex h-16 items-center justify-between">
+      <div className="container relative flex h-16 items-center justify-between max-w-[calc(100%-0.5rem)] mx-auto px-4">
         <Link href="/" className={styles.logo}>
           Qijin Xu
         </Link>
@@ -85,7 +85,7 @@ export default function Header() {
       
       {/* Mobile Navigation */}
       {mobileMenuOpen && (
-        <div className="container lg:hidden">
+        <div className="container lg:hidden max-w-[calc(100%-0.5rem)] mx-auto px-4">
           <nav className="flex flex-col space-y-4 py-4">
             {navItems.map((item) => (
               <Link 

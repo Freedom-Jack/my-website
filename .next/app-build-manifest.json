@@ -38,6 +38,12 @@
       "static/css/src_styles_pages_about_module_css.css",
       "static/css/app/blog/page.css",
       "static/chunks/app/blog/page.js"
+    ],
+    "/contact/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/vendors.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/contact/page.js"
     ]
   }
 }

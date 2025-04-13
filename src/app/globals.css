@@ -5,6 +5,11 @@
 /* Import bubble styles directly */
 @import '../components/animations/Bubbles/styles.css';
 
+/* Prevent layout shift from scrollbar appearing/disappearing */
+html {
+  overflow-y: scroll;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
