@@ -10,8 +10,7 @@
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "test": "jest",
     "test:watch": "jest --watch",
-    "analyze": "ANALYZE=true next build",
-    "vercel-build": "npm install --legacy-peer-deps && next build"
+    "analyze": "ANALYZE=true next build"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.0",
