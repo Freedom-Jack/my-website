@@ -10,7 +10,7 @@ import styles from '@/styles/pages/home.module.css'
 import { homeContent } from '@/content/pages/home'
 
 // Method for smooth scrolling to a reference
-const scrollToRef = (ref: RefObject<HTMLElement>) => {
+const scrollToRef = (ref: RefObject<HTMLElement | null>) => {
   if (ref.current) {
     window.scrollTo({
       top: ref.current.offsetTop,

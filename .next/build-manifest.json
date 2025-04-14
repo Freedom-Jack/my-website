@@ -13,6 +13,7 @@
     "static/chunks/vendors.js",
     "static/chunks/main-app.js"
   ],
+  "rootMainFilesTree": {},
   "pages": {
     "/_app": []
   },

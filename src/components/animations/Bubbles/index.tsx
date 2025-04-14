@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
 import "./styles.css"
 
@@ -8,40 +8,89 @@ interface BubbleProps {
   index: number
 }
 
-const Bubble = ({ index }: BubbleProps) => {
-  // Generate random values for each bubble
-  const scale = 0.25 + Math.random() * 0.75
-  const duration = 20 + Math.random() * 10
-  const delay = Math.random() * 2
+// This component will only render on the client side
+function ClientOnly({ children }: { children: React.ReactNode }) {
+  const [isMounted, setIsMounted] = useState(false)
   
-  // Generate random starting positions across the screen
-  const startX = Math.random() * 100
-  const startY = Math.random() * 100
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+  
+  if (!isMounted) {
+    return null // Return nothing on the server side
+  }
+  
+  return <>{children}</>
+}
+
+// Deterministic random function based on seed
+function generateRandom(index: number) {
+  // Use a fixed seed based on index
+  const seed = index + 1;
+  
+  // Generate consistent values
+  const scale = 0.25 + (Math.sin(seed * 123.45) * 0.5 + 0.5) * 0.75;
+  const duration = 20 + (Math.sin(seed * 567.89) * 0.5 + 0.5) * 10;
+  const delay = (Math.sin(seed * 912.34) * 0.5 + 0.5) * 2;
+  const startX = (Math.sin(seed * 345.67) * 0.5 + 0.5) * 100;
+  const startY = (Math.sin(seed * 789.01) * 0.5 + 0.5) * 100;
+  
+  // Generate animation points
+  const x1 = startX + (Math.sin(seed * 111.22) * 0.5 + 0.5) * 40 - 20;
+  const x2 = startX - (Math.sin(seed * 333.44) * 0.5 + 0.5) * 40 + 20;
+  const x3 = startX + (Math.sin(seed * 555.66) * 0.5 + 0.5) * 30 - 15;
+  
+  const y1 = startY + (Math.sin(seed * 777.88) * 0.5 + 0.5) * 40 - 20;
+  const y2 = startY - (Math.sin(seed * 999.00) * 0.5 + 0.5) * 40 + 20;
+  const y3 = startY + (Math.sin(seed * 111.00) * 0.5 + 0.5) * 30 - 15;
+  
+  return {
+    scale,
+    duration,
+    delay,
+    startX,
+    startY,
+    xPositions: [
+      `${startX}vw`,
+      `${x1}vw`,
+      `${x2}vw`,
+      `${x3}vw`,
+      `${startX}vw`,
+    ],
+    yPositions: [
+      `${startY}vh`,
+      `${y1}vh`,
+      `${y2}vh`,
+      `${y3}vh`,
+      `${startY}vh`,
+    ],
+    scaleValues: [scale, scale * 1.1, scale * 0.9, scale * 1.05, scale]
+  };
+}
+
+const Bubble = ({ index }: BubbleProps) => {
+  // Generate all values based on index - these are now deterministic and stable
+  const {
+    scale,
+    duration,
+    delay,
+    xPositions,
+    yPositions,
+    scaleValues
+  } = generateRandom(index);
   
   return (
     <motion.div
       className={`bubble bubble-${index}`}
       initial={{ 
-        x: `${startX}vw`, 
-        y: `${startY}vh`,
-        scale 
+        x: xPositions[0], 
+        y: yPositions[0],
+        scale: scaleValues[0]
       }}
       animate={{ 
-        x: [
-          `${startX}vw`,
-          `${startX + (Math.random() * 40 - 20)}vw`,
-          `${startX - (Math.random() * 40 - 20)}vw`,
-          `${startX + (Math.random() * 30 - 15)}vw`,
-          `${startX}vw`,
-        ],
-        y: [
-          `${startY}vh`,
-          `${startY + (Math.random() * 40 - 20)}vh`,
-          `${startY - (Math.random() * 40 - 20)}vh`,
-          `${startY + (Math.random() * 30 - 15)}vh`,
-          `${startY}vh`,
-        ],
-        scale: [scale, scale * 1.1, scale * 0.9, scale * 1.05, scale]
+        x: xPositions,
+        y: yPositions,
+        scale: scaleValues
       }}
       transition={{
         duration: duration,
@@ -55,12 +104,18 @@ const Bubble = ({ index }: BubbleProps) => {
 }
 
 export function Bubbles() {
+  // Use a wrapper div with suppressHydrationWarning
   return (
-    <div className="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
-      {/* Reduced number of bubbles from 50 to 25 */}
-      {Array.from({ length: 25 }).map((_, index) => (
-        <Bubble key={index} index={index % 22} />
-      ))}
+    <div 
+      className="fixed inset-0 z-[-1] overflow-hidden pointer-events-none"
+      suppressHydrationWarning
+    >
+      <ClientOnly>
+        {/* Reduced number of bubbles from 50 to 25 */}
+        {Array.from({ length: 25 }).map((_, index) => (
+          <Bubble key={`bubble-${index}`} index={index % 22} />
+        ))}
+      </ClientOnly>
     </div>
   )
 } 

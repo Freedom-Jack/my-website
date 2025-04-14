@@ -1,9 +1,9 @@
-/*!************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
-  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[14].oneOf[2].use[1]!./node_modules/next/dist/build/webpack/loaders/next-font-loader/index.js??ruleSet[1].rules[14].oneOf[2].use[2]!./node_modules/next/font/google/target.css?{"path":"src\\app\\layout.tsx","import":"Inter","arguments":[{"subsets":["latin"],"variable":"--font-inter"}],"variableName":"inter"} ***!
-  \************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+/*!*********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[2].use[1]!./node_modules/next/dist/build/webpack/loaders/next-font-loader/index.js??ruleSet[1].rules[13].oneOf[2].use[2]!./node_modules/next/font/google/target.css?{"path":"src\\app\\layout.tsx","import":"Inter","arguments":[{"subsets":["latin"],"display":"swap","preload":false,"variable":"--font-inter"}],"variableName":"inter"} ***!
+  \*********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
 /* cyrillic-ext */
 @font-face {
-  font-family: '__Inter_d65c78';
+  font-family: 'Inter';
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
@@ -12,7 +12,7 @@
 }
 /* cyrillic */
 @font-face {
-  font-family: '__Inter_d65c78';
+  font-family: 'Inter';
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
@@ -21,7 +21,7 @@
 }
 /* greek-ext */
 @font-face {
-  font-family: '__Inter_d65c78';
+  font-family: 'Inter';
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
@@ -30,7 +30,7 @@
 }
 /* greek */
 @font-face {
-  font-family: '__Inter_d65c78';
+  font-family: 'Inter';
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
@@ -39,7 +39,7 @@
 }
 /* vietnamese */
 @font-face {
-  font-family: '__Inter_d65c78';
+  font-family: 'Inter';
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
@@ -48,7 +48,7 @@
 }
 /* latin-ext */
 @font-face {
-  font-family: '__Inter_d65c78';
+  font-family: 'Inter';
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
@@ -57,123 +57,19 @@
 }
 /* latin */
 @font-face {
-  font-family: '__Inter_d65c78';
+  font-family: 'Inter';
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
-  src: url(/_next/static/media/a34f9d1faa5f3315-s.p.woff2) format('woff2');
+  src: url(/_next/static/media/a34f9d1faa5f3315-s.woff2) format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}@font-face {font-family: '__Inter_Fallback_d65c78';src: local("Arial");ascent-override: 90.49%;descent-override: 22.56%;line-gap-override: 0.00%;size-adjust: 107.06%
-}.__className_d65c78 {font-family: '__Inter_d65c78', '__Inter_Fallback_d65c78';font-style: normal
-}.__variable_d65c78 {--font-inter: '__Inter_d65c78', '__Inter_Fallback_d65c78'
+}@font-face {font-family: 'Inter Fallback';src: local("Arial");ascent-override: 90.44%;descent-override: 22.52%;line-gap-override: 0.00%;size-adjust: 107.12%
+}.__className_7e024b {font-family: 'Inter', 'Inter Fallback';font-style: normal
+}.__variable_7e024b {--font-inter: 'Inter', 'Inter Fallback'
 }
 
-/*!******************************************************************************************************************************************************************************************************************************************************************************************!*\
-  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[14].oneOf[12].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[14].oneOf[12].use[3]!./src/components/animations/Bubbles/styles.css ***!
-  \******************************************************************************************************************************************************************************************************************************************************************************************/
-/* Bubble animation styles */
-.bubble {
-  position: absolute;
-  width: 3vw; /* Reduced size for subtlety */
-  height: 3vw; /* Reduced size for subtlety */
-  pointer-events: none;
-  /* Remove fixed margins to allow better distribution */
-  top: 0;
-  left: 0;
-  /* Improved visibility for all bubbles */
-  opacity: 0.6; /* Slightly reduced opacity */
-  z-index: -1; /* Ensure bubbles stay behind content */
-}
-
-.bubble::before,
-.bubble::after {
-  content: '';
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  transform-origin: center;
-  animation: drift 150s ease alternate infinite;
-}
-
-.bubble::before {
-  background: hsl(210, 100%, 80%); /* Darker light blue */
-  opacity: 0.3; /* Increased opacity */
-}
-
-.bubble::after {
-  background: hsl(210, 100%, 75%); /* Even darker light blue */
-  opacity: 0.4; /* Increased opacity */
-  box-shadow: 0 0 4vw 1vw hsl(210, 100%, 85%); /* Reduced glow */
-  animation: 
-    drift 150s ease alternate infinite,
-    flash 5s ease-in-out infinite alternate;
-}
-
-@keyframes drift {
-  0% {
-    transform: rotate(0deg) translate(0, 0);
-  }
-  50% {
-    transform: rotate(180deg) translate(20px, 20px); /* Reduced movement */
-  }
-  100% {
-    transform: rotate(360deg) translate(0, 0);
-  }
-}
-
-@keyframes flash {
-  0% {
-    opacity: 0.3;
-    box-shadow: 0 0 1.5vw 0.4vw hsl(210, 100%, 85%);
-  }
-  100% {
-    opacity: 0.5;
-    box-shadow: 0 0 4vw 1vw hsl(210, 100%, 85%);
-  }
-}
-
-/* More variation in bubble sizes */
-.bubble:nth-child(3n+1) {
-  width: 2.5vw;
-  height: 2.5vw;
-}
-
-.bubble:nth-child(3n+2) {
-  width: 3.5vw;
-  height: 3.5vw;
-}
-
-.bubble:nth-child(3n+3) {
-  width: 2vw;
-  height: 2vw;
-}
-
-/* Implementing the random factors for each bubble */
-.bubble-0::before, .bubble-0::after { animation-duration: 105s; }
-.bubble-1::before, .bubble-1::after { animation-duration: 98s; }
-.bubble-2::before, .bubble-2::after { animation-duration: 107s; }
-.bubble-3::before, .bubble-3::after { animation-duration: 102s; }
-.bubble-4::before, .bubble-4::after { animation-duration: 109s; }
-.bubble-5::before, .bubble-5::after { animation-duration: 94s; }
-.bubble-6::before, .bubble-6::after { animation-duration: 103s; }
-.bubble-7::before, .bubble-7::after { animation-duration: 95s; }
-.bubble-8::before, .bubble-8::after { animation-duration: 108s; }
-.bubble-9::before, .bubble-9::after { animation-duration: 101s; }
-.bubble-10::before, .bubble-10::after { animation-duration: 97s; }
-.bubble-11::before, .bubble-11::after { animation-duration: 104s; }
-.bubble-12::before, .bubble-12::after { animation-duration: 106s; }
-.bubble-13::before, .bubble-13::after { animation-duration: 99s; }
-.bubble-14::before, .bubble-14::after { animation-duration: 100s; }
-.bubble-15::before, .bubble-15::after { animation-duration: 110s; }
-.bubble-16::before, .bubble-16::after { animation-duration: 93s; }
-.bubble-17::before, .bubble-17::after { animation-duration: 96s; }
-.bubble-18::before, .bubble-18::after { animation-duration: 111s; }
-.bubble-19::before, .bubble-19::after { animation-duration: 92s; }
-.bubble-20::before, .bubble-20::after { animation-duration: 112s; }
-.bubble-21::before, .bubble-21::after { animation-duration: 91s; } 
 /*!*****************************************************************************************************************************************************************************************************************************************************************!*\
-  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[14].oneOf[12].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[14].oneOf[12].use[3]!./src/app/globals.css ***!
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[3]!./src/app/globals.css ***!
   \*****************************************************************************************************************************************************************************************************************************************************************/
 *, ::before, ::after {
   --tw-border-spacing-x: 0;
@@ -871,12 +767,6 @@ video {
 .mt-6 {
   margin-top: 1.5rem;
 }
-.mt-4 {
-  margin-top: 1rem;
-}
-.mt-1 {
-  margin-top: 0.25rem;
-}
 .block {
   display: block;
 }
@@ -913,11 +803,11 @@ video {
 .h-3\.5 {
   height: 0.875rem;
 }
-.h-32 {
-  height: 8rem;
-}
 .h-4 {
   height: 1rem;
+}
+.h-44 {
+  height: 11rem;
 }
 .h-5 {
   height: 1.25rem;
@@ -936,18 +826,6 @@ video {
 }
 .h-px {
   height: 1px;
-}
-.h-48 {
-  height: 12rem;
-}
-.h-40 {
-  height: 10rem;
-}
-.h-56 {
-  height: 14rem;
-}
-.h-44 {
-  height: 11rem;
 }
 .min-h-\[50vh\] {
   min-height: 50vh;
@@ -970,11 +848,11 @@ video {
 .w-3\.5 {
   width: 0.875rem;
 }
-.w-32 {
-  width: 8rem;
-}
 .w-4 {
   width: 1rem;
+}
+.w-44 {
+  width: 11rem;
 }
 .w-5 {
   width: 1.25rem;
@@ -995,18 +873,6 @@ video {
   width: -moz-max-content;
   width: max-content;
 }
-.w-48 {
-  width: 12rem;
-}
-.w-40 {
-  width: 10rem;
-}
-.w-56 {
-  width: 14rem;
-}
-.w-44 {
-  width: 11rem;
-}
 .min-w-\[8rem\] {
   min-width: 8rem;
 }
@@ -1019,9 +885,6 @@ video {
 }
 .max-w-xl {
   max-width: 36rem;
-}
-.max-w-md {
-  max-width: 28rem;
 }
 .flex-1 {
   flex: 1 1 0%;
@@ -1149,11 +1012,11 @@ video {
 .border {
   border-width: 1px;
 }
-.border-4 {
-  border-width: 4px;
-}
 .border-2 {
   border-width: 2px;
+}
+.border-4 {
+  border-width: 4px;
 }
 .border-t {
   border-top-width: 1px;
@@ -1164,11 +1027,11 @@ video {
 .border-input {
   border-color: hsl(var(--input));
 }
-.border-primary\/20 {
-  border-color: hsl(var(--primary) / 0.2);
-}
 .border-primary\/10 {
   border-color: hsl(var(--primary) / 0.1);
+}
+.border-primary\/20 {
+  border-color: hsl(var(--primary) / 0.2);
 }
 .border-t-primary {
   border-top-color: hsl(var(--primary));
@@ -1221,9 +1084,6 @@ video {
 }
 .p-6 {
   padding: 1.5rem;
-}
-.p-8 {
-  padding: 2rem;
 }
 .px-2 {
   padding-left: 0.5rem;
@@ -1300,10 +1160,6 @@ video {
   font-size: 0.75rem;
   line-height: 1rem;
 }
-.text-3xl {
-  font-size: 1.875rem;
-  line-height: 2.25rem;
-}
 .font-bold {
   font-weight: 700;
 }
@@ -1376,11 +1232,6 @@ video {
   --tw-shadow-colored: 0 1px 2px 0 var(--tw-shadow-color);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
-.shadow-xl {
-  --tw-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  --tw-shadow-colored: 0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);
-  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
-}
 .outline-none {
   outline: 2px solid transparent;
   outline-offset: 2px;
@@ -1433,8 +1284,6 @@ video {
 .duration-200 {
   animation-duration: 200ms;
 }
-
-/* Import bubble styles directly */
 
 /* Prevent layout shift from scrollbar appearing/disappearing */
 html {
@@ -1787,7 +1636,111 @@ html {
   }
 } 
 /*!******************************************************************************************************************************************************************************************************************************************************************************************!*\
-  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[14].oneOf[7].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[14].oneOf[7].use[3]!./src/components/layout/Header/styles.module.css ***!
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[3]!./src/components/animations/Bubbles/styles.css ***!
+  \******************************************************************************************************************************************************************************************************************************************************************************************/
+/* Bubble animation styles */
+.bubble {
+  position: absolute;
+  width: 3vw; /* Reduced size for subtlety */
+  height: 3vw; /* Reduced size for subtlety */
+  pointer-events: none;
+  /* Remove fixed margins to allow better distribution */
+  top: 0;
+  left: 0;
+  /* Improved visibility for all bubbles */
+  opacity: 0.6; /* Slightly reduced opacity */
+  z-index: -1; /* Ensure bubbles stay behind content */
+}
+
+.bubble::before,
+.bubble::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  transform-origin: center;
+  animation: drift 150s ease alternate infinite;
+}
+
+.bubble::before {
+  background: hsl(210, 100%, 80%); /* Darker light blue */
+  opacity: 0.3; /* Increased opacity */
+}
+
+.bubble::after {
+  background: hsl(210, 100%, 75%); /* Even darker light blue */
+  opacity: 0.4; /* Increased opacity */
+  box-shadow: 0 0 4vw 1vw hsl(210, 100%, 85%); /* Reduced glow */
+  animation: 
+    drift 150s ease alternate infinite,
+    flash 5s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  0% {
+    transform: rotate(0deg) translate(0, 0);
+  }
+  50% {
+    transform: rotate(180deg) translate(20px, 20px); /* Reduced movement */
+  }
+  100% {
+    transform: rotate(360deg) translate(0, 0);
+  }
+}
+
+@keyframes flash {
+  0% {
+    opacity: 0.3;
+    box-shadow: 0 0 1.5vw 0.4vw hsl(210, 100%, 85%);
+  }
+  100% {
+    opacity: 0.5;
+    box-shadow: 0 0 4vw 1vw hsl(210, 100%, 85%);
+  }
+}
+
+/* More variation in bubble sizes */
+.bubble:nth-child(3n+1) {
+  width: 2.5vw;
+  height: 2.5vw;
+}
+
+.bubble:nth-child(3n+2) {
+  width: 3.5vw;
+  height: 3.5vw;
+}
+
+.bubble:nth-child(3n+3) {
+  width: 2vw;
+  height: 2vw;
+}
+
+/* Implementing the random factors for each bubble */
+.bubble-0::before, .bubble-0::after { animation-duration: 105s; }
+.bubble-1::before, .bubble-1::after { animation-duration: 98s; }
+.bubble-2::before, .bubble-2::after { animation-duration: 107s; }
+.bubble-3::before, .bubble-3::after { animation-duration: 102s; }
+.bubble-4::before, .bubble-4::after { animation-duration: 109s; }
+.bubble-5::before, .bubble-5::after { animation-duration: 94s; }
+.bubble-6::before, .bubble-6::after { animation-duration: 103s; }
+.bubble-7::before, .bubble-7::after { animation-duration: 95s; }
+.bubble-8::before, .bubble-8::after { animation-duration: 108s; }
+.bubble-9::before, .bubble-9::after { animation-duration: 101s; }
+.bubble-10::before, .bubble-10::after { animation-duration: 97s; }
+.bubble-11::before, .bubble-11::after { animation-duration: 104s; }
+.bubble-12::before, .bubble-12::after { animation-duration: 106s; }
+.bubble-13::before, .bubble-13::after { animation-duration: 99s; }
+.bubble-14::before, .bubble-14::after { animation-duration: 100s; }
+.bubble-15::before, .bubble-15::after { animation-duration: 110s; }
+.bubble-16::before, .bubble-16::after { animation-duration: 93s; }
+.bubble-17::before, .bubble-17::after { animation-duration: 96s; }
+.bubble-18::before, .bubble-18::after { animation-duration: 111s; }
+.bubble-19::before, .bubble-19::after { animation-duration: 92s; }
+.bubble-20::before, .bubble-20::after { animation-duration: 112s; }
+.bubble-21::before, .bubble-21::after { animation-duration: 91s; } 
+/*!******************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[5].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[5].use[3]!./src/components/layout/Header/styles.module.css ***!
   \******************************************************************************************************************************************************************************************************************************************************************************************/
 .styles_header__qk_ZV {
   position: sticky;

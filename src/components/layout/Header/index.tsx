@@ -34,19 +34,16 @@ export default function Header() {
           <NavigationMenuList className="flex gap-6">
             {navItems.map((item) => (
               <NavigationMenuItem key={item.path} className="text-sm font-medium transition-colors">
-                <Link 
-                  href={item.path}
-                  legacyBehavior
-                  passHref
+                <NavigationMenuLink
+                  className={`px-4 py-2 rounded-md transition-colors duration-200
+                    bg-[hsl(var(--header-nav-bg))] hover:bg-[hsl(var(--header-nav-hover))]
+                    ${pathname === item.path ? 'text-primary dark:text-[hsl(210,40%,90%)] bg-[hsl(var(--header-nav-hover))]' : 'text-foreground dark:text-[hsl(210,40%,90%)]'}`}
+                  asChild
                 >
-                  <NavigationMenuLink
-                    className={`px-4 py-2 rounded-md transition-colors duration-200
-                      bg-[hsl(var(--header-nav-bg))] hover:bg-[hsl(var(--header-nav-hover))]
-                      ${pathname === item.path ? 'text-primary dark:text-[hsl(210,40%,90%)] bg-[hsl(var(--header-nav-hover))]' : 'text-foreground dark:text-[hsl(210,40%,90%)]'}`}
-                  >
+                  <Link href={item.path}>
                     {item.name}
-                  </NavigationMenuLink>
-                </Link>
+                  </Link>
+                </NavigationMenuLink>
               </NavigationMenuItem>
             ))}
           </NavigationMenuList>
