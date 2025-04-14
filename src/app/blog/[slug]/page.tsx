@@ -11,32 +11,9 @@ import { ArrowLeft } from 'lucide-react'
 import { blogPostContent } from '@/content/pages/blog-post'
 
 async function getBlogPost(slug: string) {
-  const filePath = path.join(process.cwd(), 'src/content/blog', slug, 'index.mdx')
+  const filePath = path.join(process.cwd(), 'public/blog', slug, 'index.mdx')
   const fileContents = await fs.readFile(filePath, 'utf8')
   const { data, content } = matter(fileContents)
-  
-  // Copy images to public directory if they don't exist
-  const blogDir = path.join(process.cwd(), 'src/content/blog', slug)
-  const publicDir = path.join(process.cwd(), 'public/blog', slug)
-  
-  try {
-    await fs.mkdir(publicDir, { recursive: true })
-    const files = await fs.readdir(blogDir)
-    
-    for (const file of files) {
-      if (file.endsWith('.jpg') || file.endsWith('.jpeg') || file.endsWith('.png')) {
-        const sourcePath = path.join(blogDir, file)
-        const destPath = path.join(publicDir, file)
-        try {
-          await fs.copyFile(sourcePath, destPath)
-        } catch (err) {
-          // File might already exist, which is fine
-        }
-      }
-    }
-  } catch (err) {
-    console.error('Error copying images:', err)
-  }
   
   return {
     title: data.title,

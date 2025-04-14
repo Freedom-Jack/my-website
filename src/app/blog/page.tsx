@@ -8,7 +8,7 @@ import blogStyles from '@/styles/pages/blog.module.css'
 import { blogContent } from '@/content/pages/blog'
 
 async function getBlogPosts() {
-  const blogDirectory = path.join(process.cwd(), 'src/content/blog')
+  const blogDirectory = path.join(process.cwd(), 'public/blog')
   const blogFolders = await fs.readdir(blogDirectory)
   
   const posts = await Promise.all(
