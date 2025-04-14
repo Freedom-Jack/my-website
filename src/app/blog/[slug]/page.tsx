@@ -60,8 +60,9 @@ export default async function BlogPost(props0: { params: Promise<{ slug: string 
                 const { src, alt, ...rest } = props;
                 if (!src) return null;
                 
-                // Use the public path for images
-                const imagePath = `/blog/${post.slug}/${src}`;
+                // Use the public path for images - normalize the path to avoid case sensitivity issues
+                const normalizedSrc = src.replace(/^\.\//, ''); // Remove leading ./ if present
+                const imagePath = `/blog/${post.slug}/${normalizedSrc}`;
                 
                 return (
                   <span className="block my-8">
