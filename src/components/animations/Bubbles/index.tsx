@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import "./styles.css"
 
@@ -55,6 +55,19 @@ const Bubble = ({ index }: BubbleProps) => {
 }
 
 export function Bubbles() {
+  // Use state to control whether bubbles are rendered
+  const [mounted, setMounted] = useState(false);
+  
+  // Only run on client-side after hydration is complete
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  
+  // Don't render anything on server, only render on client after mounting
+  if (!mounted) {
+    return <div className="fixed inset-0 z-[-1] overflow-hidden pointer-events-none" />;
+  }
+  
   return (
     <div className="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
       {/* Reduced number of bubbles from 50 to 25 */}
