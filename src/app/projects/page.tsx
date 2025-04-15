@@ -44,10 +44,9 @@ const DynamicProjects = dynamic(() => Promise.resolve(({ data }: { data: GitHubD
     </section>
 
     {/* Projects Section */}
-    <section className={aboutStyles.section}>
-      <h2 className={aboutStyles.sectionTitle}>{projectsContent.projects.title}</h2>
+    <section className={aboutStyles.section} style={{ marginTop: '5rem' }}>
       <div className={styles.sectionHeader}>
-        <div></div>
+        <h2 className={aboutStyles.sectionTitle}>Featured Projects</h2>
         <Button asChild>
           <a href={`https://github.com/${data.user.login}`} target="_blank" rel="noopener noreferrer">
             {projectsContent.projects.viewAll}
