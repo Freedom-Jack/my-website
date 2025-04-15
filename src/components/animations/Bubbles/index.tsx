@@ -32,17 +32,19 @@ function generateRandom(index: number) {
   const scale = 0.25 + (Math.sin(seed * 123.45) * 0.5 + 0.5) * 0.75;
   const duration = 20 + (Math.sin(seed * 567.89) * 0.5 + 0.5) * 10;
   const delay = (Math.sin(seed * 912.34) * 0.5 + 0.5) * 2;
-  const startX = (Math.sin(seed * 345.67) * 0.5 + 0.5) * 100;
-  const startY = (Math.sin(seed * 789.01) * 0.5 + 0.5) * 100;
   
-  // Generate animation points
-  const x1 = startX + (Math.sin(seed * 111.22) * 0.5 + 0.5) * 40 - 20;
-  const x2 = startX - (Math.sin(seed * 333.44) * 0.5 + 0.5) * 40 + 20;
-  const x3 = startX + (Math.sin(seed * 555.66) * 0.5 + 0.5) * 30 - 15;
+  // Better distribution across the entire screen (0-100 range for both X and Y)
+  const startX = (index % 5) * 20 + (Math.sin(seed * 345.67) * 0.5 + 0.5) * 15;
+  const startY = Math.floor(index / 5) * 20 + (Math.sin(seed * 789.01) * 0.5 + 0.5) * 15;
   
-  const y1 = startY + (Math.sin(seed * 777.88) * 0.5 + 0.5) * 40 - 20;
-  const y2 = startY - (Math.sin(seed * 999.00) * 0.5 + 0.5) * 40 + 20;
-  const y3 = startY + (Math.sin(seed * 111.00) * 0.5 + 0.5) * 30 - 15;
+  // Generate animation points with wider movement range
+  const x1 = startX + (Math.sin(seed * 111.22) * 0.5 + 0.5) * 60 - 30;
+  const x2 = startX - (Math.sin(seed * 333.44) * 0.5 + 0.5) * 60 + 30;
+  const x3 = startX + (Math.sin(seed * 555.66) * 0.5 + 0.5) * 45 - 22.5;
+  
+  const y1 = startY + (Math.sin(seed * 777.88) * 0.5 + 0.5) * 60 - 30;
+  const y2 = startY - (Math.sin(seed * 999.00) * 0.5 + 0.5) * 60 + 30;
+  const y3 = startY + (Math.sin(seed * 111.00) * 0.5 + 0.5) * 45 - 22.5;
   
   return {
     scale,
@@ -111,8 +113,8 @@ export function Bubbles() {
       suppressHydrationWarning
     >
       <ClientOnly>
-        {/* Reduced number of bubbles from 50 to 25 */}
-        {Array.from({ length: 25 }).map((_, index) => (
+        {/* Restored original number of bubbles to 50 */}
+        {Array.from({ length: 50 }).map((_, index) => (
           <Bubble key={`bubble-${index}`} index={index % 22} />
         ))}
       </ClientOnly>
