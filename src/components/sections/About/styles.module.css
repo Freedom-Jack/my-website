@@ -1,0 +1,143 @@
+.aboutSection {
+  @apply container mx-auto grid max-w-5xl gap-8 py-10 px-6;
+  @apply relative overflow-hidden rounded-xl bg-gradient-to-br from-background via-background/95 to-background/90;
+  @apply border border-border/50 shadow-xl;
+  @apply backdrop-blur-sm;
+  grid-template-columns: 1fr;
+}
+
+/* Tablet layout */
+@media (min-width: 640px) and (max-width: 767px) {
+  .aboutSection {
+    @apply gap-12 p-8;
+  }
+  
+  .profileCard {
+    @apply mx-auto max-w-[400px];
+  }
+}
+
+/* Desktop layout */
+@media (min-width: 768px) {
+  .aboutSection {
+    grid-template-columns: 65fr 35fr;
+    @apply gap-16 p-8;
+  }
+}
+
+/* Left column - text content */
+.textContainer {
+  @apply flex flex-col justify-center space-y-4 md:space-y-5;
+}
+
+.aboutTag {
+  @apply inline-block rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary;
+  @apply transform transition-all duration-300 hover:scale-105;
+}
+
+.aboutTitle {
+  @apply text-2xl font-bold tracking-tight sm:text-3xl;
+  @apply bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent;
+}
+
+/* Desktop size for aboutTitle */
+@media (min-width: 1024px) {
+  .aboutTitle {
+    @apply text-3xl;
+  }
+}
+
+.aboutDescription {
+  @apply text-muted-foreground text-base md:text-lg leading-relaxed;
+  @apply border-l-2 border-primary/30 pl-4;
+}
+
+.buttonContainer {
+  @apply pt-4;
+}
+
+.ctaButton {
+  @apply relative overflow-hidden;
+  @apply transition-all duration-300 hover:shadow-md hover:shadow-primary/20;
+}
+
+/* Right column - profile card */
+.profileContainer {
+  @apply flex items-center justify-center mt-8 md:mt-0;
+}
+
+.profileCard {
+  @apply w-full max-w-sm overflow-hidden;
+  @apply border border-border/50 rounded-xl;
+  @apply transition-all duration-300 hover:shadow-xl hover:shadow-primary/10;
+  @apply bg-gradient-to-br from-card/90 via-card to-card/95;
+  @apply p-6 sm:p-8 flex flex-col items-center;
+  @apply relative;
+}
+
+.profileCardInner {
+  @apply relative w-full max-w-[160px] sm:max-w-[180px] md:max-w-[200px] aspect-square mx-auto;
+  @apply rounded-full overflow-hidden;
+  @apply border-4 border-primary/20;
+  @apply shadow-lg;
+  @apply z-10;
+}
+
+.profileGradient {
+  @apply absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-secondary/10;
+  @apply z-10;
+}
+
+.profileImage {
+  @apply object-cover z-0;
+  @apply transition-all duration-500 hover:scale-105;
+}
+
+.profileInfo {
+  @apply mt-4 sm:mt-6 text-center relative z-10;
+}
+
+.profileName {
+  @apply text-lg sm:text-xl font-bold;
+  @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
+}
+
+.profileRole {
+  @apply text-muted-foreground mt-1 text-sm sm:text-base;
+}
+
+.decorativeCircle {
+  @apply absolute rounded-full opacity-20;
+  @apply bg-gradient-to-r from-primary to-secondary;
+  @apply blur-xl;
+}
+
+.decorativeCircle1 {
+  @apply decorativeCircle;
+  width: 120px;
+  height: 120px;
+  top: 10%;
+  right: 10%;
+  animation: float 8s ease-in-out infinite;
+}
+
+.decorativeCircle2 {
+  @apply decorativeCircle;
+  width: 80px;
+  height: 80px;
+  bottom: 15%;
+  left: 15%;
+  animation: float 6s ease-in-out infinite reverse;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+} 

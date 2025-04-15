@@ -25,7 +25,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 w-full shadow-sm bg-[hsl(var(--header-bg))]">
       <div className="container relative flex h-16 items-center justify-between max-w-[calc(100%-0.5rem)] mx-auto px-4">
-        <Link href="/" className={styles.logo}>
+        <Link href="/" className={`${styles.logo} ml-8`}>
           Qijin Xu
         </Link>
         

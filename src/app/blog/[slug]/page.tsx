@@ -9,6 +9,8 @@ import blogStyles from '@/styles/pages/blog.module.css'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import { blogPostContent } from '@/content/pages/blog-post'
+import AboutSection from '@/components/sections/About'
+import { homeContent } from '@/content/pages/home'
 
 async function getBlogPost(slug: string) {
   const filePath = path.join(process.cwd(), 'public/blog', slug, 'index.mdx')
@@ -27,7 +29,7 @@ async function getBlogPost(slug: string) {
 export default async function BlogPost(props0: { params: Promise<{ slug: string }> }) {
   const params = await props0.params;
   const post = await getBlogPost(params.slug)
-  const { backButton, header } = blogPostContent
+  const { backButton, header, authorSection } = blogPostContent
 
   return (
     <div className={styles.pageContainer}>
@@ -81,6 +83,12 @@ export default async function BlogPost(props0: { params: Promise<{ slug: string 
           />
         </div>
       </section>
+
+      {/* About the Author Section */}
+      <div className="mt-16 pt-8 border-t">
+        <h2 className="text-2xl font-bold mb-8 text-center">{authorSection.title}</h2>
+        <AboutSection content={homeContent.about} />
+      </div>
     </div>
   )
 } 

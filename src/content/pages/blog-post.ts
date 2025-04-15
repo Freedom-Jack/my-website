@@ -9,6 +9,9 @@ export interface BlogPostPageContent {
       day: 'numeric' | '2-digit';
     };
   };
+  authorSection: {
+    title: string;
+  };
 }
 
 export const blogPostContent: BlogPostPageContent = {
@@ -21,5 +24,8 @@ export const blogPostContent: BlogPostPageContent = {
       month: 'long',
       day: 'numeric'
     }
+  },
+  authorSection: {
+    title: "About the Author"
   }
 }; 
