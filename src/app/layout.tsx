@@ -53,7 +53,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Bubbles />
-          <div className="relative flex min-h-screen flex-col">
+          <div className="relative flex min-h-screen flex-col overflow-x-hidden">
             <Header />
             <main className="flex-1 bg-background/80 backdrop-blur-sm">
               {children}
