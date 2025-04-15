@@ -3,19 +3,30 @@
 }
 
 .heroSection {
-  @apply mx-auto flex w-full max-w-[64rem] flex-col items-center justify-center gap-8 text-center;
+  @apply mx-auto flex w-full max-w-[64rem] flex-col items-center justify-center gap-10 text-center py-16;
+}
+
+.heroContent {
+  @apply flex flex-col gap-6;
 }
 
 .heroTitle {
   @apply bg-gradient-to-r from-primary to-secondary bg-clip-text font-heading text-4xl font-bold tracking-tighter text-transparent sm:text-5xl md:text-6xl lg:text-7xl;
+  text-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+}
+
+.heroSubtitle {
+  @apply block text-2xl md:text-3xl font-medium text-muted-foreground mt-2;
+  letter-spacing: -0.02em;
 }
 
 .heroDescription {
-  @apply mx-auto max-w-[42rem] text-muted-foreground sm:text-xl;
+  @apply mx-auto max-w-[42rem] text-muted-foreground sm:text-xl leading-relaxed;
+  letter-spacing: -0.01em;
 }
 
 .buttonGroup {
-  @apply flex flex-wrap items-center justify-center gap-4;
+  @apply flex flex-wrap items-center justify-center gap-4 mt-4;
 }
 
 .aboutSection {

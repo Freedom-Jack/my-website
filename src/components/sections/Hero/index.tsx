@@ -20,10 +20,9 @@ interface HeroProps {
 export function Hero({ content, onSecondaryClick }: HeroProps) {
   return (
     <section className={styles.heroSection}>
-      <div className={styles.backgroundPattern} />
       <div className={styles.heroContent}>
-        <h1 className={styles.heroTitle}>
-          {content.title}
+        <h1>
+          <span className={styles.heroTitle}>{content.title}</span>
           <span className={styles.heroSubtitle}>{content.subtitle}</span>
         </h1>
         <p className={styles.heroDescription}>{content.description}</p>
