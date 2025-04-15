@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useRef } from "react"
+import React from "react"
 import { motion } from "framer-motion"
 import "./styles.css"
 
@@ -8,91 +8,40 @@ interface BubbleProps {
   index: number
 }
 
-// This component will only render on the client side
-function ClientOnly({ children }: { children: React.ReactNode }) {
-  const [isMounted, setIsMounted] = useState(false)
-  
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
-  
-  if (!isMounted) {
-    return null // Return nothing on the server side
-  }
-  
-  return <>{children}</>
-}
-
-// Deterministic random function based on seed
-function generateRandom(index: number) {
-  // Use a fixed seed based on index
-  const seed = index + 1;
-  
-  // Generate consistent values
-  const scale = 0.25 + (Math.sin(seed * 123.45) * 0.5 + 0.5) * 0.75;
-  const duration = 20 + (Math.sin(seed * 567.89) * 0.5 + 0.5) * 10;
-  const delay = (Math.sin(seed * 912.34) * 0.5 + 0.5) * 2;
-  
-  // Better distribution across the entire screen (0-100 range for both X and Y)
-  const startX = (index % 5) * 20 + (Math.sin(seed * 345.67) * 0.5 + 0.5) * 15;
-  const startY = Math.floor(index / 5) * 20 + (Math.sin(seed * 789.01) * 0.5 + 0.5) * 15;
-  
-  // Generate animation points with wider movement range
-  const x1 = startX + (Math.sin(seed * 111.22) * 0.5 + 0.5) * 60 - 30;
-  const x2 = startX - (Math.sin(seed * 333.44) * 0.5 + 0.5) * 60 + 30;
-  const x3 = startX + (Math.sin(seed * 555.66) * 0.5 + 0.5) * 45 - 22.5;
-  
-  const y1 = startY + (Math.sin(seed * 777.88) * 0.5 + 0.5) * 60 - 30;
-  const y2 = startY - (Math.sin(seed * 999.00) * 0.5 + 0.5) * 60 + 30;
-  const y3 = startY + (Math.sin(seed * 111.00) * 0.5 + 0.5) * 45 - 22.5;
-  
-  return {
-    scale,
-    duration,
-    delay,
-    startX,
-    startY,
-    xPositions: [
-      `${startX}vw`,
-      `${x1}vw`,
-      `${x2}vw`,
-      `${x3}vw`,
-      `${startX}vw`,
-    ],
-    yPositions: [
-      `${startY}vh`,
-      `${y1}vh`,
-      `${y2}vh`,
-      `${y3}vh`,
-      `${startY}vh`,
-    ],
-    scaleValues: [scale, scale * 1.1, scale * 0.9, scale * 1.05, scale]
-  };
-}
-
 const Bubble = ({ index }: BubbleProps) => {
-  // Generate all values based on index - these are now deterministic and stable
-  const {
-    scale,
-    duration,
-    delay,
-    xPositions,
-    yPositions,
-    scaleValues
-  } = generateRandom(index);
+  // Generate random values for each bubble
+  const scale = 0.25 + Math.random() * 0.75
+  const duration = 20 + Math.random() * 10
+  const delay = Math.random() * 2
+  
+  // Generate random starting positions across the screen
+  const startX = Math.random() * 100
+  const startY = Math.random() * 100
   
   return (
     <motion.div
       className={`bubble bubble-${index}`}
       initial={{ 
-        x: xPositions[0], 
-        y: yPositions[0],
-        scale: scaleValues[0]
+        x: `${startX}vw`, 
+        y: `${startY}vh`,
+        scale 
       }}
       animate={{ 
-        x: xPositions,
-        y: yPositions,
-        scale: scaleValues
+        x: [
+          `${startX}vw`,
+          `${startX + (Math.random() * 40 - 20)}vw`,
+          `${startX - (Math.random() * 40 - 20)}vw`,
+          `${startX + (Math.random() * 30 - 15)}vw`,
+          `${startX}vw`,
+        ],
+        y: [
+          `${startY}vh`,
+          `${startY + (Math.random() * 40 - 20)}vh`,
+          `${startY - (Math.random() * 40 - 20)}vh`,
+          `${startY + (Math.random() * 30 - 15)}vh`,
+          `${startY}vh`,
+        ],
+        scale: [scale, scale * 1.1, scale * 0.9, scale * 1.05, scale]
       }}
       transition={{
         duration: duration,
@@ -106,18 +55,12 @@ const Bubble = ({ index }: BubbleProps) => {
 }
 
 export function Bubbles() {
-  // Use a wrapper div with suppressHydrationWarning
   return (
-    <div 
-      className="fixed inset-0 z-[-1] overflow-hidden pointer-events-none"
-      suppressHydrationWarning
-    >
-      <ClientOnly>
-        {/* Restored original number of bubbles to 50 */}
-        {Array.from({ length: 50 }).map((_, index) => (
-          <Bubble key={`bubble-${index}`} index={index % 22} />
-        ))}
-      </ClientOnly>
+    <div className="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
+      {/* Reduced number of bubbles from 50 to 25 */}
+      {Array.from({ length: 25 }).map((_, index) => (
+        <Bubble key={index} index={index % 22} />
+      ))}
     </div>
   )
 } 
