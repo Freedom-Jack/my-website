@@ -33,6 +33,10 @@ export interface AboutPageContent {
           highlightPatterns: {
             pattern: string;
           }[];
+          links?: {
+            label: string;
+            url: string;
+          }[];
         }[];
       }[];
     };
@@ -187,6 +191,10 @@ export const aboutContent: AboutPageContent = {
               description: [
                 "Designed and developed a Retrieval-Augmented Generation (RAG) chatbot using Azure and AWS.",
                 "Delivered 525% ROI by automating customer service across multiple languages and regions."
+              ],
+              links: [
+                { label: "Project Demo", url: "https://example.com/demo" },
+                { label: "GitHub Repo", url: "https://github.com/yourusername/project" }
               ],
               highlightPatterns: [
                 { pattern: "RAG" },

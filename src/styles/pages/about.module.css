@@ -315,8 +315,39 @@
 }
 
 .certificateId {
-  @apply text-xs text-muted-foreground/50;
-  font-family: monospace;
+  @apply text-sm text-muted-foreground/80;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.roleLinks {
+  @apply mt-2 pt-2 border-t border-border/50;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.roleLinksTitle {
+  @apply text-xs font-medium text-muted-foreground;
+  margin-right: 0.25rem;
+}
+
+.linksList {
+  @apply flex flex-wrap gap-2;
+  display: inline-flex;
+}
+
+.roleLink {
+  @apply text-xs px-3 py-1 rounded-md border border-primary text-primary bg-transparent hover:bg-primary/5 transition-colors;
+  display: inline-flex;
+  align-items: center;
+  font-weight: 500;
+}
+
+.roleLink::before {
+  content: '↗';
+  @apply mr-1.5 text-primary;
 }
 
 @keyframes shine {

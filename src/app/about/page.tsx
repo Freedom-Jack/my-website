@@ -130,6 +130,22 @@ export default function AboutPage() {
                         );
                       })}
                     </ul>
+                    {role.links && role.links.length > 0 && (
+                      <div className={styles.roleLinks}>
+                        <span className={styles.roleLinksTitle}>Resources:</span>
+                        {role.links.map((link, linkIndex) => (
+                          <a 
+                            key={linkIndex} 
+                            href={link.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className={styles.roleLink}
+                          >
+                            {link.label}
+                          </a>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
