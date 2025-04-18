@@ -192,9 +192,6 @@ export default function AboutPage() {
               <h3 className={styles.certificateName}>{cert.name}</h3>
               <p className={styles.certificateIssuer}>{cert.issuer}</p>
               <p className={styles.certificateDate}>Issued: {cert.date}</p>
-              {cert.credentialId && (
-                <p className={styles.certificateId}>ID: {cert.credentialId}</p>
-              )}
             </div>
           ))}
         </div>

@@ -56,7 +56,6 @@ export interface AboutPageContent {
         name: string;
         issuer: string;
         date: string;
-        credentialId?: string;
       }[];
     };
   };
@@ -203,7 +202,7 @@ export const aboutContent: AboutPageContent = {
               isCurrent: false,
               keywords: ["Python", "SQL (T-SQL, PostgreSQL, SQL Server)", "Big Data", "Machine Learning", "Data Warehousing / ETL"],
               description: [
-                "Database operations (SQL Server / 2 TB): Managed Canada’s largest automobile-insurance policy-history database, holding 99.9 % uptime and < 200 ms median queries.",
+                "Database operations (SQL Server / 2 TB): Managed Canada's largest automobile-insurance policy-history database, holding 99.9 % uptime and < 200 ms median queries.",
                 "Micro data marts (Postgres / SQL Server): Designed 22+ single-purpose marts (≤ 4 tables, monthly refresh) for accounting & finance analytics, driving monthly report runtime down from 30 min to 5 minutes.",
                 "ML fraud scoring: Shipped a gradient-boost loss-ratio model that lifted recovered fraud losses 321 % versus a top-5-bank benchmark, batch-scoring in a Python–T-SQL pipeline."
               ],
@@ -251,7 +250,7 @@ export const aboutContent: AboutPageContent = {
               description: [
                 "Homepage & Feature Revamp (React / TypeScript): Contributed major components to a company-wide homepage rewrite, working with senior devs to cut Time-to-Interactive ≈ 45%.",
                 "Telus Product Pages: Partnered with UX, QA, and DevOps to launch two Telus product pages; reusable React components and CI hooks trimmed design-to-deploy turnaround from 10 to 3 days.",
-                "Automated Visual Regression: Helped introduce a Puppeteer + Jest visual-diff pipeline that removed about 90% of manual QA checks and shaved 2 days off each sprint’s release gate."
+                "Automated Visual Regression: Helped introduce a Puppeteer + Jest visual-diff pipeline that removed about 90% of manual QA checks and shaved 2 days off each sprint's release gate."
               ],
               highlightPatterns: [
                 { pattern: "React|TypeScript" }
@@ -279,14 +278,12 @@ export const aboutContent: AboutPageContent = {
         {
           name: "Microsoft Certified: Azure Administrator Associate",
           issuer: "Microsoft",
-          date: "2023",
-          credentialId: "1234567890"
+          date: "2022"
         },
         {
           name: "Project Management Professional (PMP)",
           issuer: "Project Management Institute",
-          date: "2022",
-          credentialId: "0987654321"
+          date: "2023"
         }
       ]
     }
