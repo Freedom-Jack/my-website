@@ -31,7 +31,7 @@ async function getBlogPost(slug: string) {
 }
 
 // Generate metadata for better SEO
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const awaitedParams = await params
   const post = await getBlogPost(awaitedParams.slug)
   const imagePath = post.image ? `/blog/${post.slug}/${post.image}` : null
@@ -60,7 +60,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
 // Fix type issue with Next.js 15.3.0 page props
 type Props = {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
   searchParams: Record<string, string | string[] | undefined>
 }
 
