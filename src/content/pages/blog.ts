@@ -9,6 +9,18 @@ export interface BlogPageContent {
       title: string;
     };
   };
+  blogCard: {
+    readMore: string;
+    dateFormat: {
+      year: 'numeric' | '2-digit';
+      month: 'numeric' | '2-digit' | 'long' | 'short' | 'narrow';
+      day: 'numeric' | '2-digit';
+    };
+  };
+  metadata: {
+    defaultTitle: string;
+    defaultDescription: string;
+  };
 }
 
 export const blogContent: BlogPageContent = {
@@ -21,5 +33,17 @@ export const blogContent: BlogPageContent = {
     recentPosts: {
       title: "Recent Posts"
     }
+  },
+  blogCard: {
+    readMore: "Read more",
+    dateFormat: {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }
+  },
+  metadata: {
+    defaultTitle: "Blog",
+    defaultDescription: "Read my latest thoughts and insights"
   }
 }; 

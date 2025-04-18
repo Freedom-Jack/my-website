@@ -12,6 +12,21 @@ export interface BlogPostPageContent {
   authorSection: {
     title: string;
   };
+  jsonLd: {
+    schema: string;
+    type: string;
+    context: string;
+    headline: string;
+    datePublished: string;
+    dateModified: string;
+    description: string;
+    author: string;
+    personType: string;
+    name: string;
+    image: string;
+    mainEntityOfPage: string;
+    webPageType: string;
+  };
 }
 
 export const blogPostContent: BlogPostPageContent = {
@@ -27,5 +42,20 @@ export const blogPostContent: BlogPostPageContent = {
   },
   authorSection: {
     title: "About the Author"
+  },
+  jsonLd: {
+    schema: "application/ld+json",
+    type: "BlogPosting",
+    context: "https://schema.org",
+    headline: "headline",
+    datePublished: "datePublished",
+    dateModified: "dateModified",
+    description: "description",
+    author: "author",
+    personType: "Person",
+    name: "name",
+    image: "image",
+    mainEntityOfPage: "mainEntityOfPage",
+    webPageType: "WebPage"
   }
 }; 

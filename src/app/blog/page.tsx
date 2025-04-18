@@ -6,6 +6,28 @@ import PageHeader from '@/components/page-header'
 import styles from '@/styles/pages/about.module.css'
 import blogStyles from '@/styles/pages/blog.module.css'
 import { blogContent } from '@/content/pages/blog'
+import { Metadata } from 'next'
+
+// Generate dynamic metadata for blog listing page
+export async function generateMetadata(): Promise<Metadata> {
+  const { header, metadata } = blogContent
+  
+  return {
+    title: header.title ? `${header.title}` : metadata.defaultTitle,
+    description: header.description || metadata.defaultDescription,
+    openGraph: {
+      title: header.title ? `${header.title}` : metadata.defaultTitle,
+      description: header.description || metadata.defaultDescription,
+      type: "website",
+      url: "/blog",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: header.title ? `${header.title}` : metadata.defaultTitle,
+      description: header.description || metadata.defaultDescription,
+    }
+  }
+}
 
 async function getBlogPosts() {
   const blogDirectory = path.join(process.cwd(), 'public/blog')
@@ -22,6 +44,9 @@ async function getBlogPosts() {
         title: data.title,
         date: data.date,
         description: data.description,
+        keywords: data.keywords || '',
+        author: data.author || '',
+        image: data.image || '',
       }
     })
   )
@@ -31,7 +56,7 @@ async function getBlogPosts() {
 
 export default async function BlogPage() {
   const posts = await getBlogPosts()
-  const { header, sections } = blogContent
+  const { header, sections, blogCard } = blogContent
   
   return (
     <div className={styles.pageContainer}>
@@ -59,18 +84,14 @@ export default async function BlogPage() {
                       dateTime={post.date}
                       className={blogStyles.blogDate}
                     >
-                      {new Date(post.date).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
+                      {new Date(post.date).toLocaleDateString('en-US', blogCard.dateFormat)}
                     </time>
                   </div>
                   <p className={blogStyles.blogDescription}>
                     {post.description}
                   </p>
                   <div className={blogStyles.readMore}>
-                    Read more
+                    {blogCard.readMore}
                     <svg 
                       className="ml-2 w-4 h-4" 
                       fill="none" 

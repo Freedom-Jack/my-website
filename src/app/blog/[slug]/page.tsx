@@ -11,6 +11,7 @@ import { ArrowLeft } from 'lucide-react'
 import { blogPostContent } from '@/content/pages/blog-post'
 import AboutSection from '@/components/sections/About'
 import { homeContent } from '@/content/pages/home'
+import { Metadata } from 'next'
 
 async function getBlogPost(slug: string) {
   const filePath = path.join(process.cwd(), 'public/blog', slug, 'index.mdx')
@@ -21,15 +22,45 @@ async function getBlogPost(slug: string) {
     title: data.title,
     date: data.date,
     description: data.description,
+    keywords: data.keywords || '',
+    author: data.author || '',
+    image: data.image || '',
     content,
     slug,
+  }
+}
+
+// Generate metadata for better SEO
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const post = await getBlogPost(params.slug)
+  const imagePath = post.image ? `/blog/${post.slug}/${post.image}` : null
+
+  return {
+    title: post.title,
+    description: post.description,
+    keywords: post.keywords,
+    authors: post.author ? [{ name: post.author }] : [],
+    openGraph: {
+      title: post.title,
+      description: post.description,
+      type: 'article',
+      publishedTime: post.date,
+      url: `/blog/${post.slug}`,
+      images: imagePath ? [{ url: imagePath }] : [],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: post.description,
+      images: imagePath ? [imagePath] : [],
+    },
   }
 }
 
 export default async function BlogPost(props0: { params: Promise<{ slug: string }> }) {
   const params = await props0.params;
   const post = await getBlogPost(params.slug)
-  const { backButton, header, authorSection } = blogPostContent
+  const { backButton, header, authorSection, jsonLd } = blogPostContent
 
   return (
     <div className={styles.pageContainer}>
@@ -55,6 +86,30 @@ export default async function BlogPost(props0: { params: Promise<{ slug: string 
       {/* Content */}
       <section className={styles.section}>
         <div className={blogStyles.blogContent}>
+          {/* Add JSON-LD structured data for SEO */}
+          <script
+            type={jsonLd.schema}
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                '@context': jsonLd.context,
+                '@type': jsonLd.type,
+                'headline': post.title,
+                'datePublished': post.date,
+                'dateModified': post.date,
+                'description': post.description,
+                'author': {
+                  '@type': jsonLd.personType,
+                  'name': post.author || '',
+                },
+                'image': post.image ? `/blog/${post.slug}/${post.image}` : '',
+                'mainEntityOfPage': {
+                  '@type': jsonLd.webPageType,
+                  '@id': `${process.env.NEXT_PUBLIC_SITE_URL || ''}/blog/${post.slug}`,
+                },
+              })
+            }}
+          />
+          
           <MDXRemote 
             source={post.content}
             components={{
