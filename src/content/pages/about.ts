@@ -29,8 +29,8 @@ export interface AboutPageContent {
           endDate: string;
           isCurrent: boolean;
           keywords: string[];
-          description: string[];
-          highlightPatterns: {
+          description?: string[];
+          highlightPatterns?: {
             pattern: string;
           }[];
           links?: {
@@ -172,14 +172,9 @@ export const aboutContent: AboutPageContent = {
               startDate: "Jan 2025",
               endDate: "Present",
               isCurrent: true,
-              keywords: ["Cloud Architecture", "AI Engineering", "Insurance Tech", "Team Leadership"],
+              keywords: ["AI Agent", "Cloud Architecture", "LLM", "Azure"],
               description: [
-                "Leading enterprise cloud and AI engineering initiatives to drive transformation in the insurance sector."
-              ],
-              highlightPatterns: [
-                { pattern: "cloud" },
-                { pattern: "AI" },
-                { pattern: "insurance" }
+                "Great things are happening here."
               ]
             },
             {
@@ -187,20 +182,18 @@ export const aboutContent: AboutPageContent = {
               startDate: "Aug 2023",
               endDate: "Dec 2024",
               isCurrent: false,
-              keywords: ["RAG", "Azure", "AWS", "Multi-language Support", "Automation"],
+              keywords: ["AI Chatbot", "RAG", "LangChain", "Automation"],
               description: [
-                "Designed and developed a Retrieval-Augmented Generation (RAG) chatbot using Azure and AWS.",
-                "Delivered 525% ROI by automating customer service across multiple languages and regions."
+                "AI‑powered Customer‑Service Chatbot (RAG, Azure + AWS): Architected and shipped a retrieval‑augmented LLM that now resolves ~70 % of inbound queries autonomously, deflecting ≈ 8000 tickets per month and paying back its build cost 525% in 12 months."
               ],
               links: [
-                { label: "Project Demo", url: "https://example.com/demo" },
-                { label: "GitHub Repo", url: "https://github.com/yourusername/project" }
+                { label: "Product Page", url: "https://www.cgi.com/canada/en-ca/insurance-chatbot" },
+                { label: "Promotional Article", url: "https://www.cgi.com/canada/en-ca/article/insurance/ai-chatbots-insurance-are-transforming-customer-service" }
               ],
               highlightPatterns: [
                 { pattern: "RAG" },
                 { pattern: "Azure|AWS" },
-                { pattern: "ROI" },
-                { pattern: "automating" }
+                { pattern: "525" }
               ]
             },
             {
@@ -208,10 +201,11 @@ export const aboutContent: AboutPageContent = {
               startDate: "Aug 2021",
               endDate: "Jul 2023",
               isCurrent: false,
-              keywords: ["Big Data", "Machine Learning", "Fraud Detection", "System Design"],
+              keywords: ["Python", "SQL (T-SQL, PostgreSQL, SQL Server)", "Big Data", "Machine Learning", "Data Warehousing / ETL"],
               description: [
-                "Managed Canada's largest automobile insurance databases and designed over 22 systems for finance and reporting.",
-                "Built a machine learning-based loss ratio score that improved fraud detection accuracy by 321%."
+                "Database operations (SQL Server / 2 TB): Managed Canada’s largest automobile-insurance policy-history database, holding 99.9 % uptime and < 200 ms median queries.",
+                "Micro data marts (Postgres / SQL Server): Designed 22+ single-purpose marts (≤ 4 tables, monthly refresh) for accounting & finance analytics, driving monthly report runtime down from 30 min to 5 minutes.",
+                "ML fraud scoring: Shipped a gradient-boost loss-ratio model that lifted recovered fraud losses 321 % versus a top-5-bank benchmark, batch-scoring in a Python–T-SQL pipeline."
               ],
               highlightPatterns: [
                 { pattern: "databases" },
@@ -230,10 +224,11 @@ export const aboutContent: AboutPageContent = {
               startDate: "Nov 2018",
               endDate: "Aug 2021",
               isCurrent: false,
-              keywords: ["Computer Vision", "ML Pipelines", "Sports Analytics", "Real-time Systems"],
+              keywords: ["Computer Vision", "PyTorch", "TensorFlow", "CNN-LSTM", "Active Learning", "Real-Time Systems"],
               description: [
-                "Built ML pipelines for sports video analysis using PyTorch and TensorFlow.",
-                "Developed automated event detection and real-time tracking systems for hockey performance analysis."
+                "Automated Sports Video Analysis (PyTorch / TensorFlow): Co-developed the AttentiveVision pipeline for hockey broadcast footage, training a CNN-LSTM stack that reached mAP ≈ 70% on event detection across 18 hours of game video.",
+                "Real-Time Player Tracking System: Engineered a smooth-pursuit Kalman-filter tracker delivering < 100 ms latency at 30 FPS, capturing sub-pixel player trajectories for live speed & heat-map analytics.",
+                "Action Spotting & Annotation Automation: Built an active-learning annotation loop that cut manual labelling effort and raised dataset reliability to κ ≈ 0.92."
               ],
               highlightPatterns: [
                 { pattern: "ML pipelines" },
@@ -252,15 +247,14 @@ export const aboutContent: AboutPageContent = {
               startDate: "May 2019",
               endDate: "Aug 2019",
               isCurrent: false,
-              keywords: ["React", "TypeScript", "Frontend Development", "QA Automation"],
+              keywords: ["React", "TypeScript", "CI/CD", "Puppeteer", "Jest"],
               description: [
-                "Implemented end-to-end features with React and TypeScript, and led the redesign of the company homepage.",
-                "Launched Telus product pages and built a visual regression testing framework to streamline QA."
+                "Homepage & Feature Revamp (React / TypeScript): Contributed major components to a company-wide homepage rewrite, working with senior devs to cut Time-to-Interactive ≈ 45%.",
+                "Telus Product Pages: Partnered with UX, QA, and DevOps to launch two Telus product pages; reusable React components and CI hooks trimmed design-to-deploy turnaround from 10 to 3 days.",
+                "Automated Visual Regression: Helped introduce a Puppeteer + Jest visual-diff pipeline that removed about 90% of manual QA checks and shaved 2 days off each sprint’s release gate."
               ],
               highlightPatterns: [
-                { pattern: "React|TypeScript" },
-                { pattern: "end-to-end" },
-                { pattern: "QA" }
+                { pattern: "React|TypeScript" }
               ]
             }
           ]

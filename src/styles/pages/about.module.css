@@ -215,6 +215,42 @@
 
 .experienceDescription {
   @apply space-y-1.5 text-muted-foreground;
+  list-style-type: none;
+}
+
+.descriptionItem {
+  @apply text-muted-foreground relative pl-5;
+  line-height: 1.6;
+}
+
+.descriptionItem::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: 0.35em;
+  height: 0.35em;
+  background: linear-gradient(90deg, 
+    hsl(var(--primary)) 0%, 
+    hsl(var(--secondary)) 100%);
+  border-radius: 50%;
+}
+
+.descriptionItem :global(span) {
+  @apply transition-colors duration-200;
+}
+
+.descriptionItem :global(span.primary) {
+  @apply font-semibold;
+  color: hsl(210, 100%, 65%);
+  padding: 0px 3px;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid hsla(210, 100%, 75%, 0.6);
+}
+
+.descriptionItem :global(span.primary):hover {
+  color: hsl(210, 100%, 60%);
 }
 
 .educationList {
@@ -265,19 +301,6 @@
 .keyword:hover {
   @apply bg-primary/20;
   transform: translateY(-1px);
-}
-
-.descriptionItem {
-  @apply text-muted-foreground;
-  line-height: 1.6;
-}
-
-.descriptionItem :global(span) {
-  @apply transition-colors duration-200;
-}
-
-.descriptionItem :global(span.primary) {
-  @apply font-semibold text-primary;
 }
 
 .certificatesList {

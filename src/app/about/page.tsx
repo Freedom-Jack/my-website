@@ -111,15 +111,17 @@ export default function AboutPage() {
                       </div>
                     </div>
                     <ul className={styles.experienceDescription}>
-                      {role.description.map((point, pointIndex) => {
-                        // Apply highlight patterns
+                      {role.description && role.description.map((point, pointIndex) => {
+                        // Apply highlight patterns if they exist
                         let processedText = point;
-                        role.highlightPatterns.forEach(({ pattern }) => {
-                          const regex = new RegExp(`\\b(${pattern})\\b`, 'gi');
-                          processedText = processedText.replace(regex, (match) => {
-                            return `<span class="primary">${match}</span>`;
+                        if (role.highlightPatterns && role.highlightPatterns.length > 0) {
+                          role.highlightPatterns.forEach(({ pattern }) => {
+                            const regex = new RegExp(`\\b(${pattern})\\b`, 'gi');
+                            processedText = processedText.replace(regex, (match) => {
+                              return `<span class="primary">${match}</span>`;
+                            });
                           });
-                        });
+                        }
                         
                         return (
                           <li 
