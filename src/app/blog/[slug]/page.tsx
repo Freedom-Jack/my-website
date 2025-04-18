@@ -57,8 +57,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   }
 }
 
-export default async function BlogPost(props0: { params: Promise<{ slug: string }> }) {
-  const params = await props0.params;
+export default async function BlogPost({ params }: { params: { slug: string } }) {
   const post = await getBlogPost(params.slug)
   const { backButton, header, authorSection, jsonLd } = blogPostContent
 
