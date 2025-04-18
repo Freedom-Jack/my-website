@@ -61,7 +61,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 // Fix type issue with Next.js 15.3.0 page props
 type Props = {
   params: Promise<{ slug: string }>
-  searchParams: Record<string, string | string[] | undefined>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
 export default async function BlogPost({ params }: Props) {
