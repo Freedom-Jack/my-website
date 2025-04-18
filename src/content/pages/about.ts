@@ -7,7 +7,10 @@ export interface AboutPageContent {
   sections: {
     bio: {
       title: string;
-      content: string[];
+      content: {
+        heading: string;
+        text: string;
+      }[];
     };
     skills: {
       title: string;
@@ -58,16 +61,29 @@ export interface AboutPageContent {
 export const aboutContent: AboutPageContent = {
   header: {
     title: "About Me",
-    subtitle: "Engineering Scalable and Intelligent Systems",
-    description: "I'm Qijin Xu, a software engineer and data architect passionate about building robust, intelligent systems. With experience spanning cloud platforms, ML pipelines, and full-stack development, I bridge engineering excellence and business impact."
+    subtitle: "Engineering AI & Data Systems at Scale",
+    description: "I'm Qijin Xu, also go by Jack, an AI‑driven software engineer and data architect based in Toronto. I build production‑grade systems that fuse massive data pipelines with cutting‑edge machine‑learning models — turning raw information into real‑time intelligence and business impact."
   },
   sections: {
     bio: {
       title: "Bio",
       content: [
-        "Based in Toronto, I specialize in designing distributed systems, AI solutions, and cloud infrastructure. I'm currently a Senior Consultant at CGI, leading high-impact data and AI initiatives.",
-        "With a Computer Science degree from York University and certifications like Azure Solutions Architect Expert and PMP, I bring both technical depth and project leadership to the table.",
-        "Outside of work, I enjoy diving into new technologies, mentoring, and contributing to open-source projects."
+        {
+          heading: "Current Role",
+          text: "As a Senior Consultant at CGI, I lead enterprise AI initiatives and steward Canada's largest auto‑insurance database. Recent wins include launching a Retrieval‑Augmented‑Generation chatbot and an autonomous workflow agent that streamline claims operations company‑wide."
+        },
+        {
+          heading: "Expertise & Stack",
+          text: "Python, TypeScript, T‑SQL, Azure, Databricks, LangChain — end‑to‑end ownership from data ingestion to full‑stack ML services."
+        },
+        {
+          heading: "Credentials",
+          text: "B.Sc. in Computer Science, York University · Microsoft Certified: Azure Solutions Architect Expert · Project Management Professional (PMP)."
+        },
+        {
+          heading: "Beyond Code",
+          text: "Open‑source contributor, I am a big video gamer and I love to build game assistant tools."
+        }
       ]
     },
     skills: {
@@ -76,64 +92,67 @@ export const aboutContent: AboutPageContent = {
         {
           title: "AI & LLM Engineering",
           items: [
-            "Large Language Models (LLM)",
-            "Retrieval-Augmented Generation (RAG)",
-            "AI Agents",
-            "Chain of Thought Reasoning",
-            "Prompt Engineering",
-            "OpenAI / HuggingFace / LangChain",
-            "Transformers",
-            "LoRA Fine-tuning"
+            "Large Language Models (LLMs)",
+            "Retrieval‑Augmented Generation (RAG)",
+            "Transformers & Attention",
+            "LangChain / HuggingFace / OpenAI SDKs",
+            "Prompt & Chain‑of‑Thought Engineering",
+            "LoRA / PEFT Fine‑Tuning"
           ]
         },
         {
           title: "Backend & System Design",
           items: [
-            "Distributed Systems",
-            "Microservices",
-            "API Design (REST & GraphQL)",
-            "Database Design (SQL & NoSQL)",
-            "Event-driven Architecture",
-            "Message Queues (Kafka, RabbitMQ)"
+            "Distributed Systems & Scalability",
+            "Microservices & Service Mesh",
+            "API Design (REST / GraphQL)",
+            "Database Design (SQL & NoSQL)",
+            "Event‑Driven Architecture & CQRS",
+            "Message Queues (Kafka, RabbitMQ)"
           ]
         },
         {
           title: "Cloud & DevOps",
           items: [
             "Docker & Kubernetes",
-            "AWS (Lambda, S3, ECS)",
-            "Azure Functions",
-            "Terraform",
-            "CI/CD (GitHub Actions, Azure DevOps)"
+            "AWS (EKS, Lambda, S3, ECS)",
+            "Azure Functions & AKS",
+            "Terraform & IaC",
+            "CI/CD (GitHub Actions, Azure DevOps)",
+            "Observability (CloudWatch, Prometheus)"
           ]
         },
         {
           title: "Programming Languages",
           items: [
             "Python",
-            "TypeScript",
             "Go",
-            "Java"
+            "TypeScript / Node.js",
+            "Java",
+            "T‑SQL & PL/pgSQL",
+            "Bash / Shell Scripting"
           ]
         },
         {
           title: "Data & ML Infrastructure",
           items: [
-            "Vector Databases (Pinecone, Weaviate)",
-            "Embedding Models (OpenAI, Cohere)",
-            "ML Pipelines (Airflow, MLflow)",
-            "Data Warehousing (BigQuery, Snowflake)"
+            "Vector Stores (Pinecone, Weaviate)",
+            "Embedding Models (OpenAI, Cohere)",
+            "ML Pipelines (Airflow, MLflow)",
+            "Data Warehousing (BigQuery, Snowflake)",
+            "Databricks & Delta Lake",
+            "Feature Stores (Feast)"
           ]
         },
         {
-          title: "Full-Stack Development",
+          title: "Full‑Stack Development",
           items: [
             "React / Next.js",
-            "Node.js",
-            "Tailwind CSS",
-            "tRPC",
-            "Vercel",
-            "Auth0"
+            "tRPC & GraphQL",
+            "Tailwind CSS",
+            "Vercel & Edge Functions",
+            "Auth0 & OAuth2",
+            "Testing (Jest, Playwright)"
           ]
         }
       ]
@@ -145,7 +164,7 @@ export const aboutContent: AboutPageContent = {
           company: "CGI",
           roles: [
             {
-              title: "Lead DE & SDE, Senior Consultant",
+              title: "Lead Data Engineer & Software Development Engineer, Senior Consultant",
               startDate: "Jan 2025",
               endDate: "Present",
               isCurrent: true,
@@ -160,7 +179,7 @@ export const aboutContent: AboutPageContent = {
               ]
             },
             {
-              title: "Lead DE & SDE, Consultant",
+              title: "Lead Data Engineer & Software Development Engineer, Consultant",
               startDate: "Aug 2023",
               endDate: "Dec 2024",
               isCurrent: false,
@@ -247,7 +266,7 @@ export const aboutContent: AboutPageContent = {
           degree: "B.Sc in Computer Science (Specialized Honours)",
           institution: "York University, Toronto",
           startDate: "2017",
-          endDate: "2020",
+          endDate: "2021",
           description: ["Graduated with GPA: 3.9/4.0", "First Class with Distinction"]
         }
       ]

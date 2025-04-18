@@ -18,22 +18,31 @@ export interface HomePageContent {
   };
 }
 
+
+const START_YEAR = 2021;         //  My start year
+export const yearsOfExperience = new Date().getFullYear() - START_YEAR;
+
+
 export const homeContent: HomePageContent = {
   hero: {
     title: "Qijin Xu",
-    subtitle: "Senior Software Engineer",
-    description: "Specializing in Machine Learning & AI | Cloud Architecture | Full-Stack Development",
+    subtitle: "Software Development Engineer",
+    description: "Specializing in Machine Learning & AI | Data Engineering",
     primaryCta: "View My Projects",
     secondaryCta: "Learn More About Me"
   },
   about: {
     tag: "Professional Profile",
-    title: "Driving Innovation Through Technology",
-    description: "I am a results-driven Software Engineer with expertise in machine learning, artificial intelligence, and cloud computing. With experience at leading tech companies and a strong academic background, I excel at developing scalable solutions and implementing cutting-edge technologies to solve complex problems.",
+    title: "Software Engineer — AI & Data at Scale",
+    description: "I’m a Software Development Engineer blending AI research with production‑scale data. \
+    At CGI I direct pipelines behind Canada’s largest auto‑insurance database while shipping live AI, \
+    including a RAG chatbot and workflow agent. \
+    From T‑SQL to full‑stack ML, I turn terabytes into smart, \
+    deployable solutions that move business needles—poised to deliver at FAANG scale.",
     cta: "Explore My Background",
     profile: {
       name: "Qijin Xu",
-      role: "Senior Software Engineer"
+      role: "Software Development Engineer"
     }
   }
 }; 

@@ -37,8 +37,11 @@ export default function AboutPage() {
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>{aboutContent.sections.bio.title}</h2>
         <div className={styles.bioContent}>
-          {aboutContent.sections.bio.content.map((paragraph, index) => (
-            <p key={index}>{paragraph}</p>
+          {aboutContent.sections.bio.content.map((item, index) => (
+            <div key={index} className={styles.bioSection}>
+              <h3 className={styles.bioHeading}>{item.heading}</h3>
+              <p className={styles.bioParagraph}>{item.text}</p>
+            </div>
           ))}
         </div>
       </section>
