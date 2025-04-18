@@ -24,6 +24,12 @@ const nextConfig = {
   eslint: {
     dirs: ['src'],
   },
+  // Enable experimental features for better performance
+  experimental: {
+    optimizeCss: true,
+    scrollRestoration: true,
+    optimizeServerReact: true
+  },
   headers: async () => {
     return [
       {

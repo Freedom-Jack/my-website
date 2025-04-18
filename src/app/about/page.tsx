@@ -2,6 +2,11 @@ import { aboutContent } from '@/content/pages/about';
 import styles from '@/styles/pages/about.module.css';
 import React from 'react';
 
+// Add priority loading metadata for the page
+export const metadata = {
+  priority: true
+};
+
 export default function AboutPage() {
   const renderSkillsList = (items: string[]) => {
     const maxItemsPerColumn = 5;
@@ -34,7 +39,7 @@ export default function AboutPage() {
       </section>
 
       {/* Bio Section */}
-      <section className={styles.section}>
+      <section className={styles.section} style={{ contentVisibility: 'auto', containIntrinsicSize: '0 200px' }}>
         <h2 className={styles.sectionTitle}>{aboutContent.sections.bio.title}</h2>
         <div className={styles.bioContent}>
           {aboutContent.sections.bio.content.map((item, index) => (
@@ -47,7 +52,7 @@ export default function AboutPage() {
       </section>
 
       {/* Skills Section */}
-      <section className={styles.section}>
+      <section className={styles.section} style={{ contentVisibility: 'auto', containIntrinsicSize: '0 400px' }}>
         <h2 className={styles.sectionTitle}>{aboutContent.sections.skills.title}</h2>
         <div className={styles.skillsGrid}>
           {aboutContent.sections.skills.categories.map((category, index) => (
@@ -77,7 +82,7 @@ export default function AboutPage() {
       </section>
 
       {/* Experience Section */}
-      <section className={styles.section}>
+      <section className={styles.section} style={{ contentVisibility: 'auto', containIntrinsicSize: '0 600px' }}>
         <h2 className={styles.sectionTitle}>{aboutContent.sections.experience.title}</h2>
         <div className={styles.experienceList}>
           {aboutContent.sections.experience.items.map((item, index) => (
@@ -134,7 +139,7 @@ export default function AboutPage() {
       </section>
 
       {/* Education Section */}
-      <section className={styles.section}>
+      <section className={styles.section} style={{ contentVisibility: 'auto', containIntrinsicSize: '0 300px' }}>
         <h2 className={styles.sectionTitle}>{aboutContent.sections.education.title}</h2>
         <div className={styles.educationList}>
           {aboutContent.sections.education.items.map((item, index) => (
@@ -161,7 +166,7 @@ export default function AboutPage() {
       </section>
 
       {/* Certificates Section */}
-      <section className={styles.section}>
+      <section className={styles.section} style={{ contentVisibility: 'auto', containIntrinsicSize: '0 250px' }}>
         <h2 className={styles.sectionTitle}>{aboutContent.sections.certificates.title}</h2>
         <div className={styles.certificatesList}>
           {aboutContent.sections.certificates.items.map((cert, index) => (
