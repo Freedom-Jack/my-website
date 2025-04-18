@@ -32,7 +32,8 @@ async function getBlogPost(slug: string) {
 
 // Generate metadata for better SEO
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const post = await getBlogPost(params.slug)
+  const awaitedParams = await params
+  const post = await getBlogPost(awaitedParams.slug)
   const imagePath = post.image ? `/blog/${post.slug}/${post.image}` : null
 
   return {
@@ -57,8 +58,15 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   }
 }
 
-export default async function BlogPost({ params }: { params: { slug: string } }) {
-  const post = await getBlogPost(params.slug)
+// Fix type issue with Next.js 15.3.0 page props
+type Props = {
+  params: { slug: string }
+  searchParams: Record<string, string | string[] | undefined>
+}
+
+export default async function BlogPost({ params }: Props) {
+  const awaitedParams = await params
+  const post = await getBlogPost(awaitedParams.slug)
   const { backButton, header, authorSection, jsonLd } = blogPostContent
 
   return (
