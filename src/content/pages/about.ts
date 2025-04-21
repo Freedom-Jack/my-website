@@ -204,13 +204,12 @@ export const aboutContent: AboutPageContent = {
               description: [
                 "Database operations (SQL Server / 2 TB): Managed Canada's largest automobile-insurance policy-history database, holding 99.9 % uptime and < 200 ms median queries.",
                 "Micro data marts (Postgres / SQL Server): Designed 22+ single-purpose marts (≤ 4 tables, monthly refresh) for accounting & finance analytics, driving monthly report runtime down from 30 min to 5 minutes.",
-                "ML fraud scoring: Shipped a gradient-boost loss-ratio model that lifted recovered fraud losses 321 % versus a top-5-bank benchmark, batch-scoring in a Python–T-SQL pipeline."
+                "ML fraud scoring: Shipped a gradient-boost loss-ratio model that lifted recovered fraud losses 321 % versus a top-5 bank's benchmark, batch-scoring in a Python–T-SQL pipeline."
               ],
               highlightPatterns: [
-                { pattern: "databases" },
-                { pattern: "machine learning" },
-                { pattern: "fraud detection" },
-                { pattern: "321%" }
+                { pattern: "largest" },
+                { pattern: "321" },
+                { pattern: "top-5 bank" }
               ]
             }
           ]
