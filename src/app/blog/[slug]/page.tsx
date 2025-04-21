@@ -12,6 +12,33 @@ import { blogPostContent } from '@/content/pages/blog-post'
 import AboutSection from '@/components/sections/About'
 import { homeContent } from '@/content/pages/home'
 import { Metadata } from 'next'
+import MobileTableOfContents from './MobileTableOfContents'
+import TableOfContents from './TableOfContents'
+
+// Function to extract headings from markdown content
+function extractHeadings(content: string) {
+  const headingRegex = /^(#{1,6})\s+(.+)$/gm;
+  const headings = [];
+  let match;
+
+  while ((match = headingRegex.exec(content)) !== null) {
+    const level = match[1].length;
+    const text = match[2].trim();
+    
+    // Skip h1 headings (title) for the table of contents
+    if (level === 1) continue;
+    
+    const slug = text.toLowerCase().replace(/[^\w\s]/g, '').replace(/\s+/g, '-');
+    
+    headings.push({
+      level,
+      text,
+      slug,
+    });
+  }
+
+  return headings;
+}
 
 async function getBlogPost(slug: string) {
   const filePath = path.join(process.cwd(), 'public/blog', slug, 'index.mdx')
@@ -68,6 +95,9 @@ export default async function BlogPost({ params }: Props) {
   const awaitedParams = await params
   const post = await getBlogPost(awaitedParams.slug)
   const { backButton, header, authorSection, jsonLd } = blogPostContent
+  
+  // Extract headings from the content for the table of contents
+  const headings = extractHeadings(post.content)
 
   return (
     <div className={styles.pageContainer}>
@@ -85,13 +115,22 @@ export default async function BlogPost({ params }: Props) {
       <section className={styles.headerSection}>
         <h1 className={styles.headerTitle}>{post.title}</h1>
         <h2 className={styles.headerSubtitle}>
-          {new Date(post.date).toLocaleDateString('en-US', header.dateFormat)}
+          {new Date(post.date + 'T00:00:00').toLocaleDateString('en-US', header.dateFormat)}
         </h2>
         <p className={styles.headerDescription}>{post.description}</p>
       </section>
 
+      {/* Mobile Table of Contents */}
+      <MobileTableOfContents headings={headings} />
+
       {/* Content */}
       <section className={styles.section}>
+        {/* Desktop Table of Contents - show on medium screens and up */}
+        <div className="hidden md:block mb-8 max-w-2xl mx-auto">
+          <TableOfContents headings={headings} />
+        </div>
+
+        {/* Article Content */}
         <div className={blogStyles.blogContent}>
           {/* Add JSON-LD structured data for SEO */}
           <script
@@ -140,6 +179,36 @@ export default async function BlogPost({ params }: Props) {
                     />
                   </span>
                 );
+              },
+              h1: ({ children }: { children: React.ReactNode }) => {
+                const text = children?.toString() || '';
+                const slug = text.toLowerCase().replace(/[^\w\s]/g, '').replace(/\s+/g, '-');
+                return <h1 id={slug}>{children}</h1>;
+              },
+              h2: ({ children }: { children: React.ReactNode }) => {
+                const text = children?.toString() || '';
+                const slug = text.toLowerCase().replace(/[^\w\s]/g, '').replace(/\s+/g, '-');
+                return <h2 id={slug}>{children}</h2>;
+              },
+              h3: ({ children }: { children: React.ReactNode }) => {
+                const text = children?.toString() || '';
+                const slug = text.toLowerCase().replace(/[^\w\s]/g, '').replace(/\s+/g, '-');
+                return <h3 id={slug}>{children}</h3>;
+              },
+              h4: ({ children }: { children: React.ReactNode }) => {
+                const text = children?.toString() || '';
+                const slug = text.toLowerCase().replace(/[^\w\s]/g, '').replace(/\s+/g, '-');
+                return <h4 id={slug}>{children}</h4>;
+              },
+              h5: ({ children }: { children: React.ReactNode }) => {
+                const text = children?.toString() || '';
+                const slug = text.toLowerCase().replace(/[^\w\s]/g, '').replace(/\s+/g, '-');
+                return <h5 id={slug}>{children}</h5>;
+              },
+              h6: ({ children }: { children: React.ReactNode }) => {
+                const text = children?.toString() || '';
+                const slug = text.toLowerCase().replace(/[^\w\s]/g, '').replace(/\s+/g, '-');
+                return <h6 id={slug}>{children}</h6>;
               }
             }}
           />

@@ -69,7 +69,7 @@
 .blogContent {
   @apply space-y-6 text-base text-muted-foreground;
   line-height: 1.8;
-  padding: 2rem;
+  padding: 2rem 5% 2rem 5%;
   background: linear-gradient(145deg, 
     hsl(var(--background)) 0%, 
     hsl(var(--muted)) 100%);
@@ -78,6 +78,10 @@
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   position: relative;
   overflow: hidden;
+  width: 90%;
+  max-width: 1500px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .blogContent::before {
@@ -96,23 +100,39 @@
 }
 
 .blogContent :global(h1) {
-  @apply text-3xl font-bold mb-4 mt-8;
+  @apply text-3xl font-bold mb-4 mt-8 text-center;
   color: hsl(var(--foreground));
 }
 
 .blogContent :global(h2) {
-  @apply text-2xl font-bold mb-3 mt-6;
+  @apply text-2xl font-bold mb-3 mt-6 text-center;
   color: hsl(var(--foreground));
 }
 
 .blogContent :global(h3) {
-  @apply text-xl font-bold mb-3 mt-6;
+  @apply text-xl font-bold mb-3 mt-6 text-center;
+  color: hsl(var(--foreground));
+}
+
+.blogContent :global(h4) {
+  @apply text-lg font-bold mb-3 mt-6 text-center;
+  color: hsl(var(--foreground));
+}
+
+.blogContent :global(h5) {
+  @apply text-base font-bold mb-3 mt-6 text-center;
+  color: hsl(var(--foreground));
+}
+
+.blogContent :global(h6) {
+  @apply text-sm font-bold mb-3 mt-6 text-center;
   color: hsl(var(--foreground));
 }
 
 .blogContent :global(p) {
   @apply mb-4 text-muted-foreground;
   line-height: 1.8;
+  text-indent: 2em;
 }
 
 .blogContent :global(ul), .blogContent :global(ol) {
