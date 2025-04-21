@@ -1,0 +1,58 @@
+/* Section Components */
+
+.pageContainer {
+  @apply container mx-auto px-4 py-8 space-y-8;
+}
+
+.section {
+  @apply space-y-6;
+}
+
+.sectionHeader {
+  @apply flex justify-between items-center mb-6;
+}
+
+.sectionTitle {
+  @apply text-2xl font-bold tracking-tight mb-0 relative inline-block;
+}
+
+.sectionTitle::after {
+  content: '';
+  @apply absolute bottom-0 left-0 w-full h-1;
+  background: linear-gradient(90deg, 
+    hsl(var(--primary)) 0%, 
+    hsl(var(--secondary)) 50%,
+    hsl(var(--primary)) 100%);
+  background-size: 200% auto;
+  animation: shine 3s ease-in-out infinite;
+}
+
+.sectionDescription {
+  @apply text-muted-foreground;
+  line-height: 1.6;
+}
+
+.headerTitle {
+  @apply text-4xl font-bold tracking-tight;
+  background: linear-gradient(90deg, 
+    hsl(var(--primary)) 0%, 
+    hsl(var(--secondary)) 50%,
+    hsl(var(--primary)) 100%);
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shine 3s ease-in-out infinite;
+}
+
+.headerSubtitle {
+  @apply text-xl text-muted-foreground font-medium;
+}
+
+.grid2Cols {
+  @apply grid grid-cols-1 sm:grid-cols-2 gap-6;
+}
+
+.grid3Cols {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+} 

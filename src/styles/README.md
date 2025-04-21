@@ -1,49 +1,63 @@
-# Styling Organization
+# Styles Organization
 
-This directory contains all the CSS modules used throughout the application.
+This directory contains all the styles for the website organized in a modular, maintainable way.
 
 ## Directory Structure
 
-- **shared/** - Contains reusable styles shared across multiple components/pages
-  - `layout.module.css` - Common layout styles (containers, grids, sections)
-  - `typography.module.css` - Typography styles (headings, text, gradient text)
-  - `animations.module.css` - Animation styles
-  - `forms.module.css` - Form and input styles
-  
-- **components/** - Component-specific styles
-  - `hero.module.css` - Styles specific to the Hero component
-  - `profile-card.module.css` - Styles for profile cards
-  - etc.
+- `/components`: Component-specific styles
+- `/pages`: Page-specific styles
+- `/shared`: Shared styles used across multiple components/pages
 
-- **pages/** - Page-specific styles (for unique page layouts)
-  - Only use these for styles that are truly unique to a specific page
+## Shared Styles
 
-## Usage Guidelines
+The shared styles are organized into the following categories:
 
-1. **Use shared styles whenever possible** to maintain consistency and reduce duplication
+- `typography.module.css`: Text styles, headings, paragraphs
+- `layout.module.css`: Layout utilities, containers, grids
+- `cards.module.css`: Card components and variations
+- `sections.module.css`: Section layouts and headers
+- `animations.module.css`: Animations and transitions
+- `tags.module.css`: Tags, badges, and small UI elements
 
-2. **Import only what you need** in each component:
-   ```jsx
-   import layoutStyles from '@/styles/shared/layout.module.css'
-   import typographyStyles from '@/styles/shared/typography.module.css'
-   import heroStyles from '@/styles/components/hero.module.css'
-   
-   export function Hero() {
-     return (
-       <section className={layoutStyles.section}>
-         <h1 className={`${typographyStyles.heading} ${typographyStyles.gradientHeading}`}>
-           Title
-         </h1>
-         <div className={heroStyles.heroContent}>
-           {/* content */}
-         </div>
-       </section>
-     )
-   }
-   ```
+## Usage
 
-3. **Avoid duplication** - If you find yourself copying styles between files, consider moving them to a shared file
+### Importing Shared Styles
 
-4. **Component-specific styles** should only contain styles that are truly unique to that component
+```jsx
+// Option 1: Import specific shared styles
+import { cardStyles, sectionStyles } from '@/styles/shared';
 
-5. **Page-specific styles** should be minimal - aim to build pages from well-styled components 
+// Option 2: Import individual style modules
+import cardStyles from '@/styles/shared/cards.module.css';
+```
+
+### Example Usage
+
+```jsx
+import { cardStyles, sectionStyles } from '@/styles/shared';
+
+function ProjectCard() {
+  return (
+    <div className={cardStyles.cardBase}>
+      <h3 className={cardStyles.cardTitle}>Project Title</h3>
+      <p className={cardStyles.cardDescription}>Project description...</p>
+    </div>
+  )
+}
+```
+
+## Adding New Styles
+
+When adding new styles, consider:
+
+1. Is this style specific to one component/page? → Add to component/page-specific file
+2. Will this style be reused across multiple components/pages? → Add to appropriate shared file
+3. Does this style represent a new category not covered by existing shared files? → Create a new shared file
+
+## Guidelines
+
+- Use Tailwind's `@apply` directive for common utility combinations
+- Use CSS modules to avoid style conflicts
+- Keep files organized and focused on a specific purpose
+- Use composition with `composes:` when extending existing styles
+- Document complex styles with comments 

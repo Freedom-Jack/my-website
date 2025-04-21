@@ -1,0 +1,40 @@
+/* Tag Components */
+
+.tagBase {
+  @apply text-xs px-2 py-1 rounded-full font-medium;
+}
+
+.tagPrimary {
+  composes: tagBase;
+  @apply bg-primary/10 text-primary;
+}
+
+.tagSecondary {
+  composes: tagBase;
+  @apply bg-secondary/10 text-secondary;
+}
+
+.tagMuted {
+  composes: tagBase;
+  @apply bg-muted text-muted-foreground;
+}
+
+.tagAmber {
+  composes: tagBase;
+  @apply bg-amber-500/10 text-amber-500;
+}
+
+.tagList {
+  @apply flex flex-wrap gap-1 mb-2;
+}
+
+.keyword {
+  @apply text-xs px-2 py-1 rounded-full bg-primary/10 text-primary;
+  transition: all 0.2s ease;
+  cursor: default;
+}
+
+.keyword:hover {
+  @apply bg-primary/20;
+  transform: scale(1.05);
+} 

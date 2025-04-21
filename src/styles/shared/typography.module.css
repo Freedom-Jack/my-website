@@ -26,4 +26,132 @@
 
 .tag {
   @apply inline-block rounded-lg bg-muted px-3 py-1 text-sm;
+}
+
+/* 
+ * Typography Styles
+ * Reusable text styles for consistent typography
+ */
+
+.heading1 {
+  @apply text-4xl font-bold tracking-tight;
+}
+
+.heading2 {
+  @apply text-3xl font-bold tracking-tight;
+}
+
+.heading3 {
+  @apply text-2xl font-bold tracking-tight;
+}
+
+.heading4 {
+  @apply text-xl font-bold tracking-tight;
+}
+
+.heading5 {
+  @apply text-lg font-bold tracking-tight;
+}
+
+.heading6 {
+  @apply text-base font-bold tracking-tight;
+}
+
+.paragraph {
+  @apply text-base text-muted-foreground;
+  line-height: 1.8;
+}
+
+.lead {
+  @apply text-xl text-muted-foreground;
+  line-height: 1.6;
+}
+
+.small {
+  @apply text-sm text-muted-foreground;
+}
+
+.mono {
+  @apply font-mono;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Rich Text Content */
+.richText {
+  @apply space-y-6;
+}
+
+.richText :global(h1) {
+  @apply text-3xl font-bold mb-4 mt-8;
+  color: hsl(var(--foreground));
+}
+
+.richText :global(h2) {
+  @apply text-2xl font-bold mb-3 mt-6;
+  color: hsl(var(--foreground));
+}
+
+.richText :global(h3) {
+  @apply text-xl font-bold mb-3 mt-6;
+  color: hsl(var(--foreground));
+}
+
+.richText :global(h4) {
+  @apply text-lg font-bold mb-3 mt-6;
+  color: hsl(var(--foreground));
+}
+
+.richText :global(h5) {
+  @apply text-base font-bold mb-3 mt-6;
+  color: hsl(var(--foreground));
+}
+
+.richText :global(h6) {
+  @apply text-sm font-bold mb-3 mt-6;
+  color: hsl(var(--foreground));
+}
+
+.richText :global(p) {
+  @apply mb-4 text-muted-foreground;
+  line-height: 1.8;
+}
+
+.richText :global(ul), .richText :global(ol) {
+  @apply mb-4 ml-6 space-y-2 text-muted-foreground;
+}
+
+.richText :global(ul) {
+  @apply list-disc;
+}
+
+.richText :global(ol) {
+  @apply list-decimal;
+}
+
+.richText :global(a) {
+  @apply text-primary hover:underline;
+}
+
+.richText :global(blockquote) {
+  @apply italic border-l-4 border-primary/50 pl-4 py-2 my-4 text-muted-foreground;
+}
+
+.richText :global(code) {
+  @apply px-1.5 py-0.5 bg-muted rounded font-mono text-sm;
+}
+
+.richText :global(pre) {
+  @apply p-4 bg-muted rounded-lg overflow-x-auto my-4;
+}
+
+.richText :global(pre code) {
+  @apply bg-transparent p-0;
+}
+
+.richText :global(img) {
+  @apply rounded-lg shadow-md mx-auto my-8 max-w-full h-auto;
 } 

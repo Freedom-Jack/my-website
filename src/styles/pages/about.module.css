@@ -1,5 +1,12 @@
+/* 
+ * About Page Specific Styles
+ * Uses shared styles from src/styles/shared for common elements
+ */
+
+/* Import shared styles via composes */
+
 .pageContainer {
-  @apply container mx-auto px-4 py-8 space-y-8;
+  composes: pageContainer from '../shared/sections.module.css';
 }
 
 .headerSection {
@@ -7,20 +14,11 @@
 }
 
 .headerTitle {
-  @apply text-4xl font-bold tracking-tight;
-  background: linear-gradient(90deg, 
-    hsl(var(--primary)) 0%, 
-    hsl(var(--secondary)) 50%,
-    hsl(var(--primary)) 100%);
-  background-size: 200% auto;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: shine 3s ease-in-out infinite;
+  composes: headerTitle from '../shared/sections.module.css';
 }
 
 .headerSubtitle {
-  @apply text-xl text-muted-foreground font-medium;
+  composes: headerSubtitle from '../shared/sections.module.css';
 }
 
 .headerDescription {
@@ -29,55 +27,20 @@
 }
 
 .section {
-  @apply space-y-6;
+  composes: section from '../shared/sections.module.css';
 }
 
 .sectionTitle {
-  @apply text-2xl font-bold tracking-tight mb-0 relative inline-block;
+  composes: sectionTitle from '../shared/sections.module.css';
 }
 
-.sectionTitle::after {
-  content: '';
-  @apply absolute bottom-0 left-0 w-full h-1;
-  background: linear-gradient(90deg, 
-    hsl(var(--primary)) 0%, 
-    hsl(var(--secondary)) 50%,
-    hsl(var(--primary)) 100%);
-  background-size: 200% auto;
-  animation: shine 3s ease-in-out infinite;
-}
+/* About-page specific styles */
 
 .bioContent {
+  composes: cardBase from '../shared/cards.module.css';
   @apply space-y-4 text-base text-muted-foreground;
   line-height: 1.8;
   padding: 2rem;
-  background: linear-gradient(145deg, 
-    hsl(var(--background)) 0%, 
-    hsl(var(--muted)) 100%);
-  border-radius: 1rem;
-  border: 1px solid hsl(var(--border));
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  position: relative;
-  overflow: hidden;
-}
-
-.bioContent::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, 
-    hsl(var(--primary)) 0%, 
-    hsl(var(--secondary)) 50%,
-    hsl(var(--primary)) 100%);
-  background-size: 200% auto;
-  animation: shine 3s ease-in-out infinite;
-}
-
-.bioContent p {
-  @apply relative z-10;
 }
 
 .bioSection {

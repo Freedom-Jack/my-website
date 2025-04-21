@@ -1,5 +1,13 @@
+/* 
+ * Projects Page Specific Styles
+ * Uses shared styles from src/styles/shared for common elements
+ */
+
+/* Import shared styles via composes */
+
 .pageContainer {
-  @apply container mx-auto px-4 py-12 space-y-16;
+  composes: pageContainer from '../shared/sections.module.css';
+  @apply py-12 space-y-16;
 }
 
 .statsSection {
@@ -7,21 +15,12 @@
 }
 
 .sectionTitle {
-  @apply text-2xl font-semibold tracking-tight;
+  composes: sectionTitle from '../shared/sections.module.css';
 }
 
 .sectionDescription {
+  composes: gradientText from '../shared/animations.module.css';
   @apply text-muted-foreground relative inline-block;
-  background: linear-gradient(90deg, 
-    hsl(var(--muted-foreground)) 0%, 
-    hsl(var(--primary)) 25%,
-    hsl(var(--primary)) 75%, 
-    hsl(var(--muted-foreground)) 100%);
-  background-size: 200% auto;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: shine 3s ease-in-out infinite;
   text-shadow: 0 0 10px rgba(var(--primary), 0.3);
   position: relative;
 }
@@ -45,52 +44,18 @@
 }
 
 .statsGrid {
-  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6;
+  composes: grid3Cols from '../shared/sections.module.css';
 }
 
 .statCard {
-  @apply p-6 rounded-lg border border-border;
-  background: linear-gradient(145deg, 
-    hsl(var(--background)) 0%, 
-    hsl(var(--muted)) 100%);
-  border-radius: 1rem;
-  border: 1px solid hsl(var(--border));
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
+  composes: cardBase from '../shared/cards.module.css';
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
-.statCard::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, 
-    hsl(var(--primary)) 0%, 
-    hsl(var(--secondary)) 50%,
-    hsl(var(--primary)) 100%);
-  background-size: 200% auto;
-  animation: shine 3s ease-in-out infinite;
-}
-
 .statTitle {
-  @apply text-xl font-bold tracking-tight;
-  background: linear-gradient(90deg, 
-    hsl(var(--primary)) 0%, 
-    hsl(var(--secondary)) 50%,
-    hsl(var(--primary)) 100%);
-  background-size: 200% auto;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: shine 3s ease-in-out infinite;
-  transition: all 0.3s ease;
+  composes: cardTitle from '../shared/cards.module.css';
   margin-bottom: 0.5rem;
 }
 
@@ -108,68 +73,27 @@
 }
 
 .sectionHeader {
-  @apply flex justify-between items-center mb-6;
+  composes: sectionHeader from '../shared/sections.module.css';
 }
 
 .projectsGrid {
-  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+  composes: grid3Cols from '../shared/sections.module.css';
 }
 
 .projectCard {
-  @apply p-6 rounded-lg border border-border;
-  background: linear-gradient(145deg, 
-    hsl(var(--background)) 0%, 
-    hsl(var(--muted)) 100%);
-  border-radius: 1rem;
-  border: 1px solid hsl(var(--border));
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
+  composes: cardBase from '../shared/cards.module.css';
   height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 
-.projectCard::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, 
-    hsl(var(--primary)) 0%, 
-    hsl(var(--secondary)) 50%,
-    hsl(var(--primary)) 100%);
-  background-size: 200% auto;
-  animation: shine 3s ease-in-out infinite;
-}
-
-.projectCard:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  border-color: hsl(var(--primary));
-}
-
 .projectTitle {
-  @apply text-xl font-bold tracking-tight mb-2;
-  background: linear-gradient(90deg, 
-    hsl(var(--primary)) 0%, 
-    hsl(var(--secondary)) 50%,
-    hsl(var(--primary)) 100%);
-  background-size: 200% auto;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: shine 3s ease-in-out infinite;
-  transition: all 0.3s ease;
+  composes: cardTitle from '../shared/cards.module.css';
 }
 
 .projectDescription {
-  @apply text-muted-foreground leading-relaxed;
-  line-height: 1.6;
+  composes: cardDescription from '../shared/cards.module.css';
   min-height: 3rem; /* Ensure consistent height */
 }
 
@@ -178,23 +102,23 @@
 }
 
 .projectLanguage {
-  @apply text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium;
+  composes: tagPrimary from '../shared/tags.module.css';
 }
 
 .projectStars {
-  @apply text-xs px-2 py-1 rounded-full bg-amber-500/10 text-amber-500 font-medium;
+  composes: tagAmber from '../shared/tags.module.css';
 }
 
 .projectUpdated {
-  @apply text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground font-medium;
+  composes: tagMuted from '../shared/tags.module.css';
 }
 
 .projectTopics {
-  @apply flex flex-wrap gap-1 mb-2;
+  composes: tagList from '../shared/tags.module.css';
 }
 
 .projectTopic {
-  @apply text-xs px-2 py-1 rounded-full bg-secondary/10 text-secondary font-medium;
+  composes: tagSecondary from '../shared/tags.module.css';
 }
 
 .cardContent {
@@ -213,7 +137,7 @@
 }
 
 .languageTag {
-  @apply text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium;
+  composes: tagPrimary from '../shared/tags.module.css';
   margin-bottom: 0.25rem;
   display: inline-block;
 }

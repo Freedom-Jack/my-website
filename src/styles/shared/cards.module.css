@@ -1,0 +1,53 @@
+/* Card Components */
+
+.cardBase {
+  @apply p-6 rounded-lg border border-border;
+  background: linear-gradient(145deg, 
+    hsl(var(--background)) 0%, 
+    hsl(var(--muted)) 100%);
+  border-radius: 1rem;
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.cardBase::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, 
+    hsl(var(--primary)) 0%, 
+    hsl(var(--secondary)) 50%,
+    hsl(var(--primary)) 100%);
+  background-size: 200% auto;
+  animation: shine 3s ease-in-out infinite;
+}
+
+.cardBase:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-color: hsl(var(--primary));
+}
+
+.cardTitle {
+  @apply text-xl font-bold tracking-tight mb-2;
+  background: linear-gradient(90deg, 
+    hsl(var(--primary)) 0%, 
+    hsl(var(--secondary)) 50%,
+    hsl(var(--primary)) 100%);
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shine 3s ease-in-out infinite;
+}
+
+.cardDescription {
+  @apply text-muted-foreground leading-relaxed;
+  line-height: 1.6;
+} 

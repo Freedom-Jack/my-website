@@ -20,17 +20,18 @@
       "static/chunks/webpack.js",
       "static/chunks/vendors.js",
       "static/chunks/main-app.js",
-      "static/css/src_styles_pages_about_module_css.css",
-      "static/chunks/app/blog/page.js",
-      "static/css/app/blog/page.css"
+      "static/css/src_styles_pages_about_module_css-src_styles_shared_cards_module_css-src_styles_shared_sectio-6d87f7.css",
+      "static/css/src_styles_pages_blog_module_css-src_styles_shared_typography_module_css.css",
+      "static/chunks/app/blog/page.js"
     ],
     "/blog/[slug]/page": [
       "static/chunks/webpack.js",
       "static/chunks/vendors.js",
       "static/chunks/main-app.js",
-      "static/css/src_styles_pages_about_module_css.css",
+      "static/css/src_styles_pages_about_module_css-src_styles_shared_cards_module_css-src_styles_shared_sectio-6d87f7.css",
       "static/css/_app-pages-browser_src_components_sections_About_index_tsx.css",
       "static/chunks/_app-pages-browser_src_components_sections_About_index_tsx.js",
+      "static/css/src_styles_pages_blog_module_css-src_styles_shared_typography_module_css.css",
       "static/css/app/blog/[slug]/page.css",
       "static/chunks/app/blog/[slug]/page.js"
     ],
@@ -38,8 +39,22 @@
       "static/chunks/webpack.js",
       "static/chunks/vendors.js",
       "static/chunks/main-app.js",
-      "static/css/src_styles_pages_about_module_css.css",
+      "static/css/src_styles_pages_about_module_css-src_styles_shared_cards_module_css-src_styles_shared_sectio-6d87f7.css",
       "static/chunks/app/about/page.js"
+    ],
+    "/projects/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/vendors.js",
+      "static/chunks/main-app.js",
+      "static/css/src_styles_pages_about_module_css-src_styles_shared_cards_module_css-src_styles_shared_sectio-6d87f7.css",
+      "static/css/app/projects/page.css",
+      "static/chunks/app/projects/page.js"
+    ],
+    "/api/github/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/vendors.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/github/route.js"
     ]
   }
 }

@@ -1,5 +1,12 @@
+/* 
+ * Blog Page Specific Styles
+ * Uses shared styles from src/styles/shared for common elements
+ */
+
+/* Import shared styles via composes */
+
 .blogCard {
-  @apply p-6 rounded-lg border border-border;
+  composes: cardBase from '../shared/cards.module.css';
   background: linear-gradient(145deg, 
     hsl(var(--background)) 0%, 
     hsl(var(--muted)) 100%);
@@ -33,7 +40,7 @@
 }
 
 .blogTitle {
-  @apply text-xl font-bold tracking-tight;
+  composes: cardTitle from '../shared/cards.module.css';
   background: linear-gradient(90deg, 
     hsl(var(--primary)) 0%, 
     hsl(var(--secondary)) 50%,
@@ -47,13 +54,13 @@
 }
 
 .blogDate {
-  @apply text-sm text-muted-foreground font-mono;
+  composes: mono from '../shared/typography.module.css';
+  composes: small from '../shared/typography.module.css';
   letter-spacing: -0.025em;
 }
 
 .blogDescription {
-  @apply text-muted-foreground leading-relaxed;
-  line-height: 1.6;
+  composes: cardDescription from '../shared/cards.module.css';
 }
 
 .readMore {
@@ -67,6 +74,8 @@
 }
 
 .blogContent {
+  composes: cardBase from '../shared/cards.module.css';
+  composes: richText from '../shared/typography.module.css';
   @apply space-y-6 text-base text-muted-foreground;
   line-height: 1.8;
   padding: 2rem 5% 2rem 5%;
@@ -99,39 +108,17 @@
   animation: shine 3s ease-in-out infinite;
 }
 
-.blogContent :global(h1) {
-  @apply text-3xl font-bold mb-4 mt-8 text-center;
-  color: hsl(var(--foreground));
-}
-
-.blogContent :global(h2) {
-  @apply text-2xl font-bold mb-3 mt-6 text-center;
-  color: hsl(var(--foreground));
-}
-
-.blogContent :global(h3) {
-  @apply text-xl font-bold mb-3 mt-6 text-center;
-  color: hsl(var(--foreground));
-}
-
-.blogContent :global(h4) {
-  @apply text-lg font-bold mb-3 mt-6 text-center;
-  color: hsl(var(--foreground));
-}
-
-.blogContent :global(h5) {
-  @apply text-base font-bold mb-3 mt-6 text-center;
-  color: hsl(var(--foreground));
-}
-
+/* Blog-specific overrides for rich text */
+.blogContent :global(h1),
+.blogContent :global(h2),
+.blogContent :global(h3),
+.blogContent :global(h4),
+.blogContent :global(h5),
 .blogContent :global(h6) {
-  @apply text-sm font-bold mb-3 mt-6 text-center;
-  color: hsl(var(--foreground));
+  @apply text-center;
 }
 
 .blogContent :global(p) {
-  @apply mb-4 text-muted-foreground;
-  line-height: 1.8;
   text-indent: 2em;
 }
 
