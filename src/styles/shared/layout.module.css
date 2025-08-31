@@ -20,20 +20,23 @@
   @apply mx-auto max-w-[42rem] text-muted-foreground;
 }
 
-.grid {
-  @apply grid gap-6 py-8 md:gap-12;
+.gridLayout {
+  display: grid;
+  @apply gap-6 py-8 md:gap-12;
 }
 
 .grid1Col {
-  @apply grid;
+  display: grid;
 }
 
 .grid2Col {
-  @apply grid md:grid-cols-2;
+  display: grid;
+  @apply md:grid-cols-2;
 }
 
 .grid3Col {
-  @apply grid md:grid-cols-2 lg:grid-cols-3;
+  display: grid;
+  @apply md:grid-cols-2 lg:grid-cols-3;
 }
 
 .buttonGroup {

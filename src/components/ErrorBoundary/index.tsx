@@ -12,7 +12,10 @@ interface ErrorBoundaryProps {
   fallback?: React.ComponentType<{ error?: Error; resetError: () => void }>;
 }
 
-class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+class ErrorBoundary extends React.Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
@@ -34,9 +37,9 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
     if (this.state.hasError) {
       const FallbackComponent = this.props.fallback || DefaultErrorFallback;
       return (
-        <FallbackComponent 
-          error={this.state.error} 
-          resetError={this.resetError} 
+        <FallbackComponent
+          error={this.state.error}
+          resetError={this.resetError}
         />
       );
     }
@@ -45,13 +48,15 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 }
 
-const DefaultErrorFallback: React.FC<{ error?: Error; resetError: () => void }> = ({ 
-  error, 
-  resetError 
-}) => (
+const DefaultErrorFallback: React.FC<{
+  error?: Error;
+  resetError: () => void;
+}> = ({ error, resetError }) => (
   <div className="flex min-h-[400px] flex-col items-center justify-center p-8 text-center">
     <div className="mb-4 text-6xl">😵</div>
-    <h2 className="mb-2 text-2xl font-bold text-foreground">Something went wrong</h2>
+    <h2 className="mb-2 text-2xl font-bold text-foreground">
+      Something went wrong
+    </h2>
     <p className="mb-4 text-muted-foreground">
       {error?.message || "An unexpected error occurred"}
     </p>

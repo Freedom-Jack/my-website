@@ -2,12 +2,14 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import "../styles/performance.css";
+import "../styles/mobile-optimizations.css";
 
 import { ThemeProvider } from "@/components/theme-provider";
 import BackgroundWrapper from "@/components/animations/BackgroundWrapper";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import LayoutClient from "./layout-client";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -48,6 +50,9 @@ export const viewport: Viewport = {
   ],
   width: "device-width",
   initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -67,6 +72,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          {/* Performance monitoring client component */}
+          <LayoutClient />
+
           {/* Optimized background with performance monitoring */}
           <BackgroundWrapper />
 

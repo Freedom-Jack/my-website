@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "@/styles/pages/about.module.css";
+import { sectionStyles } from "@/styles/shared";
 
 interface PageHeaderProps {
   title: string;
@@ -13,10 +13,14 @@ export default function PageHeader({
   description,
 }: PageHeaderProps) {
   return (
-    <section className={styles.headerSection}>
-      <h1 className={styles.headerTitle}>{title}</h1>
-      {subtitle && <h2 className={styles.headerSubtitle}>{subtitle}</h2>}
-      {description && <p className={styles.headerDescription}>{description}</p>}
+    <section className="text-center space-y-4 max-w-3xl mx-auto">
+      <h1 className={sectionStyles.headerTitle}>{title}</h1>
+      {subtitle && <h2 className={sectionStyles.headerSubtitle}>{subtitle}</h2>}
+      {description && (
+        <p className="text-base text-muted-foreground leading-relaxed">
+          {description}
+        </p>
+      )}
     </section>
   );
 }

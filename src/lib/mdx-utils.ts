@@ -4,9 +4,11 @@ import React from "react";
  * Creates a heading component with automatic ID generation for table of contents
  */
 export function createHeadingComponent(
-  level: 1 | 2 | 3 | 4 | 5 | 6
+  level: 1 | 2 | 3 | 4 | 5 | 6,
 ): React.FC<{ children: React.ReactNode }> {
-  const HeadingComponent: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const HeadingComponent: React.FC<{ children: React.ReactNode }> = ({
+    children,
+  }) => {
     const text = children?.toString() || "";
     const slug = text
       .toLowerCase()
@@ -14,7 +16,7 @@ export function createHeadingComponent(
       .replace(/\s+/g, "-");
 
     const Tag = `h${level}` as keyof React.JSX.IntrinsicElements;
-    
+
     return React.createElement(Tag, { id: slug }, children);
   };
 

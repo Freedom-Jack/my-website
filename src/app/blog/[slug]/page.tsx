@@ -4,7 +4,7 @@ import { MDXRemote } from "next-mdx-remote/rsc";
 import matter from "gray-matter";
 import Image from "next/image";
 import Link from "next/link";
-import styles from "@/styles/pages/about.module.css";
+import { sectionStyles } from "@/styles/shared";
 import blogStyles from "@/styles/pages/blog.module.css";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -12,8 +12,7 @@ import { blogPostContent } from "@/content/pages/blog-post";
 import AboutSection from "@/components/sections/About";
 import { homeContent } from "@/content/pages/home";
 import { Metadata } from "next";
-import MobileTableOfContents from "@/features/blog/components/MobileTableOfContents";
-import TableOfContents from "@/features/blog/components/TableOfContents";
+import TableOfContents from "@/components/blog/TableOfContents";
 import { extractHeadings, mdxHeadings } from "@/lib/mdx-utils";
 
 async function getBlogPost(slug: string) {
@@ -80,7 +79,7 @@ export default async function BlogPost({ params }: Props) {
   const headings = extractHeadings(post.content);
 
   return (
-    <div className={styles.pageContainer}>
+    <div className={sectionStyles.pageContainer}>
       {/* Back to Blog Button */}
       <div className="mb-6">
         <Link href="/blog" passHref>
@@ -96,27 +95,26 @@ export default async function BlogPost({ params }: Props) {
       </div>
 
       {/* Header Section */}
-      <section className={styles.headerSection}>
-        <h1 className={styles.headerTitle}>{post.title}</h1>
-        <h2 className={styles.headerSubtitle}>
+      <section className="text-center space-y-4 max-w-3xl mx-auto">
+        <h1 className={sectionStyles.headerTitle}>{post.title}</h1>
+        <h2 className={sectionStyles.headerSubtitle}>
           {new Date(post.date + "T00:00:00").toLocaleDateString(
             "en-US",
             header.dateFormat,
           )}
         </h2>
-        <p className={styles.headerDescription}>{post.description}</p>
+        <p className="text-base text-muted-foreground leading-relaxed">
+          {post.description}
+        </p>
       </section>
 
-      {/* Mobile Table of Contents */}
-      <MobileTableOfContents headings={headings} />
+      {/* Table of Contents - responsive for mobile and desktop */}
+      <div className="mb-8 max-w-2xl mx-auto">
+        <TableOfContents headings={headings} />
+      </div>
 
       {/* Content */}
-      <section className={styles.section}>
-        {/* Desktop Table of Contents - show on medium screens and up */}
-        <div className="hidden md:block mb-8 max-w-2xl mx-auto">
-          <TableOfContents headings={headings} />
-        </div>
-
+      <section className={sectionStyles.section}>
         {/* Article Content */}
         <div className={blogStyles.blogContent}>
           {/* Add JSON-LD structured data for SEO */}

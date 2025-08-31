@@ -6,7 +6,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { projectsContent } from "@/content/pages/projects";
 import type { GitHubRepo, GitHubUser } from "@/lib/github";
 import styles from "@/styles/pages/projects.module.css";
-import aboutStyles from "@/styles/pages/about.module.css";
+import { sectionStyles } from "@/styles/shared";
 import PageHeader from "@/components/page-header";
 import dynamic from "next/dynamic";
 
@@ -16,8 +16,8 @@ const DynamicProjects = dynamic(
     Promise.resolve(({ data }: { data: GitHubData }) => (
       <>
         {/* GitHub Stats Section */}
-        <section className={aboutStyles.section}>
-          <h2 className={aboutStyles.sectionTitle}>
+        <section className={sectionStyles.section}>
+          <h2 className={sectionStyles.sectionTitle}>
             {projectsContent.stats.title}
           </h2>
           <div className={styles.statsGrid}>
@@ -54,9 +54,12 @@ const DynamicProjects = dynamic(
         </section>
 
         {/* Projects Section */}
-        <section className={aboutStyles.section} style={{ marginTop: "5rem" }}>
+        <section
+          className={sectionStyles.section}
+          style={{ marginTop: "5rem" }}
+        >
           <div className={styles.sectionHeader}>
-            <h2 className={aboutStyles.sectionTitle}>Featured Projects</h2>
+            <h2 className={sectionStyles.sectionTitle}>Featured Projects</h2>
             <Button asChild>
               <a
                 href={`https://github.com/${data.user.login}`}
@@ -203,7 +206,7 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className={aboutStyles.pageContainer}>
+    <div className={sectionStyles.pageContainer}>
       <PageHeader
         title={projectsContent.header.title}
         subtitle="Code, Contributions, and Collaborations"

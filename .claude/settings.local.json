@@ -17,7 +17,14 @@
       "Bash(npm install:*)",
       "Bash(npm run format:*)",
       "Bash(npm run lint)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(npm run analyze:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(find:*)",
+      "Bash(npx depcheck:*)",
+      "Bash(curl:*)",
+      "Bash(npm run start:*)",
+      "Bash(taskkill:*)"
     ],
     "deny": []
   }

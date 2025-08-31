@@ -28,12 +28,12 @@ export default function Header() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const scrolled = useScrollPosition(10);
-  const { shouldAnimate, prefersReducedMotion } = useOptimizedMotion();
+  const { shouldAnimate } = useOptimizedMotion();
 
   return (
     <header
       className={`sticky top-0 z-50 w-full transition-all ${
-        prefersReducedMotion ? "duration-0" : "duration-75"
+        !shouldAnimate ? "duration-0" : "duration-75"
       } ${
         scrolled
           ? "bg-background/95 shadow-md backdrop-blur-none border-b border-border/50"

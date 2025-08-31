@@ -1,10 +1,15 @@
 "use client";
 
 import React, { useRef, RefObject } from "react";
+import dynamic from "next/dynamic";
 import { Hero } from "@/components/sections/Hero";
-import AboutSection from "@/components/sections/About";
 import styles from "@/styles/pages/home.module.css";
 import { homeContent } from "@/content/pages/home";
+
+// Lazy load the About section as it's below the fold
+const AboutSection = dynamic(() => import("@/components/sections/About"), {
+  loading: () => <div className="min-h-[400px]" />,
+});
 
 // Method for smooth scrolling to a reference
 const scrollToRef = (ref: RefObject<HTMLElement | null>) => {

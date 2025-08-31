@@ -3,7 +3,7 @@ import path from "path";
 import matter from "gray-matter";
 import Link from "next/link";
 import PageHeader from "@/components/page-header";
-import styles from "@/styles/pages/about.module.css";
+import { sectionStyles } from "@/styles/shared";
 import blogStyles from "@/styles/pages/blog.module.css";
 import { blogContent } from "@/content/pages/blog";
 import { Metadata } from "next";
@@ -61,15 +61,17 @@ export default async function BlogPage() {
   const { header, sections, blogCard } = blogContent;
 
   return (
-    <div className={styles.pageContainer}>
+    <div className={sectionStyles.pageContainer}>
       <PageHeader
         title={header.title}
         subtitle={header.subtitle}
         description={header.description}
       />
 
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>{sections.recentPosts.title}</h2>
+      <section className={sectionStyles.section}>
+        <h2 className={sectionStyles.sectionTitle}>
+          {sections.recentPosts.title}
+        </h2>
         <div className="space-y-8 mt-6">
           {posts.map((post) => (
             <article key={post.slug} className={blogStyles.blogCard}>

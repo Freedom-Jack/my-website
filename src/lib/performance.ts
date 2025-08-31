@@ -1,8 +1,9 @@
 /**
- * Performance utilities for optimized React components
+ * Consolidated performance utilities for the website
  */
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
+import { onCLS, onFCP, onLCP, onTTFB, onINP, Metric } from "web-vitals";
 
 // Throttle function for scroll events
 export const throttle = <T extends (...args: any[]) => any>(
@@ -44,74 +45,52 @@ export const debounce = <T extends (...args: any[]) => any>(
   };
 };
 
-// Custom hook for media queries with performance optimization
+// Custom hook for media queries
 export const useMediaQuery = (query: string): boolean => {
   const [matches, setMatches] = useState(false);
-  const mediaQueryRef = useRef<MediaQueryList | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    mediaQueryRef.current = window.matchMedia(query);
-    setMatches(mediaQueryRef.current.matches);
+    const mediaQuery = window.matchMedia(query);
+    setMatches(mediaQuery.matches);
 
     const handler = (event: MediaQueryListEvent) => setMatches(event.matches);
+    mediaQuery.addEventListener("change", handler);
 
-    if (mediaQueryRef.current.addEventListener) {
-      mediaQueryRef.current.addEventListener("change", handler);
-    } else {
-      // Fallback for older browsers
-      mediaQueryRef.current.addListener(handler);
-    }
-
-    return () => {
-      if (mediaQueryRef.current) {
-        if (mediaQueryRef.current.removeEventListener) {
-          mediaQueryRef.current.removeEventListener("change", handler);
-        } else {
-          mediaQueryRef.current.removeListener(handler);
-        }
-      }
-    };
+    return () => mediaQuery.removeEventListener("change", handler);
   }, [query]);
 
   return matches;
 };
 
-// Custom hook for optimized scroll detection with immediate response
+// Custom hook for optimized scroll detection
 export const useScrollPosition = (threshold: number = 10) => {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // Immediate response for critical UI changes
-    const handleScrollImmediate = () => {
+    const handleScroll = () => {
       const isScrolled = window.scrollY > threshold;
       setScrolled(isScrolled);
     };
 
-    // Check initial position
-    handleScrollImmediate();
+    handleScroll();
 
-    // Use requestAnimationFrame for smooth but responsive updates
     let ticking = false;
-    const handleScroll = () => {
+    const throttledScroll = () => {
       if (!ticking) {
         requestAnimationFrame(() => {
-          handleScrollImmediate();
+          handleScroll();
           ticking = false;
         });
         ticking = true;
       }
     };
 
-    window.addEventListener("scroll", handleScroll, {
-      passive: true,
-      capture: false,
-    });
-
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", throttledScroll, { passive: true });
+    return () => window.removeEventListener("scroll", throttledScroll);
   }, [threshold]);
 
   return scrolled;
@@ -132,60 +111,10 @@ export const useIntersectionObserver = (
     }, options);
 
     observer.observe(ref.current);
-
     return () => observer.disconnect();
   }, [options]);
 
   return [ref, isIntersecting];
-};
-
-// Performance-aware animation hook
-export const useOptimizedMotion = () => {
-  const prefersReducedMotion = useMediaQuery(
-    "(prefers-reduced-motion: reduce)",
-  );
-  const prefersReducedData = useMediaQuery("(prefers-reduced-data: reduce)");
-  const isLowPowerMode = useMediaQuery("(prefers-reduced-power: reduce)");
-
-  const shouldAnimate =
-    !prefersReducedMotion && !prefersReducedData && !isLowPowerMode;
-  const shouldUseSimpleAnimations = prefersReducedMotion || isLowPowerMode;
-
-  return {
-    shouldAnimate,
-    shouldUseSimpleAnimations,
-    prefersReducedMotion,
-    prefersReducedData,
-    isLowPowerMode,
-  };
-};
-
-// Request animation frame hook
-export const useAnimationFrame = (
-  callback: () => void,
-  dependencies: any[] = [],
-) => {
-  const requestRef = useRef<number | undefined>(undefined);
-  const callbackRef = useRef(callback);
-
-  useEffect(() => {
-    callbackRef.current = callback;
-  });
-
-  useEffect(() => {
-    const animate = () => {
-      callbackRef.current();
-      requestRef.current = requestAnimationFrame(animate);
-    };
-
-    requestRef.current = requestAnimationFrame(animate);
-
-    return () => {
-      if (requestRef.current) {
-        cancelAnimationFrame(requestRef.current);
-      }
-    };
-  }, dependencies);
 };
 
 // Device capabilities detection
@@ -193,24 +122,117 @@ export const getDeviceCapabilities = () => {
   if (typeof window === "undefined") {
     return {
       isLowEndDevice: false,
-      supportsCSSFilters: false,
-      supportsWebGL: false,
-      supportsIntersectionObserver: false,
+      deviceType: "desktop" as const,
+      shouldReduceMotion: false,
     };
   }
 
-  const canvas = document.createElement("canvas");
-  const webgl =
-    canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+  const width = window.innerWidth;
+  const hasTouchScreen =
+    "ontouchstart" in window || navigator.maxTouchPoints > 0;
+
+  // Determine device type
+  let deviceType: "mobile" | "tablet" | "desktop";
+  if (width <= 480 && hasTouchScreen) {
+    deviceType = "mobile";
+  } else if (width <= 768 && hasTouchScreen) {
+    deviceType = "tablet";
+  } else {
+    deviceType = "desktop";
+  }
+
+  // Check if low-end device
+  const hardwareConcurrency = navigator.hardwareConcurrency || 4;
+  const deviceMemory = (navigator as any).deviceMemory || 4;
+  const connection = (navigator as any).connection?.effectiveType || "4g";
+
+  const isLowEndDevice =
+    hardwareConcurrency <= 2 ||
+    deviceMemory <= 2 ||
+    ["slow-2g", "2g", "3g"].includes(connection);
+
+  const shouldReduceMotion =
+    isLowEndDevice ||
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   return {
-    isLowEndDevice: navigator.hardwareConcurrency
-      ? navigator.hardwareConcurrency <= 2
-      : false,
-    supportsCSSFilters: CSS.supports("filter", "blur(1px)"),
-    supportsWebGL: !!webgl,
-    supportsIntersectionObserver: "IntersectionObserver" in window,
-    deviceMemory: (navigator as any).deviceMemory || 4, // GB, default to 4 if not available
-    connectionType: (navigator as any).connection?.effectiveType || "4g",
+    isLowEndDevice,
+    deviceType,
+    shouldReduceMotion,
+    hardwareConcurrency,
+    deviceMemory,
+    connectionType: connection,
   };
 };
+
+// Performance-aware animation hook
+export const useOptimizedMotion = () => {
+  const capabilities = getDeviceCapabilities();
+
+  return {
+    shouldAnimate: !capabilities.shouldReduceMotion,
+    isLowEndDevice: capabilities.isLowEndDevice,
+    deviceType: capabilities.deviceType,
+  };
+};
+
+// Web Vitals monitoring
+export type WebVitalsMetric = Metric & {
+  id: string;
+  name: "CLS" | "INP" | "LCP" | "FCP" | "TTFB";
+};
+
+const THRESHOLDS = {
+  LCP: { good: 2500, needsImprovement: 4000 },
+  INP: { good: 200, needsImprovement: 500 },
+  CLS: { good: 0.1, needsImprovement: 0.25 },
+  FCP: { good: 1800, needsImprovement: 3000 },
+  TTFB: { good: 800, needsImprovement: 1800 },
+};
+
+function getRating(
+  metric: WebVitalsMetric,
+): "good" | "needs-improvement" | "poor" {
+  const threshold = THRESHOLDS[metric.name];
+  if (!threshold) return "good";
+
+  if (metric.value <= threshold.good) return "good";
+  if (metric.value <= threshold.needsImprovement) return "needs-improvement";
+  return "poor";
+}
+
+export function reportWebVitals(metric: WebVitalsMetric) {
+  const rating = getRating(metric);
+
+  // Log to console in development
+  if (process.env.NODE_ENV === "development") {
+    const emoji =
+      rating === "good" ? "🟢" : rating === "needs-improvement" ? "🟡" : "🔴";
+    console.log(
+      `${emoji} ${metric.name}: ${metric.value.toFixed(2)}ms (${rating})`,
+    );
+  }
+}
+
+export function initWebVitals() {
+  if (typeof window === "undefined") return;
+
+  try {
+    onCLS(reportWebVitals);
+    onINP(reportWebVitals);
+    onLCP(reportWebVitals);
+    onFCP(reportWebVitals);
+    onTTFB(reportWebVitals);
+  } catch (err) {
+    console.error("Failed to initialize Web Vitals:", err);
+  }
+}
+
+// Defer non-critical work to idle time
+export function requestIdleCallback(callback: () => void, timeout = 2000) {
+  if ("requestIdleCallback" in window) {
+    (window as any).requestIdleCallback(callback, { timeout });
+  } else {
+    setTimeout(callback, 0);
+  }
+}

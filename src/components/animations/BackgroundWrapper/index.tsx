@@ -3,9 +3,9 @@
 import React, { Suspense } from "react";
 import dynamic from "next/dynamic";
 
-// Use the glowing bubble background
-const GlowBubbles = dynamic(
-  () => import("@/components/animations/GlowBubbles"),
+// Use the optimized CSS-only bubble background for better performance
+const GlowBubblesOptimized = dynamic(
+  () => import("@/components/animations/GlowBubbles/GlowBubblesOptimized"),
   {
     ssr: false,
     loading: () => (
@@ -21,7 +21,7 @@ const BackgroundWrapper: React.FC = () => {
         <div className="fixed inset-0 -z-10 bg-gradient-to-br from-background via-background to-muted/10" />
       }
     >
-      <GlowBubbles />
+      <GlowBubblesOptimized />
     </Suspense>
   );
 };

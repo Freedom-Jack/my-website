@@ -1,0 +1,149 @@
+/* Mobile Performance Optimizations */
+
+/* Disable animations for low-end devices */
+.reduce-animations * {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Disable blur effects for low-end devices */
+.disable-blur * {
+  filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* Touch optimizations */
+* {
+  /* Prevent tap delay on mobile */
+  touch-action: manipulation;
+}
+
+/* Optimize scrolling performance */
+.scroll-container {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Improve button/link touch targets on mobile */
+@media (max-width: 768px) {
+  button,
+  a,
+  [role="button"],
+  [role="link"],
+  input,
+  textarea,
+  select {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Increase touch target padding for small buttons */
+  .btn-sm::before,
+  .link-sm::before {
+    content: "";
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    bottom: -8px;
+    left: -8px;
+  }
+}
+
+/* Optimize images for mobile */
+@media (max-width: 768px) {
+  img {
+    /* Use lower quality images on mobile to save bandwidth */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+  
+  /* Lazy load images below the fold */
+  img[loading="lazy"] {
+    background: linear-gradient(
+      to bottom,
+      hsl(var(--muted) / 0.1),
+      hsl(var(--muted) / 0.2)
+    );
+  }
+}
+
+/* Reduce shadow complexity on mobile */
+@media (max-width: 768px) {
+  .shadow-sm,
+  .shadow,
+  .shadow-md,
+  .shadow-lg,
+  .shadow-xl,
+  .shadow-2xl {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12) !important;
+  }
+}
+
+/* Optimize font rendering on mobile */
+@media (max-width: 768px) {
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeSpeed;
+  }
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Hardware acceleration for transforms */
+.hw-accelerate {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Optimize hover states for touch devices */
+@media (hover: none) and (pointer: coarse) {
+  /* Remove hover effects on touch devices */
+  button:hover,
+  a:hover {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  
+  /* Add active states for better feedback */
+  button:active,
+  a:active {
+    opacity: 0.8;
+    transform: scale(0.98);
+  }
+}
+
+/* Performance hints for the browser */
+.performance-critical {
+  contain: layout style paint;
+}
+
+.performance-isolated {
+  isolation: isolate;
+}
+
+/* Optimize table scrolling on mobile */
+@media (max-width: 768px) {
+  .table-container {
+    -webkit-overflow-scrolling: touch;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+  
+  table {
+    min-width: 100%;
+  }
+}
