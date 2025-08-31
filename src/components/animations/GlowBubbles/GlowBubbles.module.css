@@ -1,4 +1,4 @@
-/* Optimized CSS-only bubble animations */
+/* Optimized CSS-only bubble animations - Performance First */
 .container {
   position: fixed;
   inset: 0;
@@ -8,154 +8,183 @@
   contain: layout style paint;
 }
 
-/* Base bubble style */
+/* Base bubble style - ultra lightweight */
 .bubble {
   position: absolute;
   border-radius: 50%;
-  background: hsl(var(--primary) / 0.4);
-  filter: blur(0.5px);
+  background: hsl(var(--primary) / 0.06);
+  filter: blur(1.5px);
   will-change: transform;
   transform: translateZ(0);
-  animation: float 20s infinite ease-in-out;
+  opacity: 0.6;
 }
 
-/* Glow effect using box-shadow instead of multiple shadows */
+/* Single glow effect for all bubbles - performant */
 .bubble::before {
   content: '';
   position: absolute;
-  inset: -50%;
+  inset: -30%;
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    hsl(var(--primary) / 0.3) 0%,
-    hsl(var(--primary) / 0.1) 40%,
-    transparent 70%
+    hsl(var(--primary) / 0.04) 0%,
+    transparent 60%
   );
-  animation: pulse 4s infinite ease-in-out;
 }
 
-/* Individual bubble positions and animations */
+/* Use CSS custom properties for variation without multiple animations */
 .bubble1 {
-  width: 45px;
-  height: 45px;
-  left: 10%;
-  top: 80%;
-  animation-duration: 19s;
-  animation-delay: 0s;
+  --size: 28px;
+  --x-pos: 8%;
+  --y-pos: 78%;
+  --duration: 40s;
+  --delay: 0s;
+  --drift: 15px;
+  
+  width: var(--size);
+  height: var(--size);
+  left: var(--x-pos);
+  top: var(--y-pos);
+  animation: floatUp var(--duration) var(--delay) infinite ease-in-out;
 }
 
 .bubble2 {
-  width: 35px;
-  height: 35px;
-  left: 25%;
-  top: 85%;
-  animation-duration: 21s;
-  animation-delay: 2s;
+  --size: 32px;
+  --x-pos: 27%;
+  --y-pos: 85%;
+  --duration: 45s;
+  --delay: 7s;
+  --drift: -20px;
+  
+  width: var(--size);
+  height: var(--size);
+  left: var(--x-pos);
+  top: var(--y-pos);
+  animation: floatUpAlt var(--duration) var(--delay) infinite ease-in-out;
 }
 
 .bubble3 {
-  width: 40px;
-  height: 40px;
-  left: 40%;
-  top: 90%;
-  animation-duration: 23s;
-  animation-delay: 4s;
+  --size: 24px;
+  --x-pos: 45%;
+  --y-pos: 90%;
+  --duration: 38s;
+  --delay: 3s;
+  --drift: 18px;
+  
+  width: var(--size);
+  height: var(--size);
+  left: var(--x-pos);
+  top: var(--y-pos);
+  animation: floatUp var(--duration) var(--delay) infinite ease-in-out;
 }
 
 .bubble4 {
-  width: 30px;
-  height: 30px;
-  left: 55%;
-  top: 75%;
-  animation-duration: 20s;
-  animation-delay: 1s;
+  --size: 20px;
+  --x-pos: 62%;
+  --y-pos: 75%;
+  --duration: 42s;
+  --delay: 10s;
+  --drift: -12px;
+  
+  width: var(--size);
+  height: var(--size);
+  left: var(--x-pos);
+  top: var(--y-pos);
+  animation: floatUpAlt var(--duration) var(--delay) infinite ease-in-out;
 }
 
 .bubble5 {
-  width: 50px;
-  height: 50px;
-  left: 70%;
-  top: 95%;
-  animation-duration: 22s;
-  animation-delay: 3s;
+  --size: 30px;
+  --x-pos: 76%;
+  --y-pos: 88%;
+  --duration: 48s;
+  --delay: 5s;
+  --drift: 10px;
+  
+  width: var(--size);
+  height: var(--size);
+  left: var(--x-pos);
+  top: var(--y-pos);
+  animation: floatUp var(--duration) var(--delay) infinite ease-in-out;
 }
 
 .bubble6 {
-  width: 35px;
-  height: 35px;
-  left: 85%;
-  top: 80%;
-  animation-duration: 24s;
-  animation-delay: 5s;
+  --size: 26px;
+  --x-pos: 88%;
+  --y-pos: 70%;
+  --duration: 36s;
+  --delay: 12s;
+  --drift: -16px;
+  
+  width: var(--size);
+  height: var(--size);
+  left: var(--x-pos);
+  top: var(--y-pos);
+  animation: floatUpAlt var(--duration) var(--delay) infinite ease-in-out;
 }
 
-.bubble7 {
-  width: 25px;
-  height: 25px;
-  left: 15%;
-  top: 70%;
-  animation-duration: 18s;
-  animation-delay: 2.5s;
-}
-
-.bubble8 {
-  width: 40px;
-  height: 40px;
-  left: 60%;
-  top: 85%;
-  animation-duration: 25s;
-  animation-delay: 0.5s;
-}
-
-/* GPU-accelerated float animation */
-@keyframes float {
+/* Only 2 shared animations for performance */
+@keyframes floatUp {
   0% {
-    transform: translate3d(0, 0, 0) scale(1);
+    transform: translate3d(0, 0, 0);
   }
   33% {
-    transform: translate3d(30px, -30vh, 0) scale(1.05);
+    transform: translate3d(var(--drift, 10px), -35vh, 0);
   }
   66% {
-    transform: translate3d(-20px, -60vh, 0) scale(0.95);
+    transform: translate3d(calc(var(--drift, 10px) * -0.5), -70vh, 0);
   }
   100% {
-    transform: translate3d(0, -100vh, 0) scale(1);
+    transform: translate3d(0, -105vh, 0);
   }
 }
 
-/* Subtle pulse animation */
-@keyframes pulse {
-  0%, 100% {
-    opacity: 0.6;
-    transform: scale(1);
+@keyframes floatUpAlt {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  25% {
+    transform: translate3d(calc(var(--drift, -10px) * 0.8), -28vh, 0);
   }
   50% {
-    opacity: 0.9;
-    transform: scale(1.1);
+    transform: translate3d(var(--drift, -10px), -55vh, 0);
+  }
+  75% {
+    transform: translate3d(calc(var(--drift, -10px) * 0.3), -80vh, 0);
+  }
+  100% {
+    transform: translate3d(0, -108vh, 0);
   }
 }
 
-/* Mobile optimizations */
+/* Mobile optimizations - maximum performance */
 @media (max-width: 768px) {
-  /* Reduce number of bubbles on mobile */
+  /* Only show 3 bubbles on mobile */
+  .bubble4,
   .bubble5,
-  .bubble6,
-  .bubble7,
-  .bubble8 {
+  .bubble6 {
     display: none;
   }
   
-  /* Simplify animations */
-  .bubble {
-    animation-duration: 30s !important;
+  /* Remove glow effect on mobile */
+  .bubble::before {
+    display: none;
   }
   
-  @keyframes float {
+  /* Simplify animation on mobile */
+  .bubble1,
+  .bubble2,
+  .bubble3 {
+    animation-name: floatUpSimple !important;
+    animation-duration: 50s !important;
+  }
+  
+  @keyframes floatUpSimple {
     0% {
       transform: translate3d(0, 0, 0);
     }
     100% {
-      transform: translate3d(0, -100vh, 0);
+      transform: translate3d(0, -110vh, 0);
     }
   }
 }
@@ -166,18 +195,16 @@
     animation: none !important;
   }
   
-  .bubble::before {
-    animation: none !important;
-  }
-  
-  /* Show static bubbles instead */
-  .bubble1 { transform: translate3d(0, -20vh, 0); }
-  .bubble2 { transform: translate3d(10px, -40vh, 0); }
-  .bubble3 { transform: translate3d(-10px, -60vh, 0); }
-  .bubble4 { transform: translate3d(5px, -30vh, 0); }
+  /* Show static bubbles at different heights */
+  .bubble1 { transform: translate3d(5px, -20vh, 0); }
+  .bubble2 { transform: translate3d(-8px, -40vh, 0); }
+  .bubble3 { transform: translate3d(10px, -60vh, 0); }
+  .bubble4 { transform: translate3d(-5px, -30vh, 0); }
+  .bubble5 { transform: translate3d(8px, -50vh, 0); }
+  .bubble6 { transform: translate3d(-10px, -70vh, 0); }
 }
 
-/* Low power mode optimizations */
+/* Low power mode - minimal visuals */
 @media (prefers-reduced-data: reduce),
        (prefers-reduced-transparency: reduce) {
   .bubble::before {
@@ -187,5 +214,6 @@
   .bubble {
     opacity: 0.3;
     filter: none;
+    animation-play-state: paused;
   }
 }

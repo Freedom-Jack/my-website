@@ -12,8 +12,6 @@ const GlowBubblesOptimized: React.FC = () => {
       <div className={`${styles.bubble} ${styles.bubble4}`} />
       <div className={`${styles.bubble} ${styles.bubble5}`} />
       <div className={`${styles.bubble} ${styles.bubble6}`} />
-      <div className={`${styles.bubble} ${styles.bubble7}`} />
-      <div className={`${styles.bubble} ${styles.bubble8}`} />
     </div>
   );
 };
