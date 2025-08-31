@@ -1,4 +1,4 @@
-import { Octokit } from '@octokit/rest';
+import { Octokit } from "@octokit/rest";
 
 // Initialize Octokit with your GitHub token
 const octokit = new Octokit({
@@ -38,11 +38,11 @@ export async function getGitHubUser(username: string): Promise<GitHubUser> {
 export async function getGitHubRepos(username: string): Promise<GitHubRepo[]> {
   const { data } = await octokit.repos.listForUser({
     username,
-    sort: 'updated',
+    sort: "updated",
     per_page: 100,
   });
-  
-  return data.map(repo => ({
+
+  return data.map((repo) => ({
     name: repo.name,
     description: repo.description,
     html_url: repo.html_url,
@@ -53,7 +53,7 @@ export async function getGitHubRepos(username: string): Promise<GitHubRepo[]> {
     homepage: repo.homepage || null,
     fork: repo.fork,
     size: repo.size || 0,
-    visibility: repo.visibility || 'public'
+    visibility: repo.visibility || "public",
   }));
 }
 
@@ -65,7 +65,7 @@ export async function getGitHubStats(username: string) {
 
   // Filter out forked repositories and sort by attractiveness
   const originalRepos = repos
-    .filter(repo => !repo.fork)
+    .filter((repo) => !repo.fork)
     .sort((a, b) => {
       // First, sort by stars
       const starDiff = b.stargazers_count - a.stargazers_count;
@@ -73,7 +73,9 @@ export async function getGitHubStats(username: string) {
 
       // If stars are equal, sort by most recently updated
       if (a.updated_at && b.updated_at) {
-        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+        return (
+          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+        );
       }
       return 0;
     });
@@ -83,9 +85,14 @@ export async function getGitHubStats(username: string) {
     repos: originalRepos,
     stats: {
       totalRepos: originalRepos.length,
-      totalStars: originalRepos.reduce((acc, repo) => acc + repo.stargazers_count, 0),
-      languages: Array.from(new Set(originalRepos.map(repo => repo.language).filter(Boolean))),
+      totalStars: originalRepos.reduce(
+        (acc, repo) => acc + repo.stargazers_count,
+        0,
+      ),
+      languages: Array.from(
+        new Set(originalRepos.map((repo) => repo.language).filter(Boolean)),
+      ),
       totalSize: originalRepos.reduce((acc, repo) => acc + repo.size, 0),
     },
   };
-} 
+}

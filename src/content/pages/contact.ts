@@ -12,10 +12,11 @@ export interface ContactPageContent {
 export const contactContent: ContactPageContent = {
   header: {
     title: "Contact Me",
-    description: "I'm always open to discussing new projects, opportunities, or collaborations. Feel free to reach out through any of the channels below."
+    description:
+      "I'm always open to discussing new projects, opportunities, or collaborations. Feel free to reach out through any of the channels below.",
   },
   buttons: {
     email: "Send Email",
-    resume: "Download Resume"
-  }
-}; 
+    resume: "Download Resume",
+  },
+};

@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import React from 'react'
-import Link from 'next/link'
-import { Github, Linkedin, Mail } from 'lucide-react'
-import { contactInfo } from '@/content/contact-info'
+import React from "react";
+import Link from "next/link";
+import { Github, Linkedin, Mail } from "lucide-react";
+import { contactInfo } from "@/content/contact-info";
 
 export default function Footer() {
-  const currentYear = new Date().getFullYear()
-  
+  const currentYear = new Date().getFullYear();
+
   return (
     <footer className="border-t border-border/40 bg-background">
       <div className="container flex flex-col items-center justify-between gap-4 py-10 md:h-24 md:flex-row md:py-0">
@@ -57,5 +57,5 @@ export default function Footer() {
         </div>
       </div>
     </footer>
-  )
-} 
+  );
+}

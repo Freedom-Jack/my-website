@@ -1,5 +1,5 @@
-import React from 'react';
-import styles from '@/styles/pages/about.module.css';
+import React from "react";
+import styles from "@/styles/pages/about.module.css";
 
 interface PageHeaderProps {
   title: string;
@@ -7,7 +7,11 @@ interface PageHeaderProps {
   description?: string;
 }
 
-export default function PageHeader({ title, subtitle, description }: PageHeaderProps) {
+export default function PageHeader({
+  title,
+  subtitle,
+  description,
+}: PageHeaderProps) {
   return (
     <section className={styles.headerSection}>
       <h1 className={styles.headerTitle}>{title}</h1>
@@ -15,4 +19,4 @@ export default function PageHeader({ title, subtitle, description }: PageHeaderP
       {description && <p className={styles.headerDescription}>{description}</p>}
     </section>
   );
-} 
+}

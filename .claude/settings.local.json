@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm config:*)",
+      "Bash(where claude)",
+      "Bash(npm run dev:*)",
+      "Bash(mv:*)",
+      "Bash(rmdir:*)",
+      "Bash(rm:*)",
+      "Bash(mkdir:*)",
+      "Bash(npm run build:*)",
+      "Bash(pkill:*)",
+      "Bash(tsc --noEmit --skipLibCheck)",
+      "Bash(npx tsc:*)",
+      "Bash(npm outdated)",
+      "Bash(npm update)",
+      "Bash(npm install:*)",
+      "Bash(npm run format:*)",
+      "Bash(npm run lint)",
+      "mcp__ide__getDiagnostics"
+    ],
+    "deny": []
+  }
+}

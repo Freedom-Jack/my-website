@@ -35,28 +35,33 @@ A modern, responsive portfolio website showcasing my work as a Software Developm
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/Freedom-Jack/my-website.git
 cd my-website
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Create a `.env.local` file and add your GitHub token:
+
 ```env
 GITHUB_TOKEN=your_github_token
 GITHUB_USERNAME=your_github_username
 ```
 
 4. Start the development server:
+
 ```bash
 npm run dev
 ```
 
 5. Build for production:
+
 ```bash
 npm run build
 ```
@@ -80,6 +85,7 @@ src/
 ## Features in Detail
 
 ### Performance Optimizations
+
 - Server-side rendering with Next.js
 - Image optimization with next/image
 - Font optimization with next/font
@@ -87,12 +93,14 @@ src/
 - Minimal client-side JavaScript
 
 ### Interactive Elements
+
 - Animated background with floating bubbles
 - Interactive world map showing global experience
 - Live GitHub statistics and project showcase
 - Smooth page transitions and hover effects
 
 ### Development Features
+
 - TypeScript for type safety
 - ESLint and Prettier for code quality
 - Component-based architecture

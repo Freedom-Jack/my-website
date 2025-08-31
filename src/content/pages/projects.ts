@@ -1,4 +1,4 @@
-import { GitHubRepo, GitHubUser } from '@/lib/github';
+import { GitHubRepo, GitHubUser } from "@/lib/github";
 
 export interface ProjectsPageContent {
   header: {
@@ -17,13 +17,13 @@ export interface ProjectsPageContent {
 export const projectsContent: ProjectsPageContent = {
   header: {
     title: "My Projects",
-    description: "Real-time data from my GitHub profile"
+    description: "Real-time data from my GitHub profile",
   },
   stats: {
-    title: "GitHub Statistics"
+    title: "GitHub Statistics",
   },
   projects: {
     title: "Featured Projects",
-    viewAll: "View All Projects on GitHub"
-  }
-}; 
+    viewAll: "View All Projects on GitHub",
+  },
+};

@@ -4,9 +4,9 @@ export interface BlogPostPageContent {
   };
   header: {
     dateFormat: {
-      year: 'numeric' | '2-digit';
-      month: 'numeric' | '2-digit' | 'long' | 'short' | 'narrow';
-      day: 'numeric' | '2-digit';
+      year: "numeric" | "2-digit";
+      month: "numeric" | "2-digit" | "long" | "short" | "narrow";
+      day: "numeric" | "2-digit";
     };
   };
   authorSection: {
@@ -31,17 +31,17 @@ export interface BlogPostPageContent {
 
 export const blogPostContent: BlogPostPageContent = {
   backButton: {
-    text: "Back to All Blog Posts"
+    text: "Back to All Blog Posts",
   },
   header: {
     dateFormat: {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    }
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    },
   },
   authorSection: {
-    title: "About the Author"
+    title: "About the Author",
   },
   jsonLd: {
     schema: "application/ld+json",
@@ -56,6 +56,6 @@ export const blogPostContent: BlogPostPageContent = {
     name: "name",
     image: "image",
     mainEntityOfPage: "mainEntityOfPage",
-    webPageType: "WebPage"
-  }
-}; 
+    webPageType: "WebPage",
+  },
+};

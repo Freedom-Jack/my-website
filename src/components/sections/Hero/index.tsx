@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import React, { RefObject } from 'react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import styles from '@/styles/pages/home.module.css'
-import { HomePageContent } from '@/content/pages/home'
+import React, { RefObject } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import styles from "@/styles/pages/home.module.css";
+import { HomePageContent } from "@/content/pages/home";
 
 interface HeroProps {
   content: {
@@ -36,5 +36,5 @@ export function Hero({ content, onSecondaryClick }: HeroProps) {
         </div>
       </div>
     </section>
-  )
-} 
+  );
+}

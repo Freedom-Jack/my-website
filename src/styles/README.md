@@ -25,16 +25,16 @@ The shared styles are organized into the following categories:
 
 ```jsx
 // Option 1: Import specific shared styles
-import { cardStyles, sectionStyles } from '@/styles/shared';
+import { cardStyles, sectionStyles } from "@/styles/shared";
 
 // Option 2: Import individual style modules
-import cardStyles from '@/styles/shared/cards.module.css';
+import cardStyles from "@/styles/shared/cards.module.css";
 ```
 
 ### Example Usage
 
 ```jsx
-import { cardStyles, sectionStyles } from '@/styles/shared';
+import { cardStyles, sectionStyles } from "@/styles/shared";
 
 function ProjectCard() {
   return (
@@ -42,7 +42,7 @@ function ProjectCard() {
       <h3 className={cardStyles.cardTitle}>Project Title</h3>
       <p className={cardStyles.cardDescription}>Project description...</p>
     </div>
-  )
+  );
 }
 ```
 
@@ -60,4 +60,4 @@ When adding new styles, consider:
 - Use CSS modules to avoid style conflicts
 - Keep files organized and focused on a specific purpose
 - Use composition with `composes:` when extending existing styles
-- Document complex styles with comments 
+- Document complex styles with comments

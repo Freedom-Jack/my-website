@@ -12,9 +12,9 @@ export interface BlogPageContent {
   blogCard: {
     readMore: string;
     dateFormat: {
-      year: 'numeric' | '2-digit';
-      month: 'numeric' | '2-digit' | 'long' | 'short' | 'narrow';
-      day: 'numeric' | '2-digit';
+      year: "numeric" | "2-digit";
+      month: "numeric" | "2-digit" | "long" | "short" | "narrow";
+      day: "numeric" | "2-digit";
     };
   };
   metadata: {
@@ -27,23 +27,24 @@ export const blogContent: BlogPageContent = {
   header: {
     title: "Blog",
     subtitle: "Thoughts and Ideas",
-    description: "Explore my writing on software development, AI, and technology insights."
+    description:
+      "Explore my writing on software development, AI, and technology insights.",
   },
   sections: {
     recentPosts: {
-      title: "Recent Posts"
-    }
+      title: "Recent Posts",
+    },
   },
   blogCard: {
     readMore: "Read more",
     dateFormat: {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    }
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    },
   },
   metadata: {
     defaultTitle: "Blog",
-    defaultDescription: "Read my latest thoughts and insights"
-  }
-}; 
+    defaultDescription: "Read my latest thoughts and insights",
+  },
+};

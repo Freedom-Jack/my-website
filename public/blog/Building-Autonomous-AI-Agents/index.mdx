@@ -1,23 +1,74 @@
 ---
-title: 'Building Autonomous AI Agents with Python and LLMs'
+title: 'Building Modular AI Agents with Python and LLMs'
 date: '2024-04-15'
 description: 'Learn how to build an AI agent from scratch using Python, open LLM, and open-source tools, without any paid services.'
 keywords: 'AI agent, build AI agent, how to build AI agent, autonomous agent, AI assistant, Python AI project, GPT AI agent, AI automation, OpenAI API, AI development guide, build your own AI, step by step AI agent, AI coding tutorial, 2025 AI project'
 author: 'Qijin (Jack) Xu'
 ---
 
-# Building Autonomous AI Agents with Python and LLMs
+# Building Modular AI Agents with Python and LLMs
 
-This is my first blog post using MDX. I can include images and other components here. This is my first blog post using MDX. I can include images and other components here.This is my first blog post using MDX. I can include images and other components here.This is my first blog post using MDX. I can include images and other components here.This is my first blog post using MDX. I can include images and other components here.This is my first blog post using MDX. I can include images and other components here.This is my first blog post using MDX. I can include images and other components here.This is my first blog post using MDX. I can include images and other components here.
+## Concepts and definitions
 
-![Sample Image with descriptive alt text for better SEO](./sample-image.jpg)
+### What is AI agent
 
-## What's Next?
+Let's start with something "textbook": **What is an AI agent?**
 
-Stay tuned for more blog posts about my journey and experiences. 
+According to a [Google Cloud blog post](https://cloud.google.com/discover/what-are-ai-agents), *AI agents are software systems that use AI to pursue goals and complete tasks on behalf of users. They show reasoning, planning, and memory and have a level of autonomy to make decisions, learn, and adapt.* 
 
-## Key Points
+So AI agents is something that should be capable to finish certain tasks in a domain, kind of like a less general AGI (Artificial general intelligence), but one step forward from the traditional reactive AI.
 
-- Using proper heading hierarchy improves SEO
-- Including descriptive image alt text helps accessibility and SEO
-- Internal links to other content on your site improve SEO ranking
+The key of an AI agent revolve around the following components:
+
+**Core components of an AI Agent**:  
+**Perceive** – Gathers input (text, images, sounds, etc.) and outputs from intermediate steps. 
+**Reason** – Makes decisions using logic, rules, or machine learning (often an LLM these days).  
+**Action** – Performs actions (like creating files/folders, or even interact with the software).
+
+### Difference between AI agent vs AI assistant
+
+AI agent is one step forward than AI assistant, most of the publicly available AI tools on the market nowadays usually falls into the category of AI assistant. As you can tell from the core components, the key difference lies in the **"action"** step:  
+An **AI agent** is capable of completing tasks on your behalf, often by interacting with external tools or systems.  
+An **AI assistant**, on the other hand, typically offers suggestions, guidance, or information — but you are the one who takes action.
+
+|**Aspect**|**AI Agent**|**AI Assistant**|
+|--|--|--|
+|**Definition**|A system that perceives, reasons, and **acts** autonomously to achieve goals.|A user-facing tool that helps with tasks, typically via conversation.|
+|**Autonomy**|Often operates independently and can make decisions on its own.|Usually reactive — waits for input and responds accordingly.|
+|**Examples**|Auto-GPT, GitHub Copilot, Cursor.|ChatGPT, Siri, Alexa.|
+|**Goal**|Completes multi-step tasks or goals, possibly without human input.|Assists a user with specific queries or tasks, often answer one by one.|
+|**Tools/Actions**|Can access external tools, call APIs, plan steps, and act without prompts.|Uncommon today but may use tools, like ChaGPT GPTs.|
+
+### Breakdown of AI agent components
+
+#### Perceive
+
+#### Reason
+
+##### Memory
+
+##### Human in the loop
+
+#### Action
+
+## Design and Build
+
+### Modularity
+
+#### Abstract Base Classes
+
+#### Standardize the Output Format with dataclasses 
+
+## Implementation
+
+### Architecture
+
+----------------------------------------------------------------------------------------
+
+# Performance booster for AI agent
+
+### Optimization
+
+#### Context
+
+#### Top_K

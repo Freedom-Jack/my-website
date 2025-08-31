@@ -1,0 +1,199 @@
+/* Performance-optimized CSS for animations and interactions */
+
+/* GPU-accelerated base classes */
+.gpu-accelerated {
+  will-change: transform;
+  transform: translateZ(0);
+  contain: layout style paint;
+  backface-visibility: hidden;
+}
+
+.gpu-accelerated-hover {
+  will-change: auto;
+  transform: translateZ(0);
+  contain: layout style paint;
+  transition: transform 0.2s ease-out;
+}
+
+.gpu-accelerated-hover:hover {
+  will-change: transform;
+  transform: translateZ(0) translateY(-2px);
+}
+
+/* Optimized animations that only use compositor properties */
+@keyframes optimized-fade-in {
+  from { opacity: 0; transform: translateZ(0) translateY(10px); }
+  to { opacity: 1; transform: translateZ(0) translateY(0); }
+}
+
+@keyframes optimized-float {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(0, -8px, 0) scale(1.02); }
+}
+
+@keyframes optimized-pulse {
+  0%, 100% { opacity: 1; transform: translateZ(0) scale(1); }
+  50% { opacity: 0.8; transform: translateZ(0) scale(1.05); }
+}
+
+@keyframes optimized-shimmer {
+  0% { transform: translateZ(0) translateX(-100%); }
+  100% { transform: translateZ(0) translateX(100%); }
+}
+
+/* Performance-first utility classes */
+.animate-optimized-fade-in {
+  animation: optimized-fade-in 0.5s ease-out;
+}
+
+.animate-optimized-float {
+  animation: optimized-float 3s ease-in-out infinite;
+}
+
+.animate-optimized-pulse {
+  animation: optimized-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Accessibility and performance media queries */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .gpu-accelerated,
+  .gpu-accelerated-hover {
+    will-change: auto !important;
+    transform: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+  
+  /* Keep essential animations for UX but make them instant */
+  .essential-animation {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (prefers-reduced-data: reduce) {
+  .expensive-animation,
+  .auto-play-animation {
+    display: none !important;
+    animation: none !important;
+  }
+  
+  .data-heavy-effect {
+    opacity: 0.5 !important;
+    filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .backdrop-blur-effect,
+  .glass-morphism {
+    backdrop-filter: none !important;
+    background: var(--background) !important;
+  }
+}
+
+/* Performance optimizations for different device types */
+@media (pointer: coarse) {
+  /* Touch devices - larger hit targets, simpler animations */
+  .touch-optimized {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .hover-only-animation {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+@media (hover: none) {
+  /* No hover capability - disable hover animations */
+  .hover-animation {
+    animation: none !important;
+    transition: none !important;
+  }
+  
+  .gpu-accelerated-hover:hover {
+    transform: translateZ(0) !important;
+  }
+}
+
+/* Battery and performance aware optimizations */
+@media (prefers-reduced-motion: no-preference) and (prefers-reduced-data: no-preference) {
+  /* Full animations only when user hasn't opted for reduced motion/data */
+  .performance-animation {
+    animation: optimized-float 6s ease-in-out infinite;
+    will-change: transform;
+  }
+}
+
+/* Container queries for responsive animations */
+@container (max-width: 768px) {
+  .mobile-simple-animation {
+    animation-duration: 0.3s !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* Intersection observer optimizations */
+.intersection-animate {
+  opacity: 0;
+  transform: translateZ(0) translateY(20px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.intersection-animate.is-visible {
+  opacity: 1;
+  transform: translateZ(0) translateY(0);
+}
+
+/* Loading state optimizations */
+.optimized-skeleton {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: optimized-shimmer 1.5s infinite;
+}
+
+/* Scroll performance optimizations */
+.scroll-optimized {
+  contain: layout style paint;
+  content-visibility: auto;
+  contain-intrinsic-size: 0 500px;
+}
+
+/* Focus management for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .focus-visible:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    animation: none !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .subtle-animation {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+  
+  .low-contrast-effect {
+    opacity: 1 !important;
+    filter: contrast(2) !important;
+  }
+}

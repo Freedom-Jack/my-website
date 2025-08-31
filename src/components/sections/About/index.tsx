@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import React from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { ArrowRight } from 'lucide-react'
-import styles from './styles.module.css'
+import React from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
+import styles from "./styles.module.css";
 
 interface AboutSectionProps {
   content: {
@@ -24,15 +24,9 @@ export default function AboutSection({ content }: AboutSectionProps) {
   return (
     <section className={styles.aboutSection}>
       <div className={styles.textContainer}>
-        <div className={styles.aboutTag}>
-          {content.tag}
-        </div>
-        <h2 className={styles.aboutTitle}>
-          {content.title}
-        </h2>
-        <p className={styles.aboutDescription}>
-          {content.description}
-        </p>
+        <div className={styles.aboutTag}>{content.tag}</div>
+        <h2 className={styles.aboutTitle}>{content.title}</h2>
+        <p className={styles.aboutDescription}>{content.description}</p>
         <div className={styles.buttonContainer}>
           <Button asChild className={styles.ctaButton}>
             <Link href="/about" className="flex items-center gap-1">
@@ -42,12 +36,12 @@ export default function AboutSection({ content }: AboutSectionProps) {
           </Button>
         </div>
       </div>
-      
+
       <div className={styles.profileContainer}>
         <div className={styles.profileCard}>
           <div className={styles.decorativeCircle1}></div>
           <div className={styles.decorativeCircle2}></div>
-          
+
           <div className={styles.profileCardInner}>
             <div className={styles.profileGradient} />
             <Image
@@ -58,7 +52,7 @@ export default function AboutSection({ content }: AboutSectionProps) {
               priority
             />
           </div>
-          
+
           <div className={styles.profileInfo}>
             <h3 className={styles.profileName}>{content.profile.name}</h3>
             <p className={styles.profileRole}>{content.profile.role}</p>
@@ -66,5 +60,5 @@ export default function AboutSection({ content }: AboutSectionProps) {
         </div>
       </div>
     </section>
-  )
-} 
+  );
+}

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import styles from '@/styles/components/table-of-contents.module.css';
+import styles from "@/styles/components/table-of-contents.module.css";
 
 interface Heading {
   level: number;
@@ -14,31 +14,32 @@ interface TableOfContentsProps {
 
 export default function TableOfContents({ headings }: TableOfContentsProps) {
   if (headings.length === 0) return null;
-  
+
   // Function to scroll to element with offset
   const scrollToSection = (e: React.MouseEvent, id: string) => {
     e.preventDefault();
     const element = document.getElementById(id);
     if (element) {
-      const offsetTop = element.getBoundingClientRect().top + window.pageYOffset - 100; // 100px offset
+      const offsetTop =
+        element.getBoundingClientRect().top + window.pageYOffset - 100; // 100px offset
       window.scrollTo({
         top: offsetTop,
-        behavior: 'smooth'
+        behavior: "smooth",
       });
     }
   };
-  
+
   return (
     <div className={styles.tocContainer}>
       <h2 className={styles.tocTitle}>Table of Contents</h2>
       <ul className={styles.tocList}>
         {headings.map((heading, index) => (
-          <li 
-            key={index} 
+          <li
+            key={index}
             className={styles.tocItem}
             style={{ marginLeft: `${(heading.level - 1) * 16}px` }}
           >
-            <a 
+            <a
               href={`#${heading.slug}`}
               className={styles.tocLink}
               onClick={(e) => scrollToSection(e, heading.slug)}
@@ -50,4 +51,4 @@ export default function TableOfContents({ headings }: TableOfContentsProps) {
       </ul>
     </div>
   );
-} 
+}

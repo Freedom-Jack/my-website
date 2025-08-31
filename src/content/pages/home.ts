@@ -18,10 +18,8 @@ export interface HomePageContent {
   };
 }
 
-
-const START_YEAR = 2021;         //  My start year
+const START_YEAR = 2021; //  My start year
 export const yearsOfExperience = new Date().getFullYear() - START_YEAR;
-
 
 export const homeContent: HomePageContent = {
   hero: {
@@ -29,12 +27,13 @@ export const homeContent: HomePageContent = {
     subtitle: "Software Development Engineer",
     description: "Specializing in Machine Learning & AI | Data Engineering",
     primaryCta: "View My Projects",
-    secondaryCta: "Learn More About Me"
+    secondaryCta: "Learn More About Me",
   },
   about: {
     tag: "Professional Profile",
     title: "Software Engineer — AI & Data at Scale",
-    description: "I’m a Software Development Engineer blending AI research with production‑scale data. \
+    description:
+      "I’m a Software Development Engineer blending AI research with production‑scale data. \
     At CGI I direct pipelines behind Canada’s largest auto‑insurance database while shipping live AI, \
     including a RAG chatbot and workflow agent. \
     From T‑SQL to full‑stack ML, I turn terabytes into smart, \
@@ -42,7 +41,7 @@ export const homeContent: HomePageContent = {
     cta: "Explore My Background",
     profile: {
       name: "Qijin Xu",
-      role: "Software Development Engineer"
-    }
-  }
-}; 
+      role: "Software Development Engineer",
+    },
+  },
+};

@@ -2,54 +2,54 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    formats: ['image/avif', 'image/webp'],
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'github.com',
-        pathname: '/**',
+        protocol: "https",
+        hostname: "github.com",
+        pathname: "/**",
       },
       {
-        protocol: 'https',
-        hostname: '**.githubusercontent.com',
-        pathname: '/**',
+        protocol: "https",
+        hostname: "**.githubusercontent.com",
+        pathname: "/**",
       },
       {
-        protocol: 'https',
-        hostname: '**.vercel.app',
-        pathname: '/**',
-      }
+        protocol: "https",
+        hostname: "**.vercel.app",
+        pathname: "/**",
+      },
     ],
   },
   eslint: {
-    dirs: ['src'],
+    dirs: ["src"],
   },
   // Enable experimental features for better performance
   experimental: {
     optimizeCss: true,
     scrollRestoration: true,
-    optimizeServerReact: true
+    optimizeServerReact: true,
   },
   headers: async () => {
     return [
       {
-        source: '/(.*)',
+        source: "/(.*)",
         headers: [
           {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
+            key: "X-Content-Type-Options",
+            value: "nosniff",
           },
           {
-            key: 'X-Frame-Options',
-            value: 'DENY',
+            key: "X-Frame-Options",
+            value: "DENY",
           },
           {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
+            key: "X-XSS-Protection",
+            value: "1; mode=block",
           },
           {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin',
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
           },
         ],
       },
@@ -60,12 +60,12 @@ const nextConfig = {
     config.optimization = {
       ...config.optimization,
       splitChunks: {
-        chunks: 'all',
+        chunks: "all",
         cacheGroups: {
           commons: {
             test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
-            chunks: 'all',
+            name: "vendors",
+            chunks: "all",
           },
         },
       },
@@ -76,9 +76,9 @@ const nextConfig = {
       test: /\.mdx?$/,
       use: [
         {
-          loader: '@mdx-js/loader',
+          loader: "@mdx-js/loader",
           options: {
-            providerImportSource: '@mdx-js/react',
+            providerImportSource: "@mdx-js/react",
           },
         },
       ],
@@ -88,4 +88,4 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig; 
+module.exports = nextConfig;
