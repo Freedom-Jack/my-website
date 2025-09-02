@@ -2,10 +2,11 @@
 
 # dependencies
 /node_modules
-/package-lock.json
 /.pnp
 .pnp.js
 .yarn/install-state.gz
+yarn.lock
+pnpm-lock.yaml
 
 # testing
 /coverage
@@ -45,6 +46,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+tsconfig.tsbuildinfo
 
 # Editor directories and files
 .idea/
@@ -61,6 +63,15 @@ next-env.d.ts
 
 # Bundle analyzer output
 /analyze/
+.next-bundle-analyzer/
+
+# OS files
+Thumbs.db
+desktop.ini
+
+# Logs
+logs/
+*.log
 
 # personal files
 # Note: Be careful with this - you might want to exclude specific files instead
