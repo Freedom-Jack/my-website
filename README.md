@@ -1,4 +1,4 @@
-# 🚀 Modern Full-Stack Portfolio Website
+# Modern Full-Stack Portfolio Website
 
 <div align="center">
 
@@ -16,7 +16,7 @@
 
 </div>
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Overview](#overview)
 - [Technical Architecture](#technical-architecture)
@@ -33,7 +33,7 @@
 
 A production-grade portfolio website engineered with modern web technologies and best practices. This project demonstrates proficiency in full-stack development, performance optimization, and scalable architecture design - key competencies valued at FAANG companies.
 
-### 🎯 Key Highlights
+### Key Highlights
 
 - **Enterprise-Grade Architecture**: Modular, maintainable codebase following SOLID principles
 - **Performance-First Design**: Achieves 100/100 Lighthouse scores across all metrics
@@ -44,7 +44,7 @@ A production-grade portfolio website engineered with modern web technologies and
 
 ## Technical Architecture
 
-### 🏗️ System Architecture
+### System Architecture
 
 ```mermaid
 graph TB
@@ -73,7 +73,7 @@ graph TB
     end
 ```
 
-### 📁 Project Structure
+### Project Structure
 
 ```typescript
 src/
@@ -104,7 +104,7 @@ src/
 
 ## Core Features
 
-### ⚡ Performance Optimizations
+### Performance Optimizations
 
 - **Server-Side Rendering (SSR)**: Leveraging Next.js 15 App Router for optimal SEO and initial load
 - **Static Site Generation (SSG)**: Pre-rendering blog content at build time
@@ -114,7 +114,7 @@ src/
 - **Font Optimization**: Self-hosted variable fonts with font-display: swap
 - **Critical CSS**: Inline critical styles for faster FCP
 
-### 🎨 UI/UX Engineering
+### UI/UX Engineering
 
 - **Component Architecture**: Atomic design with composable React components
 - **Design System**: Custom Tailwind configuration with semantic tokens
@@ -123,7 +123,7 @@ src/
 - **Theme System**: CSS variables with prefers-color-scheme support
 - **Responsive Design**: Mobile-first with container queries
 
-### 📊 Data Integration
+### Data Integration
 
 - **GitHub API**: Real-time repository statistics with rate limiting
 - **MDX Content**: Type-safe content with frontmatter validation
@@ -133,7 +133,7 @@ src/
 
 ## Performance Metrics
 
-### 📈 Lighthouse Scores
+### Lighthouse Scores
 
 | Metric | Score | Details |
 |--------|-------|---------|
@@ -142,7 +142,7 @@ src/
 | **Best Practices** | 100 | HTTPS, no vulnerabilities |
 | **SEO** | 100 | Meta tags, structured data |
 
-### ⚙️ Technical Metrics
+### Technical Metrics
 
 - **First Contentful Paint**: < 1s
 - **Time to Interactive**: < 2s
@@ -185,7 +185,7 @@ src/
 
 ## System Design
 
-### 🔄 Data Flow Architecture
+### Data Flow Architecture
 
 ```typescript
 // Example: GitHub API Integration with Caching
@@ -216,7 +216,7 @@ class GitHubService {
 }
 ```
 
-### 🎯 Design Patterns
+### Design Patterns
 
 - **Component Composition**: Leveraging React's composition model
 - **Provider Pattern**: Context API for theme and state management
@@ -285,7 +285,7 @@ SENTRY_DSN=https://xxxxx.ingest.sentry.io
 
 ## Testing Strategy
 
-### 🧪 Test Coverage
+### Test Coverage
 
 ```bash
 # Unit tests
@@ -310,7 +310,7 @@ npm run test:coverage
 
 ## Deployment
 
-### 🚀 Production Deployment
+### Production Deployment
 
 ```bash
 # Build optimization
@@ -333,7 +333,7 @@ vercel --prod
 
 ## Contributing
 
-### 🤝 Development Workflow
+### Development Workflow
 
 1. **Fork & Clone**: Fork the repository and clone locally
 2. **Branch**: Create a feature branch (`feature/amazing-feature`)
@@ -351,7 +351,7 @@ vercel --prod
 - **Testing**: Minimum 80% coverage for new features
 - **Documentation**: JSDoc for complex functions
 
-## 📊 Project Metrics
+## Project Metrics
 
 ![GitHub Stats](https://github-readme-stats.vercel.app/api?username=Freedom-Jack&show_icons=true&theme=dark)
 
@@ -363,7 +363,7 @@ vercel --prod
 - **Dependencies**: 38 (18 dev)
 - **TypeScript Coverage**: 100%
 
-## 🔒 Security
+## Security
 
 - **Dependency Scanning**: Automated via Dependabot
 - **Secret Management**: Environment variables with validation
@@ -371,11 +371,11 @@ vercel --prod
 - **CORS**: Properly configured API endpoints
 - **Input Validation**: Zod schema validation
 
-## 📝 License
+## License
 
 MIT License - see [LICENSE](LICENSE) file for details
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Next.js team for the amazing framework
 - Vercel for hosting and deployment
@@ -386,10 +386,6 @@ MIT License - see [LICENSE](LICENSE) file for details
 
 <div align="center">
 
-**Built with ❤️ by [Qijin Xu](https://github.com/Freedom-Jack)**
-
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=for-the-badge&logo=linkedin)](https://linkedin.com/in/qijinxu)
-[![Portfolio](https://img.shields.io/badge/Portfolio-Visit-000000?style=for-the-badge&logo=vercel)](https://qijinxu.com)
-[![Email](https://img.shields.io/badge/Email-Contact-D14836?style=for-the-badge&logo=gmail)](mailto:contact@qijinxu.com)
+**Developed by [Qijin Xu](https://github.com/Freedom-Jack)**
 
 </div>
