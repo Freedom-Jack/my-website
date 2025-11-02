@@ -317,13 +317,13 @@ export const aboutContent: AboutPageContent = {
       title: "Certifications",
       items: [
         {
-          name: "Microsoft Certified: Azure Administrator Associate",
+          name: "Microsoft Certified: Azure Solutions Architect Expert",
           issuer: "Microsoft",
           date: "2022",
         },
         {
-          name: "Project Management Professional (PMP)",
-          issuer: "Project Management Institute",
+          name: " Google Cloud Professional Cloud Developer",
+          issuer: "Google",
           date: "2023",
         },
       ],
