@@ -12,7 +12,7 @@
 [![Code Quality](https://img.shields.io/badge/Code%20Quality-A+-brightgreen?style=flat-square)](https://github.com/Freedom-Jack/my-website)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
-**[Live Demo](https://qijinxu.com) • [Documentation](#documentation) • [Architecture](#architecture) • [Contributing](#contributing)**
+**[Architecture](#architecture) • [Contributing](#contributing)**
 
 </div>
 
