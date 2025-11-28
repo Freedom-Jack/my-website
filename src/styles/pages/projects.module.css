@@ -21,7 +21,7 @@
 .sectionDescription {
   composes: gradientText from '../shared/animations.module.css';
   @apply text-muted-foreground relative inline-block;
-  text-shadow: 0 0 10px rgba(var(--primary), 0.3);
+  text-shadow: 0 0 10px hsl(var(--color-primary) / 0.3);
   position: relative;
 }
 
@@ -32,15 +32,15 @@
   right: -40px;
   font-size: 0.7em;
   font-weight: bold;
-  color: hsl(var(--primary));
-  background: linear-gradient(45deg, 
-    hsl(var(--primary)) 0%,
-    hsl(var(--primary)) 50%,
-    hsl(var(--muted-foreground)) 100%);
+  color: hsl(var(--color-primary));
+  background: linear-gradient(45deg,
+    hsl(var(--color-primary)) 0%,
+    hsl(var(--color-primary)) 50%,
+    hsl(var(--color-muted-foreground)) 100%);
   padding: 2px 8px;
-  border-radius: 12px;
+  border-radius: var(--radius-xl);
   animation: float 2s ease-in-out infinite;
-  box-shadow: 0 0 10px rgba(var(--primary), 0.3);
+  box-shadow: 0 0 10px hsl(var(--color-primary) / 0.3);
 }
 
 .statsGrid {
@@ -142,37 +142,4 @@
   display: inline-block;
 }
 
-@keyframes shine {
-  0%, 100% {
-    background-position: 0% center;
-  }
-  50% {
-    background-position: 100% center;
-  }
-}
-
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1) rotate(0deg);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.2) rotate(10deg);
-    opacity: 0.8;
-  }
-}
-
-@keyframes borderRotate {
-  0% {
-    background-position: 0% 50%;
-    opacity: 1;
-  }
-  50% {
-    background-position: 100% 50%;
-    opacity: 0.8;
-  }
-  100% {
-    background-position: 0% 50%;
-    opacity: 1;
-  }
-} 
+/* Note: All animations (shine, pulse, borderRotate, etc.) are imported from @/styles/shared/animations.module.css */ 

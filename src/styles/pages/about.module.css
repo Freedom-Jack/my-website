@@ -205,15 +205,15 @@
 
 .descriptionItem :global(span.primary) {
   @apply font-semibold;
-  color: hsl(210, 100%, 65%);
+  color: hsl(var(--color-primary));
   padding: 0 3px;
   border-radius: 2px;
   transition: all 0.2s ease;
-  border-bottom: 1px solid hsla(210, 100%, 75%, 0.6);
+  border-bottom: 1px solid hsl(var(--color-primary) / 0.6);
 }
 
 .descriptionItem :global(span.primary):hover {
-  color: hsl(210, 100%, 60%);
+  color: hsl(var(--color-primary-hover));
 }
 
 .educationList {
@@ -330,11 +330,4 @@
   @apply mr-1.5 text-primary;
 }
 
-@keyframes shine {
-  0%, 100% {
-    background-position: 0% center;
-  }
-  50% {
-    background-position: 100% center;
-  }
-} 
+/* Note: shine animation now imported from @/styles/shared/animations.module.css */ 

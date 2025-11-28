@@ -1,42 +1,39 @@
-/* Animation Components */
+/**
+ * CONSOLIDATED ANIMATIONS
+ *
+ * All keyframe animations and animation utilities in ONE place.
+ * No more duplication!
+ *
+ * Usage:
+ * 1. Import this file: import styles from '@/styles/shared/animations.module.css'
+ * 2. Use classes: className={styles.gradientText}
+ * 3. Or compose: composes: shine from '@/styles/shared/animations.module.css'
+ */
 
-.gradientText {
-  background: linear-gradient(90deg, 
-    hsl(var(--primary)) 0%, 
-    hsl(var(--secondary)) 50%,
-    hsl(var(--primary)) 100%);
-  background-size: 200% auto;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: shine 3s ease-in-out infinite;
-}
+/* ============================================
+   KEYFRAME DEFINITIONS
+   (Single source of truth for all animations)
+   ============================================ */
 
-.gradientBorder {
-  position: relative;
-}
-
-.gradientBorder::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, 
-    hsl(var(--primary)) 0%, 
-    hsl(var(--secondary)) 50%,
-    hsl(var(--primary)) 100%);
-  background-size: 200% auto;
-  animation: shine 3s ease-in-out infinite;
-}
-
+/**
+ * Shine Animation
+ * Creates a moving gradient effect
+ * Duration: Use with 3s ease-in-out infinite
+ */
 @keyframes shine {
-  to {
-    background-position: 200% center;
+  0%, 100% {
+    background-position: 0% center;
+  }
+  50% {
+    background-position: 100% center;
   }
 }
 
+/**
+ * Pulse Animation
+ * Gentle scale + opacity pulse
+ * Duration: Use with 2s ease-in-out infinite
+ */
 @keyframes pulse {
   0%, 100% {
     transform: scale(1);
@@ -48,6 +45,11 @@
   }
 }
 
+/**
+ * Float Animation
+ * Gentle up/down floating motion
+ * Duration: Use with 3s ease-in-out infinite
+ */
 @keyframes float {
   0%, 100% {
     transform: translateY(0);
@@ -55,4 +57,174 @@
   50% {
     transform: translateY(-5px);
   }
-} 
+}
+
+/**
+ * Pattern Move Animation
+ * Moves background patterns
+ * Duration: Use with 20s linear infinite
+ */
+@keyframes patternMove {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 100px 100px;
+  }
+}
+
+/**
+ * Gradient Move Animation
+ * Shifts gradient position
+ * Duration: Use with 10s ease infinite
+ */
+@keyframes gradientMove {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/**
+ * Float Up Animation
+ * For bubbles or particles floating upward
+ * Duration: Variable (20s-60s recommended)
+ */
+@keyframes floatUp {
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-100vh) translateX(var(--drift, 0));
+    opacity: 0;
+  }
+}
+
+/**
+ * Fade In Animation
+ * Simple opacity fade in
+ * Duration: Use with 0.5s ease-out
+ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/**
+ * Slide In From Bottom
+ * Slides element up while fading in
+ * Duration: Use with 0.5s ease-out
+ */
+@keyframes slideInBottom {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   REUSABLE ANIMATION UTILITY CLASSES
+   Apply these directly to elements
+   ============================================ */
+
+/**
+ * Gradient Text with Shine Animation
+ * Animated gradient text effect
+ */
+.gradientText {
+  background: linear-gradient(90deg,
+    hsl(var(--color-primary)) 0%,
+    hsl(var(--color-secondary)) 50%,
+    hsl(var(--color-primary)) 100%);
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shine 3s ease-in-out infinite;
+}
+
+/**
+ * Gradient Border (Top)
+ * Animated gradient border at the top of element
+ */
+.gradientBorder {
+  position: relative;
+}
+
+.gradientBorder::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg,
+    hsl(var(--color-primary)) 0%,
+    hsl(var(--color-secondary)) 50%,
+    hsl(var(--color-primary)) 100%);
+  background-size: 200% auto;
+  animation: shine 3s ease-in-out infinite;
+}
+
+/**
+ * Shine Animation Class
+ * Apply shine animation to any element with gradient background
+ */
+.shine {
+  animation: shine 3s ease-in-out infinite;
+  background-size: 200% auto;
+}
+
+/**
+ * Pulse Animation Class
+ * Gentle pulsing effect
+ */
+.pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/**
+ * Float Animation Class
+ * Gentle floating motion
+ */
+.float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/**
+ * Fade In Class
+ * Fades element in on mount
+ */
+.fadeIn {
+  animation: fadeIn var(--duration-normal, 300ms) ease-out;
+}
+
+/**
+ * Slide In Bottom Class
+ * Slides element up while fading in
+ */
+.slideInBottom {
+  animation: slideInBottom var(--duration-normal, 300ms) ease-out;
+}
+
+/* ============================================
+   ACCESSIBILITY: Respect Reduced Motion
+   Note: Global accessibility rules moved to globals.css
+   ============================================ */ 

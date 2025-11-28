@@ -2,28 +2,28 @@
   "..\\node_modules\\next\\dist\\client\\index.js -> ../pages/_app": {
     "id": 472,
     "files": [
-      "static/chunks/vendors-1df7622a9ca7e083.js"
+      "static/chunks/vendors-086edb9140c20008.js"
     ]
   },
   "..\\node_modules\\next\\dist\\client\\index.js -> ../pages/_error": {
     "id": 9341,
     "files": [
-      "static/chunks/vendors-1df7622a9ca7e083.js"
+      "static/chunks/vendors-086edb9140c20008.js"
     ]
   },
   "app\\page.tsx -> @/components/sections/About": {
     "id": 1947,
     "files": [
-      "static/css/dd88884fc5fafb22.css",
-      "static/chunks/vendors-1df7622a9ca7e083.js",
+      "static/css/851ec898164d3a26.css",
+      "static/chunks/vendors-086edb9140c20008.js",
       "static/chunks/947.8f9dd21159b54d1d.js"
     ]
   },
   "components\\animations\\BackgroundWrapper\\index.tsx -> @/components/animations/GlowBubbles/GlowBubblesOptimized": {
     "id": 8900,
     "files": [
-      "static/css/0382c7a3f8179f04.css",
-      "static/chunks/900.0f6c4a4bf9eb0ed2.js"
+      "static/css/55ab266177968681.css",
+      "static/chunks/900.ca21458dd8d9b83e.js"
     ]
   }
 }

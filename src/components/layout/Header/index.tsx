@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -63,8 +64,8 @@ export default function Header() {
               >
                 <NavigationMenuLink
                   className={`px-4 py-2 rounded-md transition-colors duration-200
-                    bg-[hsl(var(--header-nav-bg))] hover:bg-[hsl(var(--header-nav-hover))]
-                    ${pathname === item.path ? "text-primary dark:text-[hsl(210,40%,90%)] bg-[hsl(var(--header-nav-hover))]" : "text-foreground dark:text-[hsl(210,40%,90%)]"}`}
+                    bg-[hsl(var(--color-header-nav-bg))] hover:bg-[hsl(var(--color-header-nav-hover))]
+                    ${pathname === item.path ? "text-primary bg-[hsl(var(--color-header-nav-hover))]" : "text-[hsl(var(--color-header-nav-text))]"}`}
                   asChild
                 >
                   <Link href={item.path}>{item.name}</Link>
@@ -74,7 +75,8 @@ export default function Header() {
           </NavigationMenuList>
         </NavigationMenu>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <ThemeSwitcher />
           <ThemeToggle />
 
           <Button
@@ -118,8 +120,8 @@ export default function Header() {
                 key={item.path}
                 href={item.path}
                 className={`px-4 py-3 rounded-md transition-colors duration-200
-                  bg-[hsl(var(--header-nav-bg))] hover:bg-[hsl(var(--header-nav-hover))]
-                  ${pathname === item.path ? "text-primary dark:text-[hsl(210,40%,90%)] bg-[hsl(var(--header-nav-hover))]" : "text-foreground dark:text-[hsl(210,40%,90%)]"}`}
+                  bg-[hsl(var(--color-header-nav-bg))] hover:bg-[hsl(var(--color-header-nav-hover))]
+                  ${pathname === item.path ? "text-primary bg-[hsl(var(--color-header-nav-hover))]" : "text-[hsl(var(--color-header-nav-text))]"}`}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item.name}

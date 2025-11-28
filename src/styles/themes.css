@@ -1,0 +1,407 @@
+/**
+ * THEME VARIATIONS
+ *
+ * Example themes that override design tokens from tokens.css
+ * To use: Add class to <body> element: <body className="theme-apple">
+ *
+ * Available Themes:
+ * - theme-apple: Apple-inspired minimalist design
+ * - theme-ocean: Calming ocean blues and teals
+ * - theme-cyberpunk: Neon pink and cyan futuristic design
+ * - theme-forest: Natural greens and earth tones
+ * - theme-sunset: Warm oranges and purples
+ * - theme-monochrome: Black and white minimalist
+ */
+
+/* ============================================
+   APPLE-INSPIRED THEME
+   Minimalist, clean, premium feel
+   Based on analysis of apple.com design
+   ============================================ */
+
+.theme-apple {
+  /* Colors - Neutral, clean palette */
+  --color-primary: 0 0% 11%;                    /* #1d1d1f - Apple dark gray */
+  --color-primary-hover: 0 0% 0%;               /* Pure black on hover */
+  --color-primary-foreground: 0 0% 100%;        /* White text */
+
+  --color-secondary: 0 0% 96%;                  /* #f5f5f7 - Apple light gray */
+  --color-secondary-hover: 0 0% 93%;
+  --color-secondary-foreground: 0 0% 11%;
+
+  --color-background: 0 0% 100%;                /* Pure white */
+  --color-background-alt: 0 0% 98%;
+  --color-foreground: 0 0% 11%;                 /* #1d1d1f */
+  --color-foreground-muted: 0 0% 43%;          /* #6e6e73 */
+
+  --color-muted: 0 0% 96%;
+  --color-muted-foreground: 0 0% 43%;
+  --color-accent: 0 0% 96%;
+  --color-accent-foreground: 0 0% 11%;
+
+  --color-border: 0 0% 90%;
+  --color-border-hover: 0 0% 80%;
+
+  /* Typography - San Francisco-inspired */
+  --font-sans: -apple-system, "SF Pro Display", BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-size-6xl: 3.5rem;      /* 56px - Apple's hero size */
+  --letter-spacing-tight: -0.022em;  /* Apple's precise kerning */
+  --line-height-tight: 1.0714285714; /* Apple's precise line height */
+
+  /* Spacing - 8px grid system (Apple's standard) */
+  --spacing-unit: 8px;
+  --spacing-xs: 8px;
+  --spacing-sm: 16px;
+  --spacing-md: 32px;
+  --spacing-lg: 64px;
+  --spacing-xl: 80px;           /* Apple's generous section spacing */
+  --spacing-2xl: 96px;
+  --spacing-3xl: 120px;
+
+  /* Layout - Apple's container widths */
+  --container-max: 980px;       /* Apple's main container */
+  --section-padding-y: 80px;
+
+  /* Border Radius - Subtle, rounded */
+  --radius-lg: 12px;            /* Apple's standard radius */
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+
+  /* Shadows - Subtle, barely there */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.08);
+
+  /* Animations - Smooth, refined */
+  --duration-normal: 400ms;     /* Slightly slower, more refined */
+  --ease-in-out: cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Apple's easing */
+}
+
+.theme-apple.dark {
+  --color-background: 0 0% 7%;                 /* #121212 - Apple dark mode */
+  --color-background-alt: 0 0% 10%;
+  --color-foreground: 0 0% 95%;
+  --color-foreground-muted: 0 0% 60%;
+
+  --color-primary: 0 0% 95%;
+  --color-primary-hover: 0 0% 100%;
+  --color-primary-foreground: 0 0% 7%;
+
+  --color-secondary: 0 0% 15%;
+  --color-secondary-hover: 0 0% 20%;
+
+  --color-border: 0 0% 20%;
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+/* ============================================
+   OCEAN THEME
+   Calming blues and teals
+   ============================================ */
+
+.theme-ocean {
+  /* Colors - Ocean-inspired palette */
+  --color-primary: 190 85% 45%;                 /* Deep ocean blue */
+  --color-primary-hover: 190 85% 35%;
+  --color-primary-foreground: 0 0% 100%;
+
+  --color-secondary: 180 75% 55%;               /* Teal */
+  --color-secondary-hover: 180 75% 45%;
+  --color-secondary-foreground: 0 0% 100%;
+
+  --color-background: 200 80% 95%;              /* Light blue-white */
+  --color-background-alt: 200 70% 92%;
+  --color-foreground: 200 80% 10%;
+  --color-foreground-muted: 200 40% 40%;
+
+  --color-muted: 200 60% 88%;
+  --color-muted-foreground: 200 30% 45%;
+  --color-accent: 195 80% 50%;
+  --color-accent-foreground: 0 0% 100%;
+
+  --color-border: 200 50% 80%;
+  --color-border-hover: 200 60% 70%;
+
+  /* Shadows - Blue tinted */
+  --shadow-sm: 0 1px 3px 0 rgba(59, 130, 246, 0.1);
+  --shadow-md: 0 4px 12px rgba(59, 130, 246, 0.15);
+  --shadow-lg: 0 10px 30px rgba(59, 130, 246, 0.2);
+
+  /* Border Radius - Smooth, flowing */
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+
+  /* Animations - Gentle, wave-like */
+  --duration-normal: 500ms;
+  --ease-in-out: cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.theme-ocean.dark {
+  --color-background: 200 60% 8%;
+  --color-background-alt: 200 55% 12%;
+  --color-foreground: 200 40% 95%;
+  --color-foreground-muted: 200 30% 70%;
+
+  --color-primary: 190 85% 55%;
+  --color-secondary: 180 75% 65%;
+
+  --color-border: 200 40% 20%;
+  --shadow-md: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* ============================================
+   CYBERPUNK THEME
+   Neon pink and cyan futuristic
+   ============================================ */
+
+.theme-cyberpunk {
+  /* Colors - Neon, high contrast */
+  --color-primary: 300 100% 50%;                /* Hot pink/magenta */
+  --color-primary-hover: 300 100% 60%;
+  --color-primary-foreground: 0 0% 0%;
+
+  --color-secondary: 180 100% 50%;              /* Cyan */
+  --color-secondary-hover: 180 100% 60%;
+  --color-secondary-foreground: 0 0% 0%;
+
+  --color-background: 240 30% 8%;               /* Dark purple-blue */
+  --color-background-alt: 240 30% 12%;
+  --color-foreground: 180 100% 80%;             /* Light cyan */
+  --color-foreground-muted: 180 50% 60%;
+
+  --color-muted: 240 25% 15%;
+  --color-muted-foreground: 180 50% 70%;
+  --color-accent: 60 100% 50%;                  /* Yellow */
+  --color-accent-foreground: 0 0% 0%;
+
+  --color-success: 150 100% 45%;                /* Neon green */
+  --color-warning: 30 100% 50%;                 /* Neon orange */
+  --color-destructive: 0 100% 50%;              /* Neon red */
+
+  --color-border: 300 100% 30%;
+  --color-border-hover: 300 100% 50%;
+
+  /* Shadows - Neon glow effects */
+  --shadow-sm: 0 0 10px rgba(255, 0, 255, 0.3);
+  --shadow-md: 0 0 20px rgba(255, 0, 255, 0.4), 0 0 40px rgba(0, 255, 255, 0.2);
+  --shadow-lg: 0 0 30px rgba(255, 0, 255, 0.5), 0 0 60px rgba(0, 255, 255, 0.3);
+
+  /* Border Radius - Sharp, angular */
+  --radius-lg: 0px;             /* No rounding - sharp edges */
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+
+  /* Typography - Bold, tech-inspired */
+  --font-weight-bold: 800;
+
+  /* Animations - Fast, glitchy */
+  --duration-fast: 100ms;
+  --duration-normal: 200ms;
+}
+
+/* Light cyberpunk variant (rare but cool) */
+.theme-cyberpunk.light {
+  --color-background: 300 100% 95%;
+  --color-background-alt: 300 80% 90%;
+  --color-foreground: 240 30% 10%;
+  --color-foreground-muted: 240 20% 30%;
+
+  --color-primary: 300 100% 40%;
+  --color-secondary: 180 100% 35%;
+
+  --color-border: 300 80% 70%;
+  --shadow-md: 0 0 15px rgba(255, 0, 255, 0.3);
+}
+
+/* ============================================
+   FOREST THEME
+   Natural greens and earth tones
+   ============================================ */
+
+.theme-forest {
+  /* Colors - Natural, earthy */
+  --color-primary: 140 60% 45%;                 /* Forest green */
+  --color-primary-hover: 140 60% 35%;
+  --color-primary-foreground: 0 0% 100%;
+
+  --color-secondary: 30 40% 50%;                /* Warm brown */
+  --color-secondary-hover: 30 40% 40%;
+  --color-secondary-foreground: 0 0% 100%;
+
+  --color-background: 60 40% 95%;               /* Soft cream */
+  --color-background-alt: 60 30% 90%;
+  --color-foreground: 120 25% 15%;              /* Dark green-gray */
+  --color-foreground-muted: 120 15% 40%;
+
+  --color-muted: 60 25% 85%;
+  --color-muted-foreground: 120 10% 45%;
+  --color-accent: 80 60% 50%;                   /* Lime green */
+  --color-accent-foreground: 0 0% 100%;
+
+  --color-border: 120 20% 75%;
+  --color-border-hover: 120 30% 65%;
+
+  /* Shadows - Soft, organic */
+  --shadow-sm: 0 2px 8px rgba(40, 80, 40, 0.1);
+  --shadow-md: 0 4px 16px rgba(40, 80, 40, 0.15);
+  --shadow-lg: 0 10px 32px rgba(40, 80, 40, 0.2);
+
+  /* Border Radius - Organic, rounded */
+  --radius-lg: 1.25rem;
+  --radius-xl: 2rem;
+  --radius-2xl: 3rem;
+
+  /* Animations - Gentle, natural */
+  --duration-normal: 600ms;
+  --ease-in-out: cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.theme-forest.dark {
+  --color-background: 120 30% 10%;              /* Deep forest */
+  --color-background-alt: 120 25% 15%;
+  --color-foreground: 60 40% 90%;
+  --color-foreground-muted: 120 20% 70%;
+
+  --color-primary: 140 60% 55%;
+  --color-secondary: 30 40% 60%;
+
+  --color-border: 120 20% 25%;
+  --shadow-md: 0 4px 16px rgba(40, 80, 40, 0.4);
+}
+
+/* ============================================
+   SUNSET THEME
+   Warm oranges, pinks, and purples
+   ============================================ */
+
+.theme-sunset {
+  /* Colors - Sunset gradient */
+  --color-primary: 25 95% 55%;                  /* Warm orange */
+  --color-primary-hover: 25 95% 45%;
+  --color-primary-foreground: 0 0% 100%;
+
+  --color-secondary: 280 70% 60%;               /* Purple */
+  --color-secondary-hover: 280 70% 50%;
+  --color-secondary-foreground: 0 0% 100%;
+
+  --color-background: 30 80% 96%;               /* Warm cream */
+  --color-background-alt: 30 70% 92%;
+  --color-foreground: 0 40% 15%;
+  --color-foreground-muted: 20 20% 40%;
+
+  --color-muted: 30 60% 88%;
+  --color-muted-foreground: 20 30% 45%;
+  --color-accent: 340 90% 65%;                  /* Pink */
+  --color-accent-foreground: 0 0% 100%;
+
+  --color-border: 30 40% 80%;
+  --color-border-hover: 30 50% 70%;
+
+  /* Shadows - Warm glow */
+  --shadow-sm: 0 2px 8px rgba(255, 100, 50, 0.1);
+  --shadow-md: 0 4px 16px rgba(255, 100, 50, 0.2);
+  --shadow-lg: 0 10px 32px rgba(255, 100, 50, 0.3);
+
+  /* Border Radius - Soft, flowing */
+  --radius-lg: 1.5rem;
+  --radius-xl: 2rem;
+  --radius-2xl: 2.5rem;
+
+  /* Animations - Warm, glowing */
+  --duration-normal: 500ms;
+}
+
+.theme-sunset.dark {
+  --color-background: 0 50% 8%;                 /* Deep warm black */
+  --color-background-alt: 0 40% 12%;
+  --color-foreground: 30 60% 95%;
+  --color-foreground-muted: 30 30% 70%;
+
+  --color-primary: 25 95% 65%;
+  --color-secondary: 280 70% 70%;
+
+  --color-border: 0 30% 20%;
+  --shadow-md: 0 4px 16px rgba(255, 100, 50, 0.4);
+}
+
+/* ============================================
+   MONOCHROME THEME
+   Pure black and white minimalism
+   ============================================ */
+
+.theme-monochrome {
+  /* Colors - Strictly black and white */
+  --color-primary: 0 0% 0%;                     /* Pure black */
+  --color-primary-hover: 0 0% 20%;
+  --color-primary-foreground: 0 0% 100%;
+
+  --color-secondary: 0 0% 95%;                  /* Off-white */
+  --color-secondary-hover: 0 0% 90%;
+  --color-secondary-foreground: 0 0% 0%;
+
+  --color-background: 0 0% 100%;                /* Pure white */
+  --color-background-alt: 0 0% 98%;
+  --color-foreground: 0 0% 0%;                  /* Pure black */
+  --color-foreground-muted: 0 0% 40%;
+
+  --color-muted: 0 0% 95%;
+  --color-muted-foreground: 0 0% 50%;
+  --color-accent: 0 0% 10%;
+  --color-accent-foreground: 0 0% 100%;
+
+  --color-border: 0 0% 85%;
+  --color-border-hover: 0 0% 70%;
+
+  /* Shadows - Neutral gray */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.2);
+
+  /* Border Radius - Sharp, minimal */
+  --radius-lg: 0.25rem;
+  --radius-xl: 0.5rem;
+  --radius-2xl: 0.75rem;
+
+  /* Typography - Clean, precise */
+  --letter-spacing-normal: 0.01em;
+
+  /* Animations - Quick, efficient */
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+}
+
+.theme-monochrome.dark {
+  --color-background: 0 0% 0%;                  /* Pure black */
+  --color-background-alt: 0 0% 5%;
+  --color-foreground: 0 0% 100%;                /* Pure white */
+  --color-foreground-muted: 0 0% 70%;
+
+  --color-primary: 0 0% 100%;
+  --color-primary-hover: 0 0% 90%;
+  --color-primary-foreground: 0 0% 0%;
+
+  --color-secondary: 0 0% 15%;
+  --color-secondary-hover: 0 0% 20%;
+
+  --color-border: 0 0% 20%;
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.8);
+}
+
+/* ============================================
+   THEME UTILITY CLASSES
+   Apply these for specific theme behaviors
+   ============================================ */
+
+/* Smooth theme transitions */
+.theme-transition * {
+  transition: background-color var(--duration-normal) ease,
+              color var(--duration-normal) ease,
+              border-color var(--duration-normal) ease;
+}
+
+/* Disable all theme animations (for testing) */
+.theme-no-animation * {
+  animation: none !important;
+  transition: none !important;
+}

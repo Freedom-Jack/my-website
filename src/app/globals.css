@@ -1,3 +1,9 @@
+/* Import Design Tokens - Single Source of Truth for all visual values */
+@import '../styles/tokens.css';
+
+/* Import Theme Variations - Example themes built on design tokens */
+@import '../styles/themes.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -124,5 +130,19 @@ html {
   }
   100% {
     background-position: 0% 50%;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY: Respect Reduced Motion
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 } 
