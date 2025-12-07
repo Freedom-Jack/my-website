@@ -9,7 +9,7 @@ const GlowBubblesOptimized = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-background via-background to-muted/10" />
+      <div className="fixed inset-0 z-0 bg-gradient-to-br from-background via-background to-muted/10" />
     ),
   },
 );
@@ -18,7 +18,7 @@ const BackgroundWrapper: React.FC = () => {
   return (
     <Suspense
       fallback={
-        <div className="fixed inset-0 -z-10 bg-gradient-to-br from-background via-background to-muted/10" />
+        <div className="fixed inset-0 z-0 bg-gradient-to-br from-background via-background to-muted/10" />
       }
     >
       <GlowBubblesOptimized />

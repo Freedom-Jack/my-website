@@ -146,7 +146,7 @@ export default async function BlogPost({ params }: Props) {
             components={{
               img: (props: React.ImgHTMLAttributes<HTMLImageElement>) => {
                 const { src, alt } = props;
-                if (!src) return null;
+                if (!src || typeof src !== "string") return null;
 
                 // Use the public path for images - normalize the path to avoid case sensitivity issues
                 const normalizedSrc = src.replace(/^\.\//, ""); // Remove leading ./ if present

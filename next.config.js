@@ -25,9 +25,6 @@ const nextConfig = {
       },
     ],
   },
-  eslint: {
-    dirs: ["src"],
-  },
   // Allow dev access when hitting the dev server through local network tunnel
   allowedDevOrigins: ["192.168.99.1"],
   // Mirror MDX handling for Turbopack so dev/build --turbo aligns with webpack config

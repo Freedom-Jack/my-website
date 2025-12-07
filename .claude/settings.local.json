@@ -29,7 +29,8 @@
       "Bash(tree:*)",
       "Bash(findstr:*)",
       "Bash(del /f \"E:\\Project\\my-website\\my-website\\EProjectmy-websitemy-websitetest_output.html\")",
-      "Bash(cmd.exe /c \"del /f \"\"E:\\Project\\my-website\\my-website\\EProjectmy-websitemy-websitetest_output.html\"\"\")"
+      "Bash(cmd.exe /c \"del /f \"\"E:\\Project\\my-website\\my-website\\EProjectmy-websitemy-websitetest_output.html\"\"\")",
+      "Bash(git checkout:*)"
     ],
     "deny": []
   }
