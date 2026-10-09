@@ -79,22 +79,6 @@ export default function Header() {
           <ThemeSwitcher />
           <ThemeToggle />
 
-          <Button
-            variant="default"
-            size="sm"
-            className="bg-primary hover:bg-primary/90 hidden sm:inline-flex lg:inline-flex"
-            asChild
-          >
-            <a
-              href="/documents/QijinXu_Resume.pdf"
-              download="QijinXu_Resume.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Download Resume
-            </a>
-          </Button>
-
           {/* Mobile Menu Toggle */}
           <Button
             variant="ghost"
@@ -128,23 +112,6 @@ export default function Header() {
               </Link>
             ))}
 
-            <div className="sm:hidden pt-2">
-              <Button
-                variant="default"
-                size="sm"
-                className="bg-primary hover:bg-primary/90 w-full"
-                asChild
-              >
-                <a
-                  href="/documents/QijinXu_Resume.pdf"
-                  download="QijinXu_Resume.pdf"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Download Resume
-                </a>
-              </Button>
-            </div>
           </nav>
         </div>
       )}

@@ -57,15 +57,18 @@ export async function getGitHubRepos(username: string): Promise<GitHubRepo[]> {
   }));
 }
 
+// Personal application materials: never listed on the site.
+const HIDDEN_REPOS = new Set(["job-application"]);
+
 export async function getGitHubStats(username: string) {
   const [user, repos] = await Promise.all([
     getGitHubUser(username),
     getGitHubRepos(username),
   ]);
 
-  // Filter out forked repositories and sort by attractiveness
+  // Filter out forked and private-material repositories, then sort by attractiveness
   const originalRepos = repos
-    .filter((repo) => !repo.fork)
+    .filter((repo) => !repo.fork && !HIDDEN_REPOS.has(repo.name))
     .sort((a, b) => {
       // First, sort by stars
       const starDiff = b.stargazers_count - a.stargazers_count;

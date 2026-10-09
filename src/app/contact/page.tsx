@@ -59,15 +59,6 @@ export default function ContactPage() {
               {contactContent.buttons.email}
             </a>
           </Button>
-          <Button variant="outline" className="gap-2" asChild>
-            <a
-              href="/documents/QijinXu_Resume.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {contactContent.buttons.resume}
-            </a>
-          </Button>
         </div>
       </div>
     </div>
