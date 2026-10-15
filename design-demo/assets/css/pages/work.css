@@ -1,0 +1,108 @@
+/* ==========================================================================
+   pages/work.css — /work/ only (SPEC-R4A §10.2). Owned by the Work page builder.
+   LAYOUT ONLY: the shared files (layout.css, components.css) carry type, ink and
+   motion; this file places Work's blocks and tunes their spacing with tokens.
+   No new colours, fonts, weights, sizes, shadows or motion.
+
+   Reading order (every block is a shared component):
+     strip        h1 "Work" + intro, in the market's mist from 1200 px
+     index        "Six projects, newest first": the table, on the first screen
+     how I build  the statement, its line, the brush diagram, "Read as steps"
+     flagships    meta · figure · summary · diagram · the five labels, notes in the rail
+     more work    four compact cases (folded at every width; open on tap)
+     in the open  generated at build time (tools/sync-projects.py)
+     closing      "Next: Résumé"
+   ========================================================================== */
+
+/* ---------- the index table ----------
+   From 48rem the columns are proportioned so the project and its outcome read as the two long lines, and
+   the years never wrap (components.css). Below 48rem every row restacks (components.css). */
+@media (min-width: 48rem) {
+  .work-index thead th:nth-child(1) { width: 13%; }
+  .work-index thead th:nth-child(2) { width: 33.5%; }
+  .work-index thead th:nth-child(3) { width: 33.5%; }
+  .work-index thead th:nth-child(4) { width: 20%; }
+  /* 20 px between columns (24 in the shared table), so at 960 every project name and the short outcomes
+     stay on one line */
+  .work-index :is(th, td):not(:last-child) { padding-inline-end: 1.25rem; }
+  /* a one-line row is at least 44 px tall: the whole row is one tap target (below) */
+  .work-index tbody :is(th, td) { padding-block: .75rem; }
+}
+/* two even lines rather than a stranded last word */
+.work-index tbody th { text-wrap: balance; }
+.work-index tbody td { text-wrap: pretty; }
+/* the two evidence links of one row stack, one per line (the cell holds ONE wrapper: on phones a cell is a
+   two-column grid of its label and its value) */
+.cell-links { display: grid; justify-items: start; row-gap: 1.5rem; }   /* stacked: 44 px targets that never overlap */
+.cell-links__sep { display: none; }
+/* where the line fits, the two share it, "CGI product page · CGI article", so each keeps a full 44 px tap
+   target: restacked (phones, from 340 px) and from 64rem (the table at 960); they stack between 48 and 64rem
+   and below 340 px */
+@media (max-width: 47.99rem) and (min-width: 21.25rem), (min-width: 64rem) {
+  .cell-links { display: block; white-space: nowrap; }
+  .cell-links__sep { display: inline; }
+}
+
+/* restacked, the last row's own padding would add to the section gap below it */
+@media (max-width: 47.99rem) {
+  .work-index tbody tr:last-child { padding-block-end: 0; }
+}
+
+/* "In the open": a repository's name is one word; it never breaks inside */
+.work-open .table tbody th { white-space: nowrap; }
+
+/* ---------- tap targets (>= 44 px), without moving a pixel ----------
+   In both tables a row is one target: its first link (the project's case, the repository) covers the row,
+   and the other links in the row sit above it. Stand-alone links (evidence, "All repositories") get an
+   invisible hit area that reaches 44 px; nothing reflows and the brush stays where it is. */
+.work-index tbody tr,
+.work-open tbody tr { position: relative; }
+.work-index tbody th a::before,
+.work-open tbody th a::before { content: ''; position: absolute; inset: 0; }
+.work-index td a,
+.work-open .more a { position: relative; z-index: 1; }
+.work-index td a::before,
+.work-open .more a::before { content: ''; position: absolute; inset: -.8em -.25em; }
+/* an evidence line holds one source, and its link may wrap: the hit area is the whole line (its <li>) */
+.case__evidence li { position: relative; }
+.case__evidence a::before { content: ''; position: absolute; inset: -.85em -.25em; }
+.case__evidence li + li { margin-block-start: 1.5rem; }   /* two sources: their hit areas never overlap */
+
+/* ---------- cases ----------
+   Meta (organisation · years · role): on phones a long organisation takes a line of its own, so no line ever
+   starts or ends with a stray "·" (the years and the role stay together). */
+@media (max-width: 39.99rem) {
+  .case__meta--stack .case__org { display: block; }
+  .case__meta--stack .case__sep { display: none; }
+}
+/* evidence: plain lines in small print, flush with the column (no bullets, no indent) */
+.case__body ul.case__evidence { padding-inline-start: 0; }
+
+/* compact cases: the summary's lines are spans (valid inside <summary>), set as lines */
+summary.case__summary > .case__meta { display: block; }
+.case--compact > .case__lede { margin-block-start: var(--space-s); }
+.case--compact > .case__lede + .case__body { margin-block-start: var(--space-xs); }
+
+/* ---------- More work: two columns from 64rem ----------
+   Four short cases side by side in pairs, across the wide block (960, the table's and the diagrams' width),
+   so the reader compares them at a glance and the page stays short. Source order is reading order: left to
+   right, then down. Each pair shares a hairline at its top; a row is as tall as its longer case. */
+@media (min-width: 64rem) {
+  .work-more {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--rail-gap);
+    align-items: start;
+    max-width: var(--measure-wide);
+  }
+  .work-more > * { max-width: none; }
+  .work-more > .sec__title { grid-column: 1 / -1; margin-block-end: var(--space-head); }
+  .work-more > .case--compact { margin-block-start: 0; }
+}
+
+/* The section ends on its last case's text, not on a row's padding, so the gap before "In the open" is the
+   section margin alone (40–56 on phones, 56–72 at 1280): the last case in one column, the last row's two in two. */
+.work-more > .case--compact:last-of-type { padding-block-end: 0; }
+@media (min-width: 64rem) {
+  .work-more > .case--compact:nth-last-of-type(2) { padding-block-end: 0; }
+}

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Strip lab</title>
+  <meta name="robots" content="noindex"><!-- engine lab: stripSVG(), the footer scroll map's art (developer tool, not part of the site) -->
+  <link rel="icon" href="/assets/svg/seal.svg" type="image/svg+xml">
+  <meta name="color-scheme" content="light">
+  <style>
+    :root { --paper: #EFF1EE; --ink: #111416; --ink-3: #545D61; }
+    html { background: var(--paper); color: var(--ink); font: 400 14px/1.5 system-ui, sans-serif; }
+    body { margin: 0; padding: 24px 16px 48px; }
+    h1 { font-size: 18px; margin: 0 0 4px; }
+    p { margin: 0 0 16px; color: var(--ink-3); max-width: 70ch; }
+    figure { margin: 0 0 28px; }
+    figcaption { color: var(--ink-3); margin-top: 6px; font-variant-numeric: tabular-nums; }
+    .art { position: relative; height: 36px; }
+    .art svg { display: block; width: 100%; height: 100%; }
+    .tall .art { height: 72px; }
+    .cols { display: grid; grid-template-columns: repeat(6, 1fr); margin-top: 4px; color: var(--ink-3); }
+    .cols span { border-left: 1px solid rgba(17, 20, 22, 0.15); padding-left: 4px; }
+    .alt { --strip-far: #C9D0D1; --strip-mid: #8E979A; --strip-near: #2A3034; --strip-water: #7B8385; }
+    pre { white-space: pre-wrap; word-break: break-all; font: 11px/1.4 ui-monospace, monospace; color: var(--ink-3); max-height: 9em; overflow: auto; }
+  </style>
+</head>
+<body>
+  <h1>stripSVG()</h1>
+  <p>The whole handscroll as one static thumbnail, for the footer's scroll map: stretches 0 → 6 (home to contact) in six equal columns, three planes of silhouettes from the same world ridges, the lake and the crossing as open water with a waterline.</p>
+  <figure><div class="art" id="a"></div><div class="cols"><span>0 peak</span><span>1 river</span><span>2 path</span><span>3 lake</span><span>4 shore</span><span>5 crossing</span></div><figcaption id="ca"></figcaption></figure>
+  <figure class="tall"><div class="art" id="b"></div><figcaption>The same string at 72 px (preserveAspectRatio="none").</figcaption></figure>
+  <figure class="alt"><div class="art" id="c"></div><figcaption>Colours come from --strip-far, --strip-mid, --strip-near, --strip-water (here overridden).</figcaption></figure>
+  <figure><div class="art" id="d"></div><figcaption>stripSVG({ from: 0, to: 7 }): the 404's lone peak too.</figcaption></figure>
+  <pre id="src"></pre>
+  <script type="module">
+    import { stripSVG } from '/assets/js/landscape/index.js';
+    const t = performance.now();
+    const s = stripSVG();
+    const ms = performance.now() - t;
+    for (const id of ['a', 'b', 'c']) document.getElementById(id).innerHTML = s;
+    document.getElementById('d').innerHTML = stripSVG({ from: 0, to: 7 });
+    document.getElementById('ca').textContent = `${new Blob([s]).size} bytes · built in ${ms.toFixed(1)} ms · deterministic: ${s === stripSVG()}`;
+    document.getElementById('src').textContent = s;
+  </script>
+</body>
+</html>

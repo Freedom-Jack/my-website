@@ -1,0 +1,286 @@
+/* ==========================================================================
+   tokens.css — the design system's single source of values.
+   Every colour, size, space, duration and easing on the site comes from here.
+   Shared file: page builders read these tokens, they never redefine them.
+   Load order: tokens.css → base.css → layout.css → effects.css → components.css → pages/<page>.css
+
+   Round 4a (SPEC-R4A §2): reading first, then the art. A calm reading column on cool paper, with a
+   painted strip at the top of every page. The "Round 4a" blocks below are the live scale; the
+   "Round 3 (retired)" block at the end stays defined until phase 3 so unrebuilt markup keeps rendering,
+   but no new rule may use it.
+   The landscape's pigments (azurite, malachite, timber brown) are ENGINE-ONLY (landscape/palette.js):
+   they never become tokens, text or UI colours. Text never sits on colour.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Fonts: metric-matched local fallbacks, so the swap to the web font does not
+   reflow the page. Values were measured in Chrome against the real faces;
+   Chrome scales the *-override values by size-adjust, so they are pre-divided.
+   -------------------------------------------------------------------------- */
+
+/* Sofia Sans Extra Condensed 900 (the name, figures) ← Impact (Windows, macOS), scaled to Sofia's cap height */
+@font-face {
+  font-family: 'Name Fallback';
+  src: local('Impact');
+  font-weight: 900;
+  size-adjust: 83.9%;
+  ascent-override: 107.3%;
+  descent-override: 35.8%;
+  line-gap-override: 0%;
+}
+/* … ← Helvetica Neue Condensed Black (iOS, which has no Impact), scaled to Sofia's cap height */
+@font-face {
+  font-family: 'Name Fallback Apple';
+  src: local('HelveticaNeue-CondensedBlack'), local('Helvetica Neue Condensed Black');
+  font-weight: 900;
+  size-adjust: 91.7%;
+  ascent-override: 98.1%;
+  descent-override: 32.7%;
+  line-gap-override: 0%;
+}
+/* Sofia Sans Condensed 600-800 (page titles) ← Arial Narrow / Helvetica Neue Condensed / Arial */
+@font-face {
+  font-family: 'Display Fallback';
+  src: local('Arial Narrow Bold'), local('ArialNarrow-Bold');
+  font-weight: 600 800;
+  size-adjust: 87.3%;
+  ascent-override: 103.1%;
+  descent-override: 34.4%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Display Fallback 2';
+  src: local('Helvetica Neue Condensed Bold'), local('HelveticaNeue-CondensedBold');
+  font-weight: 600 800;
+  size-adjust: 86.4%;
+  ascent-override: 104.2%;
+  descent-override: 34.7%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Display Fallback 3';
+  src: local('Arial Bold'), local('Arial-BoldMT');
+  font-weight: 600 800;
+  size-adjust: 71.6%;
+  ascent-override: 125.7%;
+  descent-override: 41.9%;
+  line-gap-override: 0%;
+}
+/* Commissioner (body, UI) ← Helvetica Neue / Arial */
+@font-face {
+  font-family: 'Body Fallback';
+  src: local('Helvetica Neue'), local('HelveticaNeue'), local('Arial'), local('ArialMT');
+  size-adjust: 100%;
+  ascent-override: 102%;
+  descent-override: 21%;
+  line-gap-override: 0%;
+}
+
+/* --------------------------------------------------------------------------
+   Registered custom properties (animatable, typed)
+   -------------------------------------------------------------------------- */
+@property --ink-r {          /* radius of an ink bloom (buttons, rows) */
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 0px;
+}
+
+:root {
+  color-scheme: light;
+
+  /* ---- Paper and mist: cool rice paper with a faint grey-green. Never cream, yellow, gold or beige. ---- */
+  --paper: #EFF1EE;
+  --paper-rgb: 239 241 238;
+  --mist-1: #E3E8E5;
+  --mist-2: #D5DCD9;
+
+  /* ---- The five inks (burnt, thick, heavy, light, clear). Every grey comes from here.
+          Contrast on paper: 16.3 / 11.8 / 7.7 / 5.1 / 1.6 : 1 ---- */
+  --ink-1: #111416;   /* burnt: the name, headings, body text */
+  --ink-2: #2A3034;   /* thick: nav, the signature, figures */
+  --ink-3: #434C50;   /* heavy: small print (7.7:1 on paper, 6.3:1 on mist-2) */
+  --ink-4: #5E676B;   /* light: small print on plain paper only (5.1:1) */
+  --ink-5: #B9C2C4;   /* clear: hairlines; never text */
+
+  /* ---- UI pigments (the landscape's own pigments live in the engine, never here) ---- */
+  --wash: #3E5664;        /* indigo wash: the button's resting stroke, annotation ink, diagram washes */
+  --wash-deep: #22303A;   /* a fully loaded indigo-ink wash: the row wash's tide line */
+  --cinnabar: #B1362B;    /* THE SEAL ONLY (the header's and the signature's). Nothing else is red. */
+
+  /* ---- Semantic aliases ---- */
+  --text: var(--ink-1);
+  --text-2: var(--ink-3);
+  --text-3: var(--ink-4);
+  --rule: var(--ink-5);         /* hairlines between rows */
+  --rule-rest: #7B8385;         /* every link's resting mark (3.4:1 on paper) */
+  --ink-annot: var(--wash);     /* margin notes, diagram strokes, band labels (6.8:1 paper) */
+  --focus: var(--ink-1);
+
+  /* ---- Families ---- */
+  --font-name: 'Sofia Sans Extra Condensed', 'Name Fallback', 'Name Fallback Apple', 'Arial Narrow', sans-serif;
+  --font-display: 'Sofia Sans Condensed', 'Display Fallback', 'Display Fallback 2', 'Display Fallback 3', 'Arial Narrow', sans-serif;
+  --font-body: 'Commissioner', 'Body Fallback', ui-sans-serif, system-ui, sans-serif;
+  --font-seal: 'Noto Serif SC', 'Songti SC', 'STSong', 'SimSun', serif;
+  --font-code: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;   /* system faces only */
+  --flare-body: 18;       /* Commissioner FLAR axis: a hint of brush in the terminals */
+  --flare-sign: 60;       /* the About-me signature "— Jack" */
+
+  /* Commissioner: three weights only */
+  --w-body: 400;          /* body, small print */
+  --w-ui: 560;            /* labels, nav, table heads, buttons, "Next:" */
+  --w-strong: 700;        /* b, strong, h2, h3, the brand */
+
+  /* ---- Motion: resonance, a fast attack and a long decay ---- */
+  --ease-ink: cubic-bezier(.2, .7, .1, 1);
+  --ease-out: cubic-bezier(.3, .6, .2, 1);
+  --ease-in-out: cubic-bezier(.6, 0, .3, 1);
+  --ease-bloom: cubic-bezier(.32, .42, .22, 1);   /* ink spreading: visible front, soft landing */
+  --ease-stamp: cubic-bezier(.3, 1.4, .5, 1);
+  --dur-press: 120ms;
+  --dur-hover: 200ms;
+  --dur-brush: 520ms;     /* underline draw (brush-link.js scales it to the link's length) */
+  --dur-bloom: 640ms;     /* ink bloom in buttons and rows */
+  --dur-settle: 400ms;    /* the name's ink settle (arrival.js): readable at first paint, crisp by 400 ms */
+  --dur-draw: 520ms;      /* one diagram stroke drawing in (diagram.js) */
+  --draw-step: 90ms;      /* stagger between strokes, in flow order */
+
+  /* Route changes (router.js + transition.js): the painting's pan with a pale mist sweep */
+  --dur-route-exit: 160ms;                 /* old text sinks into the mist */
+  --dur-route-enter: 260ms;                /* new text condenses in */
+  --route-step: 50ms;                      /* the rest of the page follows its h1 by this much */
+  --route-shift: 16px;                     /* how far text drifts with the travel */
+  --route-blur: 3px;                       /* the h1 only */
+  --dur-route-pan: 600ms;
+  --dur-route-sweep: 420ms;
+  --dur-route-back-pan: 400ms;             /* back/forward: content is instant, the painting follows */
+  --dur-route-reduced: 150ms;              /* reduced motion or "Still": a plain cross-fade */
+  --dur-header: 220ms;                     /* the returning header's slide */
+
+  /* ---- Layers ---- */
+  --z-landscape: -3;
+  --z-paper: -1;
+  --z-header: 10;
+  --z-compare: 9;         /* the demo switches: above content, below the header */
+  --z-skip: 50;
+}
+
+/* --------------------------------------------------------------------------
+   Round 4a: the type scale (SPEC-R4A §2.1).
+   Fluid between 390 and 640 px, constant above 640 (phone → tablet/wide values), except the name,
+   which scales continuously to 1440. At most four type sizes per screen (chrome excluded); figures
+   inside sentences are bold at text size, never enlarged.
+   -------------------------------------------------------------------------- */
+:root {
+  --fs-small:  .875rem;                                     /* 14: meta, dates, captions, table heads, footer */
+  --fs-body:   clamp(1.0625rem, .965rem + .4vw, 1.125rem);  /* 17 → 18 */
+  --fs-lead:   clamp(1.125rem, .93rem + .8vw, 1.25rem);     /* 18 → 20: hero lead, page intros, statements */
+  --fs-item:   clamp(1.125rem, .93rem + .8vw, 1.25rem);     /* 18 → 20: h3, row titles */
+  --fs-h2:     clamp(1.375rem, .985rem + 1.6vw, 1.625rem);  /* 22 → 26: section headings, "Next: …", the email */
+  --fs-title:  clamp(2rem, 1.22rem + 3.2vw, 2.5rem);        /* 32 → 40: page titles (h1) */
+  --fs-name:   clamp(2.75rem, 2.1875rem + 2.6vw, 4.5rem);   /* 44 @ ≤ 346 · 45 @ 390 · 68 @ 1280 · 72 @ ≥ 1423 */
+  --fs-figure: clamp(1.375rem, 1.0825rem + 1.2vw, 1.625rem); /* 22 → 26 (= --fs-h2, so a figure adds no type size to its
+                                                            screen; the condensed 900 face still marks it): a case's
+                                                            summary figure, timeline years */
+  --fs-nav:    .9375rem;                                    /* 15; 16 from 640; 14 at ≤ 375 */
+  --fs-brand:  1.0625rem;                                   /* 17: "Qijin Xu" in the header; 16 at ≤ 375 */
+
+  --lh-body: 1.6;
+  --lh-lead: 1.55;
+  --lh-item: 1.3;
+  --lh-h2: 1.25;
+  --lh-title: 1.1;
+  --lh-name: 1.02;
+  --lh-small: 1.45;
+
+  --measure-read: 42.5rem;   /* 680: the reading column (about 60–72 characters of body) */
+  --measure-wide: 60rem;     /* 960: tables, diagrams, the About-me block */
+  --strip-text-max: 36.25rem;/* 580: the title block inside a wide strip */
+  --frame: 75rem;            /* 1200: the page frame, centred */
+  --rail-gap: 3rem;          /* 48: reading column → margin rail */
+  --rail-w: 18.75rem;        /* 300: the margin rail (wide only) */
+}
+/* The demo's name-size switch (?compare=1, SPEC-R4A §9.10); 72 is the default above. */
+html[data-name-size='56'] { --fs-name: clamp(2.5rem, 2.125rem + 1.52vw, 3.5rem); }   /* 40 @ 390 → 56 @ 1440 */
+html[data-name-size='96'] { --fs-name: clamp(3rem, 2.0625rem + 4.38vw, 6rem); }      /* 50 @ 390 → 96 @ 1440 */
+
+/* --------------------------------------------------------------------------
+   Round 4a: space, the frame and the chrome (SPEC-R4A §2.2–§2.4, §6.2).
+   Breakpoints: phone < 40rem (640) · tablet 40–74.99rem · wide ≥ 75rem (1200) ·
+   short: max-height 31.25rem (500) and below 75rem wide · tight header ≤ 23.4375rem (375) ·
+   narrow gutter ≤ 22.5rem (360) · header wrap < 21.1875rem (340).
+   -------------------------------------------------------------------------- */
+:root {
+  /* the margin between sections: 42 @ ≤ 390 → 52 @ 640; 58 from 1200. This is the MARGIN; the visible gap
+     the budget measures (last text line → next heading; 40–56 phone, 56–72 at 1280, 56–80 at 1440) adds the
+     leading, and a row's padding when a section ends in rows. Measured on the specimen: a section ending in a
+     text line ≈ 41 / 56 / 56, one ending in rows ≈ 55 / 72 / 72. (SPEC-R4A's 36 / 52 / 56 came from a
+     wireframe whose sections all ended in padded rows; ending in a line, they read 35 / 54.) */
+  --space-section: clamp(2.625rem, 1.65rem + 4vw, 3.25rem);
+  --space-head: .75rem;                                   /* h2 → its first line: 12; 14 from 640 */
+  --space-item: clamp(1.5rem, .72rem + 3.2vw, 2rem);      /* rows and list items: 24 → 32 */
+  --space-para: .9em;                                     /* between paragraphs */
+  --space-strip-text: clamp(1.25rem, .9rem + 1.4vw, 1.75rem);   /* strip → title below it: 20 → 28 */
+
+  --gutter: 1.25rem;          /* 20 phone; 16 at ≤ 360; 32 from 640; 40 from 1200 */
+  --header-h: 3.5rem;         /* 56 phone; 64 from 640; 48 on short screens */
+  --seal-size: 28px;          /* the header seal; 24 at ≤ 375 */
+  --brand-gap: 10px;          /* seal → "Qijin Xu"; 8 at ≤ 375 */
+  --nav-gap: 14px;            /* between the nav links; 28 from 640; 10 at ≤ 375 */
+
+  /* the painted strips and the closing scene (art boxes; the engine paints inside them) */
+  --strip-home: clamp(96px, 14svh, 120px);   /* 118 @ 390 × 844 */
+  --strip-sub: clamp(110px, 20svh, 170px);   /* 169 @ 844 */
+  --strip-doc: clamp(88px, 12svh, 110px);
+  --closing-h: 160px;
+  --story-map-art: 28px;      /* the footer's map of the painting; 36 from 640 */
+
+  /* Fluid small spaces for paddings and gaps inside components (unchanged from round 3) */
+  --space-3xs: clamp(.25rem, .23rem + .1vw, .3125rem);
+  --space-2xs: clamp(.5rem, .47rem + .14vw, .625rem);
+  --space-xs:  clamp(.75rem, .7rem + .25vw, .9375rem);
+  --space-s:   clamp(1rem, .93rem + .36vw, 1.25rem);
+  --space-m:   clamp(1.5rem, 1.39rem + .54vw, 1.875rem);
+  --space-l:   clamp(2rem, 1.79rem + 1.07vw, 2.75rem);
+  --space-xl:  clamp(3rem, 2.64rem + 1.79vw, 4.25rem);
+  --space-2xl: clamp(4rem, 3.29rem + 3.57vw, 6.5rem);
+  --space-3xl: clamp(6rem, 4.86rem + 5.71vw, 10rem);
+}
+@media (max-width: 23.4375rem) {      /* tight header (≤ 375) */
+  :root { --fs-nav: .875rem; --fs-brand: 1rem; --nav-gap: 10px; --seal-size: 24px; --brand-gap: 8px; }
+}
+@media (max-width: 22.5rem) {         /* narrow gutter (≤ 360) */
+  :root { --gutter: 1rem; }
+}
+@media (min-width: 40rem) {           /* tablet and up */
+  :root {
+    --fs-nav: 1rem;
+    --nav-gap: 28px;
+    --space-head: .875rem;
+    --gutter: 2rem;
+    --header-h: 4rem;
+    --strip-home: 220px;
+    --strip-sub: 220px;
+    --strip-doc: 160px;
+    --closing-h: 200px;
+    --story-map-art: 36px;
+  }
+}
+@media (min-width: 75rem) {           /* wide */
+  :root {
+    --space-section: 3.625rem;
+    --gutter: 2.5rem;
+    --strip-home: clamp(440px, 58svh, 540px);   /* 522 @ 900 */
+    --strip-sub: clamp(300px, 40svh, 360px);    /* 360 @ 900 */
+    --strip-doc: 180px;                          /* the low end of SPEC-R4A's 180–220: documents open on their text */
+    --closing-h: 240px;
+  }
+}
+@media (max-height: 31.25rem) and (max-width: 74.99rem) {   /* short: sideways phones */
+  :root {
+    --header-h: 3rem;
+    --strip-home: 80px;
+    --strip-sub: 80px;
+    --strip-doc: 64px;
+    --closing-h: 96px;
+  }
+}

@@ -1,0 +1,33 @@
+<!doctype html>
+<!-- /about/ (owner: misc; SPEC-R4A §10.8, COPY.md §2). Round 4a: Home is Jack's "about me" page, so the old About
+     URL sends readers there at once (a meta refresh, and location.replace), is never indexed, and names the
+     home page as its canonical. The real build serves a 301 from /about/ to / instead (COPY 8.9).
+     Standalone on purpose: no shared blocks (tools/sync-shared.py skips any page with a meta refresh), no
+     shared CSS or fonts, paper and ink only; nothing on the site links here. -->
+<html lang="en-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Qijin (Jack) Xu · About</title>
+  <meta name="robots" content="noindex">
+  <link rel="canonical" href="https://my-website-freedomjack.vercel.app/">
+  <meta http-equiv="refresh" content="0; url=/">
+  <script>location.replace('/');</script>
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#EFF1EE">
+  <link rel="icon" href="/assets/svg/seal.svg" type="image/svg+xml">
+  <!-- for the moment before the redirect (or with both the refresh and scripts off): one line on paper -->
+  <style>
+    html { background: #EFF1EE; color: #111416; }
+    body { margin: 0; font: 400 1.125rem/1.6 ui-sans-serif, system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif; }
+    main { padding: 4rem 1.25rem; max-width: 42.5rem; }
+    a { color: inherit; text-decoration: underline 1px #7B8385; text-underline-offset: .3em; }
+    a:focus-visible { outline: 2px solid #111416; outline-offset: 3px; border-radius: 2px; }
+  </style>
+</head>
+<body>
+  <main>
+    <p>This page has moved. About me is now on <a href="/">the home page</a>.</p>
+  </main>
+</body>
+</html>

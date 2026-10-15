@@ -1,0 +1,627 @@
+/* ==========================================================================
+   layout.css — the frame, the header, the painted strip, sections, rows, the
+   closing scene and the footer (SPEC-R4A §3–§8).
+   A calm reading column on cool paper, with a painted strip at the top of every
+   page. No cards, no boxes, no frames: structure comes from type, space and
+   hairlines. Shared file: do not edit from a page.
+   ========================================================================== */
+
+/* ---------- the frame ----------
+   <main id="main" class="frame"> is the page frame (1200 px, centred); the header and the footer use an
+   inner .frame. A full-bleed child of the frame (.bleed: the strip art, the closing art) reaches both
+   screen edges; html and body clip sideways overflow, so nothing ever scrolls sideways. */
+:root { --gutter-x: max(var(--gutter), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)); }
+.frame {
+  width: min(var(--frame), 100% - 2 * var(--gutter-x));
+  margin-inline: auto;
+}
+main { display: block; }
+.bleed { margin-inline: calc(50% - 50vw); }
+
+/* ==========================================================================
+   Header (header.js, nav.js, seal.js). One home link (the seal and "Qijin Xu"),
+   then Work · Résumé · Contact. In normal flow, on paper, directly above the strip.
+     <header class="site-header"><div class="site-header__inner frame">
+       <a class="home-link" href="/"><span class="seal" aria-hidden="true"><svg class="seal__mark">…</svg></span>
+         <span class="home-link__name">Qijin Xu</span><span class="visually-hidden">, home</span></a>
+       <nav class="site-nav" aria-label="Main"><ul class="site-nav__list" role="list">…</ul></nav>
+     </div></header>
+   One row at 360 px; below 340 the nav wraps under the home link. No menu button.
+   ========================================================================== */
+.site-header {
+  position: relative;
+  z-index: var(--z-header);
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.site-header__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  column-gap: var(--space-s);
+  min-height: var(--header-h);
+}
+.home-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--brand-gap);
+  min-height: 44px;
+  font-family: var(--font-body);
+  font-size: var(--fs-brand);
+  font-weight: var(--w-strong);
+  line-height: 1.2;
+  letter-spacing: -.005em;
+  color: var(--ink-1);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.home-link:focus-visible { outline-offset: 3px; }
+
+/* the seal: a carved cinnabar stone with the one character (the header's, and the signature's: components.css) */
+.seal {
+  display: block;
+  flex: none;
+  width: var(--seal-size);
+  aspect-ratio: 1;
+}
+.seal__mark { display: block; width: 100%; height: 100%; overflow: visible; }
+.seal__stone { fill: var(--cinnabar); }
+.seal__glyph { font-family: var(--font-seal); font-weight: 900; font-size: 44px; fill: #000; }
+
+.site-nav__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--nav-gap);
+  font-family: var(--font-body);
+  font-size: var(--fs-nav);
+  font-weight: var(--w-ui);
+  line-height: 1.3;
+  letter-spacing: .005em;
+}
+.site-nav__list a {
+  /* a 44 × 44 target with the word centred; the current page's brush mark sits just under the word
+     (--brush-y, effects.css), not at the bottom of the 44 px box */
+  --brush-y: calc(50% + .72em);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 44px;
+  min-inline-size: 44px;
+  padding-bottom: 0;
+  color: var(--ink-2);
+  text-decoration: none;
+  transition: color var(--dur-hover) var(--ease-out);
+}
+.site-nav__list a:hover,
+.site-nav__list a[aria-current] { color: var(--ink-1); }
+/* the nav is exempt from the links' resting mark: its place says "navigation"; the current page keeps its brush */
+.site-nav__list a.brush { text-decoration: none; }
+
+/* below 340 px: the nav takes a row of its own under the home link */
+@media (max-width: 21.1875rem) {
+  .site-header__inner { padding-block: .25rem; }
+  .site-nav { flex-basis: 100%; }
+  .site-nav__list { margin-inline-start: -.2rem; }
+}
+
+/* ---------- the returning header (header.js) ----------
+   Once the strip's art has scrolled away the header turns sticky (it never leaves the flow, so nothing
+   below it moves) and hides; scrolling up >= 8 px brings it back SOLID: paper and a 1 px mist rule, no
+   gradient, no shadow. Scrolling down >= 8 px slides it away. Back at the very top it is static again.
+   Never visibility:hidden or inert: focus inside pins it; html's scroll-padding-top keeps anchors and
+   focused elements clear of it (base.css). */
+.site-header.is-pinned,
+.site-header.is-unpinned {
+  position: sticky;
+  top: 0;
+  transition: translate var(--dur-header) var(--ease-out);
+}
+.site-header.is-unpinned { translate: 0 calc(-100% - 2px); }
+.site-header.is-instant { transition: none !important; }
+/* the paper and its rule are a pseudo-element, so the solid state adds no height */
+.site-header.is-pinned::before,
+.site-header.is-unpinned::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--paper);
+  border-bottom: 1px solid var(--mist-2);
+}
+@media (prefers-reduced-motion: reduce) {
+  /* no slide: a 120 ms fade, the move happens while it is invisible */
+  .site-header.is-pinned { transition: opacity 120ms linear, translate 0s; }
+  .site-header.is-unpinned { opacity: 0; transition: opacity 120ms linear, translate 0s linear 120ms; }
+}
+@media (forced-colors: active) {
+  .site-header.is-pinned::before, .site-header.is-unpinned::before { background: Canvas; border-color: CanvasText; }
+}
+@media print {
+  .site-header { position: static !important; translate: none !important; opacity: 1 !important; }
+  .site-header::before { content: none !important; }
+}
+
+/* ==========================================================================
+   The painted strip (SPEC-R4A §6). Every page opens on a short, unframed,
+   full-bleed band of its own scene; the engine paints it into .strip__art's box.
+     <header class="strip strip--home|sub|doc" aria-labelledby="…">
+       <div class="strip__art bleed" data-landscape="strip" data-wake aria-hidden="true"></div>
+       <div class="strip__text" data-landscape="keepout" data-veil="0.85"> h1 + p.lead … </div>
+       <p class="strip__note small">Draft art</p>                (Home and Work, demo 4a only)
+     </header>
+   .strip__art is an EMPTY box that reserves the strip's height: the text never depends on the painting
+   (layout is identical with JS off, WebGL off, or the engine still loading).
+     wide (>= 1200), home and sub: art and text share one grid cell; the title sits in the art's mist at
+       the frame's left edge (home: vertically centred; sub: low in the band, so the intro stays close to the
+       content it introduces); the scene's figures stand to its right (the engine keeps pigment and figures
+       out of the keep-out box).
+     below 1200, and doc at every width: the art first, then the text on paper below it.
+   ========================================================================== */
+.strip { position: relative; }
+.strip--home { --strip-h: var(--strip-home); }
+.strip--sub  { --strip-h: var(--strip-sub); }
+.strip--doc  { --strip-h: var(--strip-doc); }
+.strip__art { min-height: var(--strip-h, var(--strip-sub)); }
+.strip__text {
+  position: relative;
+  padding-top: var(--space-strip-text);
+}
+/* the title block's rhythm: the h1, then its lead, then the actions */
+.strip__text > * + * { margin-block-start: var(--space-para); }
+.strip__text > :is(h1, .name, .page-title) + * { margin-block-start: .875rem; }
+.strip__text > .lead + .lead { margin-block-start: .75rem; }
+
+@media (min-width: 75rem) {
+  .strip--home,
+  .strip--sub {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .strip--home > .strip__art,
+  .strip--home > .strip__text,
+  .strip--sub > .strip__art,
+  .strip--sub > .strip__text { grid-area: 1 / 1; }
+  .strip--home > .strip__text,
+  .strip--sub > .strip__text {
+    z-index: 1;
+    align-self: center;
+    max-width: var(--strip-text-max);
+    padding-block: var(--space-l);
+  }
+  /* a subpage's short intro (Work, Writing, Contact, 404) sits low in the band: centred in 300–360 px it left
+     140–200 px of blank paper before the first section; low, the gap is the section's own (~90 px) */
+  .strip--sub > .strip__text {
+    align-self: end;
+    padding-block: var(--space-l) var(--space-m);
+  }
+}
+
+/* "Draft art" (demo 4a): small print in the art's bottom feather, which the engine keeps as paper */
+.strip__note {
+  position: absolute;
+  z-index: 1;
+  right: 0;
+  top: calc(var(--strip-h, var(--strip-sub)) - 1.75rem);
+  margin: 0;
+  font-size: var(--fs-small);
+  font-weight: var(--w-body);
+  line-height: var(--lh-small);
+  color: var(--ink-3);                /* not ink-4: it sits on the art's painted feather (>= 4.5:1 on its grain) */
+  pointer-events: none;
+}
+/* On a phone, Home's album leaf holds the hut and the traveller at its lower right, where the note would sit (the
+   engine keeps paper and no figure under the note): there it goes to the lower left, where the scroll opens in mist. */
+@media (max-width: 39.99rem) {
+  .strip--home .strip__note { right: auto; left: 0; }
+}
+
+/* No JavaScript, or no landscape at all: a faint static ridge hint in the same box. */
+html:not(.js) .strip__art,
+html.no-landscape .strip__art,
+html:not(.js) .closing__art,
+html.no-landscape .closing__art {
+  background: url('../svg/ridge-hint.svg') right bottom / auto 70% no-repeat;
+}
+@media print {
+  .strip__art, .strip__note, .closing__art { display: none !important; }
+  .strip__text { padding-top: 0; }
+}
+
+/* ==========================================================================
+   Sections, the reading column, rows (SPEC-R4A §3).
+     <section class="sec" aria-labelledby="x-title" data-veil>
+       <h2 class="sec__title" id="x-title">…</h2> <p>…</p> …
+     </section>
+   Children are capped at the reading column (680) unless .wide (960: tables, diagrams).
+   ========================================================================== */
+.sec { margin-block-start: var(--space-section); }
+.sec > * { max-width: var(--measure-read); }
+.sec > :is(.wide, .table-wrap, figure.diagram) { max-width: var(--measure-wide); }
+.sec > * + * { margin-block-start: var(--space-para); }
+.sec > .sec__title + * { margin-block-start: var(--space-head); }
+.wide { max-width: var(--measure-wide); }
+
+/* h2: the body face in bold (the heavy condensed face is for the name and page titles only) */
+.sec__title {
+  font-family: var(--font-body);
+  font-size: var(--fs-h2);
+  font-weight: var(--w-strong);
+  line-height: var(--lh-h2);
+  letter-spacing: -.01em;
+  color: var(--ink-1);
+}
+.sec__title--item { font-size: var(--fs-item); line-height: var(--lh-item); letter-spacing: 0; }   /* e.g. Work's "Six projects, newest first" */
+/* a date inside a heading: "Now · October 2026" */
+.sec__date {
+  font-size: var(--fs-small);
+  font-weight: var(--w-body);
+  line-height: 1;
+  letter-spacing: 0;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+/* h3 inside a section ("Early work, 2019–2020", "Recent") */
+.sec__sub {
+  font-family: var(--font-body);
+  font-size: var(--fs-item);
+  font-weight: var(--w-strong);
+  line-height: var(--lh-item);
+  color: var(--ink-1);
+}
+.sec > .sec__sub { margin-block-start: var(--space-item); }
+.sec > .sec__sub + * { margin-block-start: var(--space-head); }
+
+/* page titles (h1): Sofia Sans Condensed 780, 32 → 40 */
+.page-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-title);
+  font-weight: 780;
+  line-height: var(--lh-title);
+  letter-spacing: -.008em;
+  color: var(--ink-1);
+}
+/* the name (Home only): Sofia Sans Extra Condensed 900, one line at every width, readable at first paint
+   (data-arrive="name" only adds a <= 400 ms ink settle: effects.css, arrival.js) */
+.name {
+  font-family: var(--font-name);
+  font-size: var(--fs-name);
+  font-weight: 900;
+  line-height: var(--lh-name);
+  letter-spacing: -.005em;
+  color: var(--ink-1);
+  white-space: nowrap;
+  text-wrap: nowrap;
+  padding-block-end: .06em;        /* the Q's tail and the j's descender clear the lead */
+}
+
+.lead {
+  font-size: var(--fs-lead);
+  line-height: var(--lh-lead);
+  max-width: 34em;
+  text-wrap: pretty;                  /* no lone last word */
+}
+.small {
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  font-variant-numeric: lining-nums tabular-nums;
+  color: var(--ink-3);                /* 7.7:1 on paper, 6.3:1 on mist-2 */
+}
+.small--quiet { color: var(--ink-4); } /* 5.1:1: plain paper only */
+
+/* ---------- tap targets (SPEC-R4A §1.4: every link and button >= 44 × 44) ----------
+   A standalone link shorter than 44 px (an action row's quiet link, a "… →" line, "Next: …") gets an invisible
+   hit area: a pseudo-element centred on it, max(44 px, its own height) tall. Nothing moves; the brush marks stay
+   where they are. Links inside sentences keep WCAG 2.5.8's inline exception (the footer repeats the key ones). */
+.actions > a.brush,
+.more > a,
+.next { position: relative; }
+.actions > a.brush::before,
+.more > a::before,
+.next::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block: min(0px, 50% - 22px);
+}
+
+/* a row of actions: one .ink-btn at most, then quiet links (hero, 404, résumé) */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;            /* the button's label and the quiet link share a baseline */
+  gap: .75rem 1.75rem;
+}
+.strip__text > .actions,
+.sec > .actions { margin-block-start: var(--space-m); }
+
+/* ---------- rows: ul/ol.rows[role=list] > li.row, separated by hairlines (typographic rules, never boxes) ----------
+     <li class="row ink-row">
+       <p class="row__meta small">Note · <time>…</time></p>          (optional, before the title)
+       <h3 class="row__title"><a class="brush brush--rest" href>…</a></h3>
+       <p class="row__line">…</p>
+     </li>
+   The title link covers the row (::after); other links in the row stay clickable above it. */
+.rows { display: grid; }
+.rows > li {
+  position: relative;
+  border-top: 1px solid var(--rule);
+  padding-block: .875rem;
+}
+.rows--plain { gap: .375rem; }
+.rows--plain > li { border-top: 0; padding-block: 0; }
+.row__title {
+  font-family: var(--font-body);
+  font-size: var(--fs-item);
+  font-weight: var(--w-strong);
+  line-height: var(--lh-item);
+  color: var(--ink-1);
+}
+.row__title a::after { content: ''; position: absolute; inset: 0; }
+.row__meta { margin-block-end: .125rem; }
+.row__line { margin-block-start: .25rem; }
+.row__meta a,
+.row__line a { position: relative; z-index: 1; }
+.more { margin-block-start: var(--space-s); }
+.sec > .more { margin-block-start: var(--space-s); }
+
+/* ---------- the margin rail (wide only): .has-rail ----------
+   A two-column grid: the reading column (680) and the rail (300), 48 apart. Children sit in the reading
+   column; margin notes in the rail beside the paragraph they follow; .wide blocks span both (capped at 960).
+   Placement is in source order (sparse auto-flow, never `dense`, which would pile the notes at the top): a
+   note that follows a paragraph shares its row. Nested lists opt in by subgrid: a case's dl.case__body and
+   its dd elements (and any .rail-sub) carry the rail through, so a note inside a dd still reaches the rail. */
+@media (min-width: 75rem) {
+  .has-rail {
+    display: grid;
+    grid-template-columns: minmax(0, var(--measure-read)) minmax(0, var(--rail-w));
+    column-gap: var(--rail-gap);
+    align-items: start;
+  }
+  /* zero specificity, so a margin note's own rule (components.css) puts it in the rail */
+  :where(.has-rail > *, .has-rail .rail-sub > *, .has-rail > .case__body > *, .has-rail > .case__body > dd > *) {
+    grid-column: 1;
+    min-width: 0;
+    max-width: none;
+  }
+  .has-rail > .wide,
+  .has-rail > .table-wrap,
+  .has-rail > figure.diagram { grid-column: 1 / -1; max-width: var(--measure-wide); }
+  .has-rail .rail-sub,
+  .has-rail > .case__body,
+  .has-rail > .case__body > dd {
+    display: grid;
+    grid-template-columns: subgrid;
+    grid-column: 1 / -1;
+    align-items: start;
+  }
+  /* A group of notes inside a dd (margin-note.js groups two or more) would stretch its own dd's row and leave a
+     hole under the paragraph; instead it is taken out of the row's height (absolute in its own grid area: the
+     rail beside the paragraph) and runs on down the rail beside the next terms (Outcome, Evidence, Stack).
+     The dd keeps display: grid (no display: contents), so its semantics are untouched. */
+  .has-rail > .case__body > dd { position: relative; }
+  .has-rail > .case__body > dd > .margin-notes {
+    position: absolute;
+    grid-column: 2;
+    grid-row: 1;
+    inset-block-start: 0;
+    inset-inline: 0;
+  }
+}
+
+/* ==========================================================================
+   The closing scene (SPEC-R4A §8): the page's own place once more, framed on
+   the road toward the next place, and one link onward. The last child of <main>.
+     <nav class="closing" aria-label="Next page">
+       <p class="closing__next" data-landscape="keepout">
+         <a class="next" href="/work/"><span class="next__label">Next:</span> <span class="next__to">Work</span><span
+            class="next__arrow" aria-hidden="true"> →</span></a></p>
+       <div class="closing__art bleed" data-landscape="closing" data-wake aria-hidden="true"></div>
+     </nav>
+   wide: the link sits in the art's mist at the frame's left, vertically centred. Below 1200: the link on
+   paper, then the art, which feathers into the footer's paper. The 404 has none.
+   ========================================================================== */
+.closing {
+  position: relative;
+  margin-block-start: var(--space-section);
+}
+.closing__next { margin: 0; padding-block-end: .25rem; }
+.closing__art { min-height: var(--closing-h); }
+@media (min-width: 75rem) {
+  .closing { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .closing > .closing__next,
+  .closing > .closing__art { grid-area: 1 / 1; }
+  .closing > .closing__next {
+    z-index: 1;
+    align-self: center;
+    max-width: var(--strip-text-max);
+    padding-block: 0;
+  }
+}
+/* "Next: Work →": h2 size, the body face in bold; "Next:" lighter; a resting brush trace under the
+   destination that draws on hover (effects.css); hit area >= 44 px tall */
+.next {
+  display: inline-block;
+  padding-block: .3em;
+  font-family: var(--font-body);
+  font-size: var(--fs-h2);
+  font-weight: var(--w-strong);
+  line-height: var(--lh-h2);
+  letter-spacing: -.01em;
+  color: var(--ink-1);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.next__label { font-weight: var(--w-ui); color: var(--ink-3); }
+.next__arrow { display: inline-block; white-space: pre; }
+/* markup without the .next__to span still gets a resting mark */
+.next:not(:has(.next__to)) { text-decoration: underline 1px var(--rule-rest); text-underline-offset: .3em; }
+@media print { .closing { display: none !important; } }
+
+/* ==========================================================================
+   Footer (story-map.js, still.js). A thin story map of the whole painting, one
+   mark per place, each linking to its page; then the links line and the
+   "updated" line. On paper.
+   ========================================================================== */
+.site-footer {
+  margin-block-start: var(--space-section);
+  padding-block: var(--space-s) max(var(--space-l), env(safe-area-inset-bottom, 0px));
+  font-family: var(--font-body);
+  font-size: var(--fs-small);
+  font-weight: var(--w-body);
+  line-height: var(--lh-small);
+  color: var(--ink-3);
+}
+/* after a closing scene the art's feather is the gap */
+main:has(> .closing:last-child) + .site-footer { margin-block-start: var(--space-2xs); }
+
+/* ---------- the story map ----------
+   The art is the engine's stripSVG() of world 0 → 6 (stretches 0–5) in greys (UI: never pigment); without
+   JS it is hidden and the labels remain. Geography, not nav order: Home (0) · Work (1) · the road (2,
+   unlabelled) · Writing (3) · Résumé (4) · Contact (5). The 404 (6) lies off the map.
+   From 640 the labels sit in a six-column grid matching the art (column n + 1 for stretch n; the road's
+   column stays empty), and each label's hit area also covers its column of the art. Below 640 the five
+   labels share one row. Small ticks mark every place on the art; "you are here" (the aria-current label)
+   gets its brush mark and a taller ink tick (story-map.js). */
+.story-map {
+  display: grid;
+  row-gap: .25rem;
+  margin-block-end: var(--space-2xs);
+}
+/* The map is drawn the way the painting is: pale ink washes (stripSVG's gradients of --strip-ink at about 26 / 36 /
+   46 % at the crests, dissolving toward their feet), never flat or solid silhouettes, and the whole map dissolves
+   into the paper at its left, right and bottom (a mask), so it never shows a hard edge. Only the current place's
+   tick is in ink-1. */
+.story-map__art {
+  position: relative;
+  height: var(--story-map-art);
+  --strip-ink: var(--ink-2);
+  --strip-far: .26;
+  --strip-mid: .36;
+  --strip-near: .46;
+  --strip-water: var(--ink-5);
+}
+.story-map__art svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: blur(.6px);                                 /* ink wicking into paper: soft edges, never vector cuts */
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent), linear-gradient(to bottom, #000 52%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent), linear-gradient(to bottom, #000 52%, transparent 100%);
+  mask-composite: intersect;
+}
+@media (forced-colors: active) { .story-map__art svg { filter: none; mask-image: none; -webkit-mask-image: none; } }
+.story-map__art:empty { visibility: hidden; }        /* not painted (yet): keep its room */
+html:not(.js) .story-map__art { display: none; }
+.story-map__tick {
+  position: absolute;
+  top: 0;
+  left: calc((var(--s, 0) + .5) / 6 * 100%);
+  width: 1px;
+  height: 6px;
+  margin-left: -.5px;
+  background: var(--rule-rest);
+}
+.story-map__tick.is-here {
+  width: 2px;
+  height: 14px;
+  margin-left: -1px;
+  background: var(--ink-1);
+}
+.story-map__list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  column-gap: .5rem;
+  color: var(--ink-2);
+}
+.story-map__list li { position: relative; display: flex; }
+.story-map__list a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 44px;
+  min-inline-size: 44px;
+  white-space: nowrap;
+}
+/* footer targets are 44 px boxes: the brush sits just under the word, and the same small side padding on
+   every link keeps the spacing between them even (a short word is centred in its 44 px) */
+.story-map__list a,
+.site-footer__links a,
+.still-toggle {
+  --brush-y: calc(50% + .78em);
+  padding-bottom: 0;
+  padding-inline: .25rem;
+}
+@media (max-width: 23.4375rem) {      /* tight phones: the five labels still share one row at 320 */
+  .story-map__list { column-gap: 0; }
+  .story-map__list a { padding-inline: .0625rem; }
+}
+@media (min-width: 40rem) {
+  .story-map__list {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    column-gap: 0;
+  }
+  .story-map__list li { grid-row: 1; justify-content: center; }
+  .story-map__list li[data-stretch='0'] { grid-column: 1; }
+  .story-map__list li[data-stretch='1'] { grid-column: 2; }
+  .story-map__list li[data-stretch='2'] { grid-column: 3; }
+  .story-map__list li[data-stretch='3'] { grid-column: 4; }
+  .story-map__list li[data-stretch='4'] { grid-column: 5; }
+  .story-map__list li[data-stretch='5'] { grid-column: 6; }
+  /* the label's hit area: its own 44 px row and, with the art there, its column of the art */
+  .story-map__list a::before { content: ''; position: absolute; inset: 0; }
+  html.js .story-map__list a::before { top: calc(-1 * (var(--story-map-art) + .25rem)); }
+}
+
+/* ---------- the links line and the "updated" line ----------
+   Wide: both on one row (© and links left, "Updated" right). Below: they stack; on phones the links
+   wrap under the © group. Separators are CSS (read as nothing), only where the links share one line, so
+   no line ever starts or ends with a stray dot. */
+.site-footer__base {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  column-gap: 2rem;
+}
+.site-footer__line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 0;
+}
+.site-footer__copy { margin: 0; flex-basis: 100%; }
+.site-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 1em;
+  color: var(--ink-2);
+}
+.site-footer__links a,
+.still-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 44px;
+  min-inline-size: 44px;
+}
+@media (min-width: 40rem) {
+  .site-footer__copy { flex-basis: auto; }
+  .site-footer__links { column-gap: 0; }
+  .site-footer__links::before,
+  .site-footer__links li + li::before {
+    content: '·' / '';
+    margin-inline: .2em;
+    color: var(--ink-3);
+  }
+}
+.site-footer time { white-space: nowrap; }
+.site-footer__updated { margin: 0; }
+.still-toggle { font: inherit; color: var(--ink-2); vertical-align: middle; }
+html:not(.js) .still { display: none; }          /* it does nothing without JS */
+@media print { .site-footer { display: none; } }

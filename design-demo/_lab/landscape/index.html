@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Landscape lab</title>
+  <meta name="robots" content="noindex"><!-- engine lab, not part of the site -->
+  <link rel="icon" href="/assets/svg/seal.svg" type="image/svg+xml">
+  <meta name="color-scheme" content="light">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Commissioner:wght@400..600&family=Sofia+Sans+Extra+Condensed:wght@900&display=swap">
+  <link rel="modulepreload" href="/assets/js/landscape/index.js">
+  <style>
+    :root { --paper: #EFF1EE; --ink: #111416; --ink-3: #545D61; }
+    html { background: var(--paper); color: var(--ink); font: 400 15px/1.5 Commissioner, system-ui, sans-serif; }
+    body { margin: 0; }
+    .land { position: fixed; inset: 0; width: 100%; height: 100lvh; display: block; z-index: -1; pointer-events: none; }
+
+    /* mock hero (?hero=1): only to judge the composition against real type */
+    .hero { display: none; padding: clamp(96px, 16vh, 150px) clamp(20px, 5.5vw, 80px) 0; }
+    .show-hero .hero { display: block; }
+    .hero h1 { margin: 0; font: 900 clamp(84px, 13.5vw, 230px)/0.86 'Sofia Sans Extra Condensed', sans-serif; letter-spacing: -0.01em; }
+    .hero .jack { font: 500 0.22em/1 Commissioner, sans-serif; letter-spacing: 0.08em; color: var(--ink-3); vertical-align: 0.9em; }
+    .hero .role { margin: 18px 0 0; font-size: 21px; font-weight: 600; }
+    .hero .lede { margin: 14px 0 0; max-width: 40ch; font-size: 18px; line-height: 1.6; }
+
+    /* scroll test (?scroll=1): a head, two reading passages, a vista, a passage, the closing.
+       ?head=short gives an interior page's short head instead of a full-screen one. */
+    .scroll { display: none; }
+    .show-scroll .scroll { display: block; }
+    .scroll .head { min-height: 100svh; box-sizing: border-box; padding: 18vh clamp(20px, 5.5vw, 80px) 0; }
+    .short-head .scroll .head { min-height: 0; padding-bottom: 6vh; }
+    .scroll .head h1 { margin: 0; font: 900 clamp(64px, 10vw, 160px)/0.9 'Sofia Sans Extra Condensed', sans-serif; }
+    .scroll .passage { padding: 64px clamp(20px, 5.5vw, 80px); }
+    .scroll .passage > div { max-width: 62ch; margin-left: 24%; }
+    @media (max-width: 760px) { .scroll .passage > div { margin-left: 0; } }
+    .scroll h2 { font: 900 44px/1 'Sofia Sans Extra Condensed', sans-serif; margin: 0 0 16px; }
+    .scroll p { font-size: 18px; line-height: 1.6; margin: 0 0 1em; }
+    .scroll .vista { min-height: 50svh; }
+    @media (max-aspect-ratio: 3/4) { .scroll .vista { min-height: 36svh; } }
+    .scroll .closing { min-height: calc(100svh - 120px); padding: 12vh clamp(20px, 5.5vw, 80px) 0; box-sizing: border-box; }
+    .scroll .foot { padding: 24px clamp(20px, 5.5vw, 80px) 36px; color: var(--ink-3); }
+
+    /* wake test (?wake=1): the whole view is a wake region, with one veiled block of text */
+    .waketest { display: none; position: fixed; inset: 0; }
+    .show-wake .waketest { display: block; }
+    .waketest p { position: absolute; left: 6vw; top: 12vh; margin: 0; max-width: 30ch; font-size: 18px; line-height: 1.6; }
+
+    /* control strip */
+    .strip {
+      position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 2;
+      display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center;
+      padding: 10px 14px; font-size: 13px;
+      background: color-mix(in oklab, var(--paper) 90%, transparent);
+      box-shadow: 0 0 0 1px rgba(17, 20, 22, 0.08);
+      backdrop-filter: blur(6px);
+    }
+    .hide-ui .strip { display: none; }
+    .strip label { display: inline-flex; gap: 6px; align-items: center; }
+    .strip input[type=range] { width: 120px; accent-color: #3E5664; }
+    .strip button, .strip select { font: inherit; padding: 4px 10px; border: 1px solid rgba(17, 20, 22, 0.25); background: var(--paper); color: var(--ink); cursor: pointer; }
+    .strip output { font-variant-numeric: tabular-nums; min-width: 3.2em; }
+    .strip .stats { color: var(--ink-3); font-variant-numeric: tabular-nums; flex-basis: 100%; margin: 0; }
+    .strip .note { color: var(--ink-3); flex-basis: 100%; margin: 0; }
+    .strip .note[hidden] { display: none; }
+    .strip .mini { flex-basis: 100%; height: 36px; color: var(--ink-3); }
+    .strip .mini svg { display: block; width: 100%; height: 36px; }
+    @media (max-width: 600px) { .strip input[type=range] { width: 80px; } }
+  </style>
+</head>
+<body>
+  <canvas class="land" aria-hidden="true"></canvas>
+
+  <main>
+    <section class="hero" data-veil>
+      <h1>Qijin <span class="jack">(Jack)</span> Xu</h1>
+      <p class="role">Lead AI/ML Architect</p>
+      <p class="lede">I design and ship production AI: LLM agents, retrieval systems, and the data platforms underneath them.</p>
+    </section>
+
+    <div class="scroll">
+      <header class="head" data-landscape="head" data-wake>
+        <h1 data-veil>Head</h1>
+      </header>
+      <section class="passage"><div data-veil>
+        <h2>Horizon</h2>
+        <p>Once the head has scrolled away, the ridges sink to a low, quiet band along the bottom of the view and stay there while you read. No cloud sea, no fade to blank paper.</p>
+        <p>The band keeps its crests in the bottom quarter of the view (a fifth on a phone), so nothing but mist sits behind the reading line.</p>
+      </div></section>
+      <section class="passage"><div data-veil>
+        <h2>Reading</h2>
+        <p>Each block of text carries a veil: mist banks up behind it, so small print never sits on bare mountain. Up to eight veils are painted at once.</p>
+        <p>The mist rests while you read; it drifts again in the head, in a vista and in the closing.</p>
+      </div></section>
+      <div class="vista" data-vista data-wake aria-hidden="true"></div>
+      <section class="passage"><div data-veil>
+        <h2>After the vista</h2>
+        <p>The vista lifted the horizon back to the full scene while it crossed the middle of the view; the pointer's wake is strongest there.</p>
+      </div></section>
+      <section class="closing" data-landscape-descend><div data-veil>
+        <h2>Closing</h2>
+        <p>As this block rises, the landscape returns to the head's composition, then sinks a little so the near crest rises above the footer.</p>
+      </div></section>
+      <p class="foot" data-veil="0.95">Footer small print, on a paper reserve.</p>
+    </div>
+
+    <div class="waketest" data-wake>
+      <p data-veil>Veiled text: the wake never reaches it. Move the pointer over the open painting to part the mist.</p>
+    </div>
+  </main>
+
+  <form class="strip" onsubmit="return false" aria-label="Landscape controls">
+    <label>stretch <input id="stretch" type="range" min="0" max="6" step="0.01" value="0"><output id="stretchOut">0.00</output></label>
+    <label>go to
+      <select id="go"><option value="">…</option><option value="0">0 peak</option><option value="1">1 river</option><option value="2">2 path</option><option value="3">3 lake</option><option value="4">4 shore</option><option value="5">5 crossing</option><option value="6">6 lone peak</option></select>
+    </label>
+    <label>pan <select id="ease"><option value="route">route (600 cubic-out + sweep)</option><option value="back">back (400 cubic-out)</option><option value="whip">whip (900)</option></select></label>
+    <button id="prev" type="button">◀</button>
+    <button id="next" type="button">▶</button>
+    <button id="sweep" type="button">sweep</button>
+    <label>distance
+      <select id="distance"><option>level</option><option>high</option><option>deep</option></select>
+    </label>
+    <label>presence <input id="presence" type="range" min="0" max="1" step="0.01" value="1"><output id="presenceOut">1.00</output></label>
+    <label>horizon <input id="horizon" type="range" min="0" max="1" step="0.01" value="0.6"><output id="horizonOut">0.60</output></label>
+    <label>state
+      <select id="state"><option value="">scroll-driven</option><option>hero</option><option>horizon</option><option>vista</option><option>closing</option></select>
+    </label>
+    <label><input id="still" type="checkbox"> still</label>
+    <button id="bloom" type="button">replay bloom</button>
+    <label><input id="hero" type="checkbox"> hero</label>
+    <label><input id="scroll" type="checkbox"> scroll test</label>
+    <label><input id="wake" type="checkbox"> wake test</label>
+    <p class="note" id="rm" hidden>Reduced motion is on: the landscape is drawn settled, with no arrival, pans, sweep, wake or drifting mist; states switch without blending.</p>
+    <div class="mini" id="mini" title="stripSVG(): the footer's scroll map art"></div>
+    <p class="stats" id="stats"></p>
+  </form>
+
+  <script type="module">
+    import { mountLandscape, stripSVG, sceneAt } from '/assets/js/landscape/index.js';
+
+    // Round 4a: this page is the engine's full-viewport mode (no windows: round 3's hero, now with the palette).
+    // The windows live in page.html (a page-shaped harness: strip, keep-out, sections, horizon, closing) and
+    // strips.html (every page's strip and closing at every width class, palettes, the keep-out chroma check).
+    // Lab URL params (QA):
+    //   ?stretch=3&distance=level&presence=0.6&horizon=0.5   composition
+    //   &arrival=none  &from=0  &bloomMs=6000                 arrival and mount pan
+    //   &state=horizon  &still=1                               states, stilled
+    //   &scroll=1 [&head=short]  &wake=1  &hero=1              test layers
+    //   &ui=0  &q=1  &y=900  &slow=10                          no controls, fixed quality, pre-scroll, slow pans
+    // Wake acceptance (SPEC-R3 §8.5), with ?wake=1&stretch=0&arrival=none&ui=0 at 1440x900: park the pointer far
+    // away, capture; hover a point, wait ~700 ms, capture; compare the mean luma over a 60 px disc there.
+    // Measured 8 Oct 2026: sky (1150,150) 3.6/255, host mid ink (905,420) 6.4/255, dark crag (1300,620) 13.5/255,
+    // veiled text (200,150) 0.23/255 (targets: >= 3, >= 6, <= 0.5).
+    // Router-style pans: go(n) or the controls; 'route' = panTo(600, cubic-out) + sweep(420); a jump of more
+    // than 2 stretches is spliced under a thick bank (try 0 -> 5 with &slow=10).
+    const qs = new URLSearchParams(location.search);
+    const root = document.documentElement;
+    const $ = (id) => document.getElementById(id);
+    const canvas = document.querySelector('.land');
+    const state = {
+      stretch: Number(qs.get('stretch') ?? 0),
+      distance: qs.get('distance') ?? 'level',
+      presence: Number(qs.get('presence') ?? 1),
+      horizon: Number(qs.get('horizon') ?? 0.6),
+    };
+    if (qs.get('ui') === '0') root.classList.add('hide-ui');
+    if (qs.get('head') === 'short') root.classList.add('short-head');
+    for (const k of ['hero', 'scroll', 'wake']) {
+      root.classList.toggle(`show-${k}`, qs.get(k) === '1');
+      $(k).checked = qs.get(k) === '1';
+    }
+    $('stretch').value = state.stretch;
+    $('distance').value = state.distance;
+    $('presence').value = state.presence;
+    $('horizon').value = state.horizon;
+    $('state').value = qs.get('state') ?? '';
+    $('still').checked = qs.get('still') === '1';
+    const sync = () => {
+      $('stretchOut').value = state.stretch.toFixed(2);
+      $('presenceOut').value = state.presence.toFixed(2);
+      $('horizonOut').value = state.horizon.toFixed(2);
+    };
+    sync();
+
+    const shown = (el) => el.getClientRects().length > 0;
+    const all = (sel) => [...document.querySelectorAll(sel)].filter(shown);
+    let land;
+    function mount(arrival, first = false) {
+      land = mountLandscape(canvas, {
+        stretch: state.stretch,
+        distance: state.distance,
+        presence: state.presence,
+        horizon: state.horizon,
+        arrival,
+        veil: all('[data-veil]'),
+        head: all('[data-landscape="head"]')[0] ?? null,
+        vistas: all('[data-vista]'),
+        descend: all('[data-landscape-descend]')[0] ?? null,
+        wake: all('[data-wake]'),
+        still: $('still').checked,
+        fromStretch: first && qs.has('from') ? Number(qs.get('from')) : undefined,
+        quality: qs.has('q') ? Number(qs.get('q')) : 'auto',
+        arrivalMs: qs.has('bloomMs') ? Number(qs.get('bloomMs')) : undefined,
+      });
+      if ($('state').value) land.setState($('state').value);
+      window.land = land; // for QA evals
+    }
+    mount(qs.get('arrival') ?? 'bloom', true);
+    const rebind = () => land.rebind({
+      veil: all('[data-veil]'), head: all('[data-landscape="head"]')[0] ?? null, vistas: all('[data-vista]'),
+      descend: all('[data-landscape-descend]')[0] ?? null, wake: all('[data-wake]'), horizon: state.horizon,
+    });
+
+    // pans the way the site makes them: a route change (600 ms cubic-out + the mist sweep), back/forward
+    // (400 ms cubic-out, no sweep), or the old whip
+    // ?slow=10 stretches these timings tenfold, to study the frames in headless capture
+    const slow = Math.max(1, Number(qs.get('slow') ?? 1));
+    function go(to, how = $('ease').value) {
+      const from = state.stretch;
+      state.stretch = Math.min(6, Math.max(0, to));
+      $('stretch').value = state.stretch; sync();
+      if (how === 'route') {
+        land.panTo(state.stretch, { duration: 600 * slow, ease: 'cubic-out' });
+        land.sweep({ dir: Math.sign(state.stretch - from) || 1, duration: 420 * slow });
+      } else if (how === 'back') land.panTo(state.stretch, { duration: 400 * slow, ease: 'cubic-out' });
+      else land.panTo(state.stretch, { duration: 900 * slow });
+    }
+    window.go = go;
+    $('stretch').addEventListener('input', (e) => { state.stretch = Number(e.target.value); sync(); land.panTo(state.stretch, { duration: 0 }); });
+    $('go').addEventListener('change', (e) => { if (e.target.value !== '') go(Number(e.target.value)); e.target.value = ''; });
+    $('prev').addEventListener('click', () => go(Math.round(state.stretch) - 1));
+    $('next').addEventListener('click', () => go(Math.round(state.stretch) + 1));
+    $('sweep').addEventListener('click', () => land.sweep({ dir: 1 }));
+    $('distance').addEventListener('change', (e) => { state.distance = e.target.value; land.panTo(state.stretch, { distance: state.distance, duration: 700 }); });
+    $('presence').addEventListener('input', (e) => { state.presence = Number(e.target.value); sync(); land.panTo(state.stretch, { presence: state.presence, duration: 0 }); });
+    $('horizon').addEventListener('input', (e) => { state.horizon = Number(e.target.value); sync(); land.rebind({ horizon: state.horizon }); });
+    $('state').addEventListener('change', (e) => land.setState(e.target.value || null));
+    $('still').addEventListener('change', (e) => land.setStill(e.target.checked));
+    $('bloom').addEventListener('click', () => mount('bloom'));
+    for (const k of ['hero', 'scroll', 'wake']) {
+      $(k).addEventListener('change', (e) => { root.classList.toggle(`show-${k}`, e.target.checked); rebind(); });
+    }
+
+    const mq = matchMedia('(prefers-reduced-motion: reduce)');
+    const rm = () => { $('rm').hidden = !mq.matches; };
+    rm();
+    mq.addEventListener('change', rm);
+
+    $('mini').innerHTML = stripSVG();
+
+    // Lab-only: ?y=<px> pre-scrolls for screenshots.
+    if (qs.has('y')) requestAnimationFrame(() => scrollTo(0, Number(qs.get('y'))));
+
+    // stats (lab only; a slow timer, so it does not keep the landscape awake)
+    setInterval(() => {
+      const s = land.stats();
+      $('stats').textContent = `${s.mode} · ${s.software ? 'software GL' : s.renderer || ''} · buffer ${s.buffer?.join('×')} · q ${s.quality?.toFixed?.(2)} · ${sceneAt(s.stretch)} @ ${s.stretch?.toFixed?.(2)} · ${s.state} k ${s.stateK} · vista ${s.vista} · wake ${s.wake} · ${s.still ? 'still · ' : ''}frames ${s.frames} · scene ${s.scenes} · present ${s.presents}${s.ambient ? ' · ambient' : ' · idle'}`;
+    }, 1000);
+  </script>
+</body>
+</html>

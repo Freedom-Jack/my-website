@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spec check: work</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Commissioner:wght@400;560;700&family=Sofia+Sans+Condensed:wght@700;780&family=Sofia+Sans+Extra+Condensed:wght@900&display=swap">
+<style>
+/* Throwaway wireframe to test the round-4 type and spacing spec. Not a design. */
+:root{--paper:#EFF1EE;--ink1:#111416;--ink2:#3a4246;--ink3:#5b6468;--rule:#c9cfcf;--gut:20px;
+ --body:17px;--lead:19px;--small:14px;--h3:19px;--h2:24px;--h1:34px;--name:56px;--hdr:56px;--gap2:48px}
+@media (min-width:768px){:root{--gut:32px;--body:18px;--lead:21px;--h3:22px;--h2:28px;--h1:44px;--name:88px;--hdr:64px;--gap2:72px}}
+*{box-sizing:border-box;margin:0}
+body{background:var(--paper);color:var(--ink1);font:400 var(--body)/1.6 Commissioner,system-ui,sans-serif}
+.frame{width:min(1200px,100% - 2*var(--gut));margin-inline:auto}
+.read{max-width:680px}.wide{max-width:960px}
+header{height:var(--hdr);display:flex;align-items:center;justify-content:space-between}
+.id{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;color:var(--ink1);text-decoration:none;min-height:44px}
+.seal{width:28px;height:28px;background:#B1362B;border-radius:3px}
+nav a{color:var(--ink1);text-decoration:none;font-weight:560;font-size:15px;margin-left:14px}
+@media(min-width:768px){nav a{font-size:16px;margin-left:28px}}
+.hero{position:relative;padding:clamp(28px,6vh,72px) 0 0}
+.hero .art{position:absolute;right:calc(-1*var(--gut));top:0;width:58%;height:100%;background:linear-gradient(160deg,transparent 30%,#cfd8dc 60%,#b9c6c9);opacity:.6;z-index:-1}
+h1.name{font:900 var(--name)/.95 "Sofia Sans Extra Condensed",sans-serif;letter-spacing:-.005em}
+.role{margin-top:14px;font-weight:700;font-size:var(--body);line-height:1.4}
+.role span{display:block;font-weight:400;color:var(--ink3)}
+.lede{margin-top:16px;font-size:var(--lead);line-height:1.5;max-width:600px}
+.acts{margin-top:24px;display:flex;gap:24px;align-items:center}
+.btn{min-height:48px;display:inline-flex;align-items:center;padding:0 18px;background:#1d2427;color:#fff;font-weight:560;border-radius:3px;text-decoration:none}
+.lnk{color:var(--ink1);font-weight:560;text-decoration:underline;text-underline-offset:4px}
+.band{height:180px;margin:24px calc(-1*var(--gut)) 0;background:linear-gradient(180deg,transparent,#c7d3d6 60%,#dfe5e5);}
+@media(min-width:768px){.band{height:72px;background:none}}
+.hello{margin-top:8px;display:grid;gap:20px}
+.hello img{width:72%;aspect-ratio:4/5;object-fit:cover;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.1)}
+@media(min-width:768px){.hello{grid-template-columns:280px 1fr;gap:40px;align-items:start}.hello img{width:280px}}
+.hello h2{font:700 var(--h2)/1.25 "Sofia Sans Condensed",sans-serif}
+.hello p{margin-top:12px}
+section{margin-top:var(--gap2)}
+h2{font:780 var(--h2)/1.25 "Sofia Sans Condensed",sans-serif}
+.rows{list-style:none;padding:0;margin-top:16px}
+.rows li{padding:14px 0;border-top:1px solid var(--rule)}
+.rows h3{font:700 var(--h3)/1.3 "Sofia Sans Condensed",sans-serif}
+.small{font-size:var(--small);color:var(--ink3);line-height:1.45}
+b.fig{font-weight:700}
+@media(max-width:375px){nav a{font-size:14px;margin-left:10px}.seal{width:24px;height:24px}.id{font-size:16px;gap:8px}}
+@media(max-width:339px){header{height:auto;flex-wrap:wrap;padding:6px 0}nav{width:100%}nav a:first-child{margin-left:0}}
+footer{margin-top:var(--gap2);padding:24px 0 40px;border-top:1px solid var(--rule);font-size:var(--small);color:var(--ink3)}
+</style><style>
+.phead{position:relative;padding:40px 0 32px}
+.phead .scene{position:absolute;z-index:-1;background:linear-gradient(180deg,#dfe6e6,#b8c7c8);opacity:.7}
+@media(min-width:768px){.phead{min-height:330px;padding-top:56px}.phead .scene{right:calc(-1*var(--gut));top:0;bottom:0;width:58%}}
+@media(max-width:767px){.phead{padding-top:216px}.phead .scene{left:calc(-1*var(--gut));right:calc(-1*var(--gut));top:0;height:200px}}
+h1.title{font:780 var(--h1)/1.1 "Sofia Sans Condensed",sans-serif}
+.phead .lede{margin-top:12px}
+table{border-collapse:collapse;width:100%;max-width:960px;font-size:15px;line-height:1.45}
+caption{text-align:left;font:780 var(--h2)/1.25 "Sofia Sans Condensed",sans-serif;padding-bottom:10px}
+th,td{text-align:left;vertical-align:top;padding:10px 12px 10px 0;border-top:1px solid var(--rule)}
+thead th{font-size:13px;color:var(--ink3);font-weight:560}
+@media(max-width:767px){thead{display:none}tr{display:block;padding:12px 0;border-top:1px solid var(--rule)}th,td{display:block;border:0;padding:2px 0}}
+</style></head><body><div class="frame">
+<header><a class="id" href="#"><span class="seal"></span>Qijin Xu</a><nav><a href="#">Work</a><a href="#">Résumé</a><a href="#">Contact</a></nav></header>
+<div class="phead"><div class="scene"></div><div class="read" style="max-width:600px">
+<h1 class="title">Work</h1>
+<p class="lede">Most of what I build runs inside client systems, so the code is private. Here is what each project was, what I did, and what changed.</p></div></div>
+<table id="t"><caption>Six projects, newest first</caption>
+<thead><tr><th>Years</th><th>Project</th><th>Outcome</th><th>Evidence</th></tr></thead><tbody>
+<tr><td>2025 – present</td><th>Agent for a proprietary programming language</th><td>Projected 50% less manual work. In progress.</td><td>Client work, no public page</td></tr>
+<tr><td>2023 – 2024</td><th>Enterprise RAG assistant for insurance support</th><td>~90% of questions resolved without a person; 50,000+ users; 525% ROI in 12 months</td><td>CGI product page · CGI article</td></tr>
+<tr><td>2023 – 2024</td><th>Lineage and rule automation with LLMs</th><td>80% less manual work on AxiomSL rule updates</td><td>Client work, no public page</td></tr>
+<tr><td>2021 – 2023</td><th>Fraud loss-ratio model</th><td>321% lift in recovered fraud losses versus a top-five bank benchmark</td><td>Client work, no public page</td></tr>
+<tr><td>2021 – 2023</td><th>Insurance policy-history data platform</th><td>99.9% uptime; median queries under 200 ms</td><td>Client work, no public page</td></tr>
+<tr><td>2020 – 2021</td><th>Computer vision for hockey broadcast video</th><td>mAP ≥ 70% on event detection</td><td>Vector Institute article</td></tr>
+</tbody></table></div></body></html>

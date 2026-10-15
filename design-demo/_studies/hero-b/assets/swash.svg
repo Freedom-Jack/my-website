@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 60" preserveAspectRatio="none">
+  <!-- Button silhouette, used as a mask: one loaded brush stroke, pressed at the start,
+       running dry (feibai streaks) as it lifts off at the tail. -->
+  <defs>
+    <linearGradient id="load" x1="0" x2="1">
+      <stop offset="0" stop-opacity="1"/>
+      <stop offset=".72" stop-opacity="1"/>
+      <stop offset="1" stop-opacity=".62"/>
+    </linearGradient>
+    <filter id="r" x="-5%" y="-10%" width="110%" height="120%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.07 0.16" numOctaves="3" seed="13" result="edge"/>
+      <feDisplacementMap in="SourceGraphic" in2="edge" scale="3.4" xChannelSelector="R" yChannelSelector="G" result="shape"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.01 0.34" numOctaves="2" seed="5" result="streak"/>
+      <feComposite in="shape" in2="streak" operator="arithmetic" k2="4.2" k3="2.6" k4="-4.3" result="dry"/>
+      <feFlood flood-color="#000"/>
+      <feComposite in2="dry" operator="in"/>
+    </filter>
+  </defs>
+  <path filter="url(#r)" fill="url(#load)" d="M12 12.5C6 15 3.6 25 4.2 33.5c.6 9 4.6 15.4 12 16.2 26 1.4 62 .6 98-.2 33-.7 62-1.6 82-3.6 11-1.1 18.6-3.5 19.6-7.8.6-3-1.6-5-1-7.6.8-3.3 3.8-5.6 2.6-9.4C216 17 208 14.6 196 13.4 165 10.6 120 10.2 80 10.4 52 10.5 25 10.6 12 12.5z"/>
+</svg>

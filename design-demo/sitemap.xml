@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The pages of the site, plus the JSON Resume and the generated résumé (COPY.md 8.9). Never the 404, the
+     old About URL (a redirect to the home page) or the old article URL (a redirect to the Note).
+     lastmod: the date the content last changed (2026-10-10: every page was rebuilt in round 4a, and the
+     Note's typos were fixed that day). -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://my-website-freedomjack.vercel.app/</loc>
+    <lastmod>2026-10-10</lastmod>
+  </url>
+  <url>
+    <loc>https://my-website-freedomjack.vercel.app/work/</loc>
+    <lastmod>2026-10-10</lastmod>
+  </url>
+  <url>
+    <loc>https://my-website-freedomjack.vercel.app/writing/</loc>
+    <lastmod>2026-10-10</lastmod>
+  </url>
+  <url>
+    <loc>https://my-website-freedomjack.vercel.app/writing/what-is-an-ai-agent/</loc>
+    <lastmod>2026-10-10</lastmod>
+  </url>
+  <url>
+    <loc>https://my-website-freedomjack.vercel.app/resume/</loc>
+    <lastmod>2026-10-10</lastmod>
+  </url>
+  <url>
+    <loc>https://my-website-freedomjack.vercel.app/contact/</loc>
+    <lastmod>2026-10-10</lastmod>
+  </url>
+  <url>
+    <loc>https://my-website-freedomjack.vercel.app/resume.json</loc>
+    <lastmod>2026-10-10</lastmod>
+  </url>
+  <url>
+    <loc>https://my-website-freedomjack.vercel.app/resume.pdf</loc>
+    <lastmod>2026-10-10</lastmod>
+  </url>
+</urlset>

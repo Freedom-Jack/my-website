@@ -1,0 +1,27 @@
+# Qijin Xu
+
+> Qijin Xu, known as Jack, is a Lead AI/ML Architect at CGI's AI Center of Excellence in Toronto, Canada. He designs and ships production AI for banks and insurers: LLM agents, retrieval-augmented generation (RAG) systems and the data platforms beneath them. 5+ years of experience.
+
+Key facts (details and sources on the linked pages):
+- Architected an LLM-powered RAG support assistant: about 90% autonomous resolution for 50,000+ users, 525% ROI within 12 months. CGI Impact Award 2024.
+- CGI Impact Award 2026.
+- Leads a LangGraph agent for a proprietary programming language (vLLM, RAG, EBNF structured outputs, PII filtering). Projected 50% reduction in manual work.
+- Built a fraud loss-ratio model with a 321% lift in recovered fraud losses versus a top-five bank benchmark.
+- B.Sc. Computer Science, Specialized Honours, York University, 2017–2021 (GPA 3.9/4.0).
+- Microsoft Certified: Azure Solutions Architect Expert (2022). Google Cloud Professional Cloud Developer (2023).
+
+## Pages
+- [Home](https://my-website-freedomjack.vercel.app/): who he is, in his own words, and what he works on now
+- [Work](https://my-website-freedomjack.vercel.app/work/): six projects with context, outcomes, evidence links and stack, and his public repositories
+- [Résumé](https://my-website-freedomjack.vercel.app/resume/): the résumé
+- [Résumé (PDF)](https://my-website-freedomjack.vercel.app/resume.pdf): the same résumé as a PDF
+- [JSON Resume](https://my-website-freedomjack.vercel.app/resume.json): machine-readable résumé
+- [Writing](https://my-website-freedomjack.vercel.app/writing/): notes, including "What is an AI agent?" (2025)
+- [Contact](https://my-website-freedomjack.vercel.app/contact/): qxjack@gmail.com, for collaborations on production AI and invitations to speak
+
+## Public evidence
+- [CGI insurance chatbot product page](https://www.cgi.com/canada/en-ca/insurance-chatbot)
+- [CGI article on AI chatbots for insurance](https://www.cgi.com/canada/en-ca/article/insurance/ai-chatbots-insurance-are-transforming-customer-service)
+- [Vector Institute article on the AttentiveVision hockey project](https://vectorinstitute.ai/amateur-hockey-given-professional-viewing-experience-courtesy-of-machine-vision-startup-co-founded-by-vector-researcher/)
+- [GitHub: Freedom-Jack](https://github.com/Freedom-Jack)
+- [LinkedIn](https://www.linkedin.com/in/qijin-x-4899671a9/)

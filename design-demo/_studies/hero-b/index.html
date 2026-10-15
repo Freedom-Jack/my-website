@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Qijin (Jack) Xu · Lead AI/ML Architect · Hero study B: wet ink bloom</title>
+  <meta name="description" content="Qijin (Jack) Xu is a Lead AI/ML Architect at CGI’s AI Center of Excellence in Toronto. He designs and ships production AI: LLM agents, retrieval systems and the data platforms underneath them.">
+  <meta name="robots" content="noindex">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#eff1ee">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400..700&family=Commissioner:FLAR,VOLM,wght@0..100,0..100,500..900&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@900&text=%E5%BE%90&display=block">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/effects.css">
+  <script>document.documentElement.classList.add('js');</script>
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <a class="skip" href="#content">Skip to content</a>
+
+  <!-- The landscape. Decorative: hidden from assistive tech. -->
+  <canvas class="scape" id="scape" aria-hidden="true"></canvas>
+
+  <header class="chrome">
+    <a class="seal" href="#" aria-label="Qijin (Jack) Xu, home">
+      <svg viewBox="0 0 64 64" width="44" height="44" aria-hidden="true" focusable="false">
+        <defs>
+          <mask id="seal-cut" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
+            <rect width="64" height="64" fill="#fff"/>
+            <text x="32.5" y="46" text-anchor="middle" font-family="'Noto Serif SC', 'Songti SC', serif" font-weight="900" font-size="41" fill="#000">徐</text>
+          </mask>
+        </defs>
+        <g filter="url(#stone)">
+          <rect class="seal__stone" x="5" y="5" width="54" height="54" rx="2.5" mask="url(#seal-cut)"/>
+        </g>
+      </svg>
+    </a>
+    <nav class="nav" aria-label="Main">
+      <ul role="list">
+        <li><a class="brush-link" href="#">About</a></li>
+        <li><a class="brush-link" href="#">Work</a></li>
+        <li><a class="brush-link" href="#">Writing</a></li>
+        <li><a class="brush-link" href="#">Résumé</a></li>
+        <li><a class="brush-link" href="#">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="content">
+    <section class="hero" aria-labelledby="name">
+      <div class="hero__copy" id="hero-copy">
+        <h1 class="name" id="name"><span class="name__given">Qijin</span> <span class="name__aka">(Jack)</span> <span class="name__family">Xu</span></h1>
+        <p class="role"><span class="role__title">Lead AI/ML Architect</span> <span class="sep" aria-hidden="true">·</span> AI Center of Excellence, CGI <span class="sep" aria-hidden="true">·</span> Toronto</p>
+        <p class="lede">I design and ship production AI: LLM agents, retrieval systems, and the data platforms underneath them.</p>
+        <div class="actions">
+          <a class="ink-btn" href="#work">
+            <span class="ink-btn__ink" aria-hidden="true"></span>
+            <span class="ink-btn__label">See the work</span>
+            <svg class="ink-btn__arrow" viewBox="0 0 24 12" width="22" height="11" aria-hidden="true" focusable="false"><path d="M1 6.2c6-.5 13-.3 20-.1M16.5 1.6c1.6 1.8 3.2 3.2 5 4.5-1.9 1.2-3.5 2.6-5 4.4"/></svg>
+          </a>
+          <a class="brush-link brush-link--rest" href="#">About me</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="proof" id="work" aria-labelledby="statement">
+      <div class="proof__inner">
+        <h2 class="statement mist-reveal" id="statement">A model is only as good as the system around it.</h2>
+        <p class="statement__sub mist-reveal">For five years I’ve built those systems: the data underneath, the retrieval in the middle, and the agents and guardrails on top.</p>
+        <ul class="figures" role="list">
+          <li class="figure">
+            <span class="figure__num"><span class="ink-in">90%</span></span>
+            <span class="figure__label">autonomous resolution</span>
+          </li>
+          <li class="figure">
+            <span class="figure__num"><span class="ink-in">525%</span></span>
+            <span class="figure__label">ROI in 12 months</span>
+          </li>
+          <li class="figure">
+            <span class="figure__num"><span class="ink-in">50K+</span></span>
+            <span class="figure__label">users</span>
+          </li>
+        </ul>
+        <p class="figures__note mist-reveal">From one system: the LLM-powered RAG assistant I architected at CGI, which won a CGI Impact Award in 2024. <a class="brush-link brush-link--rest" href="https://www.cgi.com/canada/en-ca/insurance-chatbot">The product on cgi.com</a></p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Shared SVG filters (ink edges). Zero-size, decorative. -->
+  <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false">
+    <!-- The name: wet ink that settles from a soft bleed to a crisp, pooled edge.
+         ink-name.js animates the displacement scale and blur; the values here are the dry state. -->
+    <filter id="ink-name" x="-4%" y="-12%" width="108%" height="124%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018 0.05" numOctaves="4" seed="4" result="fibre"/>
+      <feDisplacementMap in="SourceGraphic" in2="fibre" scale="1.2" xChannelSelector="R" yChannelSelector="G" result="shape"/>
+      <feGaussianBlur in="shape" stdDeviation="0" result="soft"/>
+      <feComponentTransfer in="soft" result="body">
+        <feFuncA type="table" tableValues="0 0 .55 1 1"/>
+      </feComponentTransfer>
+      <!-- wet halo: ink wicked a hair's breadth into the paper along the fibres -->
+      <feTurbulence type="fractalNoise" baseFrequency="0.08 0.28" numOctaves="2" seed="12" result="hair"/>
+      <feDisplacementMap in="body" in2="hair" scale="8" xChannelSelector="R" yChannelSelector="G" result="hairy"/>
+      <feGaussianBlur in="hairy" stdDeviation="1.3" result="haloSoft"/>
+      <feComponentTransfer in="haloSoft" result="halo"><feFuncA type="linear" slope=".24"/></feComponentTransfer>
+      <!-- pigment pooled at the stroke edge: body minus its eroded, blurred core -->
+      <feMorphology in="body" operator="erode" radius="2.2" result="core"/>
+      <feGaussianBlur in="core" stdDeviation="3" result="coreSoft"/>
+      <feComposite in="body" in2="coreSoft" operator="out" result="rimMask"/>
+      <feFlood flood-color="#05080a" result="pool"/>
+      <feComposite in="pool" in2="rimMask" operator="in" result="rim"/>
+      <!-- granulation: sparse paper-white specks where pigment did not settle -->
+      <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="2" seed="9" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values="0 0 0 0 .93  0 0 0 0 .945  0 0 0 0 .935  8 0 0 0 -6.25" result="speck"/>
+      <feComposite in="speck" in2="body" operator="in" result="specks"/>
+      <feMerge>
+        <feMergeNode in="halo"/>
+        <feMergeNode in="body"/>
+        <feMergeNode in="rim"/>
+        <feMergeNode in="specks"/>
+      </feMerge>
+    </filter>
+
+    <!-- Feathered, turbulent edge for the button bloom: the advancing front wicks unevenly into the paper. -->
+    <filter id="ink-edge" x="-15%" y="-50%" width="130%" height="200%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.035 0.09" numOctaves="4" seed="2" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="17" xChannelSelector="R" yChannelSelector="G" result="d"/>
+      <feGaussianBlur in="d" stdDeviation=".6" result="b"/>
+      <feComponentTransfer in="b"><feFuncA type="table" tableValues="0 .05 .75 1 1"/></feComponentTransfer>
+    </filter>
+
+    <!-- Numbers inking in: the spreading mask edge turns capillary (displacement + re-sharpened alpha),
+         and the settled figures keep the same pooled edge as the name. -->
+    <filter id="ink-feather" x="-6%" y="-12%" width="112%" height="124%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.022 0.06" numOctaves="4" seed="6" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="1.5" xChannelSelector="R" yChannelSelector="G" result="shape"/>
+      <feComponentTransfer in="shape" result="body"><feFuncA type="table" tableValues="0 0 .55 1 1"/></feComponentTransfer>
+      <feMorphology in="body" operator="erode" radius="1.3" result="core"/>
+      <feGaussianBlur in="core" stdDeviation="2.2" result="coreSoft"/>
+      <feComposite in="body" in2="coreSoft" operator="out" result="rimMask"/>
+      <feFlood flood-color="#05080a" result="pool"/>
+      <feComposite in="pool" in2="rimMask" operator="in" result="rim"/>
+      <feMerge><feMergeNode in="body"/><feMergeNode in="rim"/></feMerge>
+    </filter>
+
+    <!-- Stone-cut seal: chipped edges and a few specks where the paste did not transfer. -->
+    <filter id="stone" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.11" numOctaves="3" seed="11" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G" result="d"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="2" seed="3" result="g"/>
+      <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -8 5.4" result="speck"/>
+      <feComposite in="d" in2="speck" operator="in"/>
+    </filter>
+  </svg>
+</body>
+</html>

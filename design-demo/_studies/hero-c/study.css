@@ -1,0 +1,637 @@
+/* Hero study C — light layered SVG. Sections: textures · base · landscape · chrome · seal ·
+   brush link · ink button · hero · statement · proof · reveals · reduced motion. */
+
+/* ---------- textures (generated vector noise; no bitmaps) ---------- */
+:root {
+  /* paper tooth: tiled, stitched turbulence */
+  --tex-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .1  0 0 0 0 .13  0 0 0 0 .14  1.5 0 0 0 -.62'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  /* wisps of mist: wide, flat, stitched so it tiles horizontally */
+  --tex-mist: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='240'%3E%3Cfilter id='m' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.0025 .014' numOctaves='4' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  2.7 0 0 0 -.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23m)'/%3E%3C/svg%3E");
+  /* dry-brush stroke for underlines: pressed start, thinning tail, flying-white streaks */
+  --tex-stroke: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 18' preserveAspectRatio='none'%3E%3Cfilter id='d' x='-2%25' y='-40%25' width='104%25' height='180%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.014 .8' numOctaves='2' seed='2' result='n'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='n' scale='3.2' xChannelSelector='R' yChannelSelector='G' result='s'/%3E%3CfeColorMatrix in='n' values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 3.6 0 -.95' result='k'/%3E%3CfeComposite in='s' in2='k' operator='in'/%3E%3C/filter%3E%3Cpath filter='url(%23d)' d='M3 8.6C20 5.2 70 4.6 120 5.6S205 7 236 8.2C239.4 9 238.8 10.8 235 11.2C200 11.8 160 12.4 120 12.9S40 14.2 8 13.6C2 13.1 1 10.1 3 8.6Z'/%3E%3C/svg%3E");
+  /* broad brush swatch for the button: wet start, dry streaky end */
+  --tex-swatch: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 80' preserveAspectRatio='none'%3E%3ClinearGradient id='l'%3E%3Cstop offset='0' stop-opacity='1'/%3E%3Cstop offset='.62' stop-opacity='1'/%3E%3Cstop offset='1' stop-opacity='.66'/%3E%3C/linearGradient%3E%3Cfilter id='s' x='-4%25' y='-12%25' width='108%25' height='124%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.03 .1' numOctaves='3' seed='9' result='e'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='e' scale='7' xChannelSelector='R' yChannelSelector='G' result='d'/%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.006 .7' numOctaves='3' seed='3' result='t'/%3E%3CfeColorMatrix in='t' values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1 0 0 0 0' result='k'/%3E%3CfeComposite in='d' in2='k' operator='arithmetic' k2='1.5' k3='.42' k4='-.8'/%3E%3C/filter%3E%3Cpath fill='url(%23l)' filter='url(%23s)' d='M10 17C50 8 140 7 228 8.5C262 9 286 11 292 21C297 33 296 52 290 64C284 72 250 72 200 72.5C140 73 70 74 26 72C12 71 6 62 6 48C5 34 4 22 10 17Z'/%3E%3C/svg%3E");
+  /* ink-in sweep: opaque left half with a fibrous leading edge */
+  --tex-sweep: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 100' preserveAspectRatio='none'%3E%3Cfilter id='f' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.02 .06' numOctaves='3' seed='5'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='14' xChannelSelector='R' yChannelSelector='G'/%3E%3CfeGaussianBlur stdDeviation='3.2 .9'/%3E%3C/filter%3E%3Crect x='-40' y='-20' width='200' height='140' filter='url(%23f)'/%3E%3C/svg%3E");
+}
+
+/* ---------- base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  background: var(--paper);
+  color: var(--ink-900);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  overflow-x: clip;
+  background: var(--paper);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  font-variation-settings: 'FLAR' 36;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+p { margin: 0; }
+
+.svg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+.skip-link {
+  position: absolute;
+  left: var(--gutter);
+  top: -4rem;
+  z-index: 20;
+  padding: 0.6rem 1rem;
+  background: var(--ink-900);
+  color: var(--paper);
+  font-weight: 600;
+  text-decoration: none;
+}
+.skip-link:focus { top: 1rem; }
+
+:focus-visible {
+  outline: 2px solid var(--ink-900);
+  outline-offset: 4px;
+}
+
+/* ---------- landscape ---------- */
+.shanshui {
+  position: fixed;
+  inset: 0 0 auto;
+  height: 100lvh;          /* large viewport: the URL bar never forces a redraw */
+  z-index: 0;
+  overflow: clip;          /* clip, not hidden: it must not become the nearest scroller */
+  pointer-events: none;
+  contain: strict;
+}
+.shanshui__planes { position: absolute; inset: 0; }
+/* the land's base dissolves into ground mist instead of ending at the screen edge */
+.shanshui__planes::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 16%;
+  background: linear-gradient(to top, rgb(var(--paper-rgb) / 0.85), rgb(var(--paper-rgb) / 0));
+}
+
+.shanshui__plane {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+.shanshui__plane svg { display: block; width: 100%; height: 100%; overflow: visible; }
+
+/* Arrival: the mist lifts near-to-far, so the distance resolves last. */
+.shanshui.is-ready .shanshui__plane {
+  animation: ss-arrive 1400ms var(--ease-ink) both;
+  animation-delay: calc((6 - var(--i)) * 60ms);
+}
+@keyframes ss-arrive { to { opacity: 1; } }
+
+.shanshui__mist {
+  position: absolute;
+  inset: var(--y) 0 auto;
+  height: var(--h);
+  background: var(--paper);
+  opacity: var(--o);
+  will-change: transform;
+  -webkit-mask-image: var(--tex-mist), linear-gradient(transparent, #000 42%, #000 58%, transparent);
+  mask-image: var(--tex-mist), linear-gradient(transparent, #000 42%, #000 58%, transparent);
+  -webkit-mask-size: 1200px 100%, 100% 100%;
+  mask-size: 1200px 100%, 100% 100%;
+  -webkit-mask-repeat: repeat-x, no-repeat;
+  mask-repeat: repeat-x, no-repeat;
+  -webkit-mask-position: var(--drift) 0, 0 0;
+  mask-position: var(--drift) 0, 0 0;
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  animation: mist-drift var(--dur) linear infinite;
+}
+.shanshui__mist.is-rev { animation-name: mist-drift-rev; }
+@keyframes mist-drift { from { --drift: 0px; } to { --drift: -1200px; } }
+@keyframes mist-drift-rev { from { --drift: -1200px; } to { --drift: 0px; } }
+
+/* Veil: mist thickens behind the reading sections as the reader scrolls. */
+.shanshui__veil {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  /* densest behind the reading column (left), thinner over the far peaks (right) */
+  background:
+    radial-gradient(ellipse 62% 85% at 24% 42%, rgb(var(--paper-rgb) / 0.95), rgb(var(--paper-rgb) / 0.82) 55%, rgb(var(--paper-rgb) / 0) 100%),
+    linear-gradient(to bottom, rgb(var(--paper-rgb) / 0.7), rgb(var(--paper-rgb) / 0.45) 70%, rgb(var(--paper-rgb) / 0.2));
+}
+
+@supports (animation-timeline: scroll()) {
+  .shanshui.is-ready .shanshui__plane {
+    animation: ss-arrive 1400ms var(--ease-ink) both, ss-sink linear both;
+    animation-delay: calc((6 - var(--i)) * 60ms), 0s;
+    animation-timeline: auto, scroll(root block);
+    animation-range: normal, 0vh 110vh;
+  }
+  .shanshui__mist {
+    animation: mist-drift var(--dur) linear infinite, ss-sink linear both;
+    animation-timeline: auto, scroll(root block);
+    animation-range: normal, 0vh 110vh;
+  }
+  .shanshui__mist.is-rev { animation-name: mist-drift-rev, ss-sink; }
+  .shanshui__veil {
+    animation: veil-in linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 8vh 95vh;
+  }
+}
+@keyframes ss-sink { to { transform: translate3d(0, calc(var(--sink) * 100vh), 0); } }
+@keyframes veil-in { to { opacity: 1; } }
+
+.paper-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: var(--tex-grain);
+  opacity: 0.24;
+}
+
+/* ---------- chrome ---------- */
+.chrome {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: clamp(1rem, 0.7rem + 1.2vw, 1.9rem) var(--gutter);
+}
+
+.nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.25rem clamp(0.85rem, 0.3rem + 1.8vw, 2.4rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.nav a {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  letter-spacing: 0.015em;
+  color: var(--ink-700);
+}
+
+/* ---------- seal ---------- */
+.seal {
+  display: block;
+  flex: none;
+  width: clamp(2.5rem, 2.1rem + 1vw, 3rem);
+  aspect-ratio: 1;
+  border-radius: 3px;
+}
+.seal svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.seal:hover svg { filter: saturate(1.15) brightness(0.96); }
+.seal.is-stamping svg { animation: stamp 640ms var(--ease-resonance) 520ms both; }
+@keyframes stamp {
+  0%   { opacity: 0; transform: scale(1.14) rotate(-2deg); filter: blur(1.5px); }
+  45%  { opacity: 1; transform: scale(0.97) rotate(0.4deg); filter: blur(0); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+
+/* ---------- brush link: dry-brush underline drawn in stroke direction ---------- */
+.brush {
+  position: relative;
+  display: inline-block;
+  text-decoration: none;
+  padding-block: 0.1em;
+  isolation: isolate;
+}
+.brush::after {
+  content: '';
+  position: absolute;
+  left: -0.18em;
+  right: -0.22em;
+  bottom: -0.2em;
+  height: 0.46em;
+  z-index: -1;
+  background: currentColor;
+  opacity: 0;
+  -webkit-mask: var(--tex-stroke) 0 0 / 100% 100% no-repeat,
+    linear-gradient(90deg, #000 calc(var(--draw) - 14%), transparent var(--draw));
+  -webkit-mask-composite: source-in;
+  mask: var(--tex-stroke) 0 0 / 100% 100% no-repeat,
+    linear-gradient(90deg, #000 calc(var(--draw) - 14%), transparent var(--draw));
+  mask-composite: intersect;
+  /* leaving: the stroke dissolves, then resets out of sight */
+  transition: opacity 280ms ease, --draw 0s linear 300ms;
+}
+.brush:hover::after,
+.brush:focus-visible::after,
+.brush[aria-current='page']::after {
+  --draw: 114%;
+  opacity: 0.88;
+  transition: --draw 440ms var(--ease-resonance), opacity 60ms linear;
+}
+/* resting hint for links inside content: a faint stroke is always there */
+.brush--rest { font-weight: 600; color: var(--ink-900); }
+.brush--rest::before {
+  content: '';
+  position: absolute;
+  left: -0.18em;
+  right: -0.22em;
+  bottom: -0.2em;
+  height: 0.46em;
+  z-index: -1;
+  background: var(--ink-300);
+  opacity: 0.55;
+  -webkit-mask: var(--tex-stroke) 0 0 / 100% 100% no-repeat;
+  mask: var(--tex-stroke) 0 0 / 100% 100% no-repeat;
+}
+
+/* ---------- ink button: bloom from the cursor's entry point ---------- */
+.ink-btn {
+  --x: 50%;
+  --y: 50%;
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  padding: 1.05rem 2.35rem 1.1rem 2.1rem;
+  color: var(--ink-900);
+  font-weight: 600;
+  font-size: 1.0625rem;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  isolation: isolate;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.ink-btn__ink {            /* the brush swatch: a pale resting wash, clips everything */
+  position: absolute;
+  inset: -0.2rem -0.5rem -0.25rem -0.35rem;
+  z-index: -1;
+  background: rgb(17 20 22 / 0.15);
+  -webkit-mask: var(--tex-swatch) 0 0 / 100% 100% no-repeat;
+  mask: var(--tex-swatch) 0 0 / 100% 100% no-repeat;
+}
+.ink-btn__wet {            /* feathers whatever ink is inside it: capillary edge */
+  position: absolute;
+  inset: 0;
+  filter: url(#ink-feather);
+}
+.ink-btn__bloom {
+  position: absolute;
+  inset: 0;
+  background: var(--ink-900);
+  -webkit-mask-image: radial-gradient(circle at var(--x) var(--y), #000 calc(var(--r) - 16px), transparent var(--r));
+  mask-image: radial-gradient(circle at var(--x) var(--y), #000 calc(var(--r) - 16px), transparent var(--r));
+  transition: --r 720ms var(--ease-resonance);
+}
+.ink-btn__label {
+  position: relative;
+  white-space: nowrap;
+  transition: color var(--dur-hover) ease 30ms;
+}
+.ink-btn:hover .ink-btn__bloom,
+.ink-btn:focus-visible .ink-btn__bloom {
+  --r: 460px;
+  transition-duration: 560ms;
+}
+.ink-btn:hover .ink-btn__label,
+.ink-btn:focus-visible .ink-btn__label {
+  color: var(--paper);
+  transition-delay: 90ms;
+}
+.ink-btn:focus-visible { outline-offset: 6px; border-radius: 0.7rem; }
+.ink-btn:active .ink-btn__label { transform: translateY(1px); }
+
+/* ink-drop press: a dark drop, then two diminishing rings of water */
+.ink-btn__drop {
+  position: absolute;
+  left: var(--dx);
+  top: var(--dy);
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.ink-btn__drop::before,
+.ink-btn__drop::after,
+.ink-btn__drop > i {
+  content: '';
+  position: absolute;
+  left: -110px;
+  top: -110px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, transparent 78%, rgb(var(--paper-rgb) / 0.8) 88%, transparent 98%);
+  transform: scale(0.08);
+  opacity: 0;
+  animation: ring 900ms var(--ease-resonance) forwards;
+}
+.ink-btn__drop::after { animation-delay: 120ms; --ring-o: 0.5; }
+.ink-btn__drop > i { animation-delay: 240ms; --ring-o: 0.25; }
+@keyframes ring {
+  0%   { transform: scale(0.08); opacity: var(--ring-o, 0.85); }
+  100% { transform: scale(1); opacity: 0; }
+}
+
+/* ---------- hero ---------- */
+main { position: relative; z-index: 2; }
+
+.hero {
+  position: relative;
+  min-height: 100svh;
+  padding: max(7rem, 18vh) var(--gutter) max(5rem, 12vh);
+}
+
+.name {
+  margin: 0 0 0 -0.04em;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: var(--step-name);
+  line-height: 0.8;
+  letter-spacing: -0.012em;
+  word-spacing: -0.09em;
+  color: var(--ink-900);
+  font-kerning: normal;
+  text-wrap: nowrap;
+}
+.name__ink {
+  display: block;
+  animation: name-mist var(--dur-arrive) both;
+}
+.name.is-bleeding { filter: url(#name-bleed); }
+/* legible by ~250 ms after first paint; the last of the feathering settles by ~900 ms */
+@keyframes name-mist {
+  0%   { opacity: 0; filter: blur(16px); animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1); }
+  26%  { opacity: 1; filter: blur(4px); animation-timing-function: cubic-bezier(0.3, 0.6, 0.2, 1); }
+  60%  { filter: blur(0.8px); }
+  100% { opacity: 1; filter: none; }
+}
+.name__aka {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-variation-settings: 'FLAR' 60;
+  font-size: 0.115em;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--ink-500);
+  vertical-align: top;
+  translate: 0 0.6em;
+  margin: 0 0.15em 0 0.25em;
+}
+
+.hero__copy {
+  position: relative;
+  max-width: 40rem;
+  margin-top: clamp(1.6rem, 1rem + 2vw, 2.8rem);
+  padding-left: 0.2rem;
+}
+/* raise the mist behind the copy so text stays at 7:1+ over the landscape */
+.hero__copy::before {
+  content: '';
+  position: absolute;
+  inset: -45% -40% -55% -30%;
+  z-index: -1;
+  background: radial-gradient(closest-side, rgb(var(--paper-rgb) / 0.9), rgb(var(--paper-rgb) / 0.72) 50%, rgb(var(--paper-rgb) / 0) 100%);
+  pointer-events: none;
+}
+
+.role {
+  font-size: clamp(0.75rem, 0.7rem + 0.2vw, 0.84rem);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-700);
+  line-height: 1.7;
+}
+.role .sep { color: var(--ink-300); }
+
+.pitch {
+  margin-top: 0.9rem;
+  max-width: 34ch;
+  font-size: clamp(1.15rem, 1rem + 0.55vw, 1.45rem);
+  line-height: 1.45;
+  color: var(--ink-700);
+  text-wrap: pretty;
+}
+
+.cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.25rem 2.4rem;
+  margin-top: clamp(1.8rem, 1.2rem + 1.6vw, 2.6rem);
+}
+.cta .brush { font-size: 1.0625rem; }
+
+/* hero copy arrives just after the name, painted in, never slid */
+.hero__copy > * {
+  animation: copy-in 800ms var(--ease-resonance) both;
+  animation-delay: calc(180ms + var(--k, 0) * 80ms);
+}
+.hero__copy > :nth-child(2) { --k: 1; }
+.hero__copy > :nth-child(3) { --k: 2; }
+@keyframes copy-in {
+  from { opacity: 0; filter: blur(6px); }
+  to   { opacity: 1; filter: none; }
+}
+
+/* ---------- statement ---------- */
+.statement {
+  position: relative;
+  padding: 18vh var(--gutter) 14vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: center;
+  min-height: 100svh;
+}
+.statement__title {
+  margin: 0;
+  max-width: 15ch;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(3.2rem, 1.6rem + 5.4vw, 7.25rem);
+  line-height: 0.9;
+  letter-spacing: -0.004em;
+  text-wrap: balance;
+  color: var(--ink-900);
+}
+.statement__title .stop { color: var(--cinnabar); } /* the screen's one warm note */
+.statement__body {
+  margin-top: 1.5rem;
+  max-width: 44ch;
+  font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.3rem);
+  line-height: 1.55;
+  color: var(--ink-700);
+  text-wrap: pretty;
+}
+
+/* ---------- proof numbers ---------- */
+.proof {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: 76rem;
+  gap: 2.2rem clamp(2rem, 1rem + 4vw, 6rem);
+  margin: clamp(3.5rem, 2rem + 5vw, 7rem) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.proof__fig {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(4.5rem, 2.6rem + 6vw, 9.5rem);
+  line-height: 0.82;
+  letter-spacing: -0.01em;
+  color: var(--ink-900);
+  font-variant-numeric: lining-nums;
+}
+.proof__approx {
+  font-weight: 500;
+  margin-right: 0.02em;
+  color: var(--ink-500);
+}
+.proof__label {
+  display: block;
+  margin-top: 0.85rem;
+  max-width: 17ch;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  color: var(--ink-500);
+}
+.proof-note {
+  margin-top: clamp(2.2rem, 1.5rem + 2vw, 3.4rem);
+  max-width: 58ch;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--ink-500);
+}
+.proof-note .brush { font-weight: 600; color: var(--ink-700); }
+
+.foot {
+  position: relative;
+  z-index: 2;
+  padding: 2rem var(--gutter) 2.5rem;
+  font-size: 0.85rem;
+  color: var(--ink-500);
+}
+
+/* ---------- reveals ---------- */
+/* statement: emerges from mist, scrubbed by scroll where supported */
+@supports (animation-timeline: view()) {
+  .mist-in {
+    animation: mist-in linear both;
+    animation-timeline: view();
+    animation-range: entry 5% cover 32%;
+  }
+}
+@supports not (animation-timeline: view()) {
+  .js .mist-in {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateY(1.5rem);
+    transition: opacity 900ms var(--ease-resonance), filter 900ms var(--ease-resonance), transform 900ms var(--ease-resonance);
+  }
+  .js .mist-in.is-in { opacity: 1; filter: none; transform: none; }
+}
+@keyframes mist-in {
+  from { opacity: 0; filter: blur(12px); transform: translateY(1.5rem); }
+  to   { opacity: 1; filter: none; transform: none; }
+}
+
+/* numbers: painted in by one brush pass with a fibrous leading edge.
+   Scroll-driven where supported (staggered by range); otherwise triggered once by IO. */
+@supports (animation-timeline: view()) {
+  .proof__fig {
+    -webkit-mask: var(--tex-sweep) 100% 0 / 320% 100% no-repeat;
+    mask: var(--tex-sweep) 100% 0 / 320% 100% no-repeat;
+    animation: ink-in linear both;
+    animation-timeline: view();
+    animation-range: entry calc(5% + var(--i) * 12%) cover calc(30% + var(--i) * 5%);
+  }
+  .proof__label {
+    animation: copy-in linear both;
+    animation-timeline: view();
+    animation-range: entry calc(40% + var(--i) * 12%) cover calc(36% + var(--i) * 5%);
+  }
+}
+@supports not (animation-timeline: view()) {
+  .js .proof__item .proof__fig,
+  .js .proof__item .proof__label { opacity: 0; }
+  .js .proof__item.is-inked .proof__fig {
+    -webkit-mask: var(--tex-sweep) 100% 0 / 320% 100% no-repeat;
+    mask: var(--tex-sweep) 100% 0 / 320% 100% no-repeat;
+    animation: ink-in 1300ms var(--ease-ink) both;
+    animation-delay: calc(var(--i) * 170ms);
+  }
+  .js .proof__item.is-inked .proof__label {
+    animation: copy-in 800ms var(--ease-resonance) both;
+    animation-delay: calc(var(--i) * 170ms + 520ms);
+  }
+}
+@keyframes ink-in {
+  0%   { opacity: 1; filter: blur(7px); -webkit-mask-position: 100% 0; mask-position: 100% 0; }
+  70%  { filter: blur(0.5px); }
+  100% { opacity: 1; filter: none; -webkit-mask-position: 0 0; mask-position: 0 0; }
+}
+
+/* ---------- demo-only ---------- */
+/* ?y=<px>: headless screenshots capture from the document top and ignore window scroll,
+   so the demo scrolls an inner body scroller instead. It re-declares the --page
+   timeline, so every scroll effect follows it. */
+html.demo-y { height: 100%; overflow: hidden; }
+html.demo-y body { position: relative; height: 100%; overflow-y: auto; scroll-timeline: --page block; }
+@supports (animation-timeline: scroll()) {
+  html.demo-y .shanshui.is-ready .shanshui__plane,
+  html.demo-y .shanshui__mist { animation-timeline: auto, --page; }
+  html.demo-y .shanshui__veil { animation-timeline: --page; }
+}
+
+/* ---------- small screens ---------- */
+@media (max-width: 40rem) {
+  .nav ul { gap: 0 0.7rem; }
+  .nav a { display: inline-block; padding-block: 0.55rem; font-size: 0.8125rem; }
+  /* stack as "Qijin (Jack)" / "Xu": the text order never changes */
+  .name { font-size: clamp(6rem, 43vw, 11rem); line-height: 0.9; }
+  .name__family { display: block; margin-top: 0.02em; }
+  .name__aka { font-size: 0.13em; margin-left: 0.3em; translate: 0 0.5em; }
+  .hero { padding-top: max(6.5rem, 15vh); }
+  .proof { grid-template-columns: minmax(0, 1fr); gap: 2.4rem; }
+  .proof__label { max-width: 24ch; }
+}
+
+/* ---------- reduced motion: calm static landscape, simple fades ---------- */
+@media (prefers-reduced-motion: reduce) {
+  /* no parallax, no drift; the veil still thickens with scroll (an opacity change, not motion) */
+  .shanshui.is-ready .shanshui__plane,
+  .shanshui__mist { animation: none !important; transform: none !important; }
+  .shanshui.is-ready .shanshui__plane { opacity: 1; }
+  .name__ink,
+  .hero__copy > *,
+  .js .proof__item.is-inked .proof__fig,
+  .js .proof__item.is-inked .proof__label {
+    animation: fade 300ms ease both !important;
+    -webkit-mask: none !important;
+    mask: none !important;
+  }
+  .proof__fig,
+  .proof__label { animation: none !important; opacity: 1 !important; -webkit-mask: none !important; mask: none !important; }
+  .mist-in { animation: none !important; opacity: 1 !important; filter: none !important; transform: none !important; }
+  .seal.is-stamping svg { animation: none; }
+  .ink-btn__bloom { transition-duration: 1ms !important; }
+  .brush::after { transition-duration: 1ms !important; }
+}
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }

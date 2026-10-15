@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Spec check v2: home</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Commissioner:wght@400;560;700&family=Sofia+Sans+Condensed:wght@780&family=Sofia+Sans+Extra+Condensed:wght@900&display=swap">
+<link rel="stylesheet" href="base-v2.css">
+<style>
+.hello{display:grid;gap:20px;margin-top:28px}
+.hello img{width:72%;max-width:320px;height:auto;aspect-ratio:4/5;object-fit:cover;object-position:50% 30%;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(17,20,22,.1);display:block}
+.hello p{margin-top:12px}
+@media(min-width:640px){.hello{grid-template-columns:240px minmax(0,600px);gap:40px;align-items:start}.hello img{width:240px}}
+@media(min-width:1200px){.hello{grid-template-columns:280px minmax(0,640px);gap:48px;margin-top:32px}.hello img{width:280px}}
+</style></head><body>
+<header class="site-header frame"><a class="id" href="#" aria-label="Qijin Xu, home"><span class="seal" aria-hidden="true"></span>Qijin Xu</a>
+<nav aria-label="Main"><a href="#">Work</a><a href="#">Résumé</a><a href="#">Contact</a></nav></header>
+<main class="frame">
+ <div class="pagehead overlay" style="--h:var(--strip-home)">
+  <div class="strip" data-scene="home"><canvas></canvas><div class="veil"></div></div>
+  <div class="head">
+   <h1 class="name">Qijin Xu</h1>
+   <p class="lede">Most people call me Jack. I'm a Lead AI/ML Architect at CGI's AI Center of Excellence in Toronto, where I design and ship production AI: LLM agents, retrieval systems, and the data platforms underneath them.</p>
+   <p class="lede">Right now I'm leading an agent that reads and documents legacy code written in a proprietary language.</p>
+   <div class="acts"><a class="btn" href="#">See the work →</a><a class="lnk" href="#">Résumé</a></div>
+  </div>
+ </div>
+ <div class="hello wide" id="about">
+  <img src="http://localhost:4173/assets/img/qijin-xu.jpg" alt="Qijin Xu" width="280" height="350">
+  <div><h2>About me</h2>
+  <p class="ph">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+  <p class="ph">Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam.</p></div>
+ </div>
+ <section class="read"><h2>What I work on</h2>
+ <ul class="rows">
+ <li><h3>Assistants that answer from your own knowledge</h3><p>About <b>90%</b> of insurance support questions resolved without a person, for 50,000+ users. CGI Impact Award 2024. <a class="lnk" href="#">The case →</a></p></li>
+ <li><h3>Agents for code nobody documented</h3><p>An agent that documents legacy code in a proprietary language: a projected <b>50%</b> less manual work. In progress. <a class="lnk" href="#">The case →</a></p></li>
+ <li><h3>Data platforms AI can stand on</h3><p><b>99.9%</b> uptime on Canada's largest auto-insurance policy-history database. <a class="lnk" href="#">The case →</a></p></li>
+ </ul><p style="margin-top:8px"><a class="lnk" href="#">All six projects →</a></p></section>
+ <section class="read"><h2>Now <span class="small">· October 2026</span></h2>
+ <ul class="rows ph"><li>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</li><li>Sed do eiusmod tempor incididunt ut labore et dolore.</li><li>Ut enim ad minim veniam, quis nostrud exercitation.</li></ul></section>
+ <section class="read"><h2>Writing</h2><ul class="rows"><li><p class="small">Note · 20 April 2025</p><h3>What is an AI agent?</h3><p>What an AI agent is, and how it differs from an AI assistant.</p></li></ul></section>
+ <section class="read"><h2>Say hello</h2><p style="margin-top:12px">Have an AI system that needs to work in production, not just in a demo? Write to me at <a class="lnk" href="#">qxjack@gmail.com</a>, or find me on <a class="lnk" href="#">LinkedIn</a> and <a class="lnk" href="#">GitHub</a>.</p></section>
+ <div class="vignette">Closing vignette: the road down toward the river town · Next: Work →</div>
+</main>
+<footer class="site-footer frame"><div class="storymap"></div>
+<p>© 2026 Qijin Xu · Toronto · Email · LinkedIn · GitHub · Writing · View résumé (PDF)</p><p>Updated October 2026 · Still the landscape</p></footer>
+<script src="../sketch/ink.js"></script><script src="../sketch/things.js"></script><script src="strip.js"></script>
+<script src="paint-v2.js"></script>
+</body></html>

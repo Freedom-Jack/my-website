@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 20" preserveAspectRatio="none">
+  <!-- Dry-brush underline: a loaded, pressed start that runs dry (feibai streaks) towards the tail.
+       Drawn in the reading direction by CSS (background-size), so the stroke always starts at the left. -->
+  <defs>
+    <linearGradient id="load" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#111416" stop-opacity="1"/>
+      <stop offset=".66" stop-color="#111416" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#111416" stop-opacity=".55"/>
+    </linearGradient>
+    <filter id="dry" x="0" y="-60%" width="100%" height="220%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.008 0.55" numOctaves="2" seed="5" result="streak"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="2" seed="8" result="edge"/>
+      <feDisplacementMap in="SourceGraphic" in2="edge" scale="2" xChannelSelector="R" yChannelSelector="G" result="shape"/>
+      <feComposite in="shape" in2="streak" operator="arithmetic" k1="0" k2="4" k3="3.1" k4="-4.15" result="mask"/>
+      <feFlood flood-color="#111416"/>
+      <feComposite in2="mask" operator="in"/>
+    </filter>
+  </defs>
+  <path filter="url(#dry)" fill="url(#load)" d="M2.2 11.4C2 7.2 7.6 5.2 16 5 60 4.2 120 5.2 180 6.2c26 .5 46 1.2 57.8 2.8-11.4 1.8-32 2.8-57.8 3.6-60 1.6-120 2.6-164 2.8-8 .2-13.6-.6-13.8-4z"/>
+</svg>

@@ -1,0 +1,9 @@
+{
+  "updated": "2026-10-09",
+  "repos": [
+    { "name": "world_qlearning", "year": 2020, "line": "A Q-learning agent that learns to cross an M×N grid world, with notes on how the discount and learning rates change convergence." },
+    { "name": "aStar-pathFinding", "year": 2019, "line": "Solves the 8-puzzle in Prolog with A*, cycle-checking A* and IDA*, using misplaced-tile and Manhattan-distance heuristics. Course project." },
+    { "name": "cryptology", "year": 2019, "line": "Java code and notes on cryptography, from Caesar and Vigenère ciphers to RSA, Miller–Rabin primality testing, digital signatures and HMAC." },
+    { "name": "reddit-tfidf", "year": 2019, "line": "Finds the most significant terms in Reddit comments with TF-IDF, using MapReduce and Spark over the Pushshift and Reddit APIs. Team project." }
+  ]
+}

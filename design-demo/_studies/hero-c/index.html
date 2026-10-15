@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Qijin (Jack) Xu · Lead AI/ML Architect, Toronto</title>
+  <meta name="description" content="Qijin (Jack) Xu is a Lead AI/ML Architect at CGI's AI Center of Excellence in Toronto. He designs and ships production AI: LLM agents, RAG systems and the data platforms beneath them.">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#eff1ee">
+  <!-- Hero study C: light layered SVG. Demo only, not indexed. -->
+  <meta name="robots" content="noindex">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Commissioner:wght,FLAR@400..700,0..100&family=Sofia+Sans+Extra+Condensed:wght@500..1000&display=swap">
+  <!-- The seal glyph only: a one-character subset. -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@900&text=%E5%BE%90&display=block">
+
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="study.css">
+  <script>document.documentElement.classList.add('js')</script>
+  <script type="module" src="js/main.js"></script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Qijin Xu",
+    "alternateName": ["Jack Xu", "Qijin (Jack) Xu"],
+    "jobTitle": "Lead AI/ML Architect",
+    "worksFor": { "@type": "Organization", "name": "CGI", "url": "https://www.cgi.com" },
+    "address": { "@type": "PostalAddress", "addressLocality": "Toronto", "addressRegion": "ON", "addressCountry": "CA" },
+    "email": "mailto:qxjack@gmail.com",
+    "sameAs": ["https://github.com/Freedom-Jack", "https://www.linkedin.com/in/qijin-x-4899671a9/"],
+    "alumniOf": { "@type": "CollegeOrUniversity", "name": "York University" }
+  }
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- Shared SVG filters for the UI (the landscape builds its own). -->
+  <svg class="svg-defs" width="0" height="0" aria-hidden="true" focusable="false">
+    <defs>
+      <!-- Name load-in: the edge feathers like wet ink, then settles crisp (scale tweened by JS). -->
+      <filter id="name-bleed" x="-4%" y="-25%" width="108%" height="150%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.018 0.05" numOctaves="3" seed="7" result="n"/>
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="0" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+      <!-- Button bloom: capillary edge, ink wicking into paper fibre. -->
+      <filter id="ink-feather" x="-12%" y="-40%" width="124%" height="180%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.045 0.07" numOctaves="4" seed="11" result="n"/>
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="16" xChannelSelector="R" yChannelSelector="G" result="d"/>
+        <feGaussianBlur in="d" stdDeviation="0.7" result="b"/>
+        <feComponentTransfer in="b"><feFuncA type="table" tableValues="0 0.05 0.65 1 1"/></feComponentTransfer>
+      </filter>
+      <!-- Seal: stone-cut edges, uneven stamp pressure, a few worn specks. -->
+      <filter id="seal-stone" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="3" seed="23" result="n"/>
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G" result="cut"/>
+        <feTurbulence type="fractalNoise" baseFrequency="0.32" numOctaves="2" seed="5" result="fine"/>
+        <feColorMatrix in="fine" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -16 0 0 0 11.7" result="specks"/>
+        <feComposite in="cut" in2="specks" operator="in" result="worn"/>
+        <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0.7 0 0 0.66" result="press"/>
+        <feComposite in="worn" in2="press" operator="in"/>
+      </filter>
+    </defs>
+  </svg>
+
+  <!-- Background: generated misty ink mountains. Decorative only. -->
+  <div class="shanshui" aria-hidden="true">
+    <div class="shanshui__planes" data-layers>
+      <!-- Mist bands interleave with the 7 ridge planes JS inserts before each data-after marker. -->
+      <div class="shanshui__mist" data-after="1" style="--y:47%;--h:14%;--o:.7;--dur:150s;--sink:.05"></div>
+      <div class="shanshui__mist is-rev" data-after="3" style="--y:60%;--h:15%;--o:.8;--dur:120s;--sink:.14"></div>
+      <div class="shanshui__mist" data-after="5" style="--y:74%;--h:16%;--o:.85;--dur:95s;--sink:.26"></div>
+      <div class="shanshui__mist is-rev" data-after="6" style="--y:86%;--h:16%;--o:.88;--dur:80s;--sink:.4"></div>
+    </div>
+    <div class="shanshui__veil"></div>
+  </div>
+  <div class="paper-grain" aria-hidden="true"></div>
+
+  <header class="chrome">
+    <a class="seal" href="./" aria-label="Qijin (Jack) Xu, home">
+      <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+        <defs>
+          <mask id="seal-carve" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
+            <rect width="64" height="64" fill="#fff"/>
+            <text x="32" y="34.5" text-anchor="middle" dominant-baseline="central" font-size="47" font-weight="900" fill="#000" font-family="'Noto Serif SC', 'Songti SC', 'STSong', serif">徐</text>
+          </mask>
+        </defs>
+        <g filter="url(#seal-stone)">
+          <rect x="4" y="4" width="56" height="56" rx="2.2" fill="#b1362b" mask="url(#seal-carve)"/>
+        </g>
+      </svg>
+    </a>
+    <nav class="nav" aria-label="Main">
+      <ul>
+        <li><a class="brush" href="#">About</a></li>
+        <li><a class="brush" href="#">Work</a></li>
+        <li><a class="brush" href="#">Writing</a></li>
+        <li><a class="brush" href="#">Résumé</a></li>
+        <li><a class="brush" href="#">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-name">
+      <h1 id="hero-name" class="name"><span class="name__ink"><span class="name__given">Qijin</span> <span class="name__aka">(Jack)</span> <span class="name__family">Xu</span></span></h1>
+      <div class="hero__copy">
+        <p class="role">Lead AI/ML Architect<span class="sep"> · </span>AI Center of Excellence, CGI<span class="sep"> · </span>Toronto</p>
+        <p class="pitch">I design and ship production AI: LLM agents, RAG systems and the data platforms beneath them.</p>
+        <div class="cta">
+          <a class="ink-btn" href="#work">
+            <span class="ink-btn__ink" aria-hidden="true"><span class="ink-btn__wet"><span class="ink-btn__bloom"></span></span></span>
+            <span class="ink-btn__label">See the work</span>
+          </a>
+          <a class="brush brush--rest" href="#">About me</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="statement" id="work" aria-labelledby="statement-title">
+      <h2 id="statement-title" class="statement__title mist-in">A model is only as good as the system around&nbsp;it<span class="stop">.</span></h2>
+      <p class="statement__body mist-in">For five years I’ve built those systems: the data underneath, the retrieval in the middle, and the agents and guardrails on top.</p>
+
+      <ul class="proof" role="list">
+        <li class="proof__item" data-ink-in style="--i:0">
+          <span class="proof__fig"><span class="proof__approx">~</span>90%</span>
+          <span class="proof__label">autonomous resolution of support questions</span>
+        </li>
+        <li class="proof__item" data-ink-in style="--i:1">
+          <span class="proof__fig">525%</span>
+          <span class="proof__label">return on investment within 12&nbsp;months</span>
+        </li>
+        <li class="proof__item" data-ink-in style="--i:2">
+          <span class="proof__fig">50K+</span>
+          <span class="proof__label">users served</span>
+        </li>
+      </ul>
+      <p class="proof-note">All three describe one system: the LLM-powered RAG assistant I architected at CGI, which won a CGI Impact Award in 2024. The figures come from my project work; the <a class="brush brush--rest" href="https://www.cgi.com/canada/en-ca/insurance-chatbot">public product page</a> describes the assistant.</p>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p>© 2026 Qijin (Jack) Xu · Toronto, Canada</p>
+  </footer>
+</body>
+</html>

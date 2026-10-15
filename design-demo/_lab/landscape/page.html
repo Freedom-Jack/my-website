@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Window lab</title>
+  <meta name="robots" content="noindex"><!-- engine lab: a page-shaped harness for the round-4a windows (not part of the site) -->
+  <link rel="icon" href="/assets/svg/seal.svg" type="image/svg+xml">
+  <meta name="color-scheme" content="light">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Commissioner:wght@400;560;700&family=Sofia+Sans+Condensed:wght@780&family=Sofia+Sans+Extra+Condensed:wght@900&display=swap">
+  <style>
+    /* A stand-in for the site's round-4a layout (SPEC-R4A §2, §3, §6, §8), so the engine can be judged at real
+       strip sizes before the pages land. Values from the spec's tokens; the site's own CSS is the reference. */
+    :root {
+      --paper: #EFF1EE; --ink: #111416; --ink-3: #434C50; --ink-4: #5E676B; --rule: #C9D0CF;
+      --gutter: 20px; --hdr: 56px; --frame: 1200px;
+      --strip-home: clamp(96px, 14svh, 120px); --strip-sub: clamp(110px, 20svh, 170px); --strip-doc: clamp(88px, 12svh, 110px);
+      --closing-h: 160px; --fs-name: clamp(44px, 35px + 2.6vw, 72px); --fs-title: 32px; --fs-lead: 18px; --fs-body: 17px; --fs-h2: 22px;
+    }
+    @media (max-width: 360px) { :root { --gutter: 16px; } }
+    @media (min-width: 640px) { :root { --gutter: 32px; --hdr: 64px; --strip-home: 220px; --strip-sub: 220px; --strip-doc: 160px; --closing-h: 200px; --fs-title: 40px; --fs-lead: 20px; --fs-body: 18px; --fs-h2: 26px; } }
+    @media (min-width: 1200px) { :root { --gutter: 40px; --strip-home: clamp(440px, 58svh, 540px); --strip-sub: clamp(300px, 40svh, 360px); --strip-doc: clamp(180px, 24svh, 220px); --closing-h: 240px; } }
+    @media (max-height: 500px) and (max-width: 1199px) { :root { --strip-home: 80px; --strip-sub: 80px; --strip-doc: 64px; --closing-h: 96px; --hdr: 48px; } }
+    html { background: var(--paper); color: var(--ink); font: 400 var(--fs-body)/1.6 Commissioner, system-ui, sans-serif; }
+    body { margin: 0; overflow-x: clip; }
+    .land { position: fixed; inset: 0; width: 100%; height: 100lvh; display: block; z-index: -1; pointer-events: none; }
+    .frame { width: min(var(--frame), 100% - 2 * var(--gutter)); margin-inline: auto; }
+    .bleed { margin-inline: calc(50% - 50vw); }
+    .hdr { height: var(--hdr); display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 17px; }
+    .hdr nav { display: flex; gap: 14px; font-weight: 560; font-size: 15px; }
+    @media (min-width: 640px) { .hdr nav { gap: 28px; font-size: 16px; } }
+    .seal { display: inline-block; width: 28px; height: 28px; background: #B1362B; border-radius: 3px; vertical-align: middle; margin-right: 10px; }
+    .strip { position: relative; }
+    .strip__art { min-height: var(--strip-h); }
+    .strip--home { --strip-h: var(--strip-home); } .strip--sub { --strip-h: var(--strip-sub); } .strip--doc { --strip-h: var(--strip-doc); }
+    .strip__text { padding-top: clamp(20px, 14px + 1.4vw, 28px); max-width: 680px; }
+    @media (min-width: 1200px) {
+      .strip:not(.strip--doc) { display: grid; }
+      .strip:not(.strip--doc) > .strip__art, .strip:not(.strip--doc) > .strip__text { grid-area: 1 / 1; }
+      .strip:not(.strip--doc) > .strip__text { align-self: center; max-width: 580px; padding-block: 24px; position: relative; z-index: 1; }
+    }
+    .strip__note { position: absolute; right: 0; top: calc(var(--strip-h) - 1.75rem); margin: 0; font-size: 14px; color: var(--ink-4); }
+    h1.name { margin: 0; font: 900 var(--fs-name)/1.02 'Sofia Sans Extra Condensed', sans-serif; letter-spacing: -.005em; padding-bottom: .06em; }
+    h1.title { margin: 0; font: 780 var(--fs-title)/1.1 'Sofia Sans Condensed', sans-serif; }
+    .lead { font-size: var(--fs-lead); line-height: 1.55; margin: 14px 0 0; max-width: 34em; }
+    .sec { margin-top: 56px; max-width: 680px; }
+    .sec h2 { font: 700 var(--fs-h2)/1.25 Commissioner, sans-serif; letter-spacing: -.01em; margin: 0 0 12px; }
+    .closing { margin-top: 56px; position: relative; }
+    .closing__next { margin: 0; font: 700 var(--fs-h2)/1.25 Commissioner, sans-serif; padding: 12px 0; }
+    .closing__next span { font-weight: 560; color: var(--ink-3); }
+    .closing__art { min-height: var(--closing-h); }
+    @media (min-width: 1200px) {
+      .closing { display: grid; }
+      .closing > * { grid-area: 1 / 1; }
+      .closing__next { align-self: center; position: relative; z-index: 1; width: fit-content; }
+    }
+    .foot { padding: 24px 0 48px; font-size: 14px; color: var(--ink-3); }
+    .short .long { display: none; }
+    .hide-text .strip__text, .hide-text .closing__next, .hide-text .sec, .hide-text .hdr, .hide-text .foot, .hide-text .strip__note { visibility: hidden; }
+  </style>
+</head>
+<body>
+  <canvas class="land" aria-hidden="true"></canvas>
+  <header class="hdr frame"><span><span class="seal"></span>Qijin Xu</span><nav><span>Work</span><span>Résumé</span><span>Contact</span></nav></header>
+  <main class="frame" id="main">
+    <header class="strip" id="strip">
+      <div class="strip__art bleed" data-landscape="strip" data-wake aria-hidden="true"></div>
+      <div class="strip__text" data-landscape="keepout" data-veil="0.85" id="text"></div>
+      <p class="strip__note" id="note" hidden>Draft art</p>
+    </header>
+    <section class="sec" data-veil><h2>A section</h2><p>Reading text on paper. On desktops the faint ink horizon of round 3 rises from the bottom of the view once the strip has gone, and sinks again before the closing scene.</p><p>The veil keeps paper behind the lines, so no text sits on the painting.</p></section>
+    <section class="sec" data-veil><h2>Another section</h2><p>More text. The mist in the strip's sky drifts and parts around a fine pointer; here, in the reading, it rests.</p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p></section>
+    <section class="sec" data-veil><h2>A third</h2><p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p></section>
+    <section class="sec long" data-veil><h2>A fourth</h2><p>Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.</p><p>Totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p></section>
+    <section class="sec long" data-veil><h2>A fifth</h2><p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p><p>Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.</p></section>
+    <section class="sec long" data-veil><h2>A sixth</h2><p>Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur.</p><p>Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur.</p></section>
+    <nav class="closing" aria-label="Next page">
+      <p class="closing__next" data-landscape="keepout"><span>Next:</span> <u id="next">Work</u> →</p>
+      <div class="closing__art bleed" data-landscape="closing" data-wake aria-hidden="true"></div>
+    </nav>
+  </main>
+  <footer class="foot frame" data-veil="0.95">© 2026 Qijin Xu · Toronto · Updated October 2026</footer>
+
+  <script type="module">
+    // ?stretch=0..6 (default the page's), &palette=ink|misted|rich, &figures=0, &state=hero|horizon|closing,
+    // &still=1, &arrival=none, &y=<px> (pre-scroll), &text=0 (hide the text), &go=<stretch> (pan there after 1.5 s),
+    // &short=1 (a short page), &q=1 (fixed internal quality: judge the art as a real GPU paints it; headless software GL defaults to 0.6)
+    import { mountLandscape, sceneAt } from '/assets/js/landscape/index.js';
+    const qs = new URLSearchParams(location.search);
+    const k = Number(qs.get('stretch') ?? 0);
+    const PAGES = [
+      ['home', 'level', 1, 0.6, 'Work'], ['sub', 'deep', 0.8, 0.55, 'Résumé'], ['sub', 'high', 0.8, 0.55, 'Writing'],
+      ['sub', 'level', 0.6, 0.5, 'Résumé'], ['doc', 'level', 0.5, 0.35, 'Contact'], ['sub', 'level', 0.9, 0.5, 'Home'], ['sub', 'deep', 1, 0.5, ''],
+    ];
+    const [kind, distance, presence, horizon, next] = PAGES[k] || PAGES[0];
+    const strip = document.getElementById('strip');
+    strip.classList.add(`strip--${qs.get('kind') || kind}`);
+    const text = document.getElementById('text');
+    const TITLES = ['Work', 'Work', 'The road', 'Writing', 'Résumé', 'Contact', 'Page not found'];
+    if ((qs.get('kind') || kind) === 'home') {
+      text.innerHTML = '<h1 class="name">Qijin Xu</h1><p class="lead">Lead AI/ML Architect at CGI\'s AI Center of Excellence in Toronto. I design and ship production AI for banks and insurers: LLM agents, retrieval systems, and the data platforms underneath them.</p><p class="lead">Right now I\'m leading an agent that reads and documents legacy code written in a proprietary language.</p>';
+    } else {
+      text.innerHTML = `<h1 class="title">${TITLES[k]}</h1><p class="lead">Most of what I build runs inside client systems, so the code is private. Here is what each project was, what I did, and what changed.</p>`;
+    }
+    if (k <= 1) document.getElementById('note').hidden = false;
+    document.getElementById('next').textContent = next || '—';
+    if (qs.get('text') === '0') document.documentElement.classList.add('hide-text');
+    if (qs.get('short') === '1') document.documentElement.classList.add('short');   // a short page (no horizon between)
+    const $$ = (s) => document.querySelectorAll(s);
+    const land = mountLandscape(document.querySelector('.land'), {
+      stretch: k, distance, presence, horizon,
+      palette: qs.get('palette') || 'misted',
+      figures: qs.get('figures') !== '0',
+      strip: document.querySelector('[data-landscape="strip"]'),
+      closing: document.querySelector('[data-landscape="closing"]'),
+      keepout: $$('[data-landscape="keepout"]'),
+      veil: $$('[data-veil]'),
+      wake: $$('[data-wake]'),
+      still: qs.get('still') === '1',
+      arrival: qs.get('arrival') ?? 'bloom',
+      quality: qs.has('q') ? Number(qs.get('q')) : 'auto',
+    });
+    if (qs.get('state')) land.setState(qs.get('state'));
+    window.land = land;
+    window.sceneAt = sceneAt;
+    if (qs.has('y')) requestAnimationFrame(() => scrollTo(0, Number(qs.get('y'))));
+    if (qs.has('go')) setTimeout(() => { land.panTo(Number(qs.get('go')), { duration: 600 * Number(qs.get('slow') || 1), ease: 'cubic-out' }); land.sweep({ dir: 1, duration: 420 * Number(qs.get('slow') || 1) }); }, 1500);
+  </script>
+</body>
+</html>

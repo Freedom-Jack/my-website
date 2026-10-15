@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Fine paper tooth: neutral-grey fractal noise around 50% grey, tiled seamlessly.
+       Blended with soft-light in CSS, so it textures the paper without darkening it. -->
+  <filter id="g" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency=".58 .44" numOctaves="3" seed="7" stitchTiles="stitch"/>
+    <feColorMatrix values="3 0 0 0 -1  3 0 0 0 -1  3 0 0 0 -1  0 0 0 0 1"/>
+  </filter>
+  <rect width="256" height="256" filter="url(#g)"/>
+</svg>

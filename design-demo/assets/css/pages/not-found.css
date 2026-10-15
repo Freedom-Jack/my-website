@@ -1,0 +1,16 @@
+/* ==========================================================================
+   pages/not-found.css — /404.html only (owner: misc; SPEC-R4A §10.7). Layout only.
+   The far end of the handscroll (stretch 6): the lone peak's strip, with the title,
+   one line ("This path fades into the mist.") and the way back in its mist on wide
+   screens, on paper below it on narrower ones. No closing scene: the path ends here.
+   The page is short, so the footer (its story map is the way onto every page) rests
+   at the bottom of the screen instead of floating halfway up it.
+   ========================================================================== */
+
+body[data-page='not-found'] {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+}
+body[data-page='not-found'] > main { flex: 1 0 auto; }
+body[data-page='not-found'] > .site-footer { flex: none; }

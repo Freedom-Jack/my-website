@@ -1,0 +1,154 @@
+/* effects.css: ink effects. Each block maps to one JS module (or none, when CSS is enough). */
+
+/* ============ seal: stamped once per session ============ */
+.js .seal svg { animation: stamp 620ms var(--ease-ink) 380ms both; }
+.js.sealed .seal svg { animation: none; }
+@keyframes stamp {
+  0%   { opacity: 0; scale: 1.06; filter: blur(1.2px); }
+  35%  { opacity: 1; }
+  100% { opacity: 1; scale: 1; filter: blur(0); }
+}
+
+/* ============ arrival: the name out of the mist (ink-name.js animates its bleed), then the copy ============ */
+/* the big words keep their ink filter, so they only fade; everything else also un-blurs */
+.js .name__given, .js .name__family { animation: name-in 520ms var(--ease-ink) both; }
+.js .name__aka { animation: from-mist 700ms var(--ease-ink) 380ms both; }
+.js .role, .js .lede, .js .actions { animation: from-mist var(--t-arrive) var(--ease-ink) both; }
+.js .role { animation-delay: 420ms; }
+.js .lede { animation-delay: 520ms; }
+.js .actions { animation-delay: 640ms; }
+@keyframes from-mist {
+  from { opacity: 0; filter: blur(6px); }
+  to { opacity: 1; filter: blur(0); }
+}
+@keyframes name-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* ============ dry-brush link (CSS only) ============ */
+.brush-link { position: relative; text-decoration: none; padding-block: .1em; }
+.brush-link::after,
+.brush-link--rest::before {
+  content: '';
+  position: absolute;
+  left: -.15em; right: -.3em; bottom: -.42em;
+  height: .7em;
+  background: url(../assets/brush.svg) 0 0 / 100% 100% no-repeat;
+  pointer-events: none;
+}
+/* hover: the stroke is drawn in the reading direction, then dissolves when you leave */
+.brush-link::after {
+  clip-path: inset(0 100% 0 0);
+  opacity: 0;
+  transition: opacity 260ms ease, clip-path 0s linear 260ms;
+}
+.brush-link:hover::after,
+.brush-link:focus-visible::after {
+  clip-path: inset(0 0 0 0);
+  opacity: 1;
+  transition: opacity 60ms ease, clip-path 460ms var(--ease-ink);
+}
+/* links that need a resting affordance keep a faint, dry trace */
+.brush-link--rest::before { opacity: .3; }
+.brush-link:focus-visible { outline-offset: 6px; }
+
+/* ============ ink-bloom button (ink-button.js sets --x/--y and drops rings) ============ */
+.ink-btn {
+  --x: 50%; --y: 50%;
+  position: relative;
+  isolation: isolate;
+  display: inline-flex; align-items: center; gap: .75rem;
+  padding: 1.02rem 1.6rem 1.05rem 1.55rem;
+  font: 650 1rem/1 var(--font-body);
+  letter-spacing: .01em;
+  color: var(--ink-1);
+  text-decoration: none;
+  transition: color 160ms var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+.ink-btn__ink {
+  position: absolute; inset: -4px -30px -5px -6px; z-index: -1;
+  filter: url(#ink-edge);
+  -webkit-mask: url(../assets/swash.svg) 0 0 / 100% 100% no-repeat;
+  mask: url(../assets/swash.svg) 0 0 / 100% 100% no-repeat;
+  pointer-events: none;
+}
+.ink-btn__ink::before,
+.ink-btn__ink::after { content: ''; position: absolute; inset: 0; }
+/* resting: a pale indigo wash; the swash mask gives it a loaded start and a dry, streaked tail */
+.ink-btn__ink::before {
+  background: linear-gradient(98deg, color-mix(in oklab, var(--wash) 40%, transparent), color-mix(in oklab, var(--wash) 27%, transparent) 64%, color-mix(in oklab, var(--wash) 16%, transparent));
+}
+/* hover: ink blooms from where the pointer came in; pigment pools at the advancing edge */
+.ink-btn__ink::after {
+  background: radial-gradient(circle at calc(var(--x) + 6px) calc(var(--y) + 4px),
+    var(--ink-2) 0, var(--ink-2) calc(var(--r) - 36px),
+    var(--ink-900) calc(var(--r) - 12px), color-mix(in oklab, var(--ink-900) 55%, transparent) calc(var(--r) - 4px), transparent var(--r));
+  transition: --r 560ms var(--ease-ink);
+}
+.ink-btn:hover .ink-btn__ink::after,
+.ink-btn:focus-visible .ink-btn__ink::after,
+.ink-btn:active .ink-btn__ink::after { --r: 380px; }
+.ink-btn:hover, .ink-btn:focus-visible, .ink-btn:active { color: var(--paper); transition-delay: 90ms; }
+.ink-btn:focus-visible { --x: 50%; --y: 50%; outline-offset: 7px; border-radius: 18px 30px 20px 26px / 26px 22px 30px 18px; }
+.ink-btn__label, .ink-btn__arrow { position: relative; }
+.ink-btn__arrow { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+/* press: an ink drop, two diminishing water rings */
+.ink-ring {
+  position: absolute;
+  width: 220px; height: 220px;
+  margin: -110px 0 0 -110px;
+  z-index: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, transparent 50%, color-mix(in oklab, var(--paper) 55%, transparent) 60%, transparent 71%);
+  pointer-events: none;
+}
+
+/* ============ scroll: emerge from mist (mist-reveal.js is the fallback) ============ */
+@supports (animation-timeline: view()) {
+  /* every reveal has finished by the time its element reaches the middle of the screen */
+  .mist-reveal {
+    animation: emerge linear both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 28%;
+  }
+  .ink-in {
+    animation: ink-in linear both;
+    animation-timeline: view();
+    animation-range: entry 20% cover 32%;
+  }
+  .figure:nth-child(2) .ink-in { animation-range: entry 45% cover 36%; }
+  .figure:nth-child(3) .ink-in { animation-range: entry 70% cover 40%; }
+}
+.demo-still .mist-reveal, .demo-still .ink-in { animation: none !important; }
+html.demo-scroller { height: 100%; overflow: hidden; }
+html.demo-scroller body { height: 100%; overflow: auto; position: relative; }
+@keyframes emerge {
+  from { opacity: 0; filter: blur(9px); translate: 0 1.4rem; }
+  to   { opacity: 1; filter: blur(0); translate: 0 0; }
+}
+@keyframes ink-in {
+  from { opacity: .15; filter: blur(10px); --bloom: 0%; }
+  45%  { opacity: 1; }
+  to   { opacity: 1; filter: blur(0); --bloom: 160%; }
+}
+/* the drop spreads from one point; #ink-feather (on the parent) makes that edge capillary */
+.figure__num { filter: url(#ink-feather); }
+.ink-in {
+  display: inline-block;
+  -webkit-mask-image: radial-gradient(circle at 28% 62%, #000 calc(var(--bloom) - 34%), transparent var(--bloom));
+  mask-image: radial-gradient(circle at 28% 62%, #000 calc(var(--bloom) - 34%), transparent var(--bloom));
+}
+
+/* IntersectionObserver fallback (browsers without scroll-driven animations) */
+.reveal-io .mist-reveal { opacity: 0; filter: blur(9px); translate: 0 1.4rem; transition: opacity 900ms var(--ease-ink), filter 900ms var(--ease-ink), translate 900ms var(--ease-ink); }
+.reveal-io .ink-in { opacity: .15; filter: blur(10px); --bloom: 0%; transition: opacity 700ms var(--ease-ink), filter 1100ms var(--ease-ink), --bloom 1300ms var(--ease-ink); }
+.reveal-io .is-in { opacity: 1; filter: blur(0); translate: 0 0; --bloom: 160%; }
+.reveal-io .figure:nth-child(2) .ink-in { transition-delay: 140ms; }
+.reveal-io .figure:nth-child(3) .ink-in { transition-delay: 280ms; }
+
+/* ============ reduced motion: a calm, static page ============ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition-duration: 1ms !important; transition-delay: 0s !important; }
+  .mist-reveal, .ink-in, .reveal-io .mist-reveal, .reveal-io .ink-in { opacity: 1; filter: none; translate: none; --bloom: 160%; }
+  .ink-btn:hover, .ink-btn:focus-visible { transition: none; }
+}

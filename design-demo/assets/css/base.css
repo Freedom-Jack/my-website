@@ -1,0 +1,134 @@
+/* ==========================================================================
+   base.css — reset, paper, typography defaults, links, focus, skip link,
+   print and forced colours. Shared file: do not edit from a page.
+   ========================================================================== */
+
+/* ---------- reset ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  background: var(--paper);          /* the paper itself; the landscape canvas paints over it */
+  scrollbar-color: var(--ink-5) transparent;
+  overflow-x: clip;                  /* the viewport never scrolls sideways: full-bleed art and blooms are clipped */
+  /* the returning header (header.js) can sit over the top of the viewport: anchors and focused elements
+     always land below it (WCAG 2.4.11) */
+  scroll-padding-top: calc(var(--header-h) + .75rem);
+}
+body {
+  min-height: 100svh;
+  background: transparent;           /* the fixed landscape canvas and the paper show through */
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  font-weight: var(--w-body);
+  font-variation-settings: 'FLAR' var(--flare-body);
+  font-optical-sizing: auto;
+  font-kerning: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+img, picture, svg, video, canvas { display: block; max-width: 100%; }
+input, button, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; background: none; border: 0; padding: 0; }
+p, li, dd, dt, figcaption { text-wrap: pretty; overflow-wrap: break-word; }
+h1, h2, h3, h4 { text-wrap: balance; overflow-wrap: break-word; font-weight: var(--w-strong); line-height: var(--lh-item); }
+ul[role='list'], ol[role='list'] { list-style: none; padding: 0; }
+main:focus { outline: none; }        /* the skip link moves focus here; no ring on a whole landmark */
+h1[tabindex='-1']:focus { outline: none; }   /* the router moves focus to the new page's h1 (announced, not a control) */
+[hidden] { display: none !important; }
+
+/* ---------- paper grain: only when the landscape is not painting ----------
+   The landscape paints the paper's fine tooth and long fibres itself. Without JS, or without any
+   working landscape, this CSS layer stands in for it. */
+html:not(.js) body::before,
+html.no-landscape body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-paper);
+  pointer-events: none;
+  background:
+    url('../svg/paper-fibres.svg') 0 0 / 760px 760px,
+    url('../svg/paper-grain.svg') 0 0 / 256px 256px;
+  mix-blend-mode: soft-light;        /* neutral grain: textures the paper without greying it */
+  opacity: .42;
+}
+
+/* ---------- the landscape canvas (decorative; mountLandscape() paints into the page's windows) ---------- */
+.landscape {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-landscape);
+  width: 100%;
+  height: 100lvh;
+  pointer-events: none;
+}
+/* No working landscape (the mount failed, or the engine has no renderer): the canvas never covers the paper,
+   whatever it holds; the strip and closing boxes show the static ridge hint instead (layout.css). */
+html.no-landscape .landscape { display: none; }
+
+/* ---------- typography defaults ---------- */
+a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: .26em; }
+strong, b { font-weight: var(--w-strong); }
+small { font-size: var(--fs-small); }
+abbr[title] { text-decoration: none; }
+time { font-variant-numeric: lining-nums tabular-nums; }
+::selection { background: color-mix(in oklab, var(--wash) 26%, var(--paper)); color: var(--ink-1); }
+
+/* ---------- focus: a crisp ink ring, never removed ---------- */
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+  border-radius: 3px;
+}
+
+/* ---------- skip link ---------- */
+.skip-link {
+  position: fixed;
+  left: var(--gutter);
+  top: .75rem;
+  z-index: var(--z-skip);
+  padding: .6rem 1rem;
+  background: var(--ink-1);
+  color: var(--paper);
+  font-weight: var(--w-ui);
+  text-decoration: none;
+  border-radius: 2px;
+  translate: 0 -200%;
+}
+.skip-link:focus-visible { translate: 0 0; outline-color: var(--ink-1); }
+
+/* ---------- utilities ---------- */
+.visually-hidden:not(:focus):not(:active) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.nowrap { white-space: nowrap; }
+/* Round 4a: cinnabar is the seal's only. The round-3 accent full stops become plain ink. */
+.accent { color: inherit; }
+.ink-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+/* ---------- print: ink on paper only (pages add their own print rules) ---------- */
+@media print {
+  .landscape, .skip-link { display: none !important; }
+}
+
+/* ---------- forced colours (Windows High Contrast): system colours, no ink layers ---------- */
+@media (forced-colors: active) {
+  .landscape, body::before { display: none; }
+  :focus-visible { outline-color: Highlight; }
+  a { text-decoration: underline; }
+}
+
+/* ---------- reduced motion ----------
+   Each effect in effects.css declares its own reduced-motion form (a calm static landscape and
+   simple fades: nothing slides, blooms, blurs or pans). Page CSS must do the same for anything it animates. */
