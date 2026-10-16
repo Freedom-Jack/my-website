@@ -1,4 +1,4 @@
-// sets/path.ts — the 404 (stretch 6): the lone peak, and the path running into mist. Off the road entirely: a narrow
+// sets/path.ts — the 404 (stretch 5): the lone peak, and the path running into mist. Off the road entirely: a narrow
 // mountain path comes up out of the mist at the peak's foot and climbs the face under the summit in a few switchbacks
 // (a pale strip the brush left bare, the shade of its bank below it, broken dry edges, a few stone steps where it is
 // steep, a rock or a tuft beside it), past one bare winter tree leaning out from a turn, fainter as it goes; partway
@@ -14,23 +14,25 @@
 
 import { REF_PX, VH_PX, planeTop, streams, vnoise, mix, smooth, stroke, wash, type Env, type FigureMeta, type Pt, type RGB, type Rng } from '../figures';
 
-export const meta: FigureMeta = { rect: [6.6, 7.1, 0.12, 0.54], plane: 2, phase: 0 };
+/** The set's stretch: every world x below is K + its offset (move the place by changing K). */
+const K = 5;
+export const meta: FigureMeta = { rect: [K + 0.6, K + 1.1, 0.12, 0.54], plane: 2, phase: 0 };
 type Side = [x: number, y: number, nx: number, ny: number];
 
 const SEED = 11;
 
 // The path's centre line, (u, y): stretch units and scene heights (y up), from the near end (in the foot mist) to where
-// it goes into the cloud, under the summit (u 6.80, y 0.584) and right of it. Every point lies >= 0.02 scene heights
+// it goes into the cloud, under the summit (K + 0.80, y 0.584) and right of it. Every point lies >= 0.02 scene heights
 // under the host's crest (draw() checks it against planeTop, so a change to compose.ts can never lift the path into
 // the sky). Bends are where the direction turns; the tree leans out from bend D.
 const LINE: [u: number, y: number][] = [
-  [6.884, 0.13], [6.864, 0.168], [6.84, 0.203], [6.812, 0.226],     // the approach, out of the foot mist; bend A
-  [6.84, 0.248], [6.868, 0.27],                                      // B, the widest turn (the slope is gentlest here)
-  [6.846, 0.29], [6.82, 0.31],                                       // C
-  [6.832, 0.336], [6.85, 0.355],                                     // D (stone steps up C-D; the bare tree)
-  [6.834, 0.372], [6.822, 0.388],                                    // E, a short leg
-  [6.83, 0.41], [6.84, 0.424],                                       // F (a few more steps on E-F)
-  [6.829, 0.442], [6.83, 0.456],                                     // into the cloud
+  [K + 0.884, 0.13], [K + 0.864, 0.168], [K + 0.84, 0.203], [K + 0.812, 0.226],     // the approach, out of the foot mist; bend A
+  [K + 0.84, 0.248], [K + 0.868, 0.27],                                      // B, the widest turn (the slope is gentlest here)
+  [K + 0.846, 0.29], [K + 0.82, 0.31],                                       // C
+  [K + 0.832, 0.336], [K + 0.85, 0.355],                                     // D (stone steps up C-D; the bare tree)
+  [K + 0.834, 0.372], [K + 0.822, 0.388],                                    // E, a short leg
+  [K + 0.83, 0.41], [K + 0.84, 0.424],                                       // F (a few more steps on E-F)
+  [K + 0.829, 0.442], [K + 0.83, 0.456],                                     // into the cloud
 ];
 
 export function* draw(env: Env) {

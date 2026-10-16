@@ -19,15 +19,17 @@ export const PIGMENTS = Object.freeze({
 });
 
 /**
- * Strength per scene (stretch 0..6: peak, river, path, lake, shore, crossing, lone-peak), per palette.
+ * Strength per scene (stretch 0..5: peak, river, lake, shore, crossing, lone-peak), per palette.
  * `figures`: how much colour the figure layers take (0 = ink greys only).
  */
 export const PALETTES = Object.freeze({
-  ink: Object.freeze({ scenes: Object.freeze([0, 0, 0, 0, 0, 0, 0]), figures: 0 }),
+  ink: Object.freeze({ scenes: Object.freeze([0, 0, 0, 0, 0, 0]), figures: 0 }),
   // (fixer, 10 Oct: the Résumé's malachite and Contact's indigo at .25 / .20 did not read at all under their mist; the
   // terraces and the crossing's water now carry them at .55 / .50, so every place has its own colour)
-  misted: Object.freeze({ scenes: Object.freeze([0.55, 0.40, 0.30, 0, 0.55, 0.50, 0]), figures: 1 }),
-  rich: Object.freeze({ scenes: Object.freeze([0.75, 0.60, 0.45, 0, 0.75, 0.70, 0]), figures: 1.25 }),
+  // (round 5: the lake keeps a breath of the blue-green and the lone peak a trace, so the colour runs along the whole
+  // scroll and only fades, never stops)
+  misted: Object.freeze({ scenes: Object.freeze([0.55, 0.40, 0.14, 0.55, 0.50, 0.08]), figures: 1 }),
+  rich: Object.freeze({ scenes: Object.freeze([0.75, 0.60, 0.22, 0.75, 0.70, 0.12]), figures: 1.25 }),
 });
 
 export const PALETTE_NAMES = Object.freeze(Object.keys(PALETTES));
@@ -47,8 +49,7 @@ export function paletteName(p: unknown): PaletteName {
 export const LEAN = Object.freeze([
   { mal: 0.42, water: 0 },     // peak (Home): azurite-led
   { mal: 0.55, water: 0 },     // river (Work): blue-green hills
-  { mal: 0.55, water: 0 },     // path
-  { mal: 0.5, water: 0 },      // lake: ink only
+  { mal: 0.5, water: 0 },      // lake: a breath of colour
   { mal: 0.82, water: 0 },     // shore (Résumé): pale malachite on the terraces
   { mal: 0.3, water: 1 },      // crossing (Contact): indigo water
   { mal: 0.5, water: 0 },      // lone peak: ink only
@@ -56,7 +57,7 @@ export const LEAN = Object.freeze([
 
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 const smooth = (a: number, b: number, x: number) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
-const SEAM = 0.18;
+const SEAM = 0.34;   // round 5: wide, so the colour shifts gradually along the scroll (never a band's edge at a seam)
 
 /**
  * Pigment strength and lean at world x `u` (stretches), smoothly windowed across the seams, so a pan

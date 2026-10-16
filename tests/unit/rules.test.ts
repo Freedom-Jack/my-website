@@ -4,7 +4,7 @@ import snapshot from '@content/github/snapshot.json';
 import { choose, denied, group, lineErrors, parseOverrides, repoSchema, type Repo } from '@/features/github/rules';
 import { CJK, findBreaches, PHONE } from '@/lib/compliance';
 import { redirects } from '@/lib/redirects';
-import { normPath, PLACES, placeForPath } from '@/features/landscape/places';
+import { normPath, PLACES, placeForPath, STORY_MAP } from '@/features/landscape/places';
 import { careerYears, fillTokens, typeset } from '@/lib/typography';
 import { plain } from '@/lib/markup';
 import { longDate, monthYear, shortMonthYear } from '@/lib/dates';
@@ -127,9 +127,16 @@ describe('places (features/landscape/places)', () => {
     expect(placeForPath('/work/').stretch).toBe(1);
     expect(placeForPath('/work/rag-assistant/').page).toBe('case');
     expect(placeForPath('/writing/what-is-an-ai-agent').page).toBe('article');
-    expect(placeForPath('/resume/').stretch).toBe(4);
-    expect(placeForPath('/contact/').stretch).toBe(5);
-    expect(placeForPath('/nowhere/').stretch).toBe(6);
+    expect(placeForPath('/writing/').stretch).toBe(2);
+    expect(placeForPath('/resume/').stretch).toBe(3);
+    expect(placeForPath('/contact/').stretch).toBe(4);
+    expect(placeForPath('/nowhere/').stretch).toBe(5);
+  });
+  it('paints every page with the one composition, so a place looks the same from every page (round 5)', () => {
+    const all = Object.values(PLACES);
+    expect(new Set(all.map((p) => `${p.distance}:${p.presence}`)).size).toBe(1);
+    // the story map: the places in the painting's order, one per stretch, the 404 off it
+    expect(STORY_MAP.map((p) => p.stretch)).toEqual([0, 1, 2, 3, 4]);
   });
   it('lives on Home and Work only; every page on the road ends on its closing scene (round 5)', () => {
     expect(

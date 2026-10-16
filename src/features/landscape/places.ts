@@ -1,10 +1,11 @@
 /**
  * Where each page stands in the one painting (DESIGN.md §7, design-demo/README "The pages").
  *
- * A traveller sets out from his mountain (Home) and comes down to the river town where the work gets done
- * (Work and its cases), climbs through the terraced fields of his record (Résumé) and reaches the ferry
- * (Contact). Off the road, by the still lake, is the pavilion where he writes (Writing, the notes). Off the
- * road entirely, the path fades into mist (404).
+ * One river runs the whole scroll (round 5): it falls from his mountain (Home), runs past the river town where
+ * the work gets done (Work and its cases), opens into the still lake by the pavilion where he writes (Writing, the
+ * notes), narrows at the foot of the terraced fields of his record (Résumé) and opens into the crossing, where the
+ * ferry brings you across to meet him (Contact). Beyond the water, off the map, the path climbs a lone peak into
+ * mist (404). One place per stretch, in the nav's order.
  *
  * The page renders its <main> from this table (components/page/PageMain), and the navigation reads it to
  * prepare the destination's painting before the new page arrives, so the two never disagree.
@@ -16,11 +17,15 @@ export type PageId = 'home' | 'work' | 'case' | 'writing' | 'article' | 'resume'
 export interface Place {
   /** The page's id: <main data-page>, its CSS Module's scope. */
   page: PageId;
-  /** Position along the handscroll: Home 0, Work 1, (the road 2: no page), Writing 3, Résumé 4, Contact 5, 404 6. */
+  /** Position along the handscroll: Home 0, Work 1, Writing 2, Résumé 3, Contact 4, 404 5 (round 5: one place per
+   *  stretch; the road, a stretch with no page between Work and Writing, is gone). */
   stretch: number;
-  /** The composition preset ("three distances"). */
+  /**
+   * The composition the page paints the scroll with: the same on every page (round 5: one world, compose.ts WORLD), so
+   * a place looks the same from every page and the scenes line up. A page with its own would re-compose the whole
+   * scroll while it shows (tests/unit/rules.test.ts keeps them equal).
+   */
   distance: Distance;
-  /** 0..1: how strongly the page's scene shows in its strip and closing. */
   presence: number;
   /** 0..1: the desktop ink horizon's presence between the strip and the closing. */
   horizon: number;
@@ -33,7 +38,7 @@ export interface Place {
    */
   strip: 'home' | 'sub' | 'doc';
   /**
-   * Every page on the road ends the same way: on its own closing scene, a different view of the same place, then
+   * Every page on the map ends the same way: on its own closing scene, a different view of the same place, then
    * the footer's story map. The 404 lies off the map, so its path just ends in mist (no closing).
    */
   closing: boolean;
@@ -53,8 +58,8 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
   work: {
     page: 'work',
     stretch: 1,
-    distance: 'deep',
-    presence: 0.8,
+    distance: 'level',
+    presence: 1,
     horizon: 0.55,
     ground: 'living',
     strip: 'sub',
@@ -63,8 +68,8 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
   case: {
     page: 'case',
     stretch: 1,
-    distance: 'deep',
-    presence: 0.8,
+    distance: 'level',
+    presence: 1,
     horizon: 0.55,
     ground: '',
     strip: 'sub',
@@ -72,9 +77,9 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
   },
   writing: {
     page: 'writing',
-    stretch: 3,
+    stretch: 2,
     distance: 'level',
-    presence: 0.6,
+    presence: 1,
     horizon: 0.5,
     ground: '',
     strip: 'sub',
@@ -82,9 +87,9 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
   },
   article: {
     page: 'article',
-    stretch: 3,
+    stretch: 2,
     distance: 'level',
-    presence: 0.45,
+    presence: 1,
     horizon: 0.35,
     ground: '',
     strip: 'sub',
@@ -92,9 +97,9 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
   },
   resume: {
     page: 'resume',
-    stretch: 4,
+    stretch: 3,
     distance: 'level',
-    presence: 0.5,
+    presence: 1,
     horizon: 0.35,
     ground: '',
     strip: 'sub',
@@ -102,9 +107,9 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
   },
   contact: {
     page: 'contact',
-    stretch: 5,
+    stretch: 4,
     distance: 'level',
-    presence: 0.9,
+    presence: 1,
     horizon: 0.5,
     ground: '',
     strip: 'sub',
@@ -112,8 +117,8 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
   },
   'not-found': {
     page: 'not-found',
-    stretch: 6,
-    distance: 'high',
+    stretch: 5,
+    distance: 'level',
     presence: 1,
     horizon: 0.5,
     ground: '',
@@ -149,7 +154,7 @@ export function placeForPath(path: string): Place {
 export const STORY_MAP = [
   { stretch: 0, label: 'Home', href: '/', still: 'home' },
   { stretch: 1, label: 'Work', href: '/work/', still: 'work' },
-  { stretch: 3, label: 'Writing', href: '/writing/', still: 'writing' },
-  { stretch: 4, label: 'Résumé', href: '/resume/', still: 'resume' },
-  { stretch: 5, label: 'Contact', href: '/contact/', still: 'contact' },
+  { stretch: 2, label: 'Writing', href: '/writing/', still: 'writing' },
+  { stretch: 3, label: 'Résumé', href: '/resume/', still: 'resume' },
+  { stretch: 4, label: 'Contact', href: '/contact/', still: 'contact' },
 ] as const;

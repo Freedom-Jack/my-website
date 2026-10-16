@@ -5,7 +5,8 @@
 // empty paper where the text sits), written as Gaussian "massifs" on the five ridge planes.
 // Massifs of neighbouring stretches overlap at the seams, so the envelope (and the ridges built
 // on it) is one continuous function of world x: panning between stretches unrolls the scroll.
-// Each stretch is also a scene ("source to sea": peak, river, path, lake, shore, crossing, lone peak).
+// Each stretch is also a scene ("source to sea": peak, river, lake, shore, crossing, lone peak), one per page
+// (round 5: the road, a stretch with no page between the river and the lake, is gone).
 // SCENES adds what is not a mountain: the brush technique (contour and texture strokes, ink) and water
 // in front of the far shore, as smooth windows along world x, so every seam is crossed through water
 // or mist, never a cut.
@@ -38,47 +39,44 @@ const STRETCHES: Massif[][] = [
     [3, 0.91, 0.12, 1.0, 'near'], [3, 1.02, 0.10, 0.55, 'near'], [3, 0.60, 0.07, 0.15, 'near'],
     [4, 0.02, 0.22, 0.95, 'fg'], [4, 0.26, 0.12, 0.35, 'fg'], [4, 1.02, 0.06, 0.4, 'fg'],
   ],
-  // 1 · river: the market town at the rainbow bridge (round 4a). A river runs across the middle distance (the
-  // scene's water, with a near bank); the town stands on its far bank (figures.ts) and the hills rise behind it
-  // out of the mist, lower than the home peak, so town, bridge and hills fit one strip (fixer: a little lower again,
-  // so their summits sit inside the wide strip instead of running into its top). A crag at the seam: the
-  // road leaves the town past it, toward the fields. (4b: the hill behind the east end of the town is a broad, rounded
-  // hill, u .77; as a narrow cone it read as a spire, a pagoda's, beside the reading column: DESIGN §4.6.)
+  // Round 5: one world. Every page paints the scroll with ONE composition (level, presence 1: places.ts), so a place
+  // looks the same from every page and the far range is one line from end to end; what made each place itself (Work's
+  // 'deep' valley, the reading pages' lower, paler presence, the 404's 'high' peak) now lives here, in its own massifs,
+  // its water and its technique. One river runs the whole length (SCENES[k].water): it comes out from behind his
+  // mountain's near peaks, runs past the town, opens into the still lake, narrows again at the foot of the terraces and
+  // opens into the crossing; the 404's lone peak stands beyond it, off the map. Neighbours meet over the water: a spur at
+  // each seam (the near crags), the far range running on above.
+  // 1 · river: the market town at the rainbow bridge on the river's far bank (sets/market.ts), the hills behind it out
+  // of the mist, lower than the home peak (4b: the hill behind the east end of the town is a broad, rounded hill, u .77;
+  // as a narrow cone it read as a spire, a pagoda's, beside the reading column: DESIGN §4.6). At its east end a spur
+  // (the near crag, u 1.03) where the river turns and opens into the lake.
   [
-    [0, 0.30, 0.26, 0.30, 'far'], [0, 0.80, 0.24, 0.34, 'far'],
+    [0, 0.30, 0.26, 0.30, 'far'], [0, 0.80, 0.24, 0.36, 'far'],
     [1, 0.42, 0.10, 0.48, 'guest'], [1, 0.97, 0.09, 0.52, 'guest'],
-    [2, 0.47, 0.06, 0.40, 'host'], [2, 0.585, 0.055, 0.52, 'host'], [2, 0.675, 0.05, 0.64, 'host'],
-    [2, 0.775, 0.115, 0.42, 'host'], [2, 0.875, 0.05, 0.44, 'host'],
-    [3, 1.03, 0.07, 0.62, 'near'],
+    [2, 0.47, 0.066, 0.36, 'host'], [2, 0.585, 0.06, 0.46, 'host'], [2, 0.675, 0.055, 0.56, 'host'],
+    [2, 0.775, 0.127, 0.38, 'host'], [2, 0.875, 0.055, 0.40, 'host'],
+    [3, 1.03, 0.07, 0.5, 'near'],
     [4, 1.06, 0.06, 0.4, 'fg'],
   ],
-  // 2 · a tall, narrow host far right; twin pale guests in the middle distance
+  // 2 · lake: a still lake. A low far shore (the lake's peak on the right, long pale ranges behind) stands on the
+  // waterline; the near and middle distance are open water. Work's spur is the headland at its left; the terraces'
+  // foreground hill closes it at its right, where the river leaves it.
   [
-    [0, 0.46, 0.30, 0.6, 'far'], [0, 0.96, 0.20, 0.45, 'far'],
-    [1, 0.30, 0.12, 0.35, 'guest'], [1, 0.60, 0.09, 0.7, 'guest'], [1, 0.68, 0.07, 0.55, 'guest'],
-    [2, 0.83, 0.065, 1.0, 'host'], [2, 0.91, 0.06, 0.65, 'host'], [2, 0.72, 0.07, 0.4, 'host'],
-    [3, 0.76, 0.07, 0.85, 'near'], [3, 0.98, 0.08, 0.6, 'near'],
-    [4, 0.12, 0.18, 0.7, 'fg'], [4, 0.58, 0.10, 0.28, 'fg'],
+    [0, 0.18, 0.30, 0.28, 'far'], [0, 0.68, 0.30, 0.40, 'far'],
+    [1, 0.07, 0.09, 0.34, 'guest'], [1, 0.46, 0.14, 0.21, 'guest'], [1, 0.97, 0.10, 0.28, 'guest'],
+    [2, 0.76, 0.07, 0.48, 'host'], [2, 0.845, 0.05, 0.2, 'host'], [2, 0.665, 0.045, 0.09, 'host'],
   ],
-  // 3 · lake: a still lake. A low far shore (gentle hills on the right, long pale ranges behind) stands
-  // on the waterline; the near and middle distance are open water. The near crag of stretch 2 is the
-  // headland at its left; stretch 4's foreground crag is the shore at its right.
-  [
-    [0, 0.18, 0.30, 0.34, 'far'], [0, 0.68, 0.30, 0.48, 'far'],
-    [1, 0.07, 0.09, 0.42, 'guest'], [1, 0.46, 0.14, 0.26, 'guest'], [1, 0.97, 0.10, 0.35, 'guest'],
-    [2, 0.76, 0.07, 0.52, 'host'], [2, 0.84, 0.055, 0.34, 'host'], [2, 0.66, 0.05, 0.18, 'host'],
-  ],
-  // 4 · terraced fields (Résumé, fixer 10 Oct): low, rounded hills stepping down to the shore in bands, years of steady
-  // work in rows like a record; no crag stands above them (SCENES[4].tech.terr draws the terraces, round smooths
-  // the crests). A long, low far range behind.
+  // 3 · terraced fields (Résumé): low, rounded hills on the river's far bank, terraced down to the water, years of
+  // steady work in rows like a record (SCENES[3].tech.terr draws the terraces, round smooths the crests); no crag stands
+  // above them. On the near bank, lower terraced hills; a long, low far range behind.
   [
     [0, 0.30, 0.36, 0.26, 'far'], [0, 0.84, 0.30, 0.30, 'far'],
     [1, 0.22, 0.17, 0.30, 'guest'], [1, 0.60, 0.15, 0.36, 'guest'], [1, 0.98, 0.14, 0.30, 'guest'],
-    [2, 0.44, 0.14, 0.50, 'host'], [2, 0.70, 0.13, 0.62, 'host'], [2, 0.93, 0.11, 0.46, 'host'],
-    [3, 0.56, 0.12, 0.62, 'near'], [3, 0.84, 0.11, 0.68, 'near'],
-    [4, 0.06, 0.16, 0.5, 'fg'],
+    [2, 0.44, 0.14, 0.46, 'host'], [2, 0.70, 0.13, 0.58, 'host'], [2, 0.93, 0.11, 0.38, 'host'],
+    [3, 0.56, 0.12, 0.22, 'near'], [3, 0.84, 0.11, 0.26, 'near'],
+    [4, 0.06, 0.16, 0.4, 'fg'],
   ],
-  // 5 · crossing: open water in the near and middle distance. On the far shore, low pale ranges and,
+  // 4 · crossing: open water in the near and middle distance. On the far shore, low pale ranges and,
   // on the right (clear of Contact's address), the home peak seen from across the water: an 'echo' row draws
   // stretch 0's host plane itself, sampled around its main summit (the crowned mass, the notch, the second
   // peak), at a fraction of its size on a far plane, so it takes the pale, soft ink of distance (ridges.ts, echo()).
@@ -88,17 +86,17 @@ const STRETCHES: Massif[][] = [
     [1, 0.16, 0.09, 0.26, 'guest'], [1, 0.36, 0.11, 0.30, 'guest'], [1, 0.97, 0.07, 0.24, 'guest'],
     [1, 0.84, 0.5, 1.0, 'echo'],
   ],
-  // 6 · a single peak standing alone in the mist (the 404): one host and nothing beside it but a far, pale range
-  // low in the mist; no guest and no near crag (they made it read as another range)
+  // 5 · a single peak standing alone in the mist beyond the water (the 404): one tall, narrow host and nothing beside it
+  // but a far, pale range low in the mist; no guest and no near crag (they made it read as another range)
   [
-    [0, 0.44, 0.40, 0.26, 'far'],
-    [2, 0.78, 0.15, 0.64, 'host'], [2, 0.66, 0.07, 0.24, 'host'],
-    [4, 0.06, 0.12, 0.35, 'fg'],
+    [0, 0.44, 0.40, 0.20, 'far'],
+    [2, 0.80, 0.10, 0.7, 'host'], [2, 0.69, 0.05, 0.16, 'host'],
+    [4, 0.06, 0.12, 0.26, 'fg'],
   ],
 ];
 // Before the scroll's first stretch and after its last there is only a far, pale range in the mist (the scroll begins
 // and ends in mist), never a wrap-around to the other end's mountains: a phone's wide album leaf of Home looks a
-// little to the left of u 0 and the 404's past u 7.
+// little to the left of u 0 and the 404's past u 6.
 const QUIET: Massif[] = [[0, 0.40, 0.42, 0.30, 'far'], [1, 0.70, 0.22, 0.20, 'guest']];
 // 'deep' frames every stretch with a near flank on the left, so the eye travels down a valley
 // into the mist towards the host.
@@ -120,36 +118,28 @@ const tableFor = (k: number) => (k < 0 || k >= STRETCH_COUNT ? QUIET : STRETCHES
 // distance, presence 1), `strokes` the long low strokes on it, `refl` the far shore's reflection, `banks`
 // the flat strips of land along the waterline. (The water scenes' technique ink is 1: over open water the
 // shader itself paints the far shore fuller and flatter, so it reads at the same density as the Canvas2D
-// fallback; the lake stays the palest scene through its page presence and its boneless wash.) Every
+// fallback; the lake stays the palest scene through its technique's ink and its boneless wash.) Every
 // field is a smooth window along world x (SEAM feather), so a pan between scenes never cuts. Only
-// stretches 0..6 exist here (no wrap-around), so the home view never meets water.
+// stretches 0..5 exist here (no wrap-around), so the home view never meets water.
 //
-// Round 4a adds, per scene: `page` (the page's own composition, SPEC-R4A §10.0: distance, presence), `frame`
-// (how its strip and closing windows look at it, per width class: see framingAt), and on the river a near bank
-// (`near`, the waterline of the near shore: land below it) and `shore: 0` (its far planes keep their own misty
-// feet above the town instead of standing on the water). `figures` (figures.ts) are the scene's figure layer.
+// Round 4a added, per scene: `page` (the page's own composition, SPEC-R4A §10.0: distance, presence; round 5: WORLD for
+// every place), `frame` (how its strip and closing windows look at it: see framingAt), and on the river a near bank
+// (`near`, the waterline of the near shore: land below it) and `shore: 0` (its far planes keep their own misty feet
+// above the town instead of standing on the water). `figures` (figures.ts) are the scene's figure layer.
 //
-// frame: focus [u, y] is the scene's one focus (stretch-local u, scene height in viewport heights at presence 1);
-//   keepU, the leftmost figurative point the keep-out rule keeps >= KEEP_GAP px right of the text (default: the focus).
-//   wide   { top, minLeft? }      the scene's right edge at the window's right, `top` = scene height at the box's
-//                                 top edge; the keep-out rule may move it left (focus >= keepoutRight + 180 px)
-//   tablet / phone { scale, fx, fy }  `scale` CSS px per stretch; the focus at (fx, fy) of the box
-//   short (optional)               sideways phones (else the phone's): a sliver of a strip needs a wider view
-//   closing                        the page's own place once more (DESIGN 11.B), never the road to the next one:
-//     wide { scale, band, right, hug?, keepU? }   a small version of the opening, framed as a band (bandFrame) with the
-//                                 view's right edge at stretch-local `right` (hug: its keepU KEEP_GAP right of the text
-//                                 instead, when the text overlaps it); `scale` is the nominal scale its figure layer is
-//                                 drawn at (the band fits within 0.8-1.15 of it)
-//     tablet / phone / short (optional)    overrides of that class's strip framing; without one, the closing frames
-//                                 the place exactly as the class's opening does, in the closing's own box (sideways
-//                                 phones never borrow the phone's)
-//     twin { wide, tablet, phone }  a different view of the same place, for a short page whose closing shares a
-//                                 screen with its strip (framingAt's box.twin): never the same picture twice, and never
-//                                 the strip's figures or landmark again (Writing: the lake's west end; Contact: the
-//                                 crossing's west, its low far shore over open water). A view may be a `span` [u0, u1]
-//                                 (spanFrame) instead of a scale: the box right of the text holds exactly that much of
-//                                 the stretch at any width (with `band` for its height)
-//     keepU (each)                the leftmost figurative point the keep-out keeps clear (default: frame.keepU)
+// Round 5, one world (DESIGN §12 "Round 5"): every page paints the scroll with one composition, the river runs through
+// every place (its waters meet at each seam and add up to one; the near bank blends over a wider seam, so the river
+// opens and narrows gradually), `amp` gives a place its own relief, and every window but Home's frames its place by
+// the one hero rule (HERO): the shared horizon (the river's waterline) at one height in the box, one scale per width
+// class, the place's focus at one place across. So a place only names its focus here:
+//   frame: focus [u, y]   the scene's one focus (stretch-local u, scene height); keepU, the leftmost figurative point
+//                         the keep-out rule keeps >= KEEP_GAP px right of the text (default: the focus); twinU, where a
+//                         short page's twin closing looks (another part of the place, closer: HERO.twin)
+// Home keeps its own hero (the taller one, with the name): `wide { right }` (its view's right edge; its vertical
+// placement is the hero rule's), its album leaves `tablet / phone / short` (band framings: bandFrame) and its closings:
+//   tablet / phone { scale, band, fbIn, u, fx, uMin, uMax }   a band of the scene (bandFrame)
+//   closing { wide { scale, band, right, hug?, keepU? }, phone ... }   a small version of the opening, framed as a band
+//     with the view's right edge at stretch-local `right` (the living ground ends on the opening itself on wide screens)
 
 /** How a window of one width class looks at a scene (frame.tablet / phone / short): see framingAt and bandFrame. */
 export interface View {
@@ -184,26 +174,23 @@ export interface ClosingView extends Partial<View> {
   hug?: boolean;
 }
 interface WideFrame {
-  /** Scene height at the box's top edge. */
-  top: number;
-  band?: Band;
-  /** A document's low strip: its band and scale (at 1440), and where its focus sits down the box. */
-  docBand?: Band;
-  docScale?: number;
-  docFy?: number;
+  /** Home: its view's right edge at stretch-local `right` (default 1); its vertical placement is the hero rule's. */
   right?: number;
-  slack?: number;
 }
-/** How the windows look at a scene, per width class (see the table above). */
+/** How the windows look at a scene (see the table above). Round 5: every place but Home takes the one hero rule (HERO),
+ *  so it gives only its focus (and where its twin closing looks); Home keeps its own hero, with the name, per class. */
 export interface Frame {
   /** The scene's one focus: [stretch-local u, scene height]. */
   focus: [number, number];
   keepU?: number;
-  wide: WideFrame;
-  tablet: View;
-  phone: View;
+  /** Home's own framings (its taller hero): wide (its vertical placement still follows HERO), tablet, phone, short. */
+  wide?: WideFrame;
+  tablet?: View;
+  phone?: View;
   short?: View;
   closing?: Partial<Record<WidthClass, ClosingView>> & { twin?: Partial<Record<WidthClass, ClosingView>> };
+  /** HERO places: where the twin closing (a short page's) looks instead of the focus (stretch-local u). */
+  twinU?: number;
 }
 /** A scene's brush technique, windowed over stretch-local `at`. */
 interface Tech {
@@ -228,8 +215,10 @@ interface Water {
 }
 export interface Scene {
   name: string;
-  /** The page's own composition: [distance, presence]. */
+  /** The page's own composition: [distance, presence] (round 5: WORLD for every place). */
   page: [Distance, number];
+  /** The place's own relief (round 5): each plane's amplitude times this, over the place's stretch (ampAt). */
+  amp?: number[];
   tech?: Tech;
   water?: Water;
   frame: Frame;
@@ -237,13 +226,17 @@ export interface Scene {
   figures?: string;
 }
 
+/** The one composition every page paints the scroll with (round 5): its place's character lives in SCENES and STRETCHES,
+ *  never in a page's own distance or presence, so a place looks the same from every page. */
+export const WORLD: [Distance, number] = ['level', 1];
+
 export const SCENES: Scene[] = [
   // Narrow framings (fixer, 10 Oct): every strip shows its mountains whole. A `band` [y0, y1] puts the scene's highest
   // summits (the far range included) just under the top feather and its ground above the bottom one (bandFrame).
-  { name: 'peak', page: ['level', 1],
+  { name: 'peak', page: WORLD,
     frame: {
       focus: [0.79, 0.2], keepU: 0.72,
-      wide: { top: 0.655 },
+      wide: { right: 1 },
       // tablet and phone: the whole mountain (summits 0.58) with the hut and the traveller (0.2) on a wider album leaf;
       // on phones the figures are drawn larger (figures.ts `big`), so the traveller stays >= 12 CSS px tall. The view
       // ends at u 1.06, before the river town; it may begin a little left of u 0, where the scroll opens in mist.
@@ -257,8 +250,11 @@ export const SCENES: Scene[] = [
       closing: { wide: { scale: 600, band: [0.19, 0.6], fbIn: 0, right: 1.06 }, phone: { slack: 1 } },
     },
     figures: 'home' },
-  { name: 'river', page: ['deep', 0.8], tech: { at: [0.06, 0.98], bone: 1.0, ink: 1.5 },
-    water: { at: [0.04, 1.0], y: 0.32, near: 0.235, strokes: 0.5, refl: 0.12, banks: 0, shore: 0,
+  // The river (round 5: one composition, so the waterline and the near bank are given as the town has always stood on
+  // them: 0.289 and 0.209, as 'deep' at 0.8 drew 0.32 and 0.235). The town stands on its far bank and the hills keep
+  // their own misty feet above it (shore 0).
+  { name: 'river', page: WORLD, tech: { at: [0.06, 0.98], bone: 1.0, ink: 1.5 },
+    water: { at: [0.02, 1.0], y: 0.289, near: 0.209, strokes: 0.8, refl: 0.2, banks: 0, shore: 0,
       // 4b: the town's depth for its mist (shaders.ts figMist, canvas2d.ts figure()). The river's mist lies among the
       // back rows, behind the nearest things in each column: `front` is how high those reach above the far bank (scene
       // heights), every `step` stretches from u `at` (stretch-local): the front row's roofs and its trees, the landmark,
@@ -273,102 +269,29 @@ export const SCENES: Scene[] = [
         30, 37, 37, 37, 37, 37, 39, 43, 46, 46, 46, 46, 46, 46, 46, 48, 48, 48, 48, 48, 49, 54, 59, 64, 64, 64, 64, 64, 64,
         64, 64, 64, 61, 60, 59, 48, 48, 48, 48, 48, 46, 45, 45, 45, 51, 51, 51, 51, 51, 51, 51, 51, 55, 58, 58, 58, 55, 48,
         39, 39, 39, 38, 28, 17, 17, 17, 31, 31, 31] } },
-    frame: {
-      focus: [0.565, 0.272], keepU: 0.482,
-      wide: { top: 0.565 },
-      tablet: { scale: 1440, fx: 0.55, fy: 0.64 },
-      // 4b: a band, so the whole town (its highest roofs and trees, 0.373) and the bridge's crown stand under the top
-      // feather and its near foot (0.207) sits over the bottom one, the bridge left of centre, at 320-639 px. The
-      // nominal scale (the layer's) is 1300 so the short strips (110-135 px) may look from as far as 1040 and still
-      // hold the bridge's feet; a 390 x 844 phone frames it at about 1240 either way.
-      phone: { scale: 1300, band: [0.205, 0.375], fx: 0.42 },
-      short: { scale: 1000, fx: 0.42, fy: 0.5 },
-      // closing: the bridge with the town behind it (the wide one only off the living ground)
-      closing: { wide: { scale: 1100, band: [0.17, 0.42], right: 1.02 } },
-    },
+    frame: { focus: [0.565, 0.272], keepU: 0.482 },
     figures: 'market' },
-  { name: 'path', page: ['high', 0.8],
-    frame: { focus: [0.83, 0.3], wide: { top: 0.66 }, tablet: { scale: 1440, fx: 0.6, fy: 0.62 }, phone: { scale: 1224, fx: 0.55, fy: 0.62 }, closing: { wide: { scale: 900, band: [0.1, 0.45], right: 1 } } } },
-  // Writing: a still lake. Its strips hold the low far shore and its whole reflection: the waterline across the middle
-  // of the band, the mirror below it (water.mirror: a still, whole reflection, few strokes). Ink only.
-  { name: 'lake', page: ['level', 0.6], tech: { at: [-0.10, 1.02], bone: 0.1, ink: 1.0 }, water: { at: [-0.17, 0.98], y: 0.35, strokes: 0.25, refl: 1, banks: 1, mirror: 1 },
-    frame: {
-      focus: [0.74, 0.3],
-      wide: { top: 0.56, band: [0.14, 0.43], docBand: [0.12, 0.4], docScale: 1300, right: 1.1 },
-      tablet: { scale: 760, band: [0.14, 0.43], u: 0.66, fx: 0.5 },
-      phone: { scale: 560, band: [0.14, 0.43], u: 0.7, fx: 0.5 },
-      short: { scale: 520, band: [0.26, 0.43], u: 0.7, fx: 0.5, uMin: 0.03 },
-      // closing: the lake with the pavilion (the Note). On Writing, whose closing shares the first screen with its strip
-      // (any page of this place where they share a screen), the other end of the lake: looking west down the still water to the
-      // long pale ranges and their faint reflection (at phone size with the headland at its left), the pavilion out of
-      // frame (its layer starts at u 0.78). (Final review r1, item 1: the pavilion's corner close repeated the strip's
-      // pine-over-pavilion on the same screen, the clip-art repetition DESIGN 4.6 bans; the story map carries it.)
-      closing: {
-        wide: { scale: 1060, band: [0.14, 0.4], right: 1.1 },
-        phone: { u: 0.74 },   // (the closing's box is taller than the Note's strip: the pavilion kept clear of the right edge)
-        twin: {
-          // (spans, as Contact's: a fixed scale reached west to the road's peak, u 2.83, on wide screens and cut the
-          // strip's own lake peak, u ~0.75, at the right edge on tablets; final review r2, the art verifier's fix)
-          wide: { span: [0.0, 0.6], band: [0.22, 0.42] },
-          tablet: { span: [0.0, 0.58], band: [0.24, 0.42] },
-          phone: { scale: 460, band: [0.22, 0.42], u: 0.3, fx: 0.5, uMax: 0.62, keepU: 0.3 },
-        },
-      },
-    } },
-  // Résumé: terraced fields, low and banded (tech.terr), in pale malachite; a document's low strip, so it looks from a
-  // little further away to hold whole hills.
-  { name: 'shore', page: ['level', 0.5], tech: { at: [0.02, 0.98], bone: 0.5, ink: 1.15, terr: 1 },
-    frame: {
-      focus: [0.7, 0.2],
-      wide: { top: 0.43, docBand: [0.11, 0.37], docScale: 1300, right: 1.08 },
-      tablet: { scale: 760, band: [0.11, 0.37], u: 0.66, fx: 0.5 },
-      // (final review r1, item 15: phones look closer, at the right hill's terraces, the farmhouse and the path, so the
-      // rows of fields read at 390 and the low doc strip is not taken for Home's misted green-blue range; at 480 the two
-      // hills sat small in the left half, and newcomers sorting the six strips confused the two)
-      phone: { scale: 760, band: [0.12, 0.31], u: 0.7, fx: 0.48 },
-      short: { scale: 520, band: [0.22, 0.37], u: 0.66, fx: 0.5, uMin: 0.02 },
-      // closing: both terraced hills with the farmhouse on the right one's shoulder
-      closing: { wide: { scale: 1000, band: [0.085, 0.36], right: 0.9, hug: true, keepU: 0.36 } },
-    } },
-  // Contact: the crossing, mostly water: the far shore (the echo of his mountain at the right) high in the band, the
-  // open water below it in pale indigo with long ripples.
-  { name: 'crossing', page: ['level', 0.9], tech: { at: [-0.02, 0.98], bone: 0.22, ink: 1.0, inkPortrait: 1.1 }, water: { at: [-0.06, 0.96], y: 0.36, strokes: 1, refl: 0.75, banks: 0.8 },
-    frame: {
-      focus: [0.78, 0.38],
-      wide: { top: 0.58, band: [0.12, 0.485], slack: 0 },
-      tablet: { scale: 660, band: [0.12, 0.485], u: 0.62, fx: 0.5, uMin: 0.0, uMax: 1.1 },
-      phone: { scale: 560, band: [0.12, 0.485], u: 0.7, fx: 0.55 },
-      short: { scale: 420, band: [0.32, 0.485], u: 0.66, fx: 0.5, uMin: 0.0 },
-      // closing: the ferry at the jetty under the far mountain. Contact's closing shares the first screen with its strip,
-      // so it looks the other way, west along the crossing: the far shore's long low ranges over the open water and its
-      // long ripples, the part of the place the wide strip keeps under its title's mist. His mountain's echo (u 0.59-1.09)
-      // and the ferry's layer (from u 0.5) stay out of it at every width (a span: its scale follows the width), so
-      // nothing on the screen is shown twice. (Final review r1, item 1: the jetty close repeated the ferry, ferryman and
-      // jetty; r2, item 1: the far shore's close then repeated the echo's double-peaked silhouette straight under the
-      // strip's at 1512-1920 and on tablets. Left of u -0.13 the Résumé's terraced hills come in: the spans stop short.)
-      closing: {
-        wide: { scale: 920, band: [0.15, 0.485], right: 1.04, keepU: 0.6 },
-        twin: {
-          wide: { span: [-0.08, 0.49], band: [0.26, 0.46] },     // (right of the text: under it the keep-out's mist)
-          tablet: { span: [-0.12, 0.49], band: [0.22, 0.46] },
-          phone: { span: [-0.1, 0.49], band: [0.22, 0.46] },
-        },
-      },
-    } },
-  // The 404: one peak alone (the high distance: a tall host over a low far range), mist all round it.
-  // 4b: on wide screens and tablets the summit (0.585) sits just under the top feather, so the path's climb (0.23-0.46,
-  // its lower legs) comes up out of the bottom feather into view; wide, the view ends a little past the scroll's end in
-  // mist, which moves the climb left, clear of the "Draft art" note's guard at the lower right.
-  { name: 'lone-peak', page: ['high', 1],
-    frame: {
-      focus: [0.78, 0.4],
-      wide: { top: 0.66, band: [0.2, 0.595], slack: 0, right: 1.05 },
-      tablet: { scale: 530, band: [0.16, 0.595], u: 0.78, fx: 0.55, uMin: 0.05 },
-      phone: { scale: 450, band: [0.16, 0.63], u: 0.78, fx: 0.5 },
-      short: { scale: 340, band: [0.42, 0.63], u: 0.78, fx: 0.55, uMin: 0.05 },
-      // (the 404 has no closing; a pan through this stretch still frames one)
-      closing: { wide: { scale: 640, band: [0.16, 0.63], right: 1.04 } },
-    } },
+  // Writing: a still lake, where the river opens out (its near bank sinks out of view between the town and the lake).
+  // The low far shore and its whole reflection: the waterline the river's, the mirror below it (water.mirror: a still,
+  // whole reflection, few strokes). Boneless and pale (tech.ink): the quietest place on the scroll.
+  { name: 'lake', page: WORLD, tech: { at: [-0.10, 1.02], bone: 0.1, ink: 0.85 }, water: { at: [0.0, 1.0], y: 0.29, strokes: 0.25, refl: 1, banks: 1, mirror: 1 },
+    // (the closing shares Writing's first screen with its strip: its twin looks west down the still water, the pavilion
+    // out of view)
+    frame: { focus: [0.8, 0.3], twinU: 0.25 } },
+  // Résumé: the river narrows again and runs along the foot of the terraced hills, which step down to its far bank
+  // (tech.terr), in pale malachite; lower terraced hills on its near bank.
+  { name: 'shore', page: WORLD, tech: { at: [0.02, 0.98], bone: 0.5, ink: 1.3, terr: 1 },
+    water: { at: [0.0, 1.0], y: 0.29, near: 0.205, strokes: 0.35, refl: 0.5, banks: 0.4 },
+    frame: { focus: [0.65, 0.3] } },
+  // Contact: the crossing, where the river opens into wide water: the far shore (the echo of his mountain at the right),
+  // the open water below it in pale indigo with long ripples, the ferry at the jetty on the near side.
+  { name: 'crossing', page: WORLD, tech: { at: [-0.02, 0.98], bone: 0.22, ink: 0.96, inkPortrait: 1.06 }, water: { at: [0.0, 0.96], y: 0.29, strokes: 1, refl: 0.75, banks: 0.8 },
+    // (the twin: west along the crossing, the far shore's long low ranges over the open water, the ferry out of view)
+    frame: { focus: [0.68, 0.3], keepU: 0.6, twinU: 0.3 } },
+  // The 404: one peak alone beyond the water, mist all round it (no closing: the page is off the map). Its host plane
+  // stands taller than the composition's (amp: the old 'high' distance's relief), so one narrow summit rises clear.
+  { name: 'lone-peak', page: WORLD, amp: [1, 1, 1.25, 1, 1],
+    frame: { focus: [0.8, 0.33] } },
 ];
 /** 4b: the river town's depth profile (the river's water.front) in world stretches, { u0, du, hb (scene heights), def }:
  *  the shader bakes it in (shaders.ts frontAt), Canvas2D reads it (canvas2d.ts figure()). `def` holds off the profile. */
@@ -379,6 +302,19 @@ export const RIVER_FRONT = (() => {
 })();
 const SEAM = 0.09;
 const win = (u: number, a: number, b: number) => smooth(a - SEAM, a + SEAM, u) * (1 - smooth(b - SEAM, b + SEAM, u));
+const SEAM_N = 0.26;   // the near bank's seam (round 5)
+
+/** A place's own relief at world x `u` for plane `l` (round 5, Scene.amp): the amplitude multiplier, windowed over its
+ *  stretch. One composition for the whole scroll, yet the 404's lone peak stands as tall as the 'high' distance drew it. */
+export function ampAt(u: number, l: number): number {
+  let a = 1;
+  for (let k = Math.max(0, Math.floor(u) - 1); k <= Math.min(STRETCH_COUNT - 1, Math.floor(u) + 1); k++) {
+    const m = SCENES[k].amp;
+    if (m && m[l] !== 1) a += (m[l] - 1) * win(u, k, k + 1);
+  }
+  return a;
+}
+const winN = (u: number, a: number, b: number) => smooth(a - SEAM_N, a + SEAM_N, u) * (1 - smooth(b - SEAM_N, b + SEAM_N, u));
 
 /** Scene name at a stretch (rounded). */
 export function sceneName(stretch: number): string {
@@ -392,7 +328,7 @@ export function sceneName(stretch: number): string {
  * `out` is reused: [water, waterY, bone, ink, strokes, refl, banks].
  */
 export function sceneField(u: number, P: Resolved, out: Float32Array = new Float32Array(SCENE_FIELDS)): Float32Array {
-  let ws = 0, wy = 0, wsum = 0, bone = 1, ink = 1, strokes = 0, refl = 0, banks = 0, ny = 0, nsum = 0, shore = 0, terr = 0, mirror = 0;
+  let ws = 0, wy = 0, wsum = 0, bone = 1, ink = 1, strokes = 0, refl = 0, banks = 0, ny = 0, nsum = 0, shore = 0, terr = 0, mirror = 0, river = 0;
   for (let k = Math.max(0, Math.floor(u) - 1); k <= Math.min(STRETCH_COUNT - 1, Math.floor(u) + 1); k++) {
     const sc = SCENES[k];
     if (sc.tech) {
@@ -405,34 +341,45 @@ export function sceneField(u: number, P: Resolved, out: Float32Array = new Float
       terr += (sc.tech.terr || 0) * t;
     }
     if (sc.water) {
+      // the near bank: a river's own; open water has none, so where a river opens into it the bank sinks out of view
+      // (round 5: one river; blended over a wider seam than the water's, so the river widens and narrows gradually)
+      const tn = winN(u, k + sc.water.at[0], k + sc.water.at[1]);
+      if (tn > 0) {
+        if (sc.water.near !== undefined) { ny += sc.water.near * tn; river += tn; } else ny += NEAR_OPEN * tn;
+        nsum += tn;
+      }
       const t = win(u, k + sc.water.at[0], k + sc.water.at[1]);
       if (t <= 0) continue;
-      ws = Math.max(ws, t);
+      ws += t;   // (round 5) neighbouring waters meet at their seam and add up to one: the river never breaks there
       wy += sc.water.y * t; wsum += t;
       strokes += sc.water.strokes * t;
       refl += sc.water.refl * t;
       banks += (sc.water.banks || 0) * t;
       shore += (sc.water.shore ?? 1) * t;
       mirror += (sc.water.mirror || 0) * t;
-      if (sc.water.near !== undefined) { ny += sc.water.near * t; nsum += t; }
     }
   }
   const tf = (y: number) => y * P.hsc - P.drop + P.wlift;
-  out[0] = ws;
+  out[0] = Math.min(1, ws);
   out[1] = wsum > 0 ? tf(wy / wsum) : -1;
   out[2] = bone; out[3] = ink; out[4] = strokes; out[5] = refl; out[6] = banks;
   // the near bank (a river): land below this waterline; -1 = the water runs on to the bottom of the view
-  out[7] = nsum > 0 ? tf(ny / nsum) : -1;
+  out[7] = nsum > 0 && ny / nsum > NEAR_OPEN + 1e-4 ? tf(ny / nsum) : -1;
   // does the far shore stand on the water (lake, crossing: 1), or keep its own misty feet (the river: 0)?
   out[8] = wsum > 0 ? Math.min(1, shore / wsum) : 1;
   // terraces (the shore's fields: banded slopes, rounded crests) and a still mirror (the lake: its reflection whole)
   out[9] = Math.min(1, terr);
   out[10] = Math.min(1, mirror);
+  // open water (round 5): water with no near bank in front of it, where a near plane is only a headland melting into
+  // it; over a river the near bank is land, and the near hills stand on it whole
+  out[11] = nsum > 0 ? ws * (1 - Math.min(1, river / nsum)) : 0;
   return out;
 }
 /** Floats per column from sceneField(): water, waterline, bone, ink, strokes, refl, banks, near bank, shore, terraces,
- *  mirror. */
-export const SCENE_FIELDS = 11;
+ *  mirror, open water. */
+export const SCENE_FIELDS = 12;
+/** Where open water's near bank would be: under any view's bottom (scene heights). */
+const NEAR_OPEN = -0.15;
 
 
 // "Three distances". Per plane: base and amplitude of the ridge (viewport heights from the
@@ -697,7 +644,7 @@ export interface Framing {
  * @param {'wide'|'tablet'|'phone'|'short'} cls
  * @param {{width:number, height:number, keepoutRight?:number|null, doc?:boolean, twin?:boolean}} box  the window's CSS
  *   box; keepoutRight = the text block's right edge inside it (CSS px from the box's left), when the text overlaps the
- *   box (wide screens); doc = a document's low strip (strip--doc), framed on the band around the scene's focus;
+ *   box (wide screens); doc = a document's low strip (strip--doc; unused since round 5: every inner page has the one hero);
  *   twin = (a closing) the page's strip and its closing share a screen (a short page), so the closing frames a
  *   different view of the place (frame.closing.twin) instead of a small version of the opening
  * @param {'strip'|'closing'} kind  the closing shows the page's own place once more (DESIGN 11.B), never the next one
@@ -711,12 +658,27 @@ export function framingAt(stretch: number, cls: WidthClass = 'wide', box: Framin
   const width = Math.max(1, +box.width! || 1440);   // (no width: NaN, then the default)
   const height = Math.max(1, +box.height! || 360);
   const kr = box.keepoutRight === null || box.keepoutRight === undefined || !Number.isFinite(+box.keepoutRight) ? null : +box.keepoutRight;
-  // (wide: its own branches below never read T)
+  // Home keeps its own hero (F.wide and the class views); every other place takes the one hero rule (HERO)
+  const own = !!F.wide;
+  // (Home's narrow views; the others never read T)
   const T = ((cls === 'short' ? F.short || F.phone : F[cls]) || F.tablet) as View;
+  // the shared horizon: the river's waterline, HERO.at down the box, at this scale
+  const heroTop = (sc: number) => HERO.horizon + HERO.at * height * HS / sc;
   let scale: number, left: number, top: number, fu: number, fy: number, nominal: number, ku: number | undefined, spanned = false;
-  if (kind === 'closing') {
-    // the page's own place once more: a span (spanFrame), a band (bandFrame) or a point at (fx, fy), from the closing's
-    // own data
+  if (kind === 'closing' && !own) {
+    // the place once more, a little further away, its focus in the middle (nothing stands over a closing); a short page's
+    // twin, on the same screen as its strip, looks closer at another part of the place (its own u), so the strip's
+    // landmark and figures are never shown twice (DESIGN 4.6)
+    const twin = !!box.twin && F.twinU !== undefined;
+    scale = nominal = heroScale(cls, width) * (twin ? HERO.twin : HERO.closing);
+    fu = twin ? F.twinU! : F.focus[0];
+    fy = F.focus[1];
+    left = k + fu - 0.5 * width / scale;
+    top = heroTop(scale);
+    ku = twin ? fu : undefined;
+  } else if (kind === 'closing') {
+    // Home's: the page's own place once more: a span (spanFrame), a band (bandFrame) or a point at (fx, fy), from the
+    // closing's own data
     const C = closingOf(F, cls, T, !!box.twin);
     if (C.span) { ({ scale, left, top, fu } = spanFrame(k, C, cls, width, height, kr)); spanned = true; }
     else if (C.band) ({ scale, left, top, fu } = bandFrame(k, C, cls, width, height, false, F.focus[0]));
@@ -732,31 +694,24 @@ export function framingAt(stretch: number, cls: WidthClass = 'wide', box: Framin
     // hug: the place stands right beside the text (its keepU exactly KEEP_GAP right of it) whatever the width, so a wide
     // screen shows more of the place's own open water and mist rather than the neighbour beyond the text
     if (C.hug && !spanned && kr !== null && kr > 0) left = k + ku - (kr + KEEP_GAP) / scale;
-  } else if (cls === 'wide') {
-    // one stretch is the box's width (today's scale), up to 1700 px on very wide screens; a document's low strip may
-    // look from further away (wide.docScale, at 1440), so its band holds whole hills
-    scale = nominal = Math.min(width, 1700) * (box.doc && F.wide.docScale ? F.wide.docScale / 1440 : 1);
-    fu = F.focus[0]; fy = F.focus[1]; left = k + (F.wide.right ?? 1) - width / scale;
-    // a document's low strip (Résumé, the Note) frames the band around the focus, not the tall strip's sky
-    top = box.doc ? F.focus[1] + (F.wide.docFy ?? 0.62) * height * HS / scale : F.wide.top;
-    // a band (as on narrow screens): its summits just under the top feather, the rest of the box below them
-    const B = box.doc ? F.wide.docBand : F.wide.band;
-    if (B) {
-      const dk = box.doc ? 0.5 : 1;
-      const unit = HS / scale, ft = FEATHER.wide[0] * dk, fb = FEATHER.wide[1] * dk;
-      const topA = B[1] + ft * unit, topB = B[0] + (height - fb * 0.5) * unit;
-      top = topB > topA ? topA + (topB - topA) * (F.wide.slack ?? 0.5) : topA;
+  } else if (own && cls !== 'wide') {
+    // Home's album leaf on narrow screens: a band of its scene (bandFrame), or a point at (fx, fy)
+    if (T.band) ({ scale, left, top, fu } = bandFrame(k, T, cls, width, height, false, F.focus[0]));
+    else {
+      scale = T.scale;
+      fu = F.focus[0];
+      left = k + fu - T.fx! * (width / scale);
+      top = F.focus[1] + T.fy! * height * HS / scale;
     }
-  } else if (T.band) {
-    // a band of the scene, see bandFrame()
-    ({ scale, left, top, fu } = bandFrame(k, T, cls, width, height, !!box.doc, F.focus[0]));
     fy = F.focus[1];
     nominal = T.scale;
   } else {
-    scale = nominal = T.scale;
+    // the hero rule: one stretch is the box's width on wide screens (to 1700 px), a fixed scale below; the horizon HERO.at
+    // down the box; the focus HERO.fx across (Home: its view's right edge at u 1, its mountain at the right)
+    scale = nominal = heroScale(cls, width);
     fu = F.focus[0]; fy = F.focus[1];
-    left = k + fu - T.fx! * (width / scale);
-    top = fy + T.fy! * height * HS / scale;
+    top = heroTop(scale);
+    left = own ? k + (F.wide!.right ?? 1) - width / scale : k + fu - HERO.fx[cls] * width / scale;
   }
   // the keep-out rule: the scene's leftmost figurative point (frame.keepU, else the focus; a closing may name its own)
   // stands at least KEEP_GAP px right of the text, never past the box's right edge (a span is already placed beside the
@@ -770,6 +725,43 @@ export function framingAt(stretch: number, cls: WidthClass = 'wide', box: Framin
     focusX += shift;
   }
   return { worldLeft: left, worldTop: top, scale, focus: [focusX, (top - fy) * scale / HS], nominal };
+}
+
+/**
+ * Round 5, one hero system (DESIGN §12 "Round 5"): every page's opening frames its place the same way, so from page to
+ * page the scenes line up as the titles do. The river's waterline, the scroll's one horizon (`horizon`, scene heights),
+ * sits `at` down the box; one stretch is the box's width on wide screens (to 1700 px) and a fixed `scale` below (CSS px
+ * per stretch); the place's focus stands `fx` across the box (the keep-out rule may move it right of the text). Home's
+ * taller hero keeps its own placement across (its mountain at the right, the name in its sky) and its album leaf on
+ * narrow screens, but its horizon follows the same rule on wide ones. The closings follow it too, `closing` times the
+ * scale (a little further away), the focus in the middle; a short page's twin closing (on its strip's screen) looks
+ * closer, `twin` times the scale, at another part of the place (Frame.twinU).
+ */
+export const HERO: {
+  horizon: number;
+  at: number;
+  fx: Record<WidthClass, number>;
+  scale: Record<Exclude<WidthClass, 'wide'>, number>;
+  closing: number;
+  twin: number;
+} = {
+  horizon: 0.289,
+  at: 0.66,
+  fx: { wide: 0.694, tablet: 0.6, phone: 0.56, short: 0.6 },
+  scale: { tablet: 1000, phone: 820, short: 560 },
+  closing: 0.8,
+  twin: 1.6,
+};
+/** The hero rule's scale for a width class and a box width: CSS px per stretch. */
+export function heroScale(cls: WidthClass, width: number): number {
+  return cls === 'wide' ? Math.min(width, 1700) : HERO.scale[cls];
+}
+/** The scale a window's figure layer is drawn at for stretch k (the strip's): Home's own view on narrow screens, else
+ *  the hero rule's. */
+export function layerScaleAt(k: number, cls: WidthClass, width: number): number {
+  const F = SCENES[clampK(Math.round(k))].frame;
+  if (F.wide && cls !== 'wide') return ((cls === 'short' ? F.short || F.phone : F[cls]) || F.tablet)!.scale;
+  return heroScale(cls, width);
 }
 
 // The closing's framing for a width class (DESIGN 11.B): a short page's twin (a different view of the place, when the

@@ -168,8 +168,9 @@ export function createCanvas2D(canvas: HTMLCanvasElement): Renderer | null {
   // ---------------------------------------------------------------- painting one view
   // scene height -> view px: the view shows scene heights [top - span, top] (a window; the full view: [0, 1])
   const vy = (U: SceneU, y: number, h: number) => ((U.view[1] - y) / U.view[2]) * h;
-  // a near plane over water sinks into it (only its headlands stand out), as in the shader
-  const sunk = (v: Painted, l: number, c: number) => (l >= 3 ? 0.14 * v.ridges[(SCENE_ROW * v.samples + c) * 4] : 0);
+  // a near plane over open water sinks into it (only its headlands stand out), as in the shader; over a river (its near
+  // bank is land) it stands whole (round 5; ridges row 8: open water)
+  const sunk = (v: Painted, l: number, c: number) => (l >= 3 ? 0.14 * v.ridges[((LAYERS + 3) * v.samples + c) * 4 + 2] : 0);
   function silhouette(v: Painted, U: SceneU, l: number, w: number, h: number) {
     const path = new Path2D();
     path.moveTo(-2, h + 2);
@@ -347,13 +348,14 @@ export function createCanvas2D(canvas: HTMLCanvasElement): Renderer | null {
     }
     if (!any) return;
     const wyMean = wySum / n, nyMean = nySum / n, shoreK = shore / n, mirror = mir / n, indigo = Math.min(1, ind / n);
-    const bottom = nyMean > -0.5 ? vy(U, nyMean, LH) : LH;
     mc.clearRect(0, 0, LW, LH);
     for (let i = 0; i < LW; i++) {
       const c = Math.min(v.samples - 1, Math.round(((i + 0.5) / LW) * v.samples - 0.5));
       const ws = v.ridges[(r + c) * 4];
       if (ws <= 0.01) continue;
       const top = vy(U, v.ridges[(r + c) * 4 + 1], LH);
+      // (round 5) each column down to its own near bank: where a river opens out the bank sinks out of view
+      const ny = v.ridges[(r7 + c) * 4], bottom = ny > -0.5 ? vy(U, ny, LH) : LH;
       mc.fillStyle = `rgba(0,0,0,${ws.toFixed(3)})`;
       mc.fillRect(i, top + 0.5, 1, Math.max(0, bottom - top));
     }

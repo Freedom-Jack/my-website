@@ -24,13 +24,13 @@
 import { createGL, type TaintedError } from './gl';
 import { createCanvas2D } from './canvas2d';
 import { buildRidges, layerFeet, crestMax, LAYERS } from './ridges';
-import { spec, blendSpec, resolve, framing, cameraLeft, sceneName, framingBlend, widthClass, HS, SCENES, STRETCH_COUNT, featherOf, REF_PX } from './compose';
+import { spec, blendSpec, resolve, framing, cameraLeft, sceneName, framingBlend, widthClass, HS, STRETCH_COUNT, featherOf, REF_PX } from './compose';
 import { VEILS, TRAIL, LIFE } from './shaders';
 import { paletteName } from './palette';
 import { figureMeta, registerSets } from './figures';
 import { createFigureSource, type FigureSource } from './figure-source';
 import { SETS } from './sets';
-import { framingAt, pageSpec } from './compose';
+import { framingAt, pageSpec, layerScaleAt } from './compose';
 import type { Distance, Framing, Resolved, Spec, WidthClass, WindowKind } from './compose';
 import type { FigureMeta, LifeKind, LifeOut, Pt } from './figures';
 import type { FigureImage, FigureSlot, LifeTable, PresentU, PresentWindow, Renderer, SceneBase, StageU } from './renderer';
@@ -42,7 +42,7 @@ export { stripSVG } from './strip';
 export { PALETTES, PIGMENTS } from './palette';
 export { framingAt } from './compose';
 
-/** The scene painted at a stretch (DOM-free): 'peak' | 'river' | 'path' | 'lake' | 'shore' | 'crossing' | 'lone-peak'. */
+/** The scene painted at a stretch (DOM-free): 'peak' | 'river' | 'lake' | 'shore' | 'crossing' | 'lone-peak'. */
 export function sceneAt(stretch: number): string { return sceneName(stretch); }
 
 /** mountLandscape()'s options: the site's (types.ts MountOptions) and the lab's and QA's (see its JSDoc below). */
@@ -64,6 +64,8 @@ export interface EngineOptions extends Omit<MountOptions, 'veil'> {
   pointer?: boolean;
   reducedMotion?: boolean;
   widthClass?: WidthClass;
+  /** QA only: the strip window's framing, fixed (world x at its left edge, scene height at its top, CSS px per stretch). */
+  frame?: { left: number; top: number; scale: number };
 }
 /** rebind()'s targets: the contract's (types.ts), with the head / descend aliases and a single veil element. */
 export type EngineTargets = Partial<Omit<LandscapeTargets, 'veil'>> & Pick<EngineOptions, 'veil' | 'head' | 'descend'>;
@@ -282,11 +284,12 @@ const QA = typeof process !== 'undefined' && process.env.NEXT_PUBLIC_INK_QA === 
  * @param {HTMLCanvasElement} canvas
  * @param {object}  [opts]
  * @param {number}  [opts.stretch=0]       Position along the one continuous handscroll. Each page has its own
- *                                         stretch (home 0, work 1, the road 2, writing 3, résumé 4, contact 5, 404 6).
- *                                         Each stretch is a scene (sceneAt): peak, river, path, lake, shore,
- *                                         crossing, lone-peak. Seams pass through mist or water.
- * @param {'level'|'high'|'deep'} [opts.distance='level']  Composition preset ("three distances").
- * @param {number}  [opts.presence=1]      0..1. How strongly the landscape shows.
+ *                                         stretch (home 0, work 1, writing 2, résumé 3, contact 4, 404 5).
+ *                                         Each stretch is a scene (sceneAt): peak, river, lake, shore, crossing,
+ *                                         lone-peak. Seams pass through water or mist (round 5: one river).
+ * @param {'level'|'high'|'deep'} [opts.distance='level']  Composition preset ("three distances"). Round 5: every page
+ *                                         passes the one world composition (compose.ts WORLD).
+ * @param {number}  [opts.presence=1]      0..1. How strongly the landscape shows (round 5: WORLD's, on every page).
  * @param {Element|null} [opts.strip]      [data-landscape="strip"]: window 1, the page's own scene at its strip framing,
  *                                         palette and figures, the drifting mist and the cursor's wake. Alias: `head`.
  * @param {Element|null} [opts.closing]    [data-landscape="closing"]: window 2, the page's own place once more (DESIGN
@@ -329,6 +332,10 @@ const QA = typeof process !== 'undefined' && process.env.NEXT_PUBLIC_INK_QA === 
  * @param {boolean} [opts.still=false]     Start stilled (see setStill).
  * @param {'wide'|'tablet'|'phone'|'short'} [opts.widthClass]  Lab / QA only: frame as this width class whatever the
  *                                         viewport (the strips lab renders every class on one screen).
+ * @param {{left:number, top:number, scale:number}} [opts.frame]  QA builds only (round 5): the strip window looks at a
+ *                                         fixed slice of the world (world x at its left edge, scene height at its top,
+ *                                         CSS px per stretch), its figure layer drawn at that scale: the story map's
+ *                                         stills (tools/build-stills.ts) and the panorama of the whole scroll.
  * @param {'living'|''} [opts.ground]     4b (body data-ground): 'living' makes the page's own scene its ground. Wide
  *                                         screens painted by a hardware GPU (WebGL, not a software rasteriser): full-bleed
  *                                         depth layers that sink as you scroll (STAGE), living veils on the text's own
@@ -731,6 +738,9 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
   const clsForced = ['wide', 'tablet', 'phone', 'short'].includes(opts.widthClass as string) ? opts.widthClass! : null;   // lab / QA only
   const classNow = () => clsForced || widthClass(innerWidth, innerHeight);
   let cls = classNow();
+  // QA only (the panorama tool): the strip window looks at a fixed slice of the world at a fixed scale, its figure layer
+  // drawn at that scale, so a row of such windows stitches into the whole handscroll at one scale
+  const qaFrame = QA && opts.frame && [opts.frame.left, opts.frame.top, opts.frame.scale].every(Number.isFinite) ? opts.frame : null;
   let time = 40;             // ambient clock, seconds (never jumps after a pause)
   let driftT = 1;            // 0..1: the drift eases out after IDLE_MS without input, and back in
   let lastInput = performance.now();
@@ -843,9 +853,9 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
   let drawnFigs = false;     // the first full scene is up (a layer ready before it follows the bloom instead of fading)
   const figSource = () => (figSrc ??= createFigureSource());
   const layerScale = (k: number) => {
+    if (qaFrame) return Math.max(40, Math.round(qaFrame.scale / 40) * 40);
     if (cls === 'wide') return Math.round(Math.min(cssW || innerWidth, 1700) / 40) * 40;
-    const T = SCENES[Math.min(STRETCH_COUNT - 1, Math.max(0, k))].frame;
-    return ((cls === 'short' ? T.short || T.phone : T[cls]) || T.tablet).scale;
+    return layerScaleAt(k, cls, cssW || innerWidth);
   };
   /** The closing's layer scale at stretch k: the strip's when the closing shows it within LAYER_SHARE, else its own
    *  framing's nominal scale (to 40 px). */
@@ -1722,6 +1732,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       const left = cameraLeft(stretch, wvis);
       return { worldLeft: left, worldTop: 1, scale: cssW / wvis, focus: [0, 0], full: true, hs, wvis };
     }
+    if (qaFrame && w.kind === 'strip') return { worldLeft: qaFrame.left, worldTop: qaFrame.top, scale: qaFrame.scale, focus: [0, 0] };
     // the closing shows the page's own place once more (compose.ts frame.closing): a small version of its opening, or on a
     // short page, whose closing shares a screen with its strip, a different view of it (twin, without the strip's figures)
     const kind = kindOf(w);

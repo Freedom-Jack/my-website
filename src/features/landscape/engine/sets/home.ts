@@ -3,15 +3,17 @@
 // cut in the rock to a ledge where a thatched hut stands with its front open, a low brushwood fence before it and a
 // pine leaning over its roof. The traveller (him) walks up the path toward it: a broad hat, sloped shoulders, a white
 // robe flaring at the hem, a bundle on his back and a staff planted ahead. Life: a thread of smoke from the hut's
-// ridge (an anchor only: it is not drawn here, so the present pass never doubles it).
+// ridge (an anchor only: it is not drawn here, so the present pass never doubles it). Round 5: the river starts here. In
+// the cleft between the near crag's two summits a thin fall drops in two tiers into the mist at its foot, where the
+// river comes out from behind his mountain toward the town (compose.ts: one river the whole length).
 //
 // A figure set (figures.ts, THE SET API): meta + draw(env), in world px.
 
 import { REF_PX, VH_PX, planeTop, streams, vnoise, mix, mix3, runs, stroke, wash, softWash, dotTree, ellipse, anchor, type Env, type FigureMeta, type Pt, type Rng } from '../figures';
 
-// u1 reaches past the crag (0.97, not 0.9): on phones the hut is drawn larger and must stay clear of the right end's
-// melt (the last 13 % of the rect's width)
-export const meta: FigureMeta = { rect: [0.64, 0.97, 0.06, 0.34], plane: 3, phase: 1 };
+// u1 reaches past the crag (1.06, not 0.9): on phones the hut is drawn larger and must stay clear of the right end's
+// melt (the last 13 % of the rect's width), and the fall in the crag's cleft (u 0.94) stands clear of it too
+export const meta: FigureMeta = { rect: [0.64, 1.06, 0.06, 0.42], plane: 3, phase: 1 };
 
 const SEED = 5;
 const OB: Pt = [0.72, -0.48];   // the Song oblique (figures.ts D, copied: a set's top level runs before figures.ts's own)
@@ -175,6 +177,53 @@ export function* draw(env: Env) {
   if (big < 2.2) dotTree(env, X(0.803), crestY(X(0.803)) + 2.4 * bg, 0.66 * bt, own('knoll tree'), { clusters: 5 });   // not on phones: no room
   traveller(env, tx, ts, pathY, own('traveller'));
   yield;
+
+  // ---- the fall in the cleft between the near crag's summits: where the river begins
+  waterfall(env, X(0.942), crestY, 1 + (big - 1) * 0.7, own('fall'));
+  yield;
+}
+
+/**
+ * A thin fall in a cleft of the crag (round 5: the source of the one river), as the painters leave one: unpainted paper
+ * framed by dark rock. Out of the notch at x (a world px column) it drops in three short tiers that step down and aside
+ * the cleft, each ribbon uneven and broken where a rock lip crosses it, the lips dark against it; its foot is lost in a
+ * bank of mist (the river comes out of the mist, beyond the crag). s: scale (phones draw it larger).
+ */
+function waterfall(env: Env, x: number, crestY: (x: number) => number, s: number, R: Rng) {
+  const { ctx, ink } = env;
+  const { C, rgba } = ink;
+  let y = crestY(x) + 14 * s;                                    // under the notch: the fall comes out of the cleft
+  let cx = x;
+  const tiers: [len: number, w: number, dx: number][] = [[30, 1.7, -2.5], [42, 2.3, 3], [34, 2.8, -1.5]];
+  tiers.forEach(([len, w, dx], i) => {
+    const n = 8, pts: Pt[] = [];
+    for (let j = 0; j <= n; j++) {
+      const t = j / n;
+      pts.push([cx + (vnoise(t * 2.2 + i, 7.1, 91) - 0.5) * 1.4 * s + t * 0.8 * s, y + t * len * s]);
+    }
+    // the rock on each side first (a wash of the crag's ink, darker on the shaded right), then the paper left for the
+    // water over it: so the fall sits IN the rock, not on it
+    const side = (k: number) => pts.map(([px, py]): Pt => [px + k * (w * 0.5 + 1.6) * s, py]);
+    stroke(ctx, side(-1), { w: 1.6 * s, col: rgba(mix3(C.ink, C.indigo, 0.4), 0.28), tin: 0.3, tout: 0.3, wob: 0.7, dry: 0.35, seed: 31 + i });
+    stroke(ctx, side(1), { w: 2.2 * s, col: rgba(mix3(C.ink, C.indigo, 0.4), 0.4), tin: 0.25, tout: 0.3, wob: 0.7, dry: 0.3, seed: 41 + i });
+    // the lip it falls from: a boss of dark rock at one side of the cleft (the water runs on in front of it)
+    if (i > 0) {
+      const k = dx > 0 ? -1 : 1, [px, py] = pts[0];
+      stroke(ctx, [[px + k * (w * 0.4) * s, py - 1.5 * s], [px + k * (w * 0.5 + 4.5) * s, py + 0.5 * s], [px + k * (w * 0.5 + 5.5) * s, py + 3 * s]], { w: 1.4 * s, col: rgba(C.ink, 0.45), tin: 0.1, tout: 0.5, wob: 0.5, dry: 0.3, seed: 71 + i });
+    }
+    // the water: one ribbon, uneven, paler as it falls into the mist (never a ruled line)
+    stroke(ctx, pts, { w: w * s, col: rgba(C.white, 0.8 - i * 0.14), tin: 0.3, tout: 0.25, wob: 0.6, seed: 51 + i });
+    // a faint streak of falling water in it
+    stroke(ctx, pts.slice(1, -1).map(([px, py]): Pt => [px + (R() - 0.5) * w * 0.4 * s, py]), { w: 0.3 * s, col: rgba(C.indigoP, 0.28), tin: 0.3, tout: 0.5, dry: 0.4, seed: 61 + i });
+    // a breath of spray where it lands on the next lip
+    const end = pts[pts.length - 1];
+    if (i < tiers.length - 1) softWash(env, ellipse(end[0] + dx * 0.4 * s, end[1] + 1.5 * s, 3.5 * s, 1.4 * s, 12), rgba(C.white, 0.4), 1.2 * s);
+    cx = end[0] + dx * s;
+    y = end[1] + 1.5 * s;
+  });
+  // its foot in the mist: the fall thins away into a long, low bank of it (laid over its last tier)
+  softWash(env, ellipse(cx + 4 * s, y - 6 * s, 30 * s, 6 * s, 18), rgba(C.mist, 0.36), 8 * s);
+  softWash(env, ellipse(cx + 14 * s, y + 3 * s, 52 * s, 8 * s, 18), rgba(C.mist, 0.32), 12 * s);
 }
 
 /**

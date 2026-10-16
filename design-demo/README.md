@@ -255,6 +255,10 @@ Every `init*` is idempotent (bound elements are skipped) and returns `destroy()`
 
 ### Figure sets and small life
 
+(The build, round 5: the engine is `src/features/landscape/engine/`, one world painted with one composition, the road
+gone, one river; each set places itself by its own stretch constant `K`, so moving a place is one line. DESIGN §7
+"Round 5: one world" and §12 "Round 5" step 2. What follows describes the demo, whose numbers are the 4b ones.)
+
 - **Add or edit a place:** `assets/js/landscape/sets/<name>.js` (`meta` + `draw(env)`, in world px: 1440 per stretch, 900 per scene height) plus one line in `sets/index.js`; nothing else changes. The binding contract is the header of `figures.js` (THE SET API, THE LIFE API). Keep content inside 13–87 % of `meta.rect` (the ends melt). The "Draft art" label is the page's `.strip__note`, not the set's.
 - **Rules that break every page if ignored:** a set's top level runs before `figures.js`'s constants exist (the modules import each other), so read `D`, `VH_PX` and `LIFE_KINDS` only inside `draw()`; a syntax error in any set kills every page's painting. Never `Math.random`: one stream per element, `own(...keys)` from `streams(SEED, PINS)`. To change a shared brush, copy it into the set and fold it back into the kit in a separate, reviewed step.
 - **The lab:** `/_lab/landscape/figures.html?set=market` (or `?stretch=1`), with `&scale=` (CSS px per stretch; default every width class), `&dpr=2`, `&palette=ink|misted|rich|all`, `&zoom=1`, `&life=0`, `&worker=1` (draw through the real worker, errors with line numbers). Each tile's caption shows its size, time, yields, longest step, ink in the melt ends, the life anchors and a SHA-256. Scripted (through `tools/qa/cdp.py`, after `wait_for` `window.ready === true`): `window.figLab.render({ stretch, scale, dpr, palette?, worker? })` → `{ width, height, ms, steps, longest, life, sha, melt }`, where `sha` is the hash of the bytes the page uploads: the check that an edit, or the port, leaves the other sets pixel-identical (reference hashes: RECORD.md §3.3).

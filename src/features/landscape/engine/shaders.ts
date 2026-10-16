@@ -135,7 +135,7 @@ out vec4 outColor;
 uniform sampler2D uRidges;   // RGBA16F: one row per plane (far -> near): crest height, smoothed slope, broad crest;
                              // then row L: water, waterline, bone, ink; row L+1: strokes, reflection, banks,
                              // indigo water; row L+2: near bank (-1: none), shore, pigment strength, malachite lean;
-                             // row L+3: terraces, still mirror
+                             // row L+3: terraces, still mirror, open water
 uniform sampler2D uNoise;    // NOISE tile (repeat)
 uniform vec3  uLayer[L];     // foot height, foot fade, ink strength
 uniform vec4  uView;         // x: world x of the view's left edge (viewport heights: the pan), y: scene height at its
@@ -283,8 +283,11 @@ void main() {
   vec4 scn3 = texture(uRidges, vec2(uv.x, rowV(L + 2)));   // near bank, shore, pigment, malachite lean
   float nearY = scn3.r < -0.5 ? -9.0 : mix(scn3.r, scn3.r * uHz[2].w, uHzK) - lay(0.5) * lift - uHzK * uHz[2].x;
   float shoreK = scn3.g;
-  vec4 scn4 = texture(uRidges, vec2(uv.x, rowV(L + 3)));   // terraces, still mirror
+  vec4 scn4 = texture(uRidges, vec2(uv.x, rowV(L + 3)));   // terraces, still mirror, open water
   float terr = scn4.r * (1.0 - uHzK), mirror = scn4.g;
+  // open water (round 5): water with no near bank before it; over a river the near bank is land, so a near plane there
+  // stands whole, and only over open water is it a headland melting into it
+  float wO = scn4.b;
   // pigment: never under the text (zero inside the keep-out, full again 2 ramps right of its edge), never in the horizon
   float keepPig = 1.0 - uKeep.y * (1.0 - smoothstep(uKeep.x, uKeep.x + uKeep.z * 2.0, uv.x));
   float pigK = scn3.b * keepPig * (1.0 - uHzK);
@@ -387,11 +390,11 @@ void main() {
       footY = mix(footY, wY - mix(0.012, 0.03, openW), sf);
       fade = mix(fade, mix(0.07, 0.045, openW), sf);
     }
-    else if (wS > 0.0 && i >= 3) footY += 0.1 * wS;   // a near plane over water: only its headlands show, melting into it
+    else if (wO > 0.0 && i >= 3) footY += 0.1 * wO;   // a near plane over open water: only its headlands show, melting into it
     if (riverW > 0.0) { footY = mix(footY, max(footY, wY + 0.06), riverW); fade = mix(fade, max(fade, 0.085), riverW); }
     // over open water nothing stands before the far shore: its wash is fuller and flatter; a near plane
     // standing in open water is only a pale headland, so its crest never draws a line across the water
-    float inkK = Lp.z * inkT * mix(1.0, uHz[i].z, uHzK) * (1.0 + 0.5 * openW) * (i >= 3 ? 1.0 - 0.55 * wS : 1.0);
+    float inkK = Lp.z * inkT * mix(1.0, uHz[i].z, uHzK) * (1.0 + 0.5 * openW) * (i >= 3 ? 1.0 - 0.55 * wO : 1.0);
     float bodyW = mix(0.30, 0.16, dep) * (1.0 + 0.8 * openW);
     vec3 ridge = texture(uRidges, vec2(uv.x, rowV(i))).rgb;
     ridge = mix(ridge, ridge * uHz[i].w, uHzK);       // the horizon flattens the ranges (level distance)
@@ -529,11 +532,11 @@ void main() {
         // the same over, written for premultiplied colour (a near plane over open water is only its ink)
         float aE = cv;
         vec3 P = fill * cv;
-        if (i >= 3 && wS > 0.0) { aE = cv * (1.0 - (1.0 - dens) * wS); P = cv * (fill * (1.0 - wS) + ink * dens * wS); }
+        if (i >= 3 && wO > 0.0) { aE = cv * (1.0 - (1.0 - dens) * wO); P = cv * (fill * (1.0 - wO) + ink * dens * wO); }
         col = col * (1.0 - aE) + P;
         cov = cov * (1.0 - aE) + aE;
       } else {
-        if (i >= 3 && wS > 0.0) fill = mix(fill, mix(col, ink, dens), wS);   // over open water a near plane is only its ink
+        if (i >= 3 && wO > 0.0) fill = mix(fill, mix(col, ink, dens), wO);   // over open water a near plane is only its ink
         col = mix(col, fill, cv);
       }
       mm = mix(mm, mix(0.6, 0.1, dep) * (1.0 - dens), cv);
@@ -573,7 +576,7 @@ void main() {
     float band = 1.0 - smoothstep(bY - 0.05, bY + fade * 1.5, uv.y);
     band *= smoothstep(bY - 0.30, bY - 0.02, uv.y) * 0.5 + 0.5;
     // the near planes' mist keeps off open water; the far shore's lies thinner on it, so its hills read
-    float bandK = i >= 3 ? 1.0 - 0.75 * wS : 1.0 - 0.7 * openW;
+    float bandK = i >= 3 ? 1.0 - 0.75 * wO : 1.0 - 0.7 * openW;
     bandK *= 1.0 - 0.6 * riverW;    // the river's hills: a thinner band at their misty feet
     float bA = clamp(band * (0.3 + 0.7 * sm) * 0.8 * bandK, 0.0, 1.0);
     col = mix(col, MIST, bA); cov = mix(cov, 1.0, bA);

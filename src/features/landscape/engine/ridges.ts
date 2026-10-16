@@ -7,7 +7,7 @@
 // across the screen when the camera pans: ridges stay continuous from one stretch to the next.
 // Rebuilt on the CPU only when the view changes (resize, pan, composition); ~1-3 ms.
 
-import { LAYERS, massifs, MASSIF_STRIDE, sceneField, SCENE_FIELDS, resolve, spec, type Resolved } from './compose';
+import { LAYERS, massifs, MASSIF_STRIDE, sceneField, SCENE_FIELDS, resolve, spec, ampAt, type Resolved } from './compose';
 import { pigmentAt } from './palette';
 
 export { LAYERS };
@@ -130,7 +130,7 @@ function planeHeight(l: number, u: number, m: number[], P: Resolved) {
     const vary = 0.55 + 0.45 * noise1(q * 1.7 + 3.3, seed + 21);
     shape += k * 0.5 * vary * (ridged1(q * 5.2 + 7.7, seed + 5, 3) * 1.6 - 0.55) * (0.4 + 0.6 * shape);
   }
-  return P.amp[l] * Math.max(0, shape) * Math.min(env, 1.4);
+  return P.amp[l] * ampAt(u, l) * Math.max(0, shape) * Math.min(env, 1.4);   // (round 5: the place's own relief)
 }
 
 /**
@@ -139,8 +139,16 @@ function planeHeight(l: number, u: number, m: number[], P: Resolved) {
  */
 export function planeTop(l: number, u: number, P: Resolved, m: number[] | null = null): number {
   const M = m || massifs(u - 0.05, u + 0.05, P)[l];
-  return P.base[l] + planeHeight(l, u, M, P);
+  let b = P.base[l];
+  // (round 5) over water a far-shore plane stands on the waterline, as buildRidges paints it
+  if (l <= 2) {
+    const f = sceneField(u, P, PT_FIELD);
+    const ws = f[0] * f[8];
+    if (ws > 0) b += (Math.max(b, f[1] - 0.03) - b) * ws;
+  }
+  return b + planeHeight(l, u, M, P);
 }
+const PT_FIELD = new Float32Array(SCENE_FIELDS);
 
 /**
  * Build ridge heights (+ smoothed slopes) for the current view, and the scene rows.
@@ -152,7 +160,7 @@ export function planeTop(l: number, u: number, P: Resolved, m: number[] | null =
  * @returns {Float32Array} RGBA texels, row-major. Rows 0..4 are the planes, far first:
  *   [height, slope, broad height, 0]. Row 5 (SCENE_ROW): [water 0..1, waterline, bone, ink].
  *   Row 6: [strokes, reflection, banks, indigo water]. Row 7: [near bank (-1: none), shore, pigment, malachite
- *   lean]. Row 8: [terraces, still mirror, 0, 0]. Water lies in front of planes 0-2 (the far shore), whose bases rise to the waterline there where the
+ *   lean]. Row 8: [terraces, still mirror, open water (no near bank), 0]. Water lies in front of planes 0-2 (the far shore), whose bases rise to the waterline there where the
  *   far shore stands on the water (shore 1; the river's far planes keep their own feet: shore 0); planes 3-4
  *   stand in front of it (headlands at the seams).
  */
@@ -238,7 +246,7 @@ export function buildRidges(samples: number, view: RidgeView, P: Resolved, out?:
     out[o] = sf[f]; out[o + 1] = sf[f + 1]; out[o + 2] = sf[f + 2]; out[o + 3] = sf[f + 3];
     out[o6] = sf[f + 4]; out[o6 + 1] = sf[f + 5]; out[o6 + 2] = sf[f + 6]; out[o6 + 3] = pg[c * 3 + 2];
     out[o7] = sf[f + 7]; out[o7 + 1] = sf[f + 8]; out[o7 + 2] = pg[c * 3]; out[o7 + 3] = pg[c * 3 + 1];
-    out[o8] = sf[f + 9]; out[o8 + 1] = sf[f + 10]; out[o8 + 2] = 0; out[o8 + 3] = 0;
+    out[o8] = sf[f + 9]; out[o8 + 1] = sf[f + 10]; out[o8 + 2] = sf[f + 11]; out[o8 + 3] = 0;
   }
   return out;
 }

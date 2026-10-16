@@ -570,15 +570,15 @@ main:has(> .closing:last-child) + .site-footer {
 }
 
 /* ---------- the story map ----------
-   One quiet handscroll: each place's own opening scene in miniature, in the order of the one painting, not of
-   the nav: Home (0) · Work (1) · the road (2: no page, a gap of mist) · Writing (3) · Résumé (4) · Contact (5).
-   The 404 (6) lies off the map. The scenes are build-time stills cut from the engine (tools/build-stills.ts →
-   public/scenes/, with its crop table), plain <img>s in the shared footer, so the map shows without JS too.
+   One quiet handscroll: each place's own scene in miniature, in the order of the one painting, not of the nav:
+   Home (0) · Work (1) · Writing (2) · Résumé (3) · Contact (4). The 404 (5) lies off the map. The scenes are
+   build-time stills cut from the engine (tools/build-stills.ts → public/scenes/, with its crop table), plain <img>s
+   in the shared footer, so the map shows without JS too. Round 5: the painting is one world (one horizon, one scale,
+   one river), and the five stills are cut from it at one height and one scale, so neighbours meet as one painting.
    One grid holds the map: the art and the labels are subgrids of it, so a place's scene, its tick and its label
    always share a column. Three layouts:
-   - from 640: the geography, six equal columns (the road's stays empty);
-   - phones: each place's column is its label's width and the free space falls evenly between the columns; the
-     road's empty column takes two shares, the wider gap between Work and Writing;
+   - from 640: the geography, five equal columns;
+   - phones: each place's column is its label's width and the free space falls evenly between the columns;
    - phones whose labels do not fit one row (large text, WCAG 1.4.4; the footer frame is narrower than 20.3em of
      its own text, the labels' width plus their .5rem gaps), and browsers without subgrid or container queries:
      the art keeps the geography and the labels wrap in a flex row (Contact goes to a second line).
@@ -591,7 +591,7 @@ main:has(> .closing:last-child) + .site-footer {
 .story-map {
   --story-map-gap: 1.75rem; /* art → labels: the scenes' figures stay >= 40 px from the label text (DESIGN 4.6) */
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   column-gap: 0;
   row-gap: var(--story-map-gap);
   margin-block-end: var(--space-2xs);
@@ -600,7 +600,7 @@ main:has(> .closing:last-child) + .site-footer {
 .story-map__list {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr)); /* no subgrid: the plain geography */
+  grid-template-columns: repeat(5, minmax(0, 1fr)); /* no subgrid: the plain geography */
   grid-template-columns: subgrid;
 }
 /* both lines, always: an absolutely placed item's missing end line would be the art's edge, not the next line */
@@ -619,9 +619,6 @@ main:has(> .closing:last-child) + .site-footer {
 .story-map [data-stretch='4'] {
   grid-column: 5 / 6;
 }
-.story-map [data-stretch='5'] {
-  grid-column: 6 / 7;
-}
 @media (max-width: 39.99rem) {
   /* the wrapping row (large text, or no subgrid / container queries): never closer than .5rem, never clipped */
   .story-map__list {
@@ -637,7 +634,7 @@ main:has(> .closing:last-child) + .site-footer {
   @supports (grid-template-columns: subgrid) {
     @container story-map (min-width: 20.3em) {
       .story-map {
-        grid-template-columns: auto auto 0px auto auto auto;
+        grid-template-columns: repeat(5, auto);
         justify-content: space-between;
         column-gap: 0.5rem;
       }
@@ -654,24 +651,19 @@ main:has(> .closing:last-child) + .site-footer {
 
 /* The art. Not five thumbnails: no box, border, radius or shadow. Each still's paper is white and it is multiplied
    into the page's paper (the live canvas and its grain show through, so the scenes are painted on the same sheet).
-   Each still is drawn whole at the art's height (its own width: the tiles differ), pinned by its focus (--focus:
-   the point of the still that stands for the place) over its column's centre, its tick and its label. What shows
-   of it is a soft window (.story-map__scene: --wl / --wr from the focus, --fl / --fr the feathers), so the row is
-   one painting and not five pictures:
-   - between neighbours the two windows feather over the SAME stretch with complementary ramps (they sum to one):
-     the places meet in mist, never in a hole of paper or a doubled band of ink. On wide screens that stretch is a
-     quarter of a column; on phones 20 px, or Home's own: its still ends at the near peaks (the hero's edge), so
-     Home → Work crossfades over those peaks (u .80-.95 across the middle row), Home dissolving them quickly while
-     Work's river and the town's misty left end come in;
-   - the road (2) has no page: Work's town dissolves over a long tail and Writing's left (the lake's far range and
-     its reflection, faint) reaches into it on a longer one, so about half a column reads as mist with the far
-     range threading through; on phones a 10-17 px breath of paper between the town and the peak;
+   Each still is drawn whole at the art's height, pinned by its focus (--focus: the point of the still that stands for
+   the place) over its column's centre, its tick and its label. What shows of it is a soft window (.story-map__scene:
+   --wl / --wr from the focus, --fl / --fr the feathers), so the row is one painting and not five pictures:
+   - between neighbours the two windows feather over the SAME stretch with complementary ramps (they sum to one): the
+     places meet in mist, never in a hole of paper or a doubled band of ink. Round 5: the stills share one height and
+     one scale (one horizon), so every seam is the same: half a feather either side of the columns' boundary, a third
+     of a column wide on wide screens, 22 px on phones;
    - the row's ends feather out before the screen's edge;
-   - the feathers are slanted 20deg (--tl / --tr), so a place dissolves unevenly, the way mist takes a landscape:
-     76deg keeps a scene's foot longer on its right and its tops longer on its left, 104deg the reverse. The two
-     sides of a seam share one slant; at the road both keep their tops (the far ranges reach in).
-   A window must lie inside its still (with the slant's .182 x height); the per-scene notes give the limits, from
-   the crop table. --focus and --fade-b come from build-stills.ts's crop table (its --check compares them).
+   - the feathers are slanted (--tl / --tr, 82deg: the two sides of a seam share it), so a place dissolves unevenly, its
+     foot a little before its tops, the way mist takes a landscape.
+   A window must lie inside its still: every still is 4.77 x the art's height (tools/build-stills.ts: 334 x 70), so a
+   window's half-width stays under 2.38 x the height (the art is at least .29 of a column tall).
+   --focus and --fade-b come from build-stills.ts's crop table (its --check compares them).
    A touch quieter than the pages' own strips. */
 .story-map__art {
   position: relative;
@@ -688,32 +680,34 @@ main:has(> .closing:last-child) + .site-footer {
   --ra1: 0.156;
   --ra2: 0.5;
   --ra3: 0.844;
-  /* a slanted (20deg) gradient's stop for a boundary at x across the window's middle row: x cos 20 + h sin 20 / 2 */
+  /* a slanted (8deg) gradient's stop for a boundary at x across the window's middle row: x cos 8 + h sin 8 / 2 */
   --mask:
     linear-gradient(to bottom, transparent, #000 7%, #000 calc(100% - var(--fade-b)), transparent),
     linear-gradient(
       var(--tl),
-      transparent calc(var(--h) * 0.171),
-      rgb(0 0 0 / var(--la1)) calc(var(--fl) * 0.2349 + var(--h) * 0.171),
-      rgb(0 0 0 / var(--la2)) calc(var(--fl) * 0.4699 + var(--h) * 0.171),
-      rgb(0 0 0 / var(--la3)) calc(var(--fl) * 0.7048 + var(--h) * 0.171),
-      #000 calc(var(--fl) * 0.9397 + var(--h) * 0.171)
+      transparent calc(var(--h) * 0.0696),
+      rgb(0 0 0 / var(--la1)) calc(var(--fl) * 0.2476 + var(--h) * 0.0696),
+      rgb(0 0 0 / var(--la2)) calc(var(--fl) * 0.4951 + var(--h) * 0.0696),
+      rgb(0 0 0 / var(--la3)) calc(var(--fl) * 0.7427 + var(--h) * 0.0696),
+      #000 calc(var(--fl) * 0.9903 + var(--h) * 0.0696)
     ),
     linear-gradient(
       var(--tr),
-      #000 calc((var(--ww) - var(--fr)) * 0.9397 + var(--h) * 0.171),
-      rgb(0 0 0 / var(--ra3)) calc((var(--ww) - var(--fr) * 0.75) * 0.9397 + var(--h) * 0.171),
-      rgb(0 0 0 / var(--ra2)) calc((var(--ww) - var(--fr) * 0.5) * 0.9397 + var(--h) * 0.171),
-      rgb(0 0 0 / var(--ra1)) calc((var(--ww) - var(--fr) * 0.25) * 0.9397 + var(--h) * 0.171),
-      transparent calc(var(--ww) * 0.9397 + var(--h) * 0.171)
+      #000 calc((var(--ww) - var(--fr)) * 0.9903 + var(--h) * 0.0696),
+      rgb(0 0 0 / var(--ra3)) calc((var(--ww) - var(--fr) * 0.75) * 0.9903 + var(--h) * 0.0696),
+      rgb(0 0 0 / var(--ra2)) calc((var(--ww) - var(--fr) * 0.5) * 0.9903 + var(--h) * 0.0696),
+      rgb(0 0 0 / var(--ra1)) calc((var(--ww) - var(--fr) * 0.25) * 0.9903 + var(--h) * 0.0696),
+      transparent calc(var(--ww) * 0.9903 + var(--h) * 0.0696)
     );
   /* without container units: a plain window of the art's height on each side */
   --wl: calc(var(--h) * 1.2);
   --wr: calc(var(--h) * 1.2);
   --fl: calc(var(--h) * 0.6);
   --fr: calc(var(--h) * 0.6);
-  --tl: 90deg;
-  --tr: 90deg;
+  --tl: 82deg;
+  --tr: 82deg;
+  --focus: 50%;
+  --fade-b: 8%;
   position: absolute;
   inset-block: 0;
   left: calc(50% - var(--wl));
@@ -734,101 +728,56 @@ main:has(> .closing:last-child) + .site-footer {
   height: 100%;
   translate: calc(-1 * var(--focus, 50%)) 0;
 }
+/* each place: its focus and its foot's fade (build-stills.ts's crop table) */
 .story-map__scene[data-stretch='0'] {
-  --focus: 76%;
-  --fade-b: 10%;
-  --wr: calc(var(--h) * 0.68);
-} /* his mountain: hut, traveller */
+  --focus: 50%;
+  --fade-b: 8%;
+} /* his mountain: hut, traveller, the fall */
 .story-map__scene[data-stretch='1'] {
-  --focus: 54%;
-  --fade-b: 12%;
+  --focus: 50%;
+  --fade-b: 8%;
 } /* the market at the bridge */
-.story-map__scene[data-stretch='3'] {
-  --focus: 71%;
-  --fade-b: 16%;
+.story-map__scene[data-stretch='2'] {
+  --focus: 50%;
+  --fade-b: 8%;
 } /* the lake and the pavilion */
+.story-map__scene[data-stretch='3'] {
+  --focus: 50%;
+  --fade-b: 8%;
+} /* the terraced hills on the river */
 .story-map__scene[data-stretch='4'] {
-  --focus: 52%;
-  --fade-b: 22%;
-} /* the terraced hills */
-.story-map__scene[data-stretch='5'] {
-  --focus: 62%;
-  --fade-b: 14%;
+  --focus: 50%;
+  --fade-b: 8%;
 } /* the ferry, his mountain's echo */
 @supports (width: 1cqi) {
-  /* The geography (from 640, and the wrapping row): --col is a column. The art is at least .37 of a column tall
-     (tokens.css), so every window below lies inside its still. */
+  /* The geography (from 640, and the wrapping row): --col is a column, --f a seam's feather (a third of a column). */
   .story-map__scene {
-    --col: calc(100cqi / 6);
+    --col: calc(100cqi / 5);
+    --f: calc(var(--col) / 3);
+    --wl: calc(var(--col) / 2 + var(--f) / 2);
+    --wr: calc(var(--col) / 2 + var(--f) / 2);
+    --fl: var(--f);
+    --fr: var(--f);
   }
+  /* the row's ends: to the screen's edge, dissolving over a longer ramp */
   .story-map__scene[data-stretch='0'] {
-    /* Home: to the screen's edge (L <= 2.55h); Home → Work over the near peaks */
-    --tl: 76deg;
     --wl: calc(var(--col) * 0.5 + var(--gutter-x));
     --fl: calc(var(--col) * 0.45);
     --la1: 0.08;
     --la2: 0.26;
     --la3: 0.6;
-    --tr: 76deg;
-    --wr: calc(var(--h) * 0.68);
-    --fr: calc(var(--h) * 0.53);
-    --ra1: 0.1;
-    --ra2: 0.28;
-    --ra3: 0.6; /* the near peaks go quickly; Work's ramp is its complement */
-  }
-  .story-map__scene[data-stretch='1'] {
-    /* Work: Home's seam (L <= 2.55h); the road (R <= 2.15h), the town dissolves */
-    --tl: 76deg;
-    --wl: calc(var(--col) - var(--h) * 0.15);
-    --fl: calc(var(--h) * 0.53);
-    --la1: 0.4;
-    --la2: 0.72;
-    --la3: 0.9;
-    --tr: 104deg;
-    --wr: min(var(--h) * 2.1, var(--col) * 0.8);
-    --fr: calc(var(--col) * 0.4);
-    --ra1: 0.12;
-    --ra2: 0.34;
-    --ra3: 0.66;
-  }
-  .story-map__scene[data-stretch='3'] {
-    /* Writing: the road on a long tail of far range (L <= 3.73h); Résumé's seam (R <= 1.42h) */
-    --tl: 76deg;
-    --wl: min(var(--h) * 3.72, var(--col) * 1.4);
-    --fl: calc(min(var(--h) * 3.72, var(--col) * 1.4) * 0.7);
-    --la1: 0.5;
-    --la2: 0.7;
-    --la3: 0.88;
-    --tr: 76deg;
-    --wr: min(var(--h) * 1.4, var(--col) * 0.625);
-    --fr: calc(var(--col) * 0.25);
   }
   .story-map__scene[data-stretch='4'] {
-    /* Résumé: Writing's seam (L <= 2.17h); Contact's (R <= 1.99h) */
-    --tl: 76deg;
-    --wl: calc(var(--col) * 1.25 - min(var(--h) * 1.4, var(--col) * 0.625));
-    --fl: calc(var(--col) * 0.25);
-    --tr: 104deg;
-    --wr: calc(var(--col) * 0.625);
-    --fr: calc(var(--col) * 0.25);
-  }
-  .story-map__scene[data-stretch='5'] {
-    /* Contact: Résumé's seam (L <= 2.05h); to the screen's edge (R <= 1.18h) */
-    --tl: 104deg;
-    --wl: calc(var(--col) * 0.625);
-    --fl: calc(var(--col) * 0.25);
-    --tr: 104deg;
-    --wr: min(var(--h) * 1.18, var(--col) * 0.5 + var(--gutter-x));
-    --fr: calc(min(var(--h) * 1.18, var(--col) * 0.5 + var(--gutter-x)) * 0.7);
+    --wr: calc(var(--col) * 0.5 + var(--gutter-x));
+    --fr: calc(var(--col) * 0.45);
     --ra1: 0.08;
     --ra2: 0.26;
     --ra3: 0.6;
   }
   /* Phones whose labels fit one row: the columns are the labels, so the windows follow the distances between the
-     labels' centres. Those are linear in the frame's width (the free space is shared out in fifths, the road's
-     column taking two): --s-* below, from the five labels' widths (--w-*: each word's measured width in em of the
-     footer's text, plus its two sides, at least 44 px), so they follow the user's font size. The art is 44 px at a
-     16 px default. */
+     labels' centres. Those are linear in the frame's width (the free space is shared out in quarters): --s-* below,
+     from the five labels' widths (--w-*: each word's measured width in em of the footer's text, plus its two sides, at
+     least 44 px), so they follow the user's font size. The art is 44 px at a 16 px default. */
   @media (max-width: 39.99rem) {
     @supports (grid-template-columns: subgrid) {
       @container story-map (min-width: 20.3em) {
@@ -840,42 +789,37 @@ main:has(> .closing:last-child) + .site-footer {
           --w-r: calc(3.581em + var(--sides));
           --w-c: calc(3.695em + var(--sides));
           --w-sum: calc(var(--w-h) + var(--w-w) + var(--w-wr) + var(--w-r) + var(--w-c));
-          --s-hw: calc((var(--w-h) + var(--w-w)) / 2 - var(--w-sum) / 5 + 20cqi);
-          --s-road: calc((var(--w-w) + var(--w-wr)) / 2 - var(--w-sum) * 0.4 + 40cqi);
-          --s-wr: calc((var(--w-wr) + var(--w-r)) / 2 - var(--w-sum) / 5 + 20cqi);
-          --s-rc: calc((var(--w-r) + var(--w-c)) / 2 - var(--w-sum) / 5 + 20cqi);
+          --s-hw: calc((var(--w-h) + var(--w-w)) / 2 - var(--w-sum) / 4 + 25cqi);
+          --s-ww: calc((var(--w-w) + var(--w-wr)) / 2 - var(--w-sum) / 4 + 25cqi);
+          --s-wr: calc((var(--w-wr) + var(--w-r)) / 2 - var(--w-sum) / 4 + 25cqi);
+          --s-rc: calc((var(--w-r) + var(--w-c)) / 2 - var(--w-sum) / 4 + 25cqi);
           --home-c: calc(var(--w-h) / 2);
           --contact-c: calc(var(--w-c) / 2); /* from the frame's left / right */
-          --breath: 6px; /* the road: with the two feathers' faint ends, 10-17 px of paper */
+        }
+        .story-map__scene {
+          --fl: 22px;
+          --fr: 22px;
         }
         .story-map__scene[data-stretch='0'] {
           --wl: calc(var(--home-c) + var(--gutter-x));
           --fl: 26px;
+          --wr: calc(var(--s-hw) / 2 + 11px);
         }
         .story-map__scene[data-stretch='1'] {
-          --wl: calc(var(--s-hw) - var(--h) * 0.15);
-          --wr: calc(var(--s-road) / 2 - var(--breath) / 2);
-          --fr: 22px;
+          --wl: calc(var(--s-hw) / 2 + 11px);
+          --wr: calc(var(--s-ww) / 2 + 11px);
+        }
+        .story-map__scene[data-stretch='2'] {
+          --wl: calc(var(--s-ww) / 2 + 11px);
+          --wr: calc(var(--s-wr) / 2 + 11px);
         }
         .story-map__scene[data-stretch='3'] {
-          --wl: calc(var(--s-road) / 2 - var(--breath) / 2);
-          --fl: 22px;
-          --la1: 0.156;
-          --la2: 0.5;
-          --la3: 0.844;
-          --wr: min(var(--h) * 1.4, var(--s-wr) / 2 + 10px);
-          --fr: 20px; /* wide phones: its still ends first */
+          --wl: calc(var(--s-wr) / 2 + 11px);
+          --wr: calc(var(--s-rc) / 2 + 11px);
         }
         .story-map__scene[data-stretch='4'] {
-          --wl: calc(var(--s-wr) + 20px - min(var(--h) * 1.4, var(--s-wr) / 2 + 10px));
-          --fl: 20px;
-          --wr: calc(var(--s-rc) / 2 + 10px);
-          --fr: 20px;
-        }
-        .story-map__scene[data-stretch='5'] {
-          --wl: calc(var(--s-rc) / 2 + 10px);
-          --fl: 20px;
-          --wr: min(var(--h) * 1.18, var(--contact-c) + var(--gutter-x));
+          --wl: calc(var(--s-rc) / 2 + 11px);
+          --wr: calc(var(--contact-c) + var(--gutter-x));
           --fr: 26px;
         }
       }
@@ -885,7 +829,6 @@ main:has(> .closing:last-child) + .site-footer {
     /* the tight row (.0625rem sides) */
     .story-map__art {
       --sides: 0.125rem;
-      --breath: 8px; /* the shorter road keeps its 12 px of paper */
     }
   }
 }
@@ -907,9 +850,9 @@ main:has(> .closing:last-child) + .site-footer {
 }
 .story-map:has(> .story-map__list > [data-stretch='0'] > a[aria-current]) .story-map__tick[data-stretch='0'],
 .story-map:has(> .story-map__list > [data-stretch='1'] > a[aria-current]) .story-map__tick[data-stretch='1'],
+.story-map:has(> .story-map__list > [data-stretch='2'] > a[aria-current]) .story-map__tick[data-stretch='2'],
 .story-map:has(> .story-map__list > [data-stretch='3'] > a[aria-current]) .story-map__tick[data-stretch='3'],
-.story-map:has(> .story-map__list > [data-stretch='4'] > a[aria-current]) .story-map__tick[data-stretch='4'],
-.story-map:has(> .story-map__list > [data-stretch='5'] > a[aria-current]) .story-map__tick[data-stretch='5'] {
+.story-map:has(> .story-map__list > [data-stretch='4'] > a[aria-current]) .story-map__tick[data-stretch='4'] {
   width: 2px;
   height: 14px;
   margin-left: -1px;
@@ -1022,7 +965,7 @@ html:not(.js) .still {
   display: none;
 } /* it does nothing without JS */
 
-/* The 404 (SPEC-R4A §10.7): the far end of the handscroll (stretch 6). The page is short, so the footer (its story
+/* The 404 (SPEC-R4A §10.7): the far end of the handscroll (stretch 5). The page is short, so the footer (its story
    map is the way onto every page) rests at the bottom of the screen instead of floating halfway up it. Global, not
    in a CSS Module: the root not-found boundary sits in every page's tree, so its module would be preloaded on all. */
 body:has(> main[data-page='not-found']) {

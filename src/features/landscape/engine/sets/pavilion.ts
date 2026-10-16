@@ -1,4 +1,4 @@
-// sets/pavilion.ts — Writing and the Note (stretch 3): the still lake. One corner, in the manner of Ma Yuan and Xia
+// sets/pavilion.ts — Writing and the Note (stretch 2): the still lake. One corner, in the manner of Ma Yuan and Xia
 // Gui: at the lower right a low rocky spit runs out from the shore (lost in mist) into the still water; on it an
 // open pavilion, four posts under one low pyramidal roof whose eave corners lift only a little (Song restraint: one
 // storey, one eave, never tiered); inside it one scholar in a plain white robe sits looking out over the water to
@@ -13,14 +13,16 @@
 // Where: the spit's waterline at scene height 0.214, in open water in front of the far shore (its waterline is
 // 0.284 on Writing, 0.259 on the Note, whose layer is drawn for its own composition; open water either way, so
 // the spit sits on the lake on both pages, 0.025 scene heights nearer the far shore's reflection on the Note).
-// The pavilion at u 3.925: right of the far peak's reflection at every width, clear of the text on wide screens
-// (keep-out edge u 3.59 at 1440), and above the strip's "Draft art" note on phones (its guard starts at y 0.19
-// there). The spit's tail runs on to u 4.215, into the layer's melting end, so on wide screens it leaves the frame
+// The pavilion at K + 0.925: right of the far peak's reflection at every width, clear of the text on wide screens
+// (keep-out edge K + 0.59 at 1440), and above the strip's "Draft art" note on phones (its guard starts at y 0.19
+// there). The spit's tail runs on to K + 1.215, into the layer's melting end, so on wide screens it leaves the frame
 // at the right edge.
 
 import { REF_PX, VH_PX, streams, vnoise, mix, mix3, wash, softWash, stroke, dryBrush, runs, ellipse, anchor, bounds, type Env, type FigureMeta, type Pt, type RGB } from '../figures';
 
-export const meta: FigureMeta = { rect: [3.78, 4.22, 0.10, 0.37], plane: 2, phase: 1 };
+/** The set's stretch: every world x below is K + its offset (move the place by changing K). */
+const K = 2;
+export const meta: FigureMeta = { rect: [K + 0.78, K + 1.22, 0.10, 0.37], plane: 2, phase: 1 };
 interface Rock { key: string; top: Pt[]; k: number; P: Pt[] }
 
 const SEED = 31;
@@ -34,13 +36,13 @@ export function* draw(env: Env) {
   // (as Home does), so the roof's lifted corners and the seated figure still read at 390
   const b = Math.max(1, 0.7 * REF_PX / env.scale);
   const X = (u: number) => u * REF_PX, Y = (y: number) => (1 - y) * VH_PX;
-  const cx = X(3.925), wy = Y(0.214);
+  const cx = X(K + 0.925), wy = Y(0.214);
   const at = (p: Pt): Pt => [cx + p[0] * b, wy + p[1] * b];     // local (pavilion units) -> world px
   const pts = (list: Pt[]) => list.map(at);
   // ink only: every colour here is an ink grey (the palette's ink and ink2, the paper's whites); a breath of indigo in
   // the shade, which 'ink' turns grey with the rest
   const INK = C.ink, INK2 = C.ink2, PAL = mix3(C.ink2, C.white, 0.62), SHADE = mix3(C.ink2, C.indigo, 0.3);
-  const xEnd = X(4.215);                               // the shore the spit leaves from: into the layer's melting end
+  const xEnd = X(K + 1.215);                               // the shore the spit leaves from: into the layer's melting end
 
   // ---- the ground: the spit's tip (a low ledge and a stone), the rock under the pavilion, the taller rock the pine
   // grows from, and the tail running back to the shore, lost in the mist (local units, y up is negative)

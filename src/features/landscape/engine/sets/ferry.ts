@@ -1,4 +1,4 @@
-// sets/ferry.ts — Contact (stretch 5): the crossing, "the ferry that brings you across to meet him".
+// sets/ferry.ts — Contact (stretch 4): the crossing, "the ferry that brings you across to meet him".
 // On the near side of the water a short timber jetty comes in from the right on its posts, out of a low reedy bank,
 // and at its head the ferry waits, turned toward you: a small flat Song river boat with a squared, swept-up bow, a
 // low woven-mat canopy (you look into it, and through it to the light at the far end; the seat is empty: it is
@@ -16,7 +16,9 @@ import {
   type Env, type FigureMeta, type Pt, type Rng, type Streams,
 } from '../figures';
 
-export const meta: FigureMeta = { rect: [5.5, 6.06, 0.1, 0.4], plane: 2, phase: 1 };
+/** The set's stretch: every world x below is K + its offset (move the place by changing K). */
+const K = 4;
+export const meta: FigureMeta = { rect: [K + 0.5, K + 1.06, 0.1, 0.4], plane: 2, phase: 1 };
 
 const SEED = 11;
 
@@ -27,9 +29,9 @@ export function* draw(env: Env) {
   // phones see the crossing from further away (scale 560): the things are drawn larger there, so the ferryman stays
   // well over 12 CSS px tall (as home.ts does)
   const big = Math.max(1, 0.7 * REF_PX / env.scale);
-  // the ferry is the strip's one focus on open water: a little larger than the market's boats (on phones a little
-  // less than `big` asks, so the group's top stays under the closing's view, below)
-  const sz = Math.max(1.45, 1.17 * big);
+  // the ferry is the strip's one focus on open water: larger than the market's boats, so at the one hero scale (round 5)
+  // it holds the focal area as the bridge and the pavilion do
+  const sz = Math.max(2.0, 1.6 * big);
   const X = (u: number) => u * REF_PX, Y = (y: number) => (1 - y) * VH_PX, Ux = (x: number) => x / REF_PX;
   const f = new Float32Array(SCENE_FIELDS);
   const farY = (x: number) => { sceneField(Ux(x), P, f); return Y(f[1] > 0 ? f[1] : 0.343); };
@@ -38,14 +40,14 @@ export function* draw(env: Env) {
   // closing frames the far shore (its bottom edge at y ~0.27-0.29 in every width class) and shows this same layer,
   // magnified on phones and tablets: so the group keeps its top (the pole, the hat) under y ~0.30 there, and the
   // closing meets at most a reed tip in its bottom feather, never a cut-off ferryman. The larger phone group sits lower.
-  const boat = ferryShape(X(5.635), Y(0.228 - 0.04 * (big - 1)), sz);
-  const jet = jettyShape(boat, sz, X(5.7), () => own('posts'));
+  const boat = ferryShape(X(K + 0.635), Y(0.228 - 0.04 * (big - 1)), sz);
+  const jet = jettyShape(boat, sz, X(K + 0.7), () => own('posts'));
 
   // life: the open water of the crossing, below the far shore (the boat and the jetty stay still)
   const line: Pt[] = [];
-  for (let x = X(5.52); x <= X(6.04); x += 40) line.push([x, farY(x)]);
+  for (let x = X(K + 0.52); x <= X(K + 1.04); x += 40) line.push([x, farY(x)]);
   const top = Math.min(...line.map((p) => p[1]));
-  anchor(env, 'shimmer', { x: X(5.52), y: top, w: X(6.04) - X(5.52), h: Y(0.1) - top }, { waterline: line });
+  anchor(env, 'shimmer', { x: X(K + 0.52), y: top, w: X(K + 1.04) - X(K + 0.52), h: Y(0.1) - top }, { waterline: line });
 
   reflections(env, boat, jet, own('reflections'), sz);           // the water first: reflections, wake, rings
   yield;

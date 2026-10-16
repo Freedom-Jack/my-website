@@ -8,8 +8,7 @@
  *   npm run build:stills -- --preview <dir>             also keep the raw crops (outside the repo)
  *   npm run build:stills -- --check                     no browser: exit 1 when the stills are stale (CI)
  *
- * Per mapped place (Home 0, Work 1, Writing 3, Résumé 4, Contact 5; the road 2 has no page, the 404 lies off the
- * map):
+ * Per mapped place (Home 0, Work 1, Writing 2, Résumé 3, Contact 4; the 404 lies off the map):
  *   1. Opens the place's page at 1440 × 900, DPR 2, and hides its words (only the strip's box stays).
  *   2. Remounts the page's own engine on its own canvas with the page's own place and windows, but with no veils,
  *      keep-outs or wake, a FIXED internal resolution and no ambient drift: the painting alone with the mist at
@@ -18,8 +17,9 @@
  *      a living page would mount the stage, which has no strip framing.
  *   3. Waits on the engine's own stats() (no fixed delays): nothing pending, every figure layer drawn and faded
  *      in, the newest scene a full-quality one.
- *   4. Turns the place's crop rect (world units, below) into strip pixels through stats().framing.strip; a rect
- *      outside the strip window fails.
+ *   4. Frames the place's crop rect (world units, below) in the strip's box with the engine's QA `frame` (round 5:
+ *      one world, so every still is cut at the same height and scale, wherever the page's own hero looks); a rect that
+ *      leaves the box fails.
  *   5. Captures that region at DPR 2, then in the page steps it down to the tile at 1x and 2x, divides out the
  *      paper (the footer multiplies the stills into whatever paper is behind them) and encodes WebP.
  *   6. Writes the stills and manifest.json: the hash of every generating input and of each file.
@@ -50,20 +50,19 @@ const opt = (name: string, d: string) => {
 };
 
 // ------------------------------------------------------------------------------------------------ the crop table
-// Each place's still is the region a painter would choose to stand for it, cut from its page's opening strip, plus
-// the mist and far ranges at its sides that the footer needs to meet its neighbours (the footer never shows a whole
-// still: a soft window, layout.css, shows the part between the midpoints to its neighbours).
+// Each place's still is the stretch of the one painting that stands for it, centred on its focus, plus the mist and
+// far ranges at its sides that the footer needs to meet its neighbours (the footer never shows a whole still: a soft
+// window, layout.css, shows the part between the midpoints to its neighbours). Round 5: the painting is one world
+// (one composition, one horizon), so every still is cut at the same height range (Y0-Y1: the river's far bank in the
+// lower third, his mountain's summits under the top) and the same width (SPAN stretches): the same scale, and in the
+// footer the far range and the river run on from one still into the next.
 // rect = [u0, u1, y0, y1]: world x in stretches (stretch k spans k..k+1) and scene heights (0 = the bottom of the
-// scene, y up), the units of compose.js and stats().framing. w = the tile's width at 1x (CSS px; every tile is
+// scene, y up), the units of compose.ts and stats().framing. w = the tile's width at 1x (CSS px; every tile is
 // TILE_H tall), and every rect has its tile's aspect: (u1 - u0) * 1.6 / (y1 - y0) = w / TILE_H (1.6 = scene heights
-// per stretch). The y ranges (hence each place's scale) are the ones the art lead passed for faithfulness.
-// focus = where the place's centre lies across the still (0..1): the footer pins that point over the place's label
-// and tick (layout.css --focus). fade_b = how far up (0..1 of the tile) the still dissolves at its foot
-// (layout.css --fade-b). The side feathers are the footer's windows (layout.css), not the still's.
-// Each rect must hold the footer's widest window (layout.css: at the narrowest art-to-column ratio, .37, and the
-// feathers' slant): Home u .30-1.0; Work 1.07-2.0 (its left edge stops after the seam crag, u 1.0-1.04); Writing
-// 3.12-4.1 (its left is the far range and its reflection: the road's faint thread); Résumé 4.29-4.81; Contact
-// 5.39-6.0.
+// per stretch). focus = where the place's centre lies across the still (0..1): the footer pins that point over the
+// place's label and tick (layout.css --focus): its compose.ts focus, the still's middle. fade_b = how far up (0..1 of
+// the tile) the still dissolves at its foot (layout.css --fade-b). The side feathers are the footer's windows
+// (layout.css), not the still's: a window's half-width stays under SPAN / 2 at every width (layout.css notes).
 interface Still {
   name: 'home' | 'work' | 'writing' | 'resume' | 'contact';
   page: PageId;
@@ -74,67 +73,34 @@ interface Still {
   focus: number;
   fade_b: number;
 }
+const Y0 = 0.18;
+const Y1 = 0.6;
+const STILL_W = 334; // the tile's width at 1x: SPAN stretches
+const SPAN = (STILL_W * (Y1 - Y0)) / (70 * 1.6);
+/** A place's still: SPAN stretches centred on its focus (compose.ts SCENES[k].frame.focus[0], stretch-local). */
+const still = (name: Still['name'], page: PageId, route: string, stretch: number, focus: number): Still => {
+  const u = stretch + focus;
+  const r5 = (v: number) => Math.round(v * 1e5) / 1e5;
+  return {
+    name,
+    page,
+    route,
+    stretch,
+    w: STILL_W,
+    rect: [r5(u - SPAN / 2), r5(u + SPAN / 2), Y0, Y1],
+    focus: 0.5,
+    fade_b: 0.08,
+  };
+};
 const PLACES: Still[] = [
-  // his two massifs (the host u .65, the near peaks u .88-1.0), the hut (u .846) and the traveller (u .80); the
-  // window's own right edge (u 1.0) is the near peaks' cut in the hero, so the footer dissolves them
-  {
-    name: 'home',
-    page: 'home',
-    route: '/',
-    stretch: 0,
-    w: 252,
-    rect: [0.001, 1.0, 0.156, 0.6],
-    focus: 0.76,
-    fade_b: 0.1,
-  },
-  // the rainbow bridge (u 1.48-1.67) centred in its town, the boats, the willows, the hills and the needle crest;
-  // the town's left end and the river to u 1.05 (Home's side), its right end to the window's edge (the road)
-  {
-    name: 'work',
-    page: 'work',
-    route: '/work/',
-    stretch: 1,
-    w: 355,
-    rect: [1.0491, 2.0, 0.19, 0.49],
-    focus: 0.54,
-    fade_b: 0.12,
-  },
-  // the far peak (u 3.76), its whole reflection and the pavilion on its promontory (u 3.93); on its left the
-  // lake's far range and its reflection, to the window's edge (u 3.1)
-  {
-    name: 'writing',
-    page: 'writing',
-    route: '/writing/',
-    stretch: 3,
-    w: 386,
-    rect: [3.1005, 4.1, 0.15, 0.44],
-    focus: 0.71,
-    fade_b: 0.16,
-  },
-  // the two terraced hills (u 4.35-4.78) with the farmhouse (u 4.63) under the far range (the doc strip: low),
-  // with mist and the far range at both sides
-  {
-    name: 'resume',
-    page: 'resume',
-    route: '/resume/',
-    stretch: 4,
-    w: 317,
-    rect: [4.25, 4.85004, 0.178, 0.39],
-    focus: 0.52,
-    fade_b: 0.22,
-  },
-  // the ferry (u 5.64) at the jetty (to u 5.8) and his mountain's echo on the far shore (u 5.84)
-  {
-    name: 'contact',
-    page: 'contact',
-    route: '/contact/',
-    stretch: 5,
-    w: 252,
-    rect: [5.3025, 6.0, 0.18, 0.49],
-    focus: 0.62,
-    fade_b: 0.14,
-  },
+  still('home', 'home', '/', 0, 0.79), // his two massifs, the hut, the traveller and the fall
+  still('work', 'work', '/work/', 1, 0.565), // the rainbow bridge in its town on the river
+  still('writing', 'writing', '/writing/', 2, 0.8), // the lake's peak, its reflection, the pavilion
+  still('resume', 'resume', '/resume/', 3, 0.65), // the terraced hills on the river, the farmhouse
+  still('contact', 'contact', '/contact/', 4, 0.68), // the ferry at the jetty, his mountain's echo
 ];
+/** The scale the stills are painted at (CSS px per stretch): the rect fits the 1440-wide strip box at DPR 2. */
+const STILL_SCALE = 1000;
 const TILE_H = 70; // every still's height at 1x, CSS px (the footer shows it 44-74 px tall); 2x is 140
 const DENSITIES = [1, 2] as const;
 const WEBP_Q = 0.85; // canvas.toDataURL('image/webp', q)
@@ -161,8 +127,9 @@ main [data-landscape="strip"] { visibility: visible !important; }
 .site-header, .site-footer, .skip-link { visibility: hidden !important; }
 `;
 // The page's own place and windows (its <main>'s data-*), no veils / keep-outs / wake, fixed resolution, no
-// ambient drift: the mist stays at the engine's starting clock, what a page shows as it opens.
-const REMOUNT_JS = `(async ([Q, palette]) => {
+// ambient drift: the mist stays at the engine's starting clock, what a page shows as it opens. The strip looks at the
+// crop rect through the QA `frame` (left, top, scale) at the stills' one scale.
+const REMOUNT_JS = `(async ([Q, palette, frame]) => {
   const eng = window.__inkEngine;
   const canvas = document.querySelector('canvas.landscape');
   const main = document.getElementById('main');
@@ -172,7 +139,7 @@ const REMOUNT_JS = `(async ([Q, palette]) => {
     stretch: Number(d.stretch), distance: d.distance, presence: Number(d.presence), palette,
     strip: main.querySelector('[data-landscape="strip"]'), closing: main.querySelector('[data-landscape="closing"]'),
     horizon: Number(d.horizon), ground: '', veil: [], keepout: [], wake: [],   // (the strip, also on a living page)
-    arrival: 'none', quality: Q, pointer: false, ambient: false,
+    arrival: 'none', quality: Q, pointer: false, ambient: false, widthClass: 'wide', frame,
   });
   window.__stillsHandle = h;
   return h.mode;
@@ -271,6 +238,7 @@ function inputs(): [string, string][] {
     quality: ENGINE_QUALITY,
     palette: PALETTE,
     paper: PAPER,
+    scale: STILL_SCALE,
     chrome: CHROME_ARGS,
     js: [HIDE_CSS, REMOUNT_JS, SETTLE_JS, PROCESS_JS],
   };
@@ -476,7 +444,8 @@ async function build(): Promise<number> {
       await page.evaluate(() => document.fonts.ready);
       await waitFor(page, SETTLE_JS, '__ink', `${s.name} (the page's own mount)`, timeout);
       await page.addStyleTag({ content: HIDE_CSS });
-      const mode = await page.evaluate(`${REMOUNT_JS}(${JSON.stringify([ENGINE_QUALITY, PALETTE])})`);
+      const frame = { left: s.rect[0], top: s.rect[3], scale: STILL_SCALE };
+      const mode = await page.evaluate(`${REMOUNT_JS}(${JSON.stringify([ENGINE_QUALITY, PALETTE, frame])})`);
       if (mode !== 'webgl') throw new Error(`${s.name}: the engine mounted as ${String(mode)}, not webgl`);
       await waitFor(page, SETTLE_JS, '__stillsHandle', s.name, timeout);
       await page.evaluate(
@@ -504,7 +473,7 @@ async function build(): Promise<number> {
       const clip = cropPx(s.rect, fr, box);
       if (!clip)
         throw new Error(
-          `${s.name}: crop ${JSON.stringify(s.rect)} leaves the strip window ${JSON.stringify(windowOf(fr, box))} (u0, u1, y0, y1); re-aim the crop table`,
+          `${s.name}: crop ${JSON.stringify(s.rect)} leaves the strip window ${JSON.stringify(windowOf(fr, box))} (u0, u1, y0, y1); is this a QA build (the engine's frame hook)?`,
         );
       // Stable: two captures 1.5 s apart must match, byte for byte (round 5: once, a settled engine was caught before
       // Writing's pavilion had come in; a third capture never differed). Retried, then refused.

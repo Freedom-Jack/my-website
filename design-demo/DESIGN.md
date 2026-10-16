@@ -16,7 +16,8 @@ Branch: `redesign/v2`.
   the content files, CI and the stills tool are in. How it is organised: the root `README.md`; where the words live:
   `CONTENT.md`; what is left and what waits for Jack: §12 "Build status" below.
 - **Round 5 (the macro pass) is under way:** Jack's five inputs and the agreed order are in §12 "Round 5". Step 1 (one
-  order, one hero system, one ending) is built as a local preview for his review.
+  order, one hero system, one ending) is committed. Step 2 (the painting as one handscroll, the hero scenes aligned) is
+  built on `claude/practical-faraday-79b0df` and shown to Jack as before/after panoramas and hero sheets.
 - **Next:** steps 2–4 of round 5 → a Vercel preview → launch on **qijinxu.com** through the §2 launch gate.
 - This order changes the earlier plan, in which the build started at 4a. On 2026-10-14 Jack accepted a short 4b round first ("Sure continue").
 
@@ -164,21 +165,36 @@ Where they disagree with this file, this file wins; fix them. Known stale bits e
 
 ## 7. The painting (engine `assets/js/landscape/`; API = `mountLandscape()` JSDoc in `landscape/index.js`; palette in `landscape/palette.js`)
 
-**Story (it follows the nav):**
-- A traveller sets out from his mountain (**Home**) and comes down to the river town where the work gets done (**Work**).
-- He climbs through the ordered terraced fields of his record (**Résumé**) and reaches the ferry that brings you across to meet him (**Contact**).
-- Off the road, by the still lake, is the pavilion where he writes (**Writing**).
-- Off the road entirely, the path fades into mist (**404**).
+**Story (it follows the nav; round 5: one river runs the whole scroll):**
+- A fall in his mountain's crag starts the river (**Home**); it runs past the river town where the work gets done (**Work**).
+- It opens into the still lake by the pavilion where he writes (**Writing**).
+- It narrows again at the foot of the ordered terraced fields of his record (**Résumé**) and opens into the crossing, where the ferry brings you across to meet him (**Contact**).
+- Beyond the water, off the map, the path climbs a lone peak into mist (**404**).
+- (Demo 4b had a sixth stretch with no page, "the road", between Work and Writing; round 5 removed it. The demo keeps it.)
 
 | Page (stretch) | Place and its one focus | Misted strength · rich | State in 4a | State in 4b (draft art; `landscape/sets/`) |
 |---|---|---|---|---|
-| Home (0) | His mountain; a tiny traveller on the path; a hut in the ridge's saddle | azurite + malachite · 0.55 · 0.75 | Draft figures (traveller, hut) | Polished traveller and hut (`home.js`), smoke; the living ground at ≥ 1200 px |
+| Home (0) | His mountain; a tiny traveller on the path; a hut in the ridge's saddle; (round 5) a thin fall in the near crag's cleft, the river's source | azurite + malachite · 0.55 · 0.75 | Draft figures (traveller, hut) | Polished traveller and hut (`home.js`), smoke; the living ground at ≥ 1200 px |
 | Work (1) | River market town at a heavy timber rainbow bridge; still crowd; a boat lowering its mast; willows | blue-green hills · 0.40 · 0.60; town in light colour over ink | Draft art | Rebuilt market (`market.js`): back rows in depth mist, willows sway, the stall smokes, the punt drifts; the living ground at ≥ 1200 px |
-| (2) | The road between (no page) | 0.30 · 0.45 | — | — |
-| Writing and Note (3) | The still lake; an open pavilion with one seated figure | ink only · 0 | Lake and reflection | The pavilion on its spit under a pine (`pavilion.js`), shimmer in its reflection |
-| Résumé (4) | Terraced fields stepping down to the shore | pale malachite · **0.55** · 0.75 | Low banded terraces (`tech.terr`), no figures | Terraces with level walls, fields, a path and a thatched farmhouse (`terraces.js`), its smoke; phones look closer |
-| Contact (5) | The crossing: his mountain echoed on the far shore; a ferry at the jetty, turned toward you | indigo water · **0.50** · 0.70 | Water, far shore and echo; no ferry yet | The ferry at the jetty with the ferryman (`ferry.js`), the water's shimmer |
-| 404 (6) | The lone peak; the path running into mist | ink only · 0 | Lone peak | The path climbing into mist (`path.js`) |
+| Writing and Note (2; 3 in the demo) | The still lake (where the river opens out); an open pavilion with one seated figure | a breath of blue-green · 0.14 · 0.22 (round 5; was ink only) | Lake and reflection | The pavilion on its spit under a pine (`pavilion.js`), shimmer in its reflection |
+| Résumé (3; 4 in the demo) | Terraced fields stepping down to the river (round 5: on its far bank) | pale malachite · **0.55** · 0.75 | Low banded terraces (`tech.terr`), no figures | Terraces with level walls, fields, a path and a thatched farmhouse (`terraces.js`), its smoke; phones look closer |
+| Contact (4; 5 in the demo) | The crossing: his mountain echoed on the far shore; a ferry at the jetty, turned toward you | indigo water · **0.50** · 0.70 | Water, far shore and echo; no ferry yet | The ferry at the jetty with the ferryman (`ferry.js`), the water's shimmer; (round 5) larger, so it holds the hero's focal area |
+| 404 (5; 6 in the demo) | The lone peak beyond the water; the path running into mist | a trace · 0.08 · 0.12 | Lone peak | The path climbing into mist (`path.js`) |
+
+**Round 5: one world** (the build, `src/features/landscape/engine/`; record: §12 "Round 5", step 2):
+- **One composition** for every page (`compose.ts` `WORLD`: level, presence 1). Each place's character (Work's valley,
+  the reading pages' paler presence, the 404's tall peak) lives in its own massifs, water, technique and relief
+  (`Scene.amp`), never in a page's own distance or presence, so a place looks the same from every page and the far range
+  is one line from end to end. A unit test keeps every page on it.
+- **One river**: its waterline (0.29 scene heights, the town's own) is the scroll's horizon. Waters meet at each seam and
+  add up to one; the near bank blends over a wider seam, so the river opens into the lake and the crossing and narrows
+  at the terraces gradually. Near hills over a river (its near bank is land) stand whole; over open water they melt in.
+- **One hero rule** (`compose.ts` `HERO`): every inner hero puts the waterline 0.66 down its box, at one scale per width
+  class (wide: one stretch per box width; tablet 1000, phone 820, short 560 px per stretch) with the place's focus 0.694
+  across on wide screens. Home's taller hero keeps its own placement across and its album leaves, on the same horizon
+  rule. Closings follow it at 0.8 of the scale, the focus centred; a short page's twin closing looks closer (1.6x) at
+  another part of the place. The story map's stills are cut from the same world at one height and one scale.
+- **Colour** shifts gradually: pigment seams 0.34 wide (were 0.18). No new pigments.
 
 - **Pigments:** azurite #2C5C8A (misted #7F9FB8) · malachite #3A806A (#8DB5A4) · timber brown #6B5444 (#8F8078), small areas only · ink grey #2A3034 · indigo wash #3E5664 · cinnabar #B1362B, seal only · paper #EFF1EE. Rejected: ochre glaze #CDB096 (reads beige). In the rich palette the figures run at 1.25.
 - **Behaviour in 4a:**
@@ -451,7 +467,7 @@ like Wuthering Waves' Chinese ink style; (5) content after the macro work. Order
 - **One order everywhere, the painting's** (Jack: "use the painting order, so it maxes out the coherence of the
   painting"). The nav is now Work · Writing · Résumé · Contact, matching the handscroll and the story map. Writing joins the
   nav with one note (the content step will deal with that). The empty road between Work and Writing stays, as deliberate
-  mist; it is reconsidered only if it still reads as a gap. The header keeps one row down to 360 px: the tight sizes now
+  mist; it is reconsidered only if it still reads as a gap. (Step 2 removed it.) The header keeps one row down to 360 px: the tight sizes now
   apply up to 416 px, and 8 px between the links at 360.
 - **One hero system.** Home keeps its tall hero. Every other page has the same hero: the same height (360 / 300 / 169 at
   1440 / 1280 / 390), with the title at the same place (its first line 200 px above the band's foot on wide screens).
@@ -483,6 +499,43 @@ like Wuthering Waves' Chinese ink style; (5) content after the macro work. Order
 - Jack asked for the remaining items to run as their own sessions. Running: **painting coherence** (above) and **"younger"
   style mockups** (2–3 directions, mockups only). Held until both land: scroll motion (built in the chosen style on the
   recomposed painting), then content.
+
+**Step 2, the painting as one handscroll and the heroes aligned** (2026-10-16, the painting-coherence session; branch
+`claude/practical-faraday-79b0df`):
+- **What Jack saw, and its cause.** Each page applied its own composition (Work 'deep' at 0.8, Writing 0.6, the Résumé
+  0.5, Contact 0.9, the 404 'high') to the whole world, so the same place looked different from every page, each had its
+  own horizon and size, and the stills of the story map never lined up; the water was three unrelated patches; the road
+  (stretch 2) was a page-less hole. The heroes shared a box but not a framing: at 1440 the scene's top ran 0.43–0.64
+  scene heights and its focus x 893–1123 px; at 390 the scale ran 449–1240 px per stretch (2.8x).
+- **Jack's answers** (on the "before" sheets and the plan): "Sure as long as the big scroll is still nice, and have
+  distinction in different section. You can have an animation that fly through the transition area, not every pages'
+  hero needs to be right next to each other, as long as the transition shows. Just an idea, you decide."
+- **The road is removed** (the art lead's call, which Jack left open): the places sit side by side, one per stretch, in
+  the nav's order (Home 0, Work 1, Writing 2, Résumé 3, Contact 4, the 404 5), and every seam is a real transition the
+  pan flies through: the river bends past a spur, the near bank sinks or rises, the colour shifts. A whole stretch with
+  no page would have stayed a hole in the story map (a sixth picture without a label) or a scene nobody stops at.
+- **One world** (§7 "Round 5: one world"): one composition for every page; each place's character in its own massifs,
+  water, technique and relief; one river from Home's new fall to the crossing, its waterline the scroll's horizon; one
+  continuous far range; colour seams twice as wide. Distinction stays: Home's blue-green mountain, Work's town on the
+  river, Writing's pale still lake and mirror, the Résumé's malachite terraces on the river's far bank, Contact's indigo
+  open water and ferry, the 404's single grey peak.
+- **Aligned heroes** (`compose.ts` `HERO`): the same horizon, scale and focal area in every inner hero at 1440, 1280 and
+  390 (unit-tested); Home's taller hero on the same horizon rule; closings by the same rule; short pages' twin closings
+  look closer at another part of their place (never the strip's landmark twice).
+- **Figure sets re-seated:** the moving sets place themselves by one stretch constant `K` (moving a place is one line);
+  the terraces stand on the river's far bank (their foot is the waterline; their layer reaches 0.5); the ferry is
+  larger (it holds the focal area as the bridge and the pavilion do); Home has a thin fall in its near crag's cleft
+  (`home.ts` `waterfall()`), the river's source; the 404's peak is one narrow summit (0.465) on its own relief.
+- **Engine additions:** `sceneField` blends the near bank and reports open water (a 12th field; ridge row 8's third
+  channel), read by the shader and Canvas2D alike; `planeTop` includes the far shore's lift over water, as painted;
+  `Scene.amp` / `ampAt` (CPU only); a QA-only `opts.frame` (a fixed framing for the strip window) for the panorama
+  tool and the stills. Work's town, bridge and stage numbers are unchanged (its waterline and near bank are given as it
+  always stood on them), so `RIVER_FRONT` and `STAGE_AT[1].arch` hold.
+- **The story map** has five equal columns and no road; its stills are cut from the one world at one height range
+  (0.18–0.60) and one scale, each centred on its place, so the far range and the river run on from one still into the
+  next (`tools/build-stills.ts`; 53 KB for ten files).
+- **Verified:** `npm run ci`, the e2e suite (35, the §6 budgets at 1440 / 1280 / 390), compliance, links, the PDF gate;
+  panoramas, hero sheets and closings on the real GPU (Metal) before and after.
 
 
 ## 13. Running the demo and its tools

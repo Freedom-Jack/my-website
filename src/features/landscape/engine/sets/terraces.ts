@@ -1,4 +1,4 @@
-// sets/terraces.ts — Résumé (stretch 4): the terraced fields of his record, stepping down to the shore. The two low
+// sets/terraces.ts — Résumé (stretch 3): the terraced fields of his record, stepping down to the shore. The two low
 // hills of plane 2 (the shader's tech.terr bands give them their pale malachite body) are cut into terraces, in rows
 // like a record. Each terrace wall is a level line (a field is flat: the water in it lies level), so its dry-brush lip
 // runs across the hill's face, sagging a little where the hill swells toward us, bending down over each spur and back
@@ -25,7 +25,9 @@ import {
 } from '../figures';
 import type { Resolved } from '../compose';
 
-export const meta: FigureMeta = { rect: [4.16, 5.0, 0.1, 0.34], plane: 2, phase: 0 };
+/** The set's stretch: every world x below is K + its offset (move the place by changing K). */
+const K = 3;
+export const meta: FigureMeta = { rect: [K + 0.16, K + 1, 0.2, 0.5], plane: 2, phase: 0 };
 type PtData = [x: number, y: number, ...data: number[]];
 interface TreeOptions { pale?: boolean; upright?: boolean }
 
@@ -80,19 +82,25 @@ export function* draw(env: Env) {
 
   const G = groundModel(P, env.rect[0] - 0.14, env.rect[1] + 0.14);
   const crest = G.crestAt, broad = G.broadAt;
-  const foot = P.foot[2], fade = P.fade[2];
+  // (round 5) the hills stand on the river's far bank: their foot is the far shore's, at the waterline, as the shader
+  // paints a far-shore plane over water (shaders.ts: footY = wY - 0.012, fade 0.07); off the water, the plane's own
+  const fw = new Float32Array(SCENE_FIELDS);
+  sceneField(K + 0.6, P, fw);
+  const onWater = smooth(0, 0.3, fw[0] * fw[8]);
+  const foot = mix(P.foot[2], fw[1] - 0.012, onWater), fade = mix(P.fade[2], 0.07, onWater);
   const footK = (y: number) => smooth(foot + 0.02, foot + fade * 0.95, y);         // the plane's ink dissolving into its foot
-  // mist: a wisp across the left hill's face, the left flank's foot lost in it; the terraces end at the shore
+  // mist: a wisp across the left hill's face, the left flank's foot lost in it; the terraces end at the shore (heights
+  // above the foot)
   const mistK = (u: number, y: number) => {
-    const w1 = Math.exp(-Math.pow((y - 0.212 + (u - 4.36) * 0.1) / 0.011, 2)) * smooth(4.31, 4.34, u) * (1 - smooth(4.37, 4.41, u));
-    const w2 = (1 - smooth(4.29, 4.36, u)) * (1 - smooth(0.19, 0.245, y));
+    const w1 = Math.exp(-Math.pow((y - foot - 0.09 + (u - (K + 0.36)) * 0.06) / 0.008, 2)) * smooth(K + 0.31, K + 0.34, u) * (1 - smooth(K + 0.37, K + 0.41, u));
+    const w2 = (1 - smooth(K + 0.29, K + 0.36, u)) * (1 - smooth(foot + 0.078, foot + 0.11, y));
     const n = vnoise(u * 60, y * 140, 31);
-    return clamp01(Math.max(w1 * (0.5 + 0.7 * n), w2 * 0.85, smooth(4.845, 4.9, u)));
+    return clamp01(Math.max(w1 * (0.5 + 0.7 * n), w2 * 0.85, smooth(K + 0.845, K + 0.9, u)));
   };
 
   // the hill's face: a level line z seen from a little above sags by KAP of the ground standing over it, and bends
   // down over the spurs and back into the gullies (sp), more the further down the face it runs
-  const uA = 4.27, uB = 4.9;
+  const uA = K + 0.27, uB = K + 0.9;
   const KAP = 0.3, SPUR = 0.26;
   const sp = (u: number) => (vnoise(u * 26, 0.5, 41) - 0.5) * 2 + (vnoise(u * 61, 1.5, 43) - 0.5) * 0.4;
   const levelY = (u: number, z: number) => { const dz = Math.max(0, broad(u) - z); return z - dz * (KAP + SPUR * sp(u)); };
@@ -202,7 +210,7 @@ export function* draw(env: Env) {
 
   // ---- where the farmhouse stands: high on the terraces, on the right hill's shoulder under its crown, on the lip
   // of the tread nearest the shoulder
-  const uh = 4.633;
+  const uh = K + 0.633;
   const yT = crest(uh) - 0.01;
   let kh = -1, dBest = 9;
   for (let k = 0; k < walls.length; k++) {
@@ -222,7 +230,7 @@ export function* draw(env: Env) {
     if (!a || !b) return null;
     return mix(a[1], b[1], q - k0) - 1.3 * wk;
   };
-  const uL = 4.676, uR = 4.8;
+  const uL = K + 0.676, uR = K + 0.8;
   let q = walls.length - 1.6;
   while (q > kh + 1 && qY(uR, q) == null) q -= 0.25;
   let u = uR, dir = -1;
@@ -284,13 +292,13 @@ export function* draw(env: Env) {
     if (fade2(u, y) < 0.3) return;
     fieldTree(env, X(u), Y(y), s * fk, own('tree', key), o);
   };
-  onCrest(4.392, 0.012, 0.66, 'crown2', { pale: true });
-  onCrest(4.405, 0.011, 0.7, 'crown', { upright: true });
-  onCrest(4.418, 0.011, 0.9, 'crown3', {});
-  onCrest(4.432, 0.013, 0.62, 'crown4', {});
-  onCrest(4.525, 0.012, 0.75, 'saddle', { pale: true });
-  onCrest(4.539, 0.014, 0.6, 'saddle2', {});
-  onCrest(4.772, 0.012, 0.6, 'shoulder', {});
+  onCrest(K + 0.392, 0.012, 0.66, 'crown2', { pale: true });
+  onCrest(K + 0.405, 0.011, 0.7, 'crown', { upright: true });
+  onCrest(K + 0.418, 0.011, 0.9, 'crown3', {});
+  onCrest(K + 0.432, 0.013, 0.62, 'crown4', {});
+  onCrest(K + 0.525, 0.012, 0.75, 'saddle', { pale: true });
+  onCrest(K + 0.539, 0.014, 0.6, 'saddle2', {});
+  onCrest(K + 0.772, 0.012, 0.6, 'shoulder', {});
   if (start) {
     ctx.globalAlpha = clamp01(fade2(start[0] / REF_PX, 1 - start[1] / VH_PX) * 1.3);
     fieldTree(env, start[0] + 9 * wk, start[1] + 1.5 * wk, 0.8 * fk, own('tree', 'shore', 1), {});
