@@ -1,4 +1,4 @@
-// compose.js — where the mountains stand along the one continuous handscroll.
+// compose.ts — where the mountains stand along the one continuous handscroll.
 //
 // World x is measured in "stretches": stretch k spans [k, k + 1], which is exactly one desktop
 // viewport wide. Every stretch has its own composition (a host peak, guest peaks, near crags and
@@ -10,14 +10,26 @@
 // in front of the far shore, as smooth windows along world x, so every seam is crossed through water
 // or mist, never a cut.
 //
-// Nothing here touches the DOM or WebGL; ridges.js samples it for both renderers and for stripSVG().
+// Nothing here touches the DOM or WebGL; ridges.ts samples it for both renderers and for stripSVG().
 
 export const LAYERS = 5; // ridge planes, far (0) -> near (4)
+
+/** The three distances (PRESETS). */
+export type Distance = 'level' | 'high' | 'deep';
+/** A viewport's width class (widthClass). */
+export type WidthClass = 'wide' | 'tablet' | 'phone' | 'short';
+/** A window's kind: the page's strip, or its closing. */
+export type WindowKind = 'strip' | 'closing';
+/** A massif's role in its composition ('echo': the crossing's far view of the home peak, see STRETCHES[5]). */
+export type Role = 'far' | 'guest' | 'host' | 'near' | 'fg' | 'echo';
+type Weighted = Exclude<Role, 'echo'>;
+type Band = [number, number];
 
 // Massif: [plane, x within the stretch (0..1 = one desktop viewport), half-width, gain, role]
 // Roles let the distance presets re-balance a composition: the host peak grows in 'high',
 // far ranges and guests multiply in 'deep', and so on.
-const STRETCHES = [
+type Massif = [plane: number, x: number, w: number, gain: number, role: Role];
+const STRETCHES: Massif[][] = [
   // 0 · home: the hero study's composition. The upper left stays open for the name.
   [
     [0, 0.22, 0.24, 0.5, 'far'], [0, 0.62, 0.30, 0.7, 'far'],
@@ -27,7 +39,7 @@ const STRETCHES = [
     [4, 0.02, 0.22, 0.95, 'fg'], [4, 0.26, 0.12, 0.35, 'fg'], [4, 1.02, 0.06, 0.4, 'fg'],
   ],
   // 1 · river: the market town at the rainbow bridge (round 4a). A river runs across the middle distance (the
-  // scene's water, with a near bank); the town stands on its far bank (figures.js) and the hills rise behind it
+  // scene's water, with a near bank); the town stands on its far bank (figures.ts) and the hills rise behind it
   // out of the mist, lower than the home peak, so town, bridge and hills fit one strip (fixer: a little lower again,
   // so their summits sit inside the wide strip instead of running into its top). A crag at the seam: the
   // road leaves the town past it, toward the fields. (4b: the hill behind the east end of the town is a broad, rounded
@@ -69,7 +81,7 @@ const STRETCHES = [
   // 5 · crossing: open water in the near and middle distance. On the far shore, low pale ranges and,
   // on the right (clear of Contact's address), the home peak seen from across the water: an 'echo' row draws
   // stretch 0's host plane itself, sampled around its main summit (the crowned mass, the notch, the second
-  // peak), at a fraction of its size on a far plane, so it takes the pale, soft ink of distance (ridges.js, echo()).
+  // peak), at a fraction of its size on a far plane, so it takes the pale, soft ink of distance (ridges.ts, echo()).
   // [plane, x of the main summit, scale, gain, 'echo']
   [
     [0, 0.26, 0.34, 0.30, 'far'], [0, 0.86, 0.28, 0.34, 'far'],
@@ -87,10 +99,10 @@ const STRETCHES = [
 // Before the scroll's first stretch and after its last there is only a far, pale range in the mist (the scroll begins
 // and ends in mist), never a wrap-around to the other end's mountains: a phone's wide album leaf of Home looks a
 // little to the left of u 0 and the 404's past u 7.
-const QUIET = [[0, 0.40, 0.42, 0.30, 'far'], [1, 0.70, 0.22, 0.20, 'guest']];
+const QUIET: Massif[] = [[0, 0.40, 0.42, 0.30, 'far'], [1, 0.70, 0.22, 0.20, 'guest']];
 // 'deep' frames every stretch with a near flank on the left, so the eye travels down a valley
 // into the mist towards the host.
-const FLANK = [[3, 0.03, 0.07, 0.25, 'near'], [4, -0.02, 0.12, 0.5, 'fg'], [2, 0.12, 0.10, 0.3, 'guest']];
+const FLANK: Massif[] = [[3, 0.03, 0.07, 0.25, 'near'], [4, -0.02, 0.12, 0.5, 'fg'], [2, 0.12, 0.10, 0.3, 'guest']];
 export const STRETCH_COUNT = STRETCHES.length;
 const HOST_X = STRETCHES.map((s) => {
   let best = s[0];
@@ -100,7 +112,7 @@ const HOST_X = STRETCHES.map((s) => {
   }
   return best[1];
 });
-const tableFor = (k) => (k < 0 || k >= STRETCH_COUNT ? QUIET : STRETCHES[k]);
+const tableFor = (k: number) => (k < 0 || k >= STRETCH_COUNT ? QUIET : STRETCHES[k]);
 
 // Scenes: what each stretch is a picture OF, beyond where its mountains stand. A scene can change the
 // brush technique (bone: contour and texture strokes, 1 = full, 0 = boneless wash; ink: strength) and lay
@@ -115,7 +127,7 @@ const tableFor = (k) => (k < 0 || k >= STRETCH_COUNT ? QUIET : STRETCHES[k]);
 // Round 4a adds, per scene: `page` (the page's own composition, SPEC-R4A §10.0: distance, presence), `frame`
 // (how its strip and closing windows look at it, per width class: see framingAt), and on the river a near bank
 // (`near`, the waterline of the near shore: land below it) and `shore: 0` (its far planes keep their own misty
-// feet above the town instead of standing on the water). `figures` (figures.js) are the scene's figure layer.
+// feet above the town instead of standing on the water). `figures` (figures.ts) are the scene's figure layer.
 //
 // frame: focus [u, y] is the scene's one focus (stretch-local u, scene height in viewport heights at presence 1);
 //   keepU, the leftmost figurative point the keep-out rule keeps >= KEEP_GAP px right of the text (default: the focus).
@@ -138,7 +150,94 @@ const tableFor = (k) => (k < 0 || k >= STRETCH_COUNT ? QUIET : STRETCHES[k]);
 //                                 (spanFrame) instead of a scale: the box right of the text holds exactly that much of
 //                                 the stretch at any width (with `band` for its height)
 //     keepU (each)                the leftmost figurative point the keep-out keeps clear (default: frame.keepU)
-export const SCENES = [
+
+/** How a window of one width class looks at a scene (frame.tablet / phone / short): see framingAt and bandFrame. */
+export interface View {
+  /** CSS px per stretch (the nominal scale its figure layer is drawn at). */
+  scale: number;
+  /** [y0, y1]: the band's ground and summits (scene heights), framed between the window's feathers. */
+  band?: Band;
+  /** How far into the bottom feather the band's ground may sit (default 0.5). */
+  fbIn?: number;
+  /** The view's anchor (stretch-local u), placed at fx of the width (default: the focus at 0.5). */
+  u?: number;
+  fx?: number;
+  /** Without a band: the focus at (fx, fy) of the box. */
+  fy?: number;
+  /** Where the width allows, the view stays inside [uMin, uMax] (stretch-local). */
+  uMin?: number;
+  uMax?: number;
+  /** Where a tall box leaves room, how far the band sits from its summits' line toward its ground's (default 0.5). */
+  slack?: number;
+}
+/** A closing's or a twin's view: a class's view, overridden; or a span (spanFrame) or a band at its right edge. */
+export interface ClosingView extends Partial<View> {
+  /** The view's right edge at stretch-local `right` (a wide closing). */
+  right?: number;
+  /** A span [u0, u1] (stretch-local) held right of the text at any width (spanFrame). */
+  span?: Band;
+  /** The point (fx, fy) frames the scene height `y` (default: the focus's). */
+  y?: number;
+  /** The leftmost figurative point the keep-out keeps clear (default: frame.keepU). */
+  keepU?: number;
+  /** Its keepU exactly KEEP_GAP right of the text, when the text overlaps it. */
+  hug?: boolean;
+}
+interface WideFrame {
+  /** Scene height at the box's top edge. */
+  top: number;
+  band?: Band;
+  /** A document's low strip: its band and scale (at 1440), and where its focus sits down the box. */
+  docBand?: Band;
+  docScale?: number;
+  docFy?: number;
+  right?: number;
+  slack?: number;
+}
+/** How the windows look at a scene, per width class (see the table above). */
+export interface Frame {
+  /** The scene's one focus: [stretch-local u, scene height]. */
+  focus: [number, number];
+  keepU?: number;
+  wide: WideFrame;
+  tablet: View;
+  phone: View;
+  short?: View;
+  closing?: Partial<Record<WidthClass, ClosingView>> & { twin?: Partial<Record<WidthClass, ClosingView>> };
+}
+/** A scene's brush technique, windowed over stretch-local `at`. */
+interface Tech {
+  at: Band;
+  bone: number;
+  ink: number;
+  inkPortrait?: number;
+  terr?: number;
+}
+/** A scene's water in front of the far shore (planes 0-2), windowed over stretch-local `at`. */
+interface Water {
+  at: Band;
+  y: number;
+  near?: number;
+  strokes: number;
+  refl: number;
+  banks?: number;
+  shore?: number;
+  mirror?: number;
+  /** 4b: the river town's depth profile (RIVER_FRONT): from u `at`, every `step` stretches, thousandths. */
+  front?: { at: number; step: number; hb: number[] };
+}
+export interface Scene {
+  name: string;
+  /** The page's own composition: [distance, presence]. */
+  page: [Distance, number];
+  tech?: Tech;
+  water?: Water;
+  frame: Frame;
+  /** Its figure set's name (sets/index.ts). */
+  figures?: string;
+}
+
+export const SCENES: Scene[] = [
   // Narrow framings (fixer, 10 Oct): every strip shows its mountains whole. A `band` [y0, y1] puts the scene's highest
   // summits (the far range included) just under the top feather and its ground above the bottom one (bandFrame).
   { name: 'peak', page: ['level', 1],
@@ -146,7 +245,7 @@ export const SCENES = [
       focus: [0.79, 0.2], keepU: 0.72,
       wide: { top: 0.655 },
       // tablet and phone: the whole mountain (summits 0.58) with the hut and the traveller (0.2) on a wider album leaf;
-      // on phones the figures are drawn larger (figures.js `big`), so the traveller stays >= 12 CSS px tall. The view
+      // on phones the figures are drawn larger (figures.ts `big`), so the traveller stays >= 12 CSS px tall. The view
       // ends at u 1.06, before the river town; it may begin a little left of u 0, where the scroll opens in mist.
       tablet: { scale: 620, band: [0.195, 0.588], fbIn: 0, u: 0.76, fx: 0.62, uMax: 1.14 },
       phone: { scale: 270, band: [0.195, 0.588], fbIn: 0, u: 0.76, fx: 0.6, uMax: 1.06 },
@@ -160,10 +259,10 @@ export const SCENES = [
     figures: 'home' },
   { name: 'river', page: ['deep', 0.8], tech: { at: [0.06, 0.98], bone: 1.0, ink: 1.5 },
     water: { at: [0.04, 1.0], y: 0.32, near: 0.235, strokes: 0.5, refl: 0.12, banks: 0, shore: 0,
-      // 4b: the town's depth for its mist (shaders.js figMist, canvas2d.js figure()). The river's mist lies among the
+      // 4b: the town's depth for its mist (shaders.ts figMist, canvas2d.ts figure()). The river's mist lies among the
       // back rows, behind the nearest things in each column: `front` is how high those reach above the far bank (scene
       // heights), every `step` stretches from u `at` (stretch-local): the front row's roofs and its trees, the landmark,
-      // the masts, and over the river the bridge with the crowd on its crown. Measured from sets/market.js drawn with
+      // the masts, and over the river the bridge with the crowd on its crown. Measured from sets/market.ts drawn with
       // its rows table cut to row 1 (the top inked pixel per bin at 1440 @ 2, widened by a bin each side, + 0.002);
       // re-measure when the set's town or bridge moves. Thousandths of a scene height.
       front: { at: 0.10, step: 0.005, hb: [
@@ -272,17 +371,17 @@ export const SCENES = [
     } },
 ];
 /** 4b: the river town's depth profile (the river's water.front) in world stretches, { u0, du, hb (scene heights), def }:
- *  the shader bakes it in (shaders.js frontAt), Canvas2D reads it (canvas2d.js figure()). `def` holds off the profile. */
+ *  the shader bakes it in (shaders.ts frontAt), Canvas2D reads it (canvas2d.ts figure()). `def` holds off the profile. */
 export const RIVER_FRONT = (() => {
   const k = SCENES.findIndex((s) => s.water?.front);
-  const f = k < 0 ? null : SCENES[k].water.front;
+  const f = k < 0 ? null : SCENES[k].water!.front;
   return { u0: f ? k + f.at : 0, du: f ? f.step : 1, hb: f ? f.hb.map((v) => v / 1000) : [0.031, 0.031], def: 0.031 };
 })();
 const SEAM = 0.09;
-const win = (u, a, b) => smooth(a - SEAM, a + SEAM, u) * (1 - smooth(b - SEAM, b + SEAM, u));
+const win = (u: number, a: number, b: number) => smooth(a - SEAM, a + SEAM, u) * (1 - smooth(b - SEAM, b + SEAM, u));
 
 /** Scene name at a stretch (rounded). */
-export function sceneName(stretch) {
+export function sceneName(stretch: number): string {
   const k = Math.round(Number(stretch) || 0);
   return SCENES[((k % STRETCH_COUNT) + STRETCH_COUNT) % STRETCH_COUNT].name;
 }
@@ -292,7 +391,7 @@ export function sceneName(stretch) {
  * heights from the bottom, already through P's presence and portrait transform), bone, ink, strokes, refl.
  * `out` is reused: [water, waterY, bone, ink, strokes, refl, banks].
  */
-export function sceneField(u, P, out = new Float32Array(SCENE_FIELDS)) {
+export function sceneField(u: number, P: Resolved, out: Float32Array = new Float32Array(SCENE_FIELDS)): Float32Array {
   let ws = 0, wy = 0, wsum = 0, bone = 1, ink = 1, strokes = 0, refl = 0, banks = 0, ny = 0, nsum = 0, shore = 0, terr = 0, mirror = 0;
   for (let k = Math.max(0, Math.floor(u) - 1); k <= Math.min(STRETCH_COUNT - 1, Math.floor(u) + 1); k++) {
     const sc = SCENES[k];
@@ -318,7 +417,7 @@ export function sceneField(u, P, out = new Float32Array(SCENE_FIELDS)) {
       if (sc.water.near !== undefined) { ny += sc.water.near * t; nsum += t; }
     }
   }
-  const tf = (y) => y * P.hsc - P.drop + P.wlift;
+  const tf = (y: number) => y * P.hsc - P.drop + P.wlift;
   out[0] = ws;
   out[1] = wsum > 0 ? tf(wy / wsum) : -1;
   out[2] = bone; out[3] = ink; out[4] = strokes; out[5] = refl; out[6] = banks;
@@ -339,7 +438,18 @@ export const SCENE_FIELDS = 11;
 // "Three distances". Per plane: base and amplitude of the ridge (viewport heights from the
 // bottom), where its foot dissolves into mist (foot, fade) and how strong its ink is.
 // `role` multiplies massif gains, `floor` is the envelope every plane keeps between massifs.
-const PRESETS = {
+interface Preset {
+  base: number[];
+  amp: number[];
+  foot: number[];
+  fade: number[];
+  ink: number[];
+  floor: number[];
+  role: Record<Weighted, number>;
+  hostW: number;
+  flank: number;
+}
+const PRESETS: Record<Distance, Preset> = {
   // level distance: wide, low horizon, lots of sky (the hero study)
   level: {
     base: [0.36, 0.29, 0.18, 0.05, -0.02], amp: [0.22, 0.27, 0.40, 0.52, 0.34],
@@ -362,7 +472,7 @@ const PRESETS = {
     role: { far: 1.15, guest: 1.25, host: 0.95, near: 0.95, fg: 1.1 }, hostW: 1.1, flank: 1,
   },
 };
-export const DISTANCES = Object.keys(PRESETS);
+export const DISTANCES = Object.keys(PRESETS) as Distance[];
 
 // Portrait: the narrow window misses every near massif, so the phone's first screen would lose the
 // dark, textured foreground that gives the desktop hero its depth. The nearest plane becomes one low
@@ -372,45 +482,69 @@ const PORTRAIT_NEAR = { base: -0.02, amp: 0.09, floor: 0.3, foot: -0.13, fade: 0
 // its massifs, per stretch, placed in screen fractions of that stretch's portrait view (so they stand
 // where the camera rests, yet stay anchored to the world while it pans): a craggy mass under the copy
 // column, a lower crag on the far side, a low saddle between. [x across the view, half-width, gain]
-const PORTRAIT_CRAGS = [[0.2, 0.21, 0.95], [0.9, 0.09, 0.62]];
+const PORTRAIT_CRAGS: [x: number, w: number, gain: number][] = [[0.2, 0.21, 0.95], [0.9, 0.09, 0.62]];
+
+/** A composition: each distance's weight (they sum to 1; a pan blends them) and the presence, 0..1. */
+export interface Spec {
+  w: Record<Distance, number>;
+  presence: number;
+}
+/** A spec resolved for an aspect (resolve): per-plane numbers, already through the presence and portrait. */
+export interface Resolved extends Omit<Preset, 'base' | 'amp' | 'foot' | 'fade' | 'ink' | 'floor'> {
+  base: number[];
+  amp: number[];
+  foot: number[];
+  fade: number[];
+  ink: number[];
+  floor: number[];
+  /** The portrait near crest's strength (0 on desktops). */
+  near: number;
+  wvis: number;
+  /** Presence: the height multiplier, the drop and the waterline's lift. */
+  hsc: number;
+  drop: number;
+  wlift: number;
+  presence: number;
+  portrait: number;
+}
 
 /** A composition spec that can be blended during pans: distance weights + presence. */
-export function spec(distance = 'level', presence = 1) {
+export function spec(distance: string = 'level', presence: number = 1): Spec {
   const w = { level: 0, high: 0, deep: 0 };
-  w[PRESETS[distance] ? distance : 'level'] = 1;
+  w[PRESETS[distance as Distance] ? (distance as Distance) : 'level'] = 1;
   return { w, presence: clamp01(Number.isFinite(+presence) ? +presence : 1) };
 }
-export function blendSpec(a, b, t) {
-  const w = {};
+export function blendSpec(a: Spec, b: Spec, t: number): Spec {
+  const w = {} as Record<Distance, number>;
   for (const k of DISTANCES) w[k] = a.w[k] + (b.w[k] - a.w[k]) * t;
   return { w, presence: a.presence + (b.presence - a.presence) * t };
 }
 
-const clamp01 = (x) => Math.min(1, Math.max(0, x));
-const smooth = (a, b, x) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
+const smooth = (a: number, b: number, x: number) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
 
 /**
  * How the viewport maps onto the world. `hs` = viewport heights per stretch unit (so peaks keep
  * sane proportions on any aspect); `wvis` = how many stretch units are visible.
  */
-export function framing(aspect) {
+export function framing(aspect: number): { hs: number; wvis: number; portrait: number } {
   const hs = aspect >= 1.15 ? Math.min(aspect, 1.9) : 0.92 + 0.23 * smooth(0.45, 1.15, aspect);
   return { hs, wvis: aspect / hs, portrait: smooth(1.05, 0.62, aspect) };
 }
 
 /** Left edge of the view (world units) for a fractional stretch position. */
 // Where the view of stretch j starts (offset within the stretch, world units).
-function viewOffset(j, wvis) {
+function viewOffset(j: number, wvis: number) {
   if (wvis >= 1) return -(wvis - 1) * 0.5; // wider than a stretch: centre it
   // narrower (portrait): keep the host peak at ~62% across, but stay inside the stretch
   const hx = HOST_X[((j % STRETCH_COUNT) + STRETCH_COUNT) % STRETCH_COUNT];
   return Math.min(1 - wvis, Math.max(0, hx - wvis * 0.62));
 }
 
-export function cameraLeft(stretch, wvis) {
+export function cameraLeft(stretch: number, wvis: number): number {
   const k = Math.floor(stretch);
   const f = stretch - k;
-  const off = (j) => viewOffset(j, wvis);
+  const off = (j: number) => viewOffset(j, wvis);
   const a = off(k), b = off(k + 1);
   const e = f * f * (3 - 2 * f);
   return stretch + a + (b - a) * e;
@@ -420,9 +554,10 @@ export function cameraLeft(stretch, wvis) {
  * Resolve a spec into per-plane numbers for this aspect. Presence lowers and pales the whole
  * range (reading pages); portrait screens lift the horizon so a pale host rises behind the copy.
  */
-export function resolve(s, aspect) {
+export function resolve(s: Spec, aspect: number): Resolved {
   const { portrait: pf } = framing(aspect);
-  const P = { base: [], amp: [], foot: [], fade: [], ink: [], floor: [], role: { far: 0, guest: 0, host: 0, near: 0, fg: 0 }, hostW: 0, flank: 0, near: 0, wvis: 1 };
+  // (the presence fields are set at the end)
+  const P: Omit<Resolved, 'hsc' | 'drop' | 'wlift' | 'presence' | 'portrait'> & Partial<Resolved> = { base: [], amp: [], foot: [], fade: [], ink: [], floor: [], role: { far: 0, guest: 0, host: 0, near: 0, fg: 0 }, hostW: 0, flank: 0, near: 0, wvis: 1 };
   let tw = 0;
   for (const k of DISTANCES) tw += s.w[k];
   tw = tw || 1;
@@ -430,10 +565,10 @@ export function resolve(s, aspect) {
     const wt = s.w[k] / tw;
     if (!wt) continue;
     const pr = PRESETS[k];
-    for (const f of ['base', 'amp', 'foot', 'fade', 'ink', 'floor']) {
+    for (const f of ['base', 'amp', 'foot', 'fade', 'ink', 'floor'] as const) {
       for (let l = 0; l < LAYERS; l++) P[f][l] = (P[f][l] || 0) + pr[f][l] * wt;
     }
-    for (const r in P.role) P.role[r] += pr.role[r] * wt;
+    for (const r in P.role) P.role[r as Weighted] += pr.role[r as Weighted] * wt;
     P.hostW += pr.hostW * wt;
     P.flank += pr.flank * wt;
   }
@@ -457,7 +592,7 @@ export function resolve(s, aspect) {
   // landscape is at full presence (home, contact, 404), never under reading pages
   const nf = smooth(0.8, 0.7, aspect) * smooth(0.75, 0.95, p);
   if (nf > 0) {
-    for (const f of ['base', 'amp', 'floor', 'foot', 'fade']) P[f][LAYERS - 1] += (PORTRAIT_NEAR[f] - P[f][LAYERS - 1]) * nf;
+    for (const f of ['base', 'amp', 'floor', 'foot', 'fade'] as const) P[f][LAYERS - 1] += (PORTRAIT_NEAR[f] - P[f][LAYERS - 1]) * nf;
   }
   P.near = nf;
   P.hsc = hsc;
@@ -466,21 +601,22 @@ export function resolve(s, aspect) {
   P.wvis = framing(aspect).wvis;
   P.presence = p;
   P.portrait = pf;
-  return P;
+  return P as Resolved;
 }
 
 /**
  * Massifs that can touch the world window [u0, u1], flattened per plane:
  * out[l] = [centre, leftHalfWidth, rightHalfWidth, gain, isHost, ...]; out.echo = [plane, centre, scale, gain, ...]
  */
-export function massifs(u0, u1, P) {
-  const out = Array.from({ length: LAYERS }, () => []);
+export type Massifs = number[][] & { echo: number[] };
+export function massifs(u0: number, u1: number, P: Resolved): Massifs {
+  const out = Array.from({ length: LAYERS }, (): number[] => []) as Massifs;
   out.echo = [];   // [plane, centre, scale, gain, ...] of the echo rows
   for (let k = Math.floor(u0) - 1; k <= Math.floor(u1) + 1; k++) {
-    let rows = P.flank > 0.01 ? tableFor(k).concat(FLANK.map((m) => [...m.slice(0, 3), m[3] * P.flank, m[4]])) : tableFor(k);
+    let rows = P.flank > 0.01 ? tableFor(k).concat(FLANK.map((m) => [...m.slice(0, 3), m[3] * P.flank, m[4]] as Massif)) : tableFor(k);
     if (P.near > 0.01 && P.wvis < 1 && k >= 0 && k < STRETCH_COUNT && !SCENES[k].water) {   // open water keeps no near crag
       const o = viewOffset(k, P.wvis);
-      rows = rows.concat(PORTRAIT_CRAGS.map(([x, w, g]) => [LAYERS - 1, o + x * P.wvis, w * P.wvis, g * P.near, 'near']));
+      rows = rows.concat(PORTRAIT_CRAGS.map(([x, w, g]): Massif => [LAYERS - 1, o + x * P.wvis, w * P.wvis, g * P.near, 'near']));
     }
     rows.forEach(([l, x, w, g, role], j) => {
       if (role === 'echo') { out.echo.push(l, k + x, w, g); return; }
@@ -496,7 +632,7 @@ export function massifs(u0, u1, P) {
   return out;
 }
 export const MASSIF_STRIDE = 5;
-function skewHash(i) {
+function skewHash(i: number) {
   let h = Math.imul(i ^ 0x9e3779b9, 0x85ebca6b);
   h ^= h >>> 13;
   h = Math.imul(h, 0xc2b2ae35);
@@ -515,27 +651,44 @@ export const HS = 1.6;
 /** A window's painted feathers, CSS px [top, bottom]: out of the paper at its top, back into it at its bottom (phones
  *  and sideways phones: narrow; tablets: their own, a 220 px band; wide screens: wide). A document's strip has half
  *  of each. */
-export const FEATHER = { narrow: [24, 26], tablet: [30, 36], wide: [40, 56] };
+export const FEATHER: Record<'narrow' | 'tablet' | 'wide', [top: number, bottom: number]> = { narrow: [24, 26], tablet: [30, 36], wide: [40, 56] };
 /** The feathers of a width class. */
-export const featherOf = (cls) => (cls === 'phone' || cls === 'short' ? FEATHER.narrow : cls === 'tablet' ? FEATHER.tablet : FEATHER.wide);
+export const featherOf = (cls: WidthClass) => (cls === 'phone' || cls === 'short' ? FEATHER.narrow : cls === 'tablet' ? FEATHER.tablet : FEATHER.wide);
 /** Figure geometry is authored at this many CSS px per stretch (so 900 CSS px per viewport height). */
 export const REF_PX = 1440;
 /** The text block's right edge to the scene's focus, at least (CSS px). */
 export const KEEP_GAP = 180;
 
-const clampK = (k) => Math.min(STRETCH_COUNT - 1, Math.max(0, k));
+const clampK = (k: number) => Math.min(STRETCH_COUNT - 1, Math.max(0, k));
 
 /** The width class of a viewport (SPEC-R4A §2.4): 'wide' >= 1200, 'short' < 500 tall, 'tablet' >= 640, else 'phone'. */
-export function widthClass(w, h) {
+export function widthClass(w: number, h: number): WidthClass {
   if (w >= 1200) return 'wide';
   if (h > 0 && h < 500) return 'short';
   return w >= 640 ? 'tablet' : 'phone';
 }
 
 /** A stretch's own page composition (distance, presence), as its page sets it. */
-export function pageSpec(stretch) {
+export function pageSpec(stretch: number): { distance: Distance; presence: number } {
   const [distance, presence] = SCENES[clampK(Math.round(Number(stretch) || 0))].page;
   return { distance, presence };
+}
+
+/** A window's CSS box, for framingAt (see there). */
+export interface FramingBox {
+  width?: number;
+  height?: number;
+  keepoutRight?: number | null;
+  doc?: boolean;
+  twin?: boolean;
+}
+/** Where a window looks: world x (stretches) at its left edge, scene height at its top, CSS px per stretch, the focus
+ *  in box px. */
+export interface Framing {
+  worldLeft: number;
+  worldTop: number;
+  scale: number;
+  focus: [number, number];
 }
 
 /**
@@ -552,14 +705,15 @@ export function pageSpec(stretch) {
  *   (stretches) at the box's left edge, scene height (viewport heights) at its top edge, CSS px per stretch, the focus
  *   in box px, and the nominal scale (CSS px per stretch) this window's figure layer is drawn at.
  */
-export function framingAt(stretch, cls = 'wide', box = {}, kind = 'strip') {
+export function framingAt(stretch: number, cls: WidthClass = 'wide', box: FramingBox = {}, kind: WindowKind = 'strip'): Framing & { nominal: number } {
   const k = clampK(Math.round(Number(stretch) || 0));
   const F = SCENES[k].frame;
-  const width = Math.max(1, +box.width || 1440);
-  const height = Math.max(1, +box.height || 360);
+  const width = Math.max(1, +box.width! || 1440);   // (no width: NaN, then the default)
+  const height = Math.max(1, +box.height! || 360);
   const kr = box.keepoutRight === null || box.keepoutRight === undefined || !Number.isFinite(+box.keepoutRight) ? null : +box.keepoutRight;
-  const T = (cls === 'short' ? F.short || F.phone : F[cls]) || F.tablet;
-  let scale, left, top, fu, fy, nominal, ku, spanned = false;
+  // (wide: its own branches below never read T)
+  const T = ((cls === 'short' ? F.short || F.phone : F[cls]) || F.tablet) as View;
+  let scale: number, left: number, top: number, fu: number, fy: number, nominal: number, ku: number | undefined, spanned = false;
   if (kind === 'closing') {
     // the page's own place once more: a span (spanFrame), a band (bandFrame) or a point at (fx, fy), from the closing's
     // own data
@@ -567,10 +721,10 @@ export function framingAt(stretch, cls = 'wide', box = {}, kind = 'strip') {
     if (C.span) { ({ scale, left, top, fu } = spanFrame(k, C, cls, width, height, kr)); spanned = true; }
     else if (C.band) ({ scale, left, top, fu } = bandFrame(k, C, cls, width, height, false, F.focus[0]));
     else {
-      scale = C.scale;
+      scale = C.scale!;
       fu = C.u ?? F.focus[0];
-      left = k + fu - C.fx * (width / scale);
-      top = (C.y ?? F.focus[1]) + C.fy * height * HS / scale;
+      left = k + fu - C.fx! * (width / scale);
+      top = (C.y ?? F.focus[1]) + C.fy! * height * HS / scale;
     }
     fy = C.y ?? F.focus[1];
     nominal = C.scale ?? scale;
@@ -601,8 +755,8 @@ export function framingAt(stretch, cls = 'wide', box = {}, kind = 'strip') {
   } else {
     scale = nominal = T.scale;
     fu = F.focus[0]; fy = F.focus[1];
-    left = k + fu - T.fx * (width / scale);
-    top = fy + T.fy * height * HS / scale;
+    left = k + fu - T.fx! * (width / scale);
+    top = fy + T.fy! * height * HS / scale;
   }
   // the keep-out rule: the scene's leftmost figurative point (frame.keepU, else the focus; a closing may name its own)
   // stands at least KEEP_GAP px right of the text, never past the box's right edge (a span is already placed beside the
@@ -621,9 +775,9 @@ export function framingAt(stretch, cls = 'wide', box = {}, kind = 'strip') {
 // The closing's framing for a width class (DESIGN 11.B): a short page's twin (a different view of the place, when the
 // strip and the closing share a screen), else the class's own closing (wide: authored; narrower: the opening's own
 // framing, under any overrides), so the page ends on its own place, never on the next one.
-const CLOSING_WIDE = { scale: 900, band: [0.12, 0.5], right: 1 };
-function closingOf(F, cls, T, twin) {
-  const c = F.closing || {};
+const CLOSING_WIDE: ClosingView = { scale: 900, band: [0.12, 0.5], right: 1 };
+function closingOf(F: Frame, cls: WidthClass, T: View, twin: boolean): ClosingView {
+  const c: NonNullable<Frame['closing']> = F.closing || {};
   const tw = twin && c.twin ? c.twin[cls] : undefined;
   if (tw) return tw;
   const own = c[cls];
@@ -639,13 +793,13 @@ function closingOf(F, cls, T, twin) {
  * drawn at the nominal one). Horizontally: T.u at T.fx of the width (or the view's right edge at T.right), kept inside
  * [T.uMin, T.uMax] (stretch-local) where the width allows.
  */
-function bandFrame(k, T, cls, width, height, doc, u) {
-  const [y0, y1] = T.band;
+function bandFrame(k: number, T: ClosingView, cls: WidthClass, width: number, height: number, doc: boolean, u: number) {
+  const [y0, y1] = T.band!;
   const dk = doc ? 0.5 : 1;
   const [ft, fb] = featherOf(cls).map((v) => v * dk);
   const fbIn = T.fbIn ?? 0.5;   // how far into the bottom feather the ground may sit (0: Home's traveller stays clear of it)
   const fit = (Math.max(8, height - ft - fb * (1 - fbIn)) * HS) / Math.max(0.02, y1 - y0);
-  const scale = Math.min(T.scale * 1.15, Math.max(T.scale * 0.8, fit));
+  const scale = Math.min(T.scale! * 1.15, Math.max(T.scale! * 0.8, fit));
   const top = bandTop(T, cls, height, scale, dk);
   const fu = T.u ?? u;
   const vw = width / scale;
@@ -658,8 +812,8 @@ function bandFrame(k, T, cls, width, height, doc, u) {
 
 /** The top (scene height at the box's top edge) that puts a band's summits (band[1]) just under the top feather, and
  *  its ground (band[0]) above the bottom one when the box is tall enough at this scale (else the summits win). */
-function bandTop(T, cls, height, scale, dk = 1) {
-  const [y0, y1] = T.band;
+function bandTop(T: ClosingView, cls: WidthClass, height: number, scale: number, dk = 1) {
+  const [y0, y1] = T.band!;
   const [ft, fb] = featherOf(cls).map((v) => v * dk);
   const fbIn = T.fbIn ?? 0.5;
   const unit = HS / scale;
@@ -674,8 +828,8 @@ function bandTop(T, cls, height, scale, dk = 1) {
  * (into a neighbour's scene, a figure layer, or the strip's landmark). Vertically the band's summits (T.band[1]) sit
  * just under the top feather (bandTop). Left of `kr` the keep-out's mist covers whatever lies beyond u0.
  */
-function spanFrame(k, T, cls, width, height, kr) {
-  const [u0, u1] = T.span;
+function spanFrame(k: number, T: ClosingView, cls: WidthClass, width: number, height: number, kr: number | null) {
+  const [u0, u1] = T.span!;
   const x0 = kr !== null && kr > 0 ? Math.min(kr, width * 0.6) : 0;   // (a text over most of the box: its right 40 %)
   const scale = (width - x0) / Math.max(0.05, u1 - u0);
   return { scale, left: k + u1 - width / scale, top: bandTop(T, cls, height, scale), fu: T.u ?? (u0 + u1) / 2 };
@@ -685,7 +839,7 @@ function spanFrame(k, T, cls, width, height, kr) {
  * The framing of a window while the camera is at a fractional stretch (a pan): every field moves smoothly from
  * one stretch's framing to the next, the way cameraLeft() blends the round-3 views.
  */
-export function framingBlend(s, cls, box, kind) {
+export function framingBlend(s: number, cls: WidthClass, box: FramingBox, kind: WindowKind): Framing {
   const k = clampK(Math.floor(s));
   const f = Math.min(1, Math.max(0, s - k));
   const A = framingAt(k, cls, box, kind);

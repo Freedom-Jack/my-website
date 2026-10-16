@@ -1,5 +1,5 @@
 /**
- * The landscape engine's public contract (engine/index.js, mountLandscape's JSDoc is the long form).
+ * The landscape engine's public contract (engine/index.ts, mountLandscape's JSDoc is the long form).
  * Everything else on the site talks to the painting only through mountLandscape() and this handle.
  */
 import type { Distance } from './places';

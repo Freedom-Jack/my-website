@@ -1,5 +1,5 @@
-// canvas2d.js — fallback renderer for browsers without WebGL2 (or after the context is lost for good). Same ridge
-// profiles, framings, palettes and figure layers as the shader (ridges.js / compose.js / figures.js), painted into
+// canvas2d.ts — fallback renderer for browsers without WebGL2 (or after the context is lost for good). Same ridge
+// profiles, framings, palettes and figure layers as the shader (ridges.ts / compose.ts / figures.ts), painted into
 // the same views (the page's strip and closing windows, the desktop horizon band), static: no drifting mist, no wake
 // and no sweep (that needs the GPU).
 //
@@ -12,8 +12,9 @@
 // built one plane per frame behind the draft on show. present() lays the views at their live boxes on paper (the
 // horizon band as one faded, sunk offset of its painting), then the reading veil and a fine grain.
 
-import { LAYERS, RIVER_FRONT } from './compose.js';
-import { SCENE_ROW } from './ridges.js';
+import { LAYERS, RIVER_FRONT } from './compose';
+import { SCENE_ROW } from './ridges';
+import type { FigureSlot, PresentU, Renderer, RendererMemory, SceneU } from './renderer';
 
 const PAPER = [239, 241, 238];
 const SKY = [241, 243, 242];
@@ -26,10 +27,11 @@ const MAL = [[141, 181, 164], [58, 128, 106]];
 // its target (by ~5 levels on CPU canvases); this lands the wash where the GPU painted it
 const STAMP = [MIST[0] + 5, MIST[1] + 5, MIST[2] + 5];
 
-const mix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
-const rgba = (c, a = 1) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
-const clamp01 = (x) => Math.min(1, Math.max(0, x));
-const sstep = (a, b, x) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+// (colours: [r, g, b], 0..255)
+const mix = (a: number[], b: number[], t: number) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+const rgba = (c: number[], a = 1) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
+const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
+const sstep = (a: number, b: number, x: number) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
 
 // Smooth value noise on a 64-cell tile, ~[0, 1]: the veil's torn edge (the shader tears it with its mist field).
 const NZ = (() => {
@@ -38,7 +40,7 @@ const NZ = (() => {
   for (let i = 0; i < n.length; i++) n[i] = (seed = (seed * 16807) % 2147483647) / 2147483647;
   return n;
 })();
-function vnoise(x, y) {
+function vnoise(x: number, y: number) {
   const xi = Math.floor(x), yi = Math.floor(y);
   const fx = x - xi, fy = y - yi;
   const ux = fx * fx * (3 - 2 * fx), uy = fy * fy * (3 - 2 * fy);
@@ -47,7 +49,7 @@ function vnoise(x, y) {
   return a + (b - a) * ux + (c - a) * uy + (a - b - c + d) * ux * uy;
 }
 // the mist field at a world point (viewport heights): broad billows plus a finer layer, like the shader's m1
-const mistAt = (x, y) => 0.62 * vnoise(x * 1.05, y * 2.9) + 0.38 * vnoise(x * 2.6 + 5.3, y * 7.1 + 1.7);
+const mistAt = (x: number, y: number) => 0.62 * vnoise(x * 1.05, y * 2.9) + 0.38 * vnoise(x * 2.6 + 5.3, y * 7.1 + 1.7);
 
 function grainTile() {
   // fine, low-contrast paper: soft 2-3 px tooth and a sprinkling of faint short fibres
@@ -61,7 +63,7 @@ function grainTile() {
   const cell = 2;
   const gw = n / cell;
   const g = new Float32Array(gw * gw).map(() => rnd());
-  const at = (a, b) => g[(b % gw) * gw + (a % gw)];
+  const at = (a: number, b: number) => g[(b % gw) * gw + (a % gw)];
   const img = x.createImageData(n, n);
   for (let j = 0; j < n; j++) {
     for (let i = 0; i < n; i++) {
@@ -88,15 +90,55 @@ function grainTile() {
   return c;
 }
 
-export function createCanvas2D(canvas) {
+/** A view's painting: the one on show (`shown`: full, or a half-size draft) and the one being built behind it. */
+interface View {
+  w: number;
+  h: number;
+  alpha: boolean;
+  full: HTMLCanvasElement;
+  fc: CanvasRenderingContext2D;
+  work: HTMLCanvasElement;
+  kc: CanvasRenderingContext2D;
+  draft: HTMLCanvasElement;
+  dc: CanvasRenderingContext2D;
+  ridges: Float32Array | null;
+  samples: number;
+  gen: number;
+  shown: HTMLCanvasElement | null;
+  /** A full-quality painting built one step per scene() call: the next step, for this ridge generation. */
+  job: { next: number; gen: number } | null;
+  /** The horizon band's sink, px. */
+  shift: number;
+}
+/** A view that has its ridges (scene() paints only those). */
+type Painted = View & { ridges: Float32Array };
+/** A figure layer as Canvas2D keeps it (an ImageBitmap, or a canvas). */
+type FigureSource = CanvasImageSource & { close?(): void };
+/** One reading veil, in canvas uv (veilMask). */
+interface VeilRect {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+  s: number;
+  R: number;
+  fr: number;
+  fk: number;
+  reach: number;
+  t0: number;
+}
+
+export function createCanvas2D(canvas: HTMLCanvasElement): Renderer | null {
   // Every canvas here is CPU-backed (willReadFrequently). This path runs where WebGL2 is missing, and
   // there 2D acceleration is usually missing or emulated too: every draw from one canvas into another
   // would sync the GPU, which costs more than the painting itself.
-  const CPU = { alpha: false, willReadFrequently: true };
-  let ctx = null;
-  try { ctx = canvas.getContext('2d', CPU); } catch { ctx = null; }
-  if (!ctx) return null;
-  const surf = (alpha = false) => { const c = document.createElement('canvas'); return [c, c.getContext('2d', { alpha, willReadFrequently: true })]; };
+  const CPU: CanvasRenderingContext2DSettings = { alpha: false, willReadFrequently: true };
+  let context: CanvasRenderingContext2D | null = null;
+  try { context = canvas.getContext('2d', CPU); } catch { context = null; }
+  if (!context) return null;
+  const ctx = context;   // (typed: the helper functions below see a context, never a possible null)
+  // (a scratch canvas's context is null only where Canvas2D itself is missing: the first five are checked below)
+  const surf = (alpha = false): [HTMLCanvasElement, CanvasRenderingContext2D] => { const c = document.createElement('canvas'); return [c, c.getContext('2d', { alpha, willReadFrequently: true })!]; };
   // shared scratch buffers (quarter resolution), grown to the largest view
   const [low, wc] = surf(true);
   const [soft, sc] = surf(true);
@@ -106,15 +148,15 @@ export function createCanvas2D(canvas) {
   if (!wc || !sc || !mc || !vc || !fx) return null;
   const tile = grainTile();
   const blurOK = 'filter' in wc;
-  let grain = null;
+  let grain: CanvasPattern | null = null;
   let W = 0, H = 0, VW = 0, VH = 0;
-  let veilImg = null, veilKey = '';
-  const views = new Map();   // id -> { w, h, full, fc, work, kc, draft, dc, ridges, samples, gen, shown, job, shift }
-  const figs = new Map();    // id -> image (ImageBitmap or canvas)
-  const banks = new Map();   // 4b: baked mist-bank edges (stage(), bank())
-  const curtC = new Map();   // 4b: a layer with the curtain's fade cut out of it (stage(), curtained())
+  let veilImg: ImageData | null = null, veilKey = '';
+  const views = new Map<string, View>();
+  const figs = new Map<string, FigureSource>();   // id -> image (ImageBitmap or canvas)
+  const banks = new Map<string, { cv: HTMLCanvasElement; amp: number; h: number }>();   // 4b: baked mist-bank edges (stage(), bank())
+  const curtC = new Map<number, { src: HTMLCanvasElement; key: string; cv: HTMLCanvasElement }>();   // 4b: a layer with the curtain's fade cut out of it (stage(), curtained())
 
-  function lowSize(w, h) {
+  function lowSize(w: number, h: number): [number, number] {
     const lw = Math.max(2, Math.round(w / 4)), lh = Math.max(2, Math.round(h / 4));
     if (low.width !== lw || low.height !== lh) {
       low.width = soft.width = stamp.width = lw;
@@ -125,10 +167,10 @@ export function createCanvas2D(canvas) {
 
   // ---------------------------------------------------------------- painting one view
   // scene height -> view px: the view shows scene heights [top - span, top] (a window; the full view: [0, 1])
-  const vy = (U, y, h) => ((U.view[1] - y) / U.view[2]) * h;
+  const vy = (U: SceneU, y: number, h: number) => ((U.view[1] - y) / U.view[2]) * h;
   // a near plane over water sinks into it (only its headlands stand out), as in the shader
-  const sunk = (v, l, c) => (l >= 3 ? 0.14 * v.ridges[(SCENE_ROW * v.samples + c) * 4] : 0);
-  function silhouette(v, U, l, w, h) {
+  const sunk = (v: Painted, l: number, c: number) => (l >= 3 ? 0.14 * v.ridges[(SCENE_ROW * v.samples + c) * 4] : 0);
+  function silhouette(v: Painted, U: SceneU, l: number, w: number, h: number) {
     const path = new Path2D();
     path.moveTo(-2, h + 2);
     for (let c = 0; c < v.samples; c++) {
@@ -139,7 +181,7 @@ export function createCanvas2D(canvas) {
     path.closePath();
     return path;
   }
-  function sky(lc, U, w, h) {
+  function sky(lc: CanvasRenderingContext2D, U: SceneU, w: number, h: number) {
     const g = lc.createLinearGradient(0, vy(U, 1, h), 0, vy(U, 0.45, h));
     g.addColorStop(0, rgba(SKY));
     g.addColorStop(1, rgba(PAPER));
@@ -147,14 +189,14 @@ export function createCanvas2D(canvas) {
     lc.fillRect(0, 0, w, h);
   }
   // the plane's mean pigment and lean across the view (row 7: pigment, malachite lean)
-  function pigment(v) {
+  function pigment(v: Painted) {
     let s = 0, m = 0;
     const r = (LAYERS + 2) * v.samples;
     for (let c = 0; c < v.samples; c++) { s += v.ridges[(r + c) * 4 + 2]; m += v.ridges[(r + c) * 4 + 3]; }
     return [s / v.samples, m / v.samples];
   }
   // one plane into `lc` (w x h). A draft takes fewer, unblurred wash steps.
-  function plane(v, l, U, lc, w, h, draft) {
+  function plane(v: Painted, l: number, U: SceneU, lc: CanvasRenderingContext2D, w: number, h: number, draft: boolean) {
     const [LW, LH] = lowSize(w, h);
     const dep = l / (LAYERS - 1);
     const foot = U.feet[l * 3], fade = U.feet[l * 3 + 1], strength = U.feet[l * 3 + 2];
@@ -218,7 +260,7 @@ export function createCanvas2D(canvas) {
     lc.imageSmoothingQuality = 'low';
     lc.drawImage(src, 0, 0, LW, LH, 0, 0, w, h);
     // terraced fields (the Résumé's shore, ridges row 8): broken lines stepping down the hill. 4b: level, as the figure
-    // layer's walls are (sets/terraces.js, and the shader): a wall at level z lies at y = z - s (crest - z), sagging
+    // layer's walls are (sets/terraces.ts, and the shader): a wall at level z lies at y = z - s (crest - z), sagging
     // where the hill swells toward us, and only where the ground stands above its level. Where that layer stands on
     // this plane it draws the walls itself, so the lines give way to it there (never two rhythms crossing)
     if (l >= 2 && !U.horizon) {
@@ -232,7 +274,7 @@ export function createCanvas2D(canvas) {
       if (tmax > 0.05) {
         const u = h / U.view[2];
         const stepZ = 0.0128 - 0.0038 * sstep(0.5, 1, dep);
-        const layer = [U.figA, U.figB].filter((f) => f && f.plane === l && f.k > 0 && figs.has(f.id) && f.raw);
+        const layer = [U.figA, U.figB].filter((f) => f && f.plane === l && f.k > 0 && figs.has(f.id) && f.raw) as FigureSlot[];
         const open = new Float32Array(n), sag = new Float32Array(n);
         for (let c = 0; c < n; c += 2) {
           const x = U.view[0] + (c / (n - 1)) * U.view[3];   // world x, viewport heights
@@ -291,7 +333,7 @@ export function createCanvas2D(canvas) {
   }
   // Water in front of the far shore (planes 0-2): reserved paper below the waterline (down to a river's near bank),
   // a soft flipped copy of the far shore, a mist band on the waterline, a few long strokes.
-  function water(v, U, lc, w, h, draft) {
+  function water(v: Painted, U: SceneU, lc: CanvasRenderingContext2D, w: number, h: number, draft: boolean) {
     const [LW, LH] = lowSize(w, h);
     const r = SCENE_ROW * v.samples, r6 = (SCENE_ROW + 1) * v.samples, r7 = (LAYERS + 2) * v.samples, r8 = (LAYERS + 3) * v.samples;
     let any = false, wySum = 0, nySum = 0, n = 0, shore = 0, mir = 0, ind = 0;
@@ -388,19 +430,19 @@ export function createCanvas2D(canvas) {
     lc.fillRect(0, ya, w, 0.05 * u);
   }
   // 4b: the river's mist over a figure layer (the shader's figMist): the town's back rows dissolve into it and low
-  // banks drift among them, keyed by depth: it lies behind the nearest things in each column (compose.js RIVER_FRONT),
+  // banks drift among them, keyed by depth: it lies behind the nearest things in each column (compose.ts RIVER_FRONT),
   // so the bridge and the crowd on its crown, the landmark and the masts stand clear. A low-resolution mask of how much
   // mist covers the layer (alpha), laid over it with destination-out; null where the layer stands on no river.
-  const mists = new Map();
-  function frontAt(u) {
+  const mists = new Map<string, HTMLCanvasElement>();
+  function frontAt(u: number) {
     const F = RIVER_FRONT, x = (u - F.u0) / F.du;
     if (!(x > 0 && x < F.hb.length - 1)) return F.def;
     const i = Math.floor(x);
     return F.hb[i] + (F.hb[i + 1] - F.hb[i]) * (x - i);
   }
-  function riverMist(U, v, f, fw, fh, x0, w) {
+  function riverMist(U: SceneU, v: Painted, f: FigureSlot, fw: number, fh: number, x0: number, w: number): HTMLCanvasElement | null {
     const n = v.samples, r = SCENE_ROW * v.samples, r7 = (LAYERS + 2) * v.samples;
-    const col = (i, mw) => Math.min(n - 1, Math.max(0, Math.round(((x0 + ((i + 0.5) / mw) * fw) / w) * (n - 1))));
+    const col = (i: number, mw: number) => Math.min(n - 1, Math.max(0, Math.round(((x0 + ((i + 0.5) / mw) * fw) / w) * (n - 1))));
     const mw = Math.max(2, Math.ceil(fw / 3)), mh = Math.max(2, Math.ceil(fh / 3));
     let any = false, sig = '';
     for (let i = 0; i < mw; i += Math.max(1, mw >> 3)) {
@@ -410,14 +452,14 @@ export function createCanvas2D(canvas) {
     }
     if (!any) return null;
     const key = `${f.id}|${fw}x${fh}|${x0.toFixed(1)}|${w}|${sig}`;
-    if (mists.has(key)) return mists.get(key);
+    if (mists.has(key)) return mists.get(key)!;
     const m = document.createElement('canvas');
     m.width = mw; m.height = mh;
     const mc2 = m.getContext('2d', { willReadFrequently: true });   // (CPU-backed, as every canvas here)
     if (!mc2) return null;
     const img = mc2.createImageData(mw, mh), d = img.data;
     const [u0, u1, y0, y1] = f.raw;
-    const nz = (x, y) => 0.5 + (0.62 * vnoise(x * 4, y * 4) + 0.38 * vnoise(x * 8 + 5.3, y * 8 + 1.7) - 0.5) * 0.75;
+    const nz = (x: number, y: number) => 0.5 + (0.62 * vnoise(x * 4, y * 4) + 0.38 * vnoise(x * 8 + 5.3, y * 8 + 1.7) - 0.5) * 0.75;
     for (let i = 0; i < mw; i++) {
       const c = col(i, mw), riv = v.ridges[(r + c) * 4] * (1 - v.ridges[(r7 + c) * 4 + 1]), wY = v.ridges[(r + c) * 4 + 1];
       if (riv <= 0.001) continue;
@@ -432,12 +474,12 @@ export function createCanvas2D(canvas) {
       }
     }
     mc2.putImageData(img, 0, 0);
-    if (mists.size > 6) mists.delete(mists.keys().next().value);
+    if (mists.size > 6) mists.delete(mists.keys().next().value!);
     mists.set(key, m);
     return m;
   }
   // a figure layer laid into the painting (world rect -> view px)
-  function figure(U, lc, w, h, f, v) {
+  function figure(U: SceneU, lc: CanvasRenderingContext2D, w: number, h: number, f: FigureSlot, v: Painted) {
     const img = f && figs.get(f.id);
     if (!img || !(f.k > 0)) return;
     const [u0, u1, y0, y1] = f.raw;
@@ -469,7 +511,7 @@ export function createCanvas2D(canvas) {
   }
   // the keep-out: mist recomposes the scene where the text stands (opaque to 140 px left of its edge, clear 140 right);
   // a 4b depth layer in front of the base simply clears there (the base's mist shows through)
-  function keepOut(U, lc, w, h) {
+  function keepOut(U: SceneU, lc: CanvasRenderingContext2D, w: number, h: number) {
     if (!U.keep || !(U.keep[1] > 0)) return;
     const kx = U.keep[0] * w, kr = U.keep[2] * w;
     const g = lc.createLinearGradient(kx - kr, 0, kx + kr, 0);
@@ -482,11 +524,11 @@ export function createCanvas2D(canvas) {
     lc.restore();
   }
   // 4b depth layers: U.planes = [first plane, last plane, 1 = a layer over transparent paper]
-  const isLayer = (U) => !!U.planes && U.planes[2] > 0.5;
-  const inRange = (U, l) => !U.planes || (l >= U.planes[0] - 0.01 && l <= U.planes[1] + 0.01);
+  const isLayer = (U: SceneU) => !!U.planes && U.planes[2] > 0.5;
+  const inRange = (U: SceneU, l: number) => !U.planes || (l >= U.planes[0] - 0.01 && l <= U.planes[1] + 0.01);
   // the painting's steps, far to near; the water goes in front of the far shore; figures after their plane
   const STEPS = LAYERS + 1;
-  function step(v, k, U, lc, w, h, draft) {
+  function step(v: Painted, k: number, U: SceneU, lc: CanvasRenderingContext2D, w: number, h: number, draft: boolean) {
     const pl = k < 3 ? k : k === 3 ? 2 : k - 1;      // the plane this step belongs to (the water goes with plane 2)
     if (!inRange(U, pl)) { if (k === STEPS - 1) keepOut(U, lc, w, h); return; }
     if (k < 3) plane(v, k, U, lc, w, h, draft);
@@ -501,10 +543,10 @@ export function createCanvas2D(canvas) {
     }
     if (k === STEPS - 1) keepOut(U, lc, w, h);
   }
-  function ground(lc, U, w, h) {
+  function ground(lc: CanvasRenderingContext2D, U: SceneU, w: number, h: number) {
     if (isLayer(U)) { lc.setTransform(1, 0, 0, 1, 0, 0); lc.clearRect(0, 0, w, h); } else sky(lc, U, w, h);
   }
-  function paintAll(v, lc, w, h, U, draft) {
+  function paintAll(v: Painted, lc: CanvasRenderingContext2D, w: number, h: number, U: SceneU, draft: boolean) {
     ground(lc, U, w, h);
     for (let k = 0; k < STEPS; k++) step(v, k, U, lc, w, h, draft);
   }
@@ -529,13 +571,14 @@ export function createCanvas2D(canvas) {
     },
     view(id, w, h, alpha = false) {
       w = Math.max(2, w | 0); h = Math.max(2, h | 0);
-      let v = views.get(id);
+      let v: View | null | undefined = views.get(id);
       if (v && v.w === w && v.h === h && v.alpha === alpha) return false;
       if (v && v.alpha !== alpha) { views.delete(id); v = null; }
       if (!v) {
         // (a 4b depth layer in front of the base is painted over transparent paper)
         const [full, fc] = surf(alpha), [work, kc] = surf(alpha), [draft, dc] = surf(alpha);
-        v = { full, fc, work, kc, draft, dc, ridges: null, samples: 0, gen: 0, shown: null, job: null, shift: 0, alpha };
+        // (its size is set just below)
+        v = { full, fc, work, kc, draft, dc, ridges: null, samples: 0, gen: 0, shown: null, job: null, shift: 0, alpha } as Omit<View, 'w' | 'h'> as View;
         views.set(id, v);
       }
       v.w = v.full.width = v.work.width = w;
@@ -550,7 +593,7 @@ export function createCanvas2D(canvas) {
     hasView(id) { return !!views.get(id)?.shown; },
     /** QA: bytes held per view (two full-size canvases and a half-size draft each). */
     memory() {
-      const out = { total: 0, views: {}, figures: figs.size };
+      const out: RendererMemory = { total: 0, views: {}, figures: figs.size };
       for (const [id, v] of views) {
         const b = (v.full.width * v.full.height + v.work.width * v.work.height + v.draft.width * v.draft.height) * 4;
         out.views[id] = { w: v.w, h: v.h, bytes: b };
@@ -570,7 +613,7 @@ export function createCanvas2D(canvas) {
     /**
      * Paint a view. A draft (U.draft: a pan in flight) is painted at half resolution, at once. A full-quality
      * painting that replaces a draft is painted one plane per call behind the draft on show, and returns false until
-     * it is complete (index.js calls again on the next frames); with nothing on show yet it is painted at once.
+     * it is complete (index.ts calls again on the next frames); with nothing on show yet it is painted at once.
      */
     scene(id, U) {
       const v = views.get(id);
@@ -578,13 +621,13 @@ export function createCanvas2D(canvas) {
       v.shift = U.horizon ? Math.round((U.hzShift || 0) * v.h) : 0;
       if (U.draft) {
         v.job = null;
-        paintAll(v, v.dc, v.draft.width, v.draft.height, U, true);
+        paintAll(v as Painted, v.dc, v.draft.width, v.draft.height, U, true);
         v.shown = v.draft;
         return true;
       }
       if (v.shown !== v.draft) {
         v.job = null;
-        paintAll(v, v.fc, v.w, v.h, U, false);
+        paintAll(v as Painted, v.fc, v.w, v.h, U, false);
         v.shown = v.full;
         return true;
       }
@@ -592,7 +635,7 @@ export function createCanvas2D(canvas) {
         v.job = { next: 0, gen: v.gen };
         ground(v.kc, U, v.w, v.h);
       }
-      step(v, v.job.next, U, v.kc, v.w, v.h, false);
+      step(v as Painted, v.job.next, U, v.kc, v.w, v.h, false);
       if (++v.job.next < STEPS) return false;
       [v.full, v.work] = [v.work, v.full];
       [v.fc, v.kc] = [v.kc, v.fc];
@@ -606,8 +649,8 @@ export function createCanvas2D(canvas) {
       ctx.fillRect(0, 0, W, H);
       // the horizon band: round 3's way, one faded offset of its painting sunk toward the bottom of the view
       const hz = U.horizon && views.get(U.horizon.id);
-      if (hz && hz.shown && U.horizon.k > 0) {
-        ctx.globalAlpha = U.horizon.k * 0.7;
+      if (hz && hz.shown && U.horizon!.k > 0) {
+        ctx.globalAlpha = U.horizon!.k * 0.7;
         ctx.imageSmoothingEnabled = true;
         ctx.drawImage(hz.shown, 0, 0, hz.shown.width, hz.shown.height, 0, hz.shift, W, H);
         ctx.globalAlpha = 1;
@@ -684,8 +727,8 @@ export function createCanvas2D(canvas) {
    * sea of mist rising over their feet. The deck's, the cloud's and the sea's surfaces billow (a baked edge, never a
    * ruled line). No drift here: Canvas2D is a still painting that only moves with the scroll.
    */
-  function stage(U) {
-    const S = U.stage;
+  function stage(U: PresentU) {
+    const S = U.stage!;   // (present() calls it with a stage)
     const O = S.offsets, R = S.rects;
     ctx.imageSmoothingEnabled = true;
     for (let i = 0; i < 3; i++) {
@@ -738,14 +781,14 @@ export function createCanvas2D(canvas) {
       ctx.fillRect(0, d0, W, H - d0);
     }
   }
-  function curtained(i, v, e0, e1) {
-    const img = v.shown;
+  function curtained(i: number, v: View, e0: number, e1: number) {
+    const img = v.shown!;   // (stage() calls it for a layer on show)
     const key = `${Math.round(e0)}|${Math.round(e1)}|${img.width}x${img.height}|${v.gen}`;
     const c = curtC.get(i);
     if (c && c.src === img && c.key === key) return c.cv;
     const cv = c?.cv || document.createElement('canvas');
     cv.width = img.width; cv.height = img.height;
-    const x = cv.getContext('2d', { willReadFrequently: true });   // (CPU-backed, as every canvas here)
+    const x = cv.getContext('2d', { willReadFrequently: true })!;   // (CPU-backed, as every canvas here)
     x.drawImage(img, 0, 0);
     x.globalCompositeOperation = 'destination-out';
     const g = x.createLinearGradient(e0, 0, e1, 0);
@@ -758,7 +801,7 @@ export function createCanvas2D(canvas) {
   }
   // A bank of mist from `top` down (solid below top + depth), its upper surface billowing: a sprite baked once per
   // (size, colour, seed) with a noisy alpha edge, then a solid fill below it (`banks`, above).
-  function bank(top, depth, c, k, seed) {
+  function bank(top: number, depth: number, c: number[], k: number, seed: number) {
     if (!(k > 0)) return;
     const d = Math.max(4, Math.round(depth));
     const key = `${W}|${d}|${c.map(Math.round).join(',')}|${seed}`;
@@ -769,7 +812,7 @@ export function createCanvas2D(canvas) {
       const h = Math.round(d + amp * 2);
       const cv = document.createElement('canvas');
       cv.width = W; cv.height = h;
-      const x = cv.getContext('2d', { willReadFrequently: true });   // (CPU-backed, as every canvas here)
+      const x = cv.getContext('2d', { willReadFrequently: true })!;   // (CPU-backed, as every canvas here)
       const img = x.createImageData(W, h);
       for (let i = 0; i < W; i++) {
         const u = (i / Math.max(1, H)) * 3.1 + seed * 7.3;
@@ -797,11 +840,12 @@ export function createCanvas2D(canvas) {
    * rect's distance (aspect-corrected), feathered over its radius and torn by the mist field. Returns false when
    * there is no veil. Recomputed only when the rects or the size change.
    */
-  function veilMask(U) {
-    const list = [];
+  function veilMask(U: PresentU) {
+    const list: VeilRect[] = [];
     // 4b living veils (U.live[0] 2): solid paper over the text's own lines and U.live[1] round them, then a torn edge
+    // (wk, the margin's reach, is set just below)
     const live = U.live && U.live[0] > 1.5
-      ? { c: U.live[1], F: U.live[2], y: U.live2 ? U.live2[0] : 0, sw: U.live2 ? U.live2[2] : 0, px: U.live2 ? U.live2[3] : 1 / 900 } : null;
+      ? { c: U.live[1], F: U.live[2], y: U.live2 ? U.live2[0] : 0, sw: U.live2 ? U.live2[2] : 0, px: U.live2 ? U.live2[3] : 1 / 900 } as { c: number; F: number; y: number; sw: number; px: number; wk: number } : null;
     // (round 3, as the shader: a wide window's longer reach applies beside a block only)
     if (live) live.wk = Math.min(1.8, Math.max(1, U.aspect / live.px / 1440));
     for (let k = 0; k < U.veilS.length; k++) {
@@ -820,7 +864,7 @@ export function createCanvas2D(canvas) {
       list.map((v) => [v.x0, v.y0, v.x1, v.y1, v.s, v.R].map((n) => n.toFixed(4)).join(',')).join(' ');
     if (key === veilKey) return true;
     veilKey = key;
-    const d = veilImg.data;
+    const d = veilImg!.data;   // (made by resize(), before any present)
     const asp = U.aspect;
     for (let j = 0; j < VH; j++) {
       const v = 1 - (j + 0.5) / VH;
@@ -835,7 +879,7 @@ export function createCanvas2D(canvas) {
           const vd = Math.sqrt(qx * qx + qy * qy);
           if (vd >= L.reach) continue;
           if (m < 0) m = mistAt(u * asp, v);
-          let val;
+          let val: number;
           if (live) {
             // (the shader's living edge: tongues of mist ~100 px tall down a column's side, anchored to the page, linear in
             // the field above a soft floor; the feather keeps its full width and runs out further where the margin has
@@ -871,7 +915,7 @@ export function createCanvas2D(canvas) {
         d[(j * VW + i) * 4 + 3] = Math.round(a * 255);
       }
     }
-    vc.putImageData(veilImg, 0, 0);
+    vc.putImageData(veilImg!, 0, 0);
     return true;
   }
 }

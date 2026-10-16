@@ -1,4 +1,4 @@
-// palette.js — the painting's pigments and how strongly each scene takes them (SPEC-R4A §12.3).
+// palette.ts — the painting's pigments and how strongly each scene takes them (SPEC-R4A §12.3).
 // DOM-free. Engine-only: these colours never become CSS tokens, text or UI colours.
 //
 // Two registers, as in the paintings themselves:
@@ -32,10 +32,12 @@ export const PALETTES = Object.freeze({
 
 export const PALETTE_NAMES = Object.freeze(Object.keys(PALETTES));
 export const DEFAULT_PALETTE = 'misted';
+/** A palette's name: 'ink' (round 3's painting), 'misted' (the site's) or 'rich'. */
+export type PaletteName = keyof typeof PALETTES;
 
 /** A palette name, or the default when it is not one. */
-export function paletteName(p) {
-  return Object.prototype.hasOwnProperty.call(PALETTES, p) ? p : DEFAULT_PALETTE;
+export function paletteName(p: unknown): PaletteName {
+  return Object.prototype.hasOwnProperty.call(PALETTES, p as PropertyKey) ? (p as PaletteName) : DEFAULT_PALETTE;
 }
 
 /**
@@ -52,15 +54,15 @@ export const LEAN = Object.freeze([
   { mal: 0.5, water: 0 },      // lone peak: ink only
 ]);
 
-const clamp01 = (x) => Math.min(1, Math.max(0, x));
-const smooth = (a, b, x) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
+const smooth = (a: number, b: number, x: number) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
 const SEAM = 0.18;
 
 /**
  * Pigment strength and lean at world x `u` (stretches), smoothly windowed across the seams, so a pan
  * between scenes blends their colour. `out` = [strength, malachite lean, water indigo].
  */
-export function pigmentAt(u, palette = DEFAULT_PALETTE, out = [0, 0, 0]) {
+export function pigmentAt(u: number, palette: string = DEFAULT_PALETTE, out: number[] = [0, 0, 0]): number[] {
   const table = PALETTES[paletteName(palette)].scenes;
   const n = table.length;
   let s = 0, m = 0, w = 0, sum = 0;

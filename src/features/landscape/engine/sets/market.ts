@@ -1,4 +1,4 @@
-// sets/market.js — Work (stretch 1): the river market at the rainbow bridge, in the manner of the Qingming scroll.
+// sets/market.ts — Work (stretch 1): the river market at the rainbow bridge, in the manner of the Qingming scroll.
 // The town faces the river from the far bank: houses of many sizes and kinds (hip-gable and plain gable roofs in grey
 // tile, a few thatched, some turned gable-end to the street, courtyard walls with their trees, lanes running back),
 // one larger two-storey house near the bridge with blank signboards, and the back rows lost in mist (the scene
@@ -9,7 +9,7 @@
 // donkey on the near bank.
 // Life (anchors only): the three near-bank willows sway, the small punt drifts, the river shimmers, the stall smokes.
 //
-// A figure set (figures.js, THE SET API): meta + draw(env), in world px. Painted after plane 2's mist band and the
+// A figure set (figures.ts, THE SET API): meta + draw(env), in world px. Painted after plane 2's mist band and the
 // water (phase 1), so the river runs under the boats and the bridge.
 //
 // Cost (budget: 15 ms a layer). The 4a market spent about 11 ms of script on 6,089 strokes, each resampled every
@@ -19,14 +19,66 @@
 
 import {
   REF_PX, VH_PX, SCENE_FIELDS, sceneField, streams, rng, vnoise, resample, mix, mix3, smooth, D, anchor, bounds, ownSprite,
-} from '../figures.js';
+  type Ctx2D, type Env, type FigureMeta, type Inks, type Pt, type RGB, type Rng, type StrokeOptions,
+} from '../figures';
 
 // The rect: the river town from u 1.08 to 2.04 (both ends melt into mist over 13 %), and from scene height 0.14 (the
 // near bank's foot: no window looks lower; the phone strip's bottom is 0.163) up to 0.42 (above the back rows' roofs
 // and the masts; the town's highest point is about 0.38).
-export const meta = { rect: [1.08, 2.04, 0.14, 0.42], plane: 2, phase: 1 };
+export const meta: FigureMeta = { rect: [1.08, 2.04, 0.14, 0.42], plane: 2, phase: 1 };
 
 const SEED = 11;
+
+interface InkItem { layer: number; f: boolean; col: string; w: number; pts: Pt[] }
+interface FolkOptions {
+  flip?: boolean;
+  pose?: 'stand' | 'bend' | 'sit';
+  lean?: number;
+  robe?: RGB;
+  robes?: [RGB, number][];
+  shadow?: boolean;
+  arm?: 'up' | 'rail' | 'haul' | 'sleeve' | 'none';
+  hat?: 'cone' | 'cap';
+  load?: 'pole' | 'pack' | 'punt' | 'staff';
+  rope?: Pt;
+}
+interface BuildingOptions { far?: number; wall?: number; thatch?: boolean }
+interface HallOptions extends BuildingOptions {
+  d?: number;
+  rh?: number;
+  ov?: number;
+  roof?: 'hip' | 'gable';
+  front?: 'shop' | 'window' | 'door' | 'blank';
+  wideShop?: boolean;
+  storey?: boolean;
+  awning?: boolean;
+}
+interface GableEndOptions extends BuildingOptions { d?: number; rh?: number; front?: 'shop' | 'door' }
+interface CraftOptions {
+  s?: number;
+  dir?: number;
+  beam?: number;
+  hull?: number;
+  cabin?: boolean;
+  c0?: number;
+  c1?: number;
+  ch?: number;
+  mast?: 'up' | 'aframe' | 'down' | 'none';
+  mastAngle?: number;
+  mastLen?: number;
+}
+interface RainbowOptions {
+  dir?: Pt;
+  bw?: number;
+  ramp?: number;
+  T?: number;
+  skew?: number;
+  people?: number;
+  fs?: number;
+  railKnot?: [t: number, w: number][];
+  stalls?: [t: number, w: number][];
+}
+interface MooredBoat { key: string; x: number; y: number; L: number; o: CraftOptions & { s: number; crew?: [u: number, w: number, opt: FolkOptions][] } }
 
 // ------------------------------------------------------------------------------------------------ the set's own kit
 // An element's brushwork in layers: shapes are collected with a layer number (the wall before its shopfront, the
@@ -35,9 +87,11 @@ const SEED = 11;
 // into shared paths saved nothing in Chrome's canvas, whose cost here is the points and the pixels, not the calls;
 // what made this set cheaper than 4a is fewer, coarser strokes and a cheaper noise.)
 class Ink {
-  constructor(ctx) { this.ctx = ctx; this.items = []; }
-  fill(col, pts, layer = 0) { if (pts.length > 2) this.items.push({ layer, f: true, col, w: 0, pts }); }
-  line(col, w, pts, layer = 0) { if (pts.length > 1) this.items.push({ layer, f: false, col, w: Math.max(0.2, w), pts }); }
+  declare ctx: Ctx2D;
+  declare items: InkItem[];
+  constructor(ctx: Ctx2D) { this.ctx = ctx; this.items = []; }
+  fill(col: string, pts: Pt[], layer = 0) { if (pts.length > 2) this.items.push({ layer, f: true, col, w: 0, pts }); }
+  line(col: string, w: number, pts: Pt[], layer = 0) { if (pts.length > 1) this.items.push({ layer, f: false, col, w: Math.max(0.2, w), pts }); }
   flush() {
     const { ctx } = this;
     const list = this.items.sort((a, b) => a.layer - b.layer);   // stable: the order made inside a layer
@@ -61,20 +115,20 @@ class Ink {
 }
 
 // cheap 1D noise (a table, smoothly read): the brush's breathing, jitter and dry breaks, 1 lookup instead of 4 hashes
-let NT = null;
+let NT: Float32Array | null = null;
 function noiseTable() {
   if (NT) return;
   const R = rng(4111);
   NT = new Float32Array(1024);
   for (let i = 0; i < 1024; i++) NT[i] = R();
 }
-function nz(x) {
-  const j = Math.floor(x), t = x - j, a = NT[j & 1023], b = NT[(j + 1) & 1023];
+function nz(x: number) {
+  const j = Math.floor(x), t = x - j, a = NT![j & 1023], b = NT![(j + 1) & 1023];
   return a + (b - a) * t * t * (3 - 2 * t);
 }
 
 /** A brush ribbon into the batch: loaded start, thinning tail, breathing width, never on a ruler, dry breaks. */
-function rib(B, col, pts, o = {}, layer = 0) {
+function rib(B: Ink, col: string, pts: Pt[], o: StrokeOptions = {}, layer = 0) {
   const w = o.w ?? 1, tin = Math.max(1e-3, o.tin ?? 0.12), tout = Math.max(1e-3, o.tout ?? 0.4), mn = o.min ?? 0.3;
   const wob = o.wob ?? 0.3, dry = o.dry ?? 0, sd = (Math.abs(o.seed ?? 1) * 13.7) % 900;
   // points every 1-3 world px (the shared stroke() takes 0.5-1.6): the noise runs on the arc length, so the brush
@@ -83,7 +137,7 @@ function rib(B, col, pts, o = {}, layer = 0) {
   const Q = resample(pts, st);
   const n = Q.length;
   if (n < 2) return;
-  let L = [], Rr = [];
+  let L: Pt[] = [], Rr: Pt[] = [];
   const emit = () => { if (L.length > 1) B.fill(col, L.concat(Rr.reverse()), layer); L = []; Rr = []; };
   for (let i = 0; i < n; i++) {
     const t = i / (n - 1), q = i * st;
@@ -101,18 +155,18 @@ function rib(B, col, pts, o = {}, layer = 0) {
   emit();
 }
 /** A wash shape whose edge wanders a little. */
-function wsh(B, col, pts, jit = 0.35, seed = 7, layer = 0) {
+function wsh(B: Ink, col: string, pts: Pt[], jit = 0.35, seed = 7, layer = 0) {
   B.fill(col, jit > 0 ? pts.map(([x, y], i) => [x + (nz(i * 1.7 + seed) - 0.5) * jit * 2, y + (nz(i * 2.3 + seed + 50) - 0.5) * jit * 2]) : pts, layer);
 }
-function oval(cx, cy, rx, ry, n = 8, rot = 0) {
-  const pts = [];
+function oval(cx: number, cy: number, rx: number, ry: number, n = 8, rot = 0) {
+  const pts: Pt[] = [];
   for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2 + rot; pts.push([cx + Math.cos(a) * rx, cy + Math.sin(a) * ry]); }
   return pts;
 }
 /** Split a polyline into broken runs (minLen..maxLen) with gaps of about `gap`. */
-function brokenRuns(pts, R, minLen, maxLen, gap) {
-  const out = [];
-  let cur = [], len = 0, want = minLen + R() * (maxLen - minLen), skip = 0;
+function brokenRuns(pts: Pt[], R: Rng, minLen: number, maxLen: number, gap: number) {
+  const out: Pt[][] = [];
+  let cur: Pt[] = [], len = 0, want = minLen + R() * (maxLen - minLen), skip = 0;
   for (let i = 1; i < pts.length; i++) {
     const d = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
     if (skip > 0) { skip -= d; continue; }
@@ -129,32 +183,32 @@ function brokenRuns(pts, R, minLen, maxLen, gap) {
 // shape (narrow shoulders, a flared hem, a sleeve on one side) and a pose. Robes are light and mid (white, pale and
 // mid indigo, grey, a few dark jackets); heads are always ink. Poses: standing, bent (carrying, peering), at a rail,
 // pointing, hauling, sitting, a carrying pole, a pack. Nobody walks.
-function robesOf(C) {
+function robesOf(C: Inks['C']): [RGB, number][] {
   return [[C.white, 0.24], [mix3(C.white, C.indigoP, 0.5), 0.22], [mix3(C.indigoP, C.indigo, 0.35), 0.2], [mix3(C.ink2, C.white, 0.5), 0.2], [mix3(C.ink2, C.indigo, 0.3), 0.14]];
 }
-function pick(list, r) {
+function pick(list: [RGB, number][], r: number) {
   let a = 0;
   for (const [v, p] of list) { a += p; if (r < a) return v; }
   return list[list.length - 1][0];
 }
-function folk(B, env, x, y, s, R, o = {}) {
+function folk(B: Ink, env: Env, x: number, y: number, s: number, R: Rng, o: FolkOptions = {}) {
   const { C, rgba } = env.ink;
   const dir = o.flip ? -1 : 1;
   const pose = o.pose || 'stand';
   const h = 10 * s;
   const lean = o.lean ?? (R() - 0.5) * 0.16;
-  let sx, sy;
+  let sx: number, sy: number;
   if (pose === 'sit') { sx = x + dir * 0.3 * s; sy = y - 0.4 * h; }
   else if (pose === 'bend') { sx = x + dir * 1.9 * s; sy = y - 0.55 * h; }
   else { sx = x + lean * 0.7 * h; sy = y - (0.66 + R() * 0.05) * h; }
   const robe = o.robe || pick(o.robes || robesOf(C), R());
   const hw = (pose === 'sit' ? 2.5 : 1.7 + R() * 0.5) * s;
   const hemY = y - 0.2 * s, sk = (R() - 0.5) * 0.7 * s;
-  const shL = [sx - 0.95 * s, sy + 0.3 * s], shR = [sx + 1.0 * s, sy + 0.15 * s];
-  const hemL = [x - hw + sk, hemY], hemR = [x + hw * 0.92 + sk, hemY - 0.2 * s];
-  const midL = [mix(shL[0], hemL[0], 0.45) - 0.25 * s, mix(shL[1], hemL[1], 0.45)];
-  const midR = [mix(shR[0], hemR[0], 0.45) + 0.3 * s, mix(shR[1], hemR[1], 0.45)];
-  const hemC = [x + sk * 0.6 + dir * 0.3 * s, hemY + 0.3 * s];
+  const shL: Pt = [sx - 0.95 * s, sy + 0.3 * s], shR: Pt = [sx + 1.0 * s, sy + 0.15 * s];
+  const hemL: Pt = [x - hw + sk, hemY], hemR: Pt = [x + hw * 0.92 + sk, hemY - 0.2 * s];
+  const midL: Pt = [mix(shL[0], hemL[0], 0.45) - 0.25 * s, mix(shL[1], hemL[1], 0.45)];
+  const midR: Pt = [mix(shR[0], hemR[0], 0.45) + 0.3 * s, mix(shR[1], hemR[1], 0.45)];
+  const hemC: Pt = [x + sk * 0.6 + dir * 0.3 * s, hemY + 0.3 * s];
   if (o.shadow !== false) B.line(rgba(C.ink, 0.1), 0.9 * s, [[x - 2 * s, y + 0.4], [x + 2.8 * s, y + 0.5]], 0);
   B.fill(rgba(robe, 0.95), [shL, shR, midR, hemR, hemC, hemL, midL], 1);
   // the robe's edge: the shade side and the hem in ink, the lit side faint (a white robe needs both to exist)
@@ -177,7 +231,7 @@ function folk(B, env, x, y, s, R, o = {}) {
   } else if (o.hat !== 'cap') B.fill(rgba(C.ink, 0.86), oval(hx + dir * 0.1 * s, hy - 1.05 * s, 0.45 * s, 0.42 * s, 5), 3);
   // what they carry
   if (o.load === 'pole') {
-    const a = [sx - 5.2 * s, sy + 0.4 * s], b = [sx + 5.2 * s, sy - 0.3 * s];
+    const a: Pt = [sx - 5.2 * s, sy + 0.4 * s], b: Pt = [sx + 5.2 * s, sy - 0.3 * s];
     B.line(rgba(C.ink, 0.82), 0.45 * s, [a, b], 2);
     for (const p of [a, b]) {
       B.line(rgba(C.ink, 0.45), 0.25 * s, [p, [p[0], p[1] + 2.8 * s]], 2);
@@ -193,13 +247,13 @@ function folk(B, env, x, y, s, R, o = {}) {
   if (o.rope) B.line(rgba(C.ink, 0.5), 0.26 * s, [[sx + dir * 2.5 * s, sy + 0.5 * s], o.rope], 5);
 }
 /** A laden donkey (the scroll's beasts of burden), facing dir; (x, y) its hind feet. */
-function donkey(B, env, x, y, s, R, o = {}) {
+function donkey(B: Ink, env: Env, x: number, y: number, s: number, R: Rng, o: { flip?: boolean; load?: boolean } = {}) {
   const { C, rgba } = env.ink;
   const dir = o.flip ? -1 : 1;
   const coat = rgba(mix3(C.ink2, C.white, 0.42), 0.95);
   const bx = x + dir * 3.6 * s, by = y - 4.4 * s;
   B.fill(coat, oval(bx, by, 3.7 * s, 1.75 * s, 9, (R() - 0.5) * 0.1), 1);
-  const head = [[bx + dir * 3.0 * s, by - 0.6 * s], [bx + dir * 4.6 * s, by - 3.0 * s], [bx + dir * 6.0 * s, by - 2.2 * s], [bx + dir * 5.0 * s, by - 1.4 * s], [bx + dir * 3.6 * s, by + 0.6 * s]];
+  const head: Pt[] = [[bx + dir * 3.0 * s, by - 0.6 * s], [bx + dir * 4.6 * s, by - 3.0 * s], [bx + dir * 6.0 * s, by - 2.2 * s], [bx + dir * 5.0 * s, by - 1.4 * s], [bx + dir * 3.6 * s, by + 0.6 * s]];
   B.fill(coat, head, 1);
   B.line(rgba(C.ink, 0.7), 0.32 * s, [[bx + dir * 4.5 * s, by - 3.0 * s], [bx + dir * 4.2 * s, by - 4.3 * s]], 2);   // an ear
   for (const lx of [-2.6, -1.6, 2.0, 2.9]) B.line(rgba(C.ink, 0.72), 0.42 * s, [[bx + dir * lx * s, by + 1.2 * s], [bx + dir * (lx + (R() - 0.5) * 0.6) * s, y]], 2);
@@ -212,16 +266,16 @@ function donkey(B, env, x, y, s, R, o = {}) {
 }
 
 // ------------------------------------------------------------------------------------------------ buildings
-// Song oblique projection (figures.js D): fronts, tops and right-hand sides. Every house is its own batch; the town is
+// Song oblique projection (figures.ts D): fronts, tops and right-hand sides. Every house is its own batch; the town is
 // painted back row first and each row left to right, so a house covers the right side of the one before it.
 
 /** Paleness and the colours a house uses at depth `far` (0 front .. 1 back row). */
-function houseInk(env, far, R, o) {
+function houseInk(env: Env, far: number, R: Rng, o: BuildingOptions) {
   const { C, rgba } = env.ink;
   const A = 1 - 0.45 * far;
   const wall = mix3(C.wall, C.ink2, (o.wall ?? 0) + 0.04 + R() * 0.12 + far * 0.08);
   const tile = o.thatch ? mix3(mix3(C.timber, C.ink2, 0.5), C.white, 0.15 + far * 0.2) : mix3(C.tile, C.white, 0.06 + R() * 0.16 + far * 0.25);
-  return { C, rgba, A, wall, tile, side: mix3(wall, C.ink2, 0.26), line: (a) => rgba(C.ink, a * A) };
+  return { C, rgba, A, wall, tile, side: mix3(wall, C.ink2, 0.26), line: (a: number) => rgba(C.ink, a * A) };
 }
 
 /**
@@ -229,7 +283,7 @@ function houseInk(env, far, R, o) {
  * usual), 'gable' (a plain overhanging gable, ridge the whole width), o.thatch; o.front: 'shop' | 'window' | 'door' |
  * 'blank'; o.storey (a balcony and a pent eave), o.awning. Returns { top } (the ridge's height, world px).
  */
-function hall(env, x, y, w, h, R, o = {}) {
+function hall(env: Env, x: number, y: number, w: number, h: number, R: Rng, o: HallOptions = {}) {
   const B = new Ink(env.ctx);
   const far = o.far ?? 0;
   const K = houseInk(env, far, R, o);
@@ -278,13 +332,13 @@ function hall(env, x, y, w, h, R, o = {}) {
   // the roof: the eave (lifted at the corners), the right end (a hip, or a gable wall under its barge board)
   const ey = y - h + 0.6;
   const lift = Math.max(0.8, w * (0.025 + R() * 0.02)) * (o.thatch ? 0.4 : 1);
-  const eave = [];
+  const eave: Pt[] = [];
   for (let i = 0; i <= 10; i++) {
     const t = i / 10;
     eave.push([x - ov + sk + (w + 2 * ov) * t, ey + Math.sin(Math.PI * t) * lift * 0.45 - Math.pow(Math.abs(t * 2 - 1), 6) * lift]);
   }
-  const eF = eave[10], eB = [x + w + ov + ox + sk, ey + oy - lift];
-  const rL = [rLx, ry], rR = [rRx, ry];
+  const eF = eave[10], eB: Pt = [x + w + ov + ox + sk, ey + oy - lift];
+  const rL: Pt = [rLx, ry], rR: Pt = [rRx, ry];
   if (gable) {
     wsh(B, rgba(mix3(K.side, C.wall, 0.3), 0.95 * A), [[x + w + sk, y - h], [x + w + ox, y - h + oy], [rRx + 0.4, ry + 1.2]], 0.2, x + 6, 4);
   } else wsh(B, rgba(mix3(K.tile, C.ink, 0.3), 0.86 * A), [eF, eB, rR], 0.3, x + 6, 4);
@@ -306,7 +360,7 @@ function hall(env, x, y, w, h, R, o = {}) {
     else rib(B, K.line(0.5), [[rR[0] + ov * 0.6, rR[1]], eB], { w: 0.55, tin: 0.05, tout: 0.15, dry: 0.2, seed: x + 9 }, 6);
     rib(B, K.line(0.5), [eave[0], rL], { w: 0.55, tin: 0.05, tout: 0.1, dry: 0.2, seed: x + 10 }, 6);
   }
-  const rr = gable ? [[rL[0] - 1.0, rL[1] - 0.6], rL, [rR[0] + ov * 0.6, rR[1]], [rR[0] + ov * 0.6 + 1.0, rR[1] - 0.6]] : [[rL[0] - 1.3, rL[1] - 1.1], rL, rR, [rR[0] + 1.3, rR[1] - 1.1]];
+  const rr: Pt[] = gable ? [[rL[0] - 1.0, rL[1] - 0.6], rL, [rR[0] + ov * 0.6, rR[1]], [rR[0] + ov * 0.6 + 1.0, rR[1] - 0.6]] : [[rL[0] - 1.3, rL[1] - 1.1], rL, rR, [rR[0] + 1.3, rR[1] - 1.1]];
   rib(B, K.line(o.thatch ? 0.7 : 0.9), rr, { w: o.thatch ? 1.2 : 1.6, tin: 0.12, tout: 0.12, wob: 0.25, seed: x + 11 }, 6);
   if (o.awning && far < 0.4) {   // a cloth shade on two poles over the street
     const a0 = x + w * 0.08, a1 = x + w * 0.8, ay = y - h * 0.8, fy = y + h * 0.42, fx = -w * 0.03;
@@ -325,7 +379,7 @@ function hall(env, x, y, w, h, R, o = {}) {
  * door or a shopfront, the long side wall in shade, both slopes of the roof (the far one a sliver above the ridge).
  * (x, y) the front-left foot; w the gable's width; d its depth.
  */
-function gableEnd(env, x, y, w, h, R, o = {}) {
+function gableEnd(env: Env, x: number, y: number, w: number, h: number, R: Rng, o: GableEndOptions = {}) {
   const B = new Ink(env.ctx);
   const far = o.far ?? 0;
   const K = houseInk(env, far, R, o);
@@ -334,9 +388,9 @@ function gableEnd(env, x, y, w, h, R, o = {}) {
   const ox = D[0] * d, oy = D[1] * d;
   const rh = o.rh ?? w * (0.36 + R() * 0.22);
   const ov = Math.min(3, w * 0.12);
-  const ap = [x + w * 0.5, y - h - rh];
-  const eL = [x - ov, y - h + 0.8 + ov * 0.5], eR = [x + w + ov, y - h + 0.8 + ov * 0.5];
-  const sh = (p) => [p[0] + ox, p[1] + oy];
+  const ap: Pt = [x + w * 0.5, y - h - rh];
+  const eL: Pt = [x - ov, y - h + 0.8 + ov * 0.5], eR: Pt = [x + w + ov, y - h + 0.8 + ov * 0.5];
+  const sh = (p: Pt): Pt => [p[0] + ox, p[1] + oy];
   B.fill(rgba(C.paper, A), [[x - ov, y + 0.6], [x + w, y + 0.6], [x + w + ox, y + oy + 0.6], sh(eR), sh(ap), sh(eL), eL, ap], 0);
   wsh(B, rgba(mix3(K.tile, C.white, 0.15), 0.62 * A), [eL, ap, sh(ap), sh(eL)], 0.25, x, 1);   // the far slope, mostly hidden
   wsh(B, rgba(K.side, 0.95 * A), [[x + w, y], [x + w + ox, y + oy], [x + w + ox, y + oy - h], [x + w, y - h]], 0.3, x + 1, 1);
@@ -351,7 +405,7 @@ function gableEnd(env, x, y, w, h, R, o = {}) {
     const rows = Math.max(3, Math.round(d / 3));
     for (let i = 1; i < rows; i++) {
       if (nz(i * 0.8 + x * 0.13) < 0.35) continue;
-      const t = i / rows, a = [ap[0] + ox * t, ap[1] + oy * t], b = [eR[0] + ox * t, eR[1] + oy * t];
+      const t = i / rows, a: Pt = [ap[0] + ox * t, ap[1] + oy * t], b: Pt = [eR[0] + ox * t, eR[1] + oy * t];
       B.line(tc, 0.38, [[mix(a[0], b[0], 0.3), mix(a[1], b[1], 0.3)], b], 5);
     }
     B.line(K.line(0.45), 0.5, [[x + w + ox, y + oy], [x + w + ox, y + oy - h]], 5);
@@ -371,7 +425,7 @@ function gableEnd(env, x, y, w, h, R, o = {}) {
  * A courtyard wall: lime-washed, a thin tile coping, a gate (closed, blank) under its own little gabled roof, and the
  * courtyard's tree showing over it. (x, y) the front-left foot.
  */
-function wallGate(env, x, y, w, h, R, o = {}) {
+function wallGate(env: Env, x: number, y: number, w: number, h: number, R: Rng, o: BuildingOptions = {}) {
   const far = o.far ?? 0;
   if (far < 0.6) dotTreeT(env, x + w * (0.3 + R() * 0.4), y - 1 + D[1] * 8, 0.62 + R() * 0.2, R, { green: true, clusters: 4 });   // the courtyard's tree
   const B = new Ink(env.ctx);
@@ -399,12 +453,12 @@ function wallGate(env, x, y, w, h, R, o = {}) {
  * below, a balcony above, a big hip-gable roof; a tall signboard on a post at the street and a board under the upper
  * eave, both BLANK (kitsch guard: no characters). (x, y) the front-left foot.
  */
-function landmark(env, x, y, w, R) {
+function landmark(env: Env, x: number, y: number, w: number, _R: Rng) {
   const B = new Ink(env.ctx);
   const { C, rgba } = env.ink;
   const h1 = 12, h2 = 10, d = w * 0.42, ox = D[0] * d, oy = D[1] * d;
   const wall = mix3(C.wall, C.ink2, 0.06), side = mix3(wall, C.ink2, 0.26), tile = mix3(C.tile, C.white, 0.05);
-  const L = (a) => rgba(C.ink, a);
+  const L = (a: number) => rgba(C.ink, a);
   const y2 = y - h1 - 2.4, x2 = x + 2.5, w2 = w - 5;   // the upper floor sits back a little
   const ry = y2 - h2 - 11 + oy * 0.5, ov = 5.5;
   B.fill(rgba(C.paper, 1), [[x - 4, y + 0.6], [x + w, y + 0.6], [x + w + ox, y + oy], [x + w + ox + ov, y2 - h2 + oy], [x + w * 0.82 + ox * 0.5, ry], [x + w * 0.18 + ox * 0.5, ry], [x2 - ov, y2 - h2], [x - 4, y - h1]], 0);
@@ -433,10 +487,10 @@ function landmark(env, x, y, w, R) {
   B.line(L(0.7), 0.4, [[bx, y2 - h2 + 0.6], [bx + bw2, y2 - h2 + 0.6], [bx + bw2, y2 - h2 + 3.2], [bx, y2 - h2 + 3.2], [bx, y2 - h2 + 0.6]], 7);
   // the big roof
   const ey = y2 - h2 + 0.6, lift = 2.4;
-  const eave = [];
+  const eave: Pt[] = [];
   for (let i = 0; i <= 12; i++) { const t = i / 12; eave.push([x2 - ov + (w2 + 2 * ov) * t, ey + Math.sin(Math.PI * t) * lift * 0.4 - Math.pow(Math.abs(t * 2 - 1), 5) * lift]); }
-  const eF = eave[12], eB = [x2 + w2 + ov + ox, ey + oy - lift];
-  const rL = [x + w * 0.2 + ox * 0.5, ry], rR = [x + w * 0.8 + ox * 0.5, ry];
+  const eF = eave[12], eB: Pt = [x2 + w2 + ov + ox, ey + oy - lift];
+  const rL: Pt = [x + w * 0.2 + ox * 0.5, ry], rR: Pt = [x + w * 0.8 + ox * 0.5, ry];
   wsh(B, rgba(mix3(tile, C.ink, 0.3), 0.88), [eF, eB, rR], 0.3, x + 8, 7);
   wsh(B, rgba(tile, 0.74), [...eave, rR, rL], 0.3, x + 9, 7);
   for (let i = 1; i < 24; i++) {
@@ -465,18 +519,18 @@ function landmark(env, x, y, w, R) {
  * of strands from their outer halves. Toned toward ink (misted malachite with ink in it, never mint), fewer and longer
  * strands than 4a's, the crown shaped per tree (o.form: 'tall' | 'wide' | 'lean'). Returns { box } (a willow anchor).
  */
-function willowT(env, x, y, s, R, o = {}) {
+function willowT(env: Env, x: number, y: number, s: number, R: Rng, o: { form?: 'tall' | 'wide' | 'lean'; lean?: number; sway?: number } = {}) {
   const B = new Ink(env.ctx);
   const { C, rgba, strength } = env.ink;
   const form = o.form || 'wide';
   const lean = o.lean ?? (R() < 0.5 ? -1 : 1) * (form === 'lean' ? 0.5 + R() * 0.25 : 0.12 + R() * 0.25);
   const H = (form === 'tall' ? 26 : 21) * s;
-  const trunk = [];
+  const trunk: Pt[] = [];
   for (let i = 0; i <= 7; i++) { const t = i / 7; trunk.push([x + lean * H * 0.6 * t * t + (vnoise(t * 3, x, 4) - 0.5) * 3.4 * s, y - H * t]); }
   const fork = trunk[4];
-  const limbs = [trunk.slice(4), [fork, [fork[0] - lean * 5 * s - 3 * s, fork[1] - H * 0.25], [fork[0] - lean * 7 * s - 6 * s, fork[1] - H * 0.4]]];
+  const limbs: Pt[][] = [trunk.slice(4), [fork, [fork[0] - lean * 5 * s - 3 * s, fork[1] - H * 0.25], [fork[0] - lean * 7 * s - 6 * s, fork[1] - H * 0.4]]];
   const spread = form === 'tall' ? 0.7 : form === 'lean' ? 1.1 : 1.2;
-  const boughs = [];
+  const boughs: { pts: Pt[]; side: number }[] = [];
   for (const limb of limbs) {
     const top = limb[limb.length - 1];
     const nb = 2 + Math.floor(R() * 2.4);
@@ -493,16 +547,16 @@ function willowT(env, x, y, s, R, o = {}) {
   const cw = 16 * s * spread;
   wsh(B, rgba(leaf, 0.07), [[crownX - cw, crownY + 5 * s], [crownX, crownY - 6 * s], [crownX + cw, crownY + 5 * s], [crownX + cw * 1.2, crownY + 24 * s], [crownX - cw * 1.2, crownY + 24 * s]], 1.5 * s, x, 0);
   const sway = (o.sway ?? 1) * s * 0.6;
-  const strands = [];
+  const strands: Pt[][] = [];
   const tones = [rgba(leaf, 0.3), rgba(leaf, 0.42), rgba(leaf, 0.56), rgba(leafD, 0.5)];
   for (const { pts: [a, m, b], side } of boughs) {
     const n = Math.max(3, Math.round((8 + R() * 5) * Math.min(1, 0.25 + s * 0.6)));   // a small town willow needs few strands
     for (let k = 0; k < n; k++) {
       const t = 0.12 + 0.88 * Math.pow(R(), 0.8);   // the curtain starts near the fork, so the crown is strands, not ribs
-      const p = t < 0.5 ? [mix(a[0], m[0], t * 2), mix(a[1], m[1], t * 2)] : [mix(m[0], b[0], t * 2 - 1), mix(m[1], b[1], t * 2 - 1)];
+      const p: Pt = t < 0.5 ? [mix(a[0], m[0], t * 2), mix(a[1], m[1], t * 2)] : [mix(m[0], b[0], t * 2 - 1), mix(m[1], b[1], t * 2 - 1)];
       const len = (24 + 18 * Math.abs(side)) * s * (0.4 + 0.6 * R()) * (0.55 + 0.45 * t) * (form === 'tall' ? 1.15 : 1);
       const out = side * (0.6 + R() * 0.8) * s;
-      const strand = [p, [p[0] + out * 1.5, p[1] + len * 0.18], [p[0] + out * 2 + sway * 0.3, p[1] + len * 0.6], [p[0] + out * 2.1 + sway, p[1] + len]];
+      const strand: Pt[] = [p, [p[0] + out * 1.5, p[1] + len * 0.18], [p[0] + out * 2 + sway * 0.3, p[1] + len * 0.6], [p[0] + out * 2.1 + sway, p[1] + len]];
       strands.push(strand);
       const r = R();
       rib(B, tones[r < 0.2 ? 3 : r < 0.47 ? 0 : r < 0.77 ? 1 : 2], strand, { w: (r < 0.2 ? 0.5 : 0.66) * s, tin: 0.04, tout: 0.9, wob: 0.3, min: 0.1, seed: k * 7 + x }, 1);
@@ -513,7 +567,7 @@ function willowT(env, x, y, s, R, o = {}) {
   rib(B, rgba(C.ink, 0.82), trunk, { w: 4.0 * s, tin: 0.01, tout: 0.55, wob: 0.55, seed: x }, 2);
   for (let b = 0; b < 2; b++) {   // the bark's flying white: two pale bristle runs down the trunk
     const off = (b - 0.5) * 1.6 * s;
-    B.line(rgba(mix3(C.ink, C.white, 0.4), 0.5), 0.5 * s, trunk.slice(0, 5).filter((p, i) => nz(i * 1.9 + b * 5 + x) > 0.35).map(([px, py]) => [px + off + 0.6 * s, py]), 3);
+    B.line(rgba(mix3(C.ink, C.white, 0.4), 0.5), 0.5 * s, trunk.slice(0, 5).filter((_p, i) => nz(i * 1.9 + b * 5 + x) > 0.35).map(([px, py]): Pt => [px + off + 0.6 * s, py]), 3);
   }
   B.line(rgba(C.ink, 0.35), 1.3 * s, [[x - 5 * s, y + 0.8], [x + 6 * s, y + 0.3]], 0);
   B.flush();
@@ -524,12 +578,12 @@ function willowT(env, x, y, s, R, o = {}) {
  * from which whip-like shoots rise, arch over and hang to the ground as long strands, so the crown is a fountain of
  * lines, never a dome. Leaves toned toward ink (misted malachite with ink in it). Returns { box } (a willow anchor).
  */
-function pollard(env, x, y, s, R, o = {}) {
+function pollard(env: Env, x: number, y: number, s: number, R: Rng, o: { lean?: number; sway?: number } = {}) {
   const B = new Ink(env.ctx);
   const { C, rgba, strength } = env.ink;
   const lean = o.lean ?? (R() < 0.5 ? -1 : 1) * (0.15 + R() * 0.3);
   const H = (15 + R() * 5) * s;
-  const trunk = [];
+  const trunk: Pt[] = [];
   for (let i = 0; i <= 6; i++) { const t = i / 6; trunk.push([x + lean * H * 0.7 * t * t + (vnoise(t * 3, x, 4) - 0.5) * 3.6 * s, y - H * t]); }
   const knob = trunk[6];
   const leaf = strength > 0 ? mix3(mix3(C.mal, C.malD, 0.3), C.ink2, 0.36) : mix3(C.ink2, C.white, 0.45);
@@ -542,21 +596,21 @@ function pollard(env, x, y, s, R, o = {}) {
     const side = ((k + 0.5) / nS - 0.5) * 2 + (R() - 0.5) * 0.35 + lean * 0.5;   // -1 .. 1, leaning with the trunk
     const up = (8 + R() * 10) * s * (1 - 0.3 * Math.abs(side));
     const out = side * (7 + R() * 10) * s;
-    const p0 = [knob[0] + (R() - 0.5) * 3 * s, knob[1] + R() * 1.5 * s];
-    const p1 = [p0[0] + out * 0.55, p0[1] - up];
-    const p2 = [p0[0] + out * 1.05, p0[1] - up * 0.78];
+    const p0: Pt = [knob[0] + (R() - 0.5) * 3 * s, knob[1] + R() * 1.5 * s];
+    const p1: Pt = [p0[0] + out * 0.55, p0[1] - up];
+    const p2: Pt = [p0[0] + out * 1.05, p0[1] - up * 0.78];
     const len = (20 + R() * 24) * s * (0.6 + 0.4 * Math.abs(side));
-    const p3 = [p2[0] + side * 1.5 * s + sway * 0.4, p2[1] + len * 0.55];
-    const p4 = [p2[0] + side * 2.0 * s + sway, p2[1] + len];
+    const p3: Pt = [p2[0] + side * 1.5 * s + sway * 0.4, p2[1] + len * 0.55];
+    const p4: Pt = [p2[0] + side * 2.0 * s + sway, p2[1] + len];
     const shoot = [p0, p1, p2, p3, p4];
     lines.push(shoot);
     const r = R();
     rib(B, tones[r < 0.18 ? 3 : r < 0.5 ? 1 : 2], shoot, { w: 0.62 * s, tin: 0.03, tout: 0.75, wob: 0.3, min: 0.12, seed: k * 5 + x }, 1);
     for (let j = 0; j < 2 + Math.floor(R() * 3); j++) {   // strands dripping from the arch of the shoot
       const t = 0.25 + R() * 0.75;
-      const a = [mix(p1[0], p2[0], t), mix(p1[1], p2[1], t)];
+      const a: Pt = [mix(p1[0], p2[0], t), mix(p1[1], p2[1], t)];
       const l2 = len * (0.35 + R() * 0.55);
-      const strand = [a, [a[0] + side * 0.6 * s, a[1] + l2 * 0.45], [a[0] + side * 0.9 * s + sway, a[1] + l2]];
+      const strand: Pt[] = [a, [a[0] + side * 0.6 * s, a[1] + l2 * 0.45], [a[0] + side * 0.9 * s + sway, a[1] + l2]];
       lines.push(strand);
       rib(B, tones[R() < 0.5 ? 0 : 1], strand, { w: 0.5 * s, tin: 0.04, tout: 0.85, wob: 0.3, min: 0.1, seed: k * 7 + j + x }, 1);
     }
@@ -565,14 +619,14 @@ function pollard(env, x, y, s, R, o = {}) {
   B.fill(rgba(C.ink, 0.72), oval(knob[0], knob[1] + 0.5 * s, 2.4 * s, 1.6 * s, 7), 2);   // the knob where it was cut back
   for (let b = 0; b < 2; b++) {   // the bark's flying white
     const off = (b - 0.5) * 1.8 * s;
-    B.line(rgba(mix3(C.ink, C.white, 0.45), 0.5), 0.5 * s, trunk.slice(0, 6).filter((p, i) => nz(i * 1.9 + b * 5 + x) > 0.3).map(([px, py]) => [px + off + 0.5 * s, py]), 3);
+    B.line(rgba(mix3(C.ink, C.white, 0.45), 0.5), 0.5 * s, trunk.slice(0, 6).filter((_p, i) => nz(i * 1.9 + b * 5 + x) > 0.3).map(([px, py]): Pt => [px + off + 0.5 * s, py]), 3);
   }
   B.line(rgba(C.ink, 0.35), 1.3 * s, [[x - 5 * s, y + 0.8], [x + 6 * s, y + 0.3]], 0);
   B.flush();
   return { box: bounds(lines, 1.5 * s) };
 }
 /** A tree in dots: a crooked trunk and clusters of short dabs (green-ink or ink). (x, y) the foot. */
-function dotTreeT(env, x, y, s, R, o = {}) {
+function dotTreeT(env: Env, x: number, y: number, s: number, R: Rng, o: { green?: boolean; clusters?: number } = {}) {
   const B = new Ink(env.ctx);
   const { C, rgba, strength } = env.ink;
   const H = 20 * s;
@@ -591,16 +645,16 @@ function dotTreeT(env, x, y, s, R, o = {}) {
   B.flush();
 }
 /** A market parasol over a little stall. (x, y) the pole's foot. */
-function parasolT(B, env, x, y, s, R) {
+function parasolT(B: Ink, env: Env, x: number, y: number, s: number, R: Rng) {
   const { C, rgba } = env.ink;
   const lean = (R() - 0.5) * 2 * s;
-  const top = [x + lean, y - 13 * s];
+  const top: Pt = [x + lean, y - 13 * s];
   const rx = (8.5 + R() * 3) * s, ry = 2.6 * s;
   B.line(rgba(C.ink, 0.85), 0.6 * s, [[x, y], top], 2);
   B.fill(rgba(mix3(C.timber, C.ink2, 0.35), 0.8), [[x - 5.5 * s, y - 3.4 * s], [x + 5.5 * s, y - 3.4 * s], [x + 6.2 * s, y - 2.4 * s], [x - 4.8 * s, y - 2.4 * s]], 1);
   for (let i = 0; i < 5; i++) if (R() < 0.7) B.fill(rgba(i % 2 ? C.ink2 : C.indigoP, 0.7), oval(x - 4 * s + i * 2 * s, y - 4 * s, 0.7 * s, 0.6 * s, 5), 2);
   const cc = R() < 0.6 ? C.white : mix3(C.indigoP, C.white, 0.3);
-  const dome = [], rim = [];
+  const dome: Pt[] = [], rim: Pt[] = [];
   for (let i = 0; i <= 12; i++) { const a = Math.PI * (1 + i / 12); dome.push([top[0] + Math.cos(a) * rx, top[1] + 1.5 * s + Math.sin(a) * ry]); }
   for (let i = 12; i >= 0; i--) { const a = Math.PI * (i / 12); rim.push([top[0] + Math.cos(a) * rx, top[1] + 1.5 * s + Math.sin(a) * ry * 0.35]); }
   B.fill(rgba(cc, 0.95), [...dome, ...rim], 3);
@@ -610,11 +664,11 @@ function parasolT(B, env, x, y, s, R) {
 }
 
 /** A street stall under a flat cloth shade on poles (the scroll's commonest stall), a table of goods below. */
-function shade(B, env, x, y, s, R) {
+function shade(B: Ink, env: Env, x: number, y: number, s: number, R: Rng) {
   const { C, rgba } = env.ink;
   const w = (9 + R() * 4) * s, h = (8 + R() * 2) * s, dp = 4 * s;
   const cl = R() < 0.55 ? C.white : mix3(C.indigoP, C.white, 0.35);
-  const a = [x - w / 2, y - h], b = [x + w / 2, y - h - 1.2 * s];   // the front edge, sloping a little
+  const a: Pt = [x - w / 2, y - h], b: Pt = [x + w / 2, y - h - 1.2 * s];   // the front edge, sloping a little
   B.fill(rgba(mix3(C.timber, C.ink2, 0.4), 0.85), [[x - w * 0.42, y - 3.4 * s], [x + w * 0.42, y - 3.4 * s], [x + w * 0.46, y - 2.4 * s], [x - w * 0.38, y - 2.4 * s]], 1);   // the table
   for (let i = 0; i < 4; i++) if (R() < 0.75) B.fill(rgba(i % 2 ? C.ink2 : C.indigoP, 0.7), oval(x - w * 0.3 + i * w * 0.2, y - 4 * s, 0.7 * s, 0.6 * s, 5), 2);
   for (const px of [a[0] + 0.6 * s, b[0] - 0.6 * s]) B.line(rgba(C.ink, 0.8), 0.5 * s, [[px, y], [px, y - h + 0.3]], 2);
@@ -630,18 +684,18 @@ function shade(B, env, x, y, s, R) {
  * (moored), 'aframe' (the scroll's two-legged mast, being let down toward the stern: the crew haul on slack ropes
  * from the bow), 'down' (laid along the cabin), 'none'. Returns { box } and the crew's places.
  */
-function craft(env, x, y, L, R, o = {}) {
+function craft(env: Env, x: number, y: number, L: number, R: Rng, o: CraftOptions = {}) {
   const B = new Ink(env.ctx);
   const { C, rgba } = env.ink;
   const s = o.s ?? 1, dir = o.dir ?? 1;
   const beam = o.beam ?? L * 0.15;
   const DB = [0.66, -0.42];
-  const P = (u, v, w = 0) => [x + dir * u + DB[0] * w, y - v + DB[1] * w];   // u along from the stern, v up, w across
+  const P = (u: number, v: number, w = 0): Pt => [x + dir * u + DB[0] * w, y - v + DB[1] * w];   // u along from the stern, v up, w across
   const hh = o.hull ?? 4.4 * s;
-  const sheer = (t) => hh * (1 + 0.6 * Math.pow(Math.abs(t * 2 - 1), 2.6)) + (t > 0.5 ? (t - 0.5) * hh * 0.5 : 0);
+  const sheer = (t: number) => hh * (1 + 0.6 * Math.pow(Math.abs(t * 2 - 1), 2.6)) + (t > 0.5 ? (t - 0.5) * hh * 0.5 : 0);
   const N = 14;
-  const pinch = (t) => Math.pow(Math.sin(Math.PI * (0.04 + 0.92 * t)), 0.45);
-  const gN = [], gF = [];
+  const pinch = (t: number) => Math.pow(Math.sin(Math.PI * (0.04 + 0.92 * t)), 0.45);
+  const gN: Pt[] = [], gF: Pt[] = [];
   for (let i = 0; i <= N; i++) { const t = i / N, p = pinch(t); gN.push(P(L * t, sheer(t), beam * 0.5 * (1 - p))); gF.push(P(L * t, sheer(t), beam * 0.5 * (1 + p))); }
   const xa = Math.min(x, x + dir * L), xb = Math.max(x, x + dir * L);
   for (let k = 0; k < 5; k++) {   // its reflection: darker smears torn by the ripples
@@ -656,13 +710,13 @@ function craft(env, x, y, L, R, o = {}) {
   rib(B, rgba(C.ink, 0.85), side.slice(N + 1), { w: 0.8 * s, tin: 0.1, tout: 0.2, seed: x + 2 }, 2);
   rib(B, rgba(C.ink, 0.88), gN, { w: 0.95 * s, tin: 0.04, tout: 0.08, wob: 0.25, seed: x + 3 }, 2);
   B.line(rgba(C.ink, 0.5), 0.45 * s, gF, 2);
-  B.line(rgba(C.ink, 0.32), 0.4 * s, gN.map((p) => [p[0], p[1] + hh * 0.5]).slice(2, N - 1), 2);
-  const reach = [[xa, y + 1.4 + 7.5 * s + 1], [xb, y]];
+  B.line(rgba(C.ink, 0.32), 0.4 * s, gN.map((p): Pt => [p[0], p[1] + hh * 0.5]).slice(2, N - 1), 2);
+  const reach: Pt[] = [[xa, y + 1.4 + 7.5 * s + 1], [xb, y]];
   if (o.cabin !== false) {   // the barrel-mat cabin (grey mats, never beige)
     const u0 = L * (o.c0 ?? 0.3), u1 = L * (o.c1 ?? 0.7);
     const ch = o.ch ?? 5 * s, wallH = 2.1 * s;
-    const base = (u) => sheer(u / L);
-    const arch = (u) => { const pts = []; for (let i = 0; i <= 8; i++) { const t = i / 8; pts.push(P(u, base(u) + wallH + Math.sin(Math.PI * t) * ch, beam * (0.06 + 0.88 * t))); } return pts; };
+    const base = (u: number) => sheer(u / L);
+    const arch = (u: number) => { const pts: Pt[] = []; for (let i = 0; i <= 8; i++) { const t = i / 8; pts.push(P(u, base(u) + wallH + Math.sin(Math.PI * t) * ch, beam * (0.06 + 0.88 * t))); } return pts; };
     const A0 = arch(u0), A1 = arch(u1);
     const mat = mix3(C.tile, C.white, 0.5);
     const near = dir > 0 ? A1 : A0;   // the cabin's end we see
@@ -677,10 +731,10 @@ function craft(env, x, y, L, R, o = {}) {
     B.line(rgba(C.ink, 0.48), 0.42 * s, [A0[4], A1[4]], 4);
     reach.push(A0[4]);
   }
-  const masthead = [];
+  const masthead: Pt[] = [];
   if (o.mast === 'up') {
     const m0 = P(L * 0.62, sheer(0.62), beam * 0.5);
-    const m1 = [m0[0] + 1.1 * s, m0[1] - L * 0.58];
+    const m1: Pt = [m0[0] + 1.1 * s, m0[1] - L * 0.58];
     reach.push(m1);
     rib(B, rgba(C.ink, 0.9), [m0, m1], { w: 1.0 * s, tin: 0.01, tout: 0.25, seed: x + 9 }, 5);
     B.line(rgba(C.ink, 0.4), 0.28 * s, [m1, P(L * 0.02, sheer(0) + 1, beam * 0.5)], 5);
@@ -690,10 +744,10 @@ function craft(env, x, y, L, R, o = {}) {
     const ang = (o.mastAngle ?? 40) * Math.PI / 180, ml = L * (o.mastLen ?? 0.38);
     const uF = L * 0.6;
     const feet = [P(uF, sheer(0.6) + 0.5, beam * 0.12), P(uF, sheer(0.6) + 0.5, beam * 0.88)];
-    const apex = [mix(feet[0][0], feet[1][0], 0.5) - dir * Math.cos(ang) * ml, mix(feet[0][1], feet[1][1], 0.5) - Math.sin(ang) * ml];
+    const apex: Pt = [mix(feet[0][0], feet[1][0], 0.5) - dir * Math.cos(ang) * ml, mix(feet[0][1], feet[1][1], 0.5) - Math.sin(ang) * ml];
     reach.push(apex);
     feet.forEach((f, i) => {
-      const mid = [mix(f[0], apex[0], 0.5) + dir * 1.2 * s, mix(f[1], apex[1], 0.5) - 0.9 * s];   // bowed under the strain
+      const mid: Pt = [mix(f[0], apex[0], 0.5) + dir * 1.2 * s, mix(f[1], apex[1], 0.5) - 0.9 * s];   // bowed under the strain
       rib(B, rgba(C.ink, i ? 0.92 : 0.6), [f, mid, apex], { w: (i ? 1.15 : 0.9) * s, tin: 0.01, tout: 0.15, dry: 0.12, seed: x + 10 + i }, 5);
     });
     B.line(rgba(C.ink, 0.7), 0.45 * s, [[mix(feet[0][0], apex[0], 0.3), mix(feet[0][1], apex[1], 0.3)], [mix(feet[1][0], apex[0], 0.3), mix(feet[1][1], apex[1], 0.3)]], 5);
@@ -714,27 +768,27 @@ function craft(env, x, y, L, R, o = {}) {
  * in rows; the deck's joists end in a row of small dark ends under its edge; heavy rails; stone abutments. Greyed
  * timber, never a brown ribbon. Returns { deckAt, base } (a walker's path, if Jack ever wants one).
  */
-function rainbow(env, A, span, Hb, R, o = {}) {
+function rainbow(env: Env, A: Pt, span: number, Hb: number, R: Rng, o: RainbowOptions = {}) {
   const { ctx, ink } = env;
   const { C, rgba } = ink;
   const bw = o.bw ?? 20, ramp = o.ramp ?? 0.12, T = o.T ?? 11;
-  const Db = o.dir;
+  const Db = o.dir!;
   const N = 40;
-  const base = (t) => [A[0] + Db[0] * span * t, A[1] + Db[1] * span * t];
+  const base = (t: number): Pt => [A[0] + Db[0] * span * t, A[1] + Db[1] * span * t];
   const K = [0, 0.16, 0.36, 0.64, 0.84, 1], KH = [0, 0.66, 0.97, 0.97, 0.66, 0];
   // the arch's crown sits a little toward the near bank (o.skew < 1): seen from the front with its far foot higher, a
   // true arch looks like a ramp; skewed, its highest point on screen comes back toward the middle (a painter's licence)
   const skew = o.skew ?? 1;
-  const lift = (t0) => {
+  const lift = (t0: number) => {
     if (t0 <= 0 || t0 >= 1) return 0;
     const t = Math.pow(t0, skew);
     let poly = 0;
     for (let i = 0; i < K.length - 1; i++) if (t <= K[i + 1]) { poly = mix(KH[i], KH[i + 1], (t - K[i]) / (K[i + 1] - K[i])); break; }
     return Hb * mix(poly, Math.pow(Math.sin(Math.PI * t), 0.6), 0.5);
   };
-  const deckLift = (t) => (t < 0 ? Math.max(0, 4 + (t / ramp) * 4) : t > 1 ? Math.max(0, 4 - ((t - 1) / ramp) * 4) : Math.max(4, lift(t) + 2));
-  const deckAt = (t, w = 0) => { const b = base(t); return [b[0] + w * bw, b[1] - deckLift(t)]; };
-  const ts = [];
+  const deckLift = (t: number) => (t < 0 ? Math.max(0, 4 + (t / ramp) * 4) : t > 1 ? Math.max(0, 4 - ((t - 1) / ramp) * 4) : Math.max(4, lift(t) + 2));
+  const deckAt = (t: number, w = 0): Pt => { const b = base(t); return [b[0] + w * bw, b[1] - deckLift(t)]; };
+  const ts: number[] = [];
   for (let i = 0; i <= N; i++) ts.push(-ramp + (1 + 2 * ramp) * i / N);
   const beamC = mix3(C.timber, C.ink, 0.55), timberG = mix3(C.timberM, C.ink2, 0.35);
   // 1. on the water: the arch's shadow and broken reflection; the far face glimpsed under the deck
@@ -743,23 +797,23 @@ function rainbow(env, A, span, Hb, R, o = {}) {
     const t = 0.15 + R() * 0.7, b = base(t);
     B.line(rgba(C.ink2, 0.12), 1.1, [[b[0] + bw * 0.1, b[1] + 3 + k * 1.2], [b[0] + bw * (0.9 + R() * 0.8), b[1] + 3.3 + k * 1.2]], 0);
   }
-  const farLow = [];
+  const farLow: Pt[] = [];
   for (let i = 3; i <= N - 3; i++) { const t = i / N, b = base(t); farLow.push([b[0], b[1] - lift(t) + Math.min(T * (0.8 + 0.4 * Math.pow(Math.abs(t * 2 - 1), 2)), lift(t) + 1.2)]); }
   rib(B, rgba(beamC, 0.5), farLow, { w: 1.3, tin: 0.1, tout: 0.1, dry: 0.15, seed: 3 }, 1);
-  const farTop = [];
+  const farTop: Pt[] = [];
   for (let i = 3; i <= N - 3; i++) { const t = i / N, b = base(t); farTop.push([b[0], b[1] - lift(t)]); }
   B.fill(rgba(mix3(C.timberM, C.ink2, 0.45), 0.28), [...farTop, ...farLow.slice().reverse()], 1);
   // 2. the deck (pale grey planks), the far rail
   wsh(B, rgba(mix3(C.timberM, C.wall, 0.25), 0.94), [...ts.map((t) => deckAt(t, 0)), ...ts.slice().reverse().map((t) => deckAt(t, 1))], 0.2, 5, 2);
   for (let i = 1; i < N; i += 2) B.line(rgba(C.ink, 0.22), 0.32, [deckAt(ts[i], 0.04), deckAt(ts[i], 0.96)], 3);
-  const farRail = ts.map((t) => { const p = deckAt(t, 0); return [p[0], p[1] - 4.6]; });
+  const farRail = ts.map((t): Pt => { const p = deckAt(t, 0); return [p[0], p[1] - 4.6]; });
   rib(B, rgba(C.ink, 0.6), farRail, { w: 0.7, tin: 0.04, tout: 0.04, seed: 9 }, 3);
   for (let i = 0; i <= N; i++) B.line(rgba(C.ink, 0.42), 0.4, [deckAt(ts[i], 0), farRail[i]], 3);
   B.line(rgba(C.ink, 0.3), 0.35, ts.map((t) => { const p = deckAt(t, 0); return [p[0], p[1] - 2.2]; }), 3);
   B.flush();
   // 3. the crowd, standing still: thickest on the crown, a knot at the near rail over the boat, stalls at the ends
   const crowd = new Ink(ctx);
-  const people = [];
+  const people: { t: number; w: number; o: FolkOptions }[] = [];
   const nP = o.people ?? 34;
   for (let i = 0; i < nP; i++) {   // a third gathered on the crown, the rest up both flights (the near one is steep)
     const r = R();
@@ -771,7 +825,7 @@ function rainbow(env, A, span, Hb, R, o = {}) {
   for (const p of people) {
     const [px, py] = deckAt(p.t, p.w);
     const r = R();
-    const opt = { pose: r < 0.12 ? 'bend' : 'stand', arm: r < 0.3 ? 'up' : undefined, load: r > 0.93 ? 'pole' : r > 0.86 ? 'pack' : undefined, hat: r > 0.8 && r < 0.86 ? 'cone' : undefined, flip: R() < 0.5, shadow: false, ...p.o };
+    const opt: FolkOptions = { pose: r < 0.12 ? 'bend' : 'stand', arm: r < 0.3 ? 'up' : undefined, load: r > 0.93 ? 'pole' : r > 0.86 ? 'pack' : undefined, hat: r > 0.8 && r < 0.86 ? 'cone' : undefined, flip: R() < 0.5, shadow: false, ...p.o };
     folk(crowd, env, px, py, o.fs ?? 0.84, R, opt);
   }
   for (const [t, w] of o.stalls ?? []) { const [px, py] = deckAt(t, w); parasolT(crowd, env, px, py, 0.75, R); }
@@ -779,21 +833,21 @@ function rainbow(env, A, span, Hb, R, o = {}) {
   // 4. the near face: a light backing in greyed timber, then the woven beams. Its depth is greatest at the haunches and
   // runs out at the feet, where every beam comes down onto the abutment at the waterline (never a blade in the air).
   const F = new Ink(ctx);
-  const thick = (t) => { const b = base(t); return Math.max(0.8, Math.min(T * (0.8 + 0.4 * Math.pow(Math.abs(t * 2 - 1), 2)), lift(t) + 1.2)); };
-  const at = (t, f) => { const b = base(t); return [b[0] + bw, b[1] - lift(t) + f * thick(t)]; };
-  const top = [];
+  const thick = (t: number) => { return Math.max(0.8, Math.min(T * (0.8 + 0.4 * Math.pow(Math.abs(t * 2 - 1), 2)), lift(t) + 1.2)); };
+  const at = (t: number, f: number): Pt => { const b = base(t); return [b[0] + bw, b[1] - lift(t) + f * thick(t)]; };
+  const top: Pt[] = [];
   for (let i = 0; i <= N; i++) top.push(at(i / N, 0));
   // the face's lower edge follows the lower beam system's chords (straight beams: the arch is built, not bent)
-  const unwarp = (u) => Math.pow(u, 1 / skew);   // beam nodes evenly spaced along the arch as built
+  const unwarp = (u: number) => Math.pow(u, 1 / skew);   // beam nodes evenly spaced along the arch as built
   const sysA = [0, 0.25, 0.5, 0.75, 1].map(unwarp), sysB = [0.07, 0.36, 0.64, 0.93].map(unwarp);
   const low = [at(0, 1), ...sysB.map((t) => at(t, 1)), at(1, 1)];
-  const lowFine = [];
+  const lowFine: Pt[] = [];
   for (let i = 0; i < low.length - 1; i++) for (let k = 0; k < 4; k++) lowFine.push([mix(low[i][0], low[i + 1][0], k / 4), mix(low[i][1], low[i + 1][1], k / 4)]);
   lowFine.push(low[low.length - 1]);
   wsh(F, rgba(timberG, 0.42), [...top, ...lowFine.slice().reverse()], 0.25, 11, 0);
   // the two beam systems: straight members between the cross-beams, each a pair of beams with light between them
   const beamCol = rgba(beamC, 0.88);
-  const bundle = (nodes, f, wd, seed) => {
+  const bundle = (nodes: number[], f: number, wd: number, seed: number) => {
     for (let i = 0; i < nodes.length - 1; i++) {
       const a = at(nodes[i], f), b = at(nodes[i + 1], f);
       for (const off of [-0.9, 0.9]) rib(F, beamCol, [[a[0], a[1] + off], [b[0], b[1] + off]], { w: wd, tin: 0.02, tout: 0.02, wob: 0.15, dry: 0.06, seed: seed + i * 3 + off }, 1);
@@ -803,7 +857,7 @@ function rainbow(env, A, span, Hb, R, o = {}) {
   bundle([0, ...sysB, 1], 0.74, 1.05, 40);
   // the cross-beams' ends where the systems meet them: dark squares in rows
   const endC = rgba(C.ink, 0.88);
-  for (const [nodes, fy] of [[sysA.slice(1, -1), 0.28], [sysB, 0.74]]) for (const t of nodes) { const p = at(t, fy); F.fill(endC, [[p[0] - 1.2, p[1] - 1.6], [p[0] + 1.3, p[1] - 1.5], [p[0] + 1.2, p[1] + 1.7], [p[0] - 1.3, p[1] + 1.6]], 2); }
+  for (const [nodes, fy] of [[sysA.slice(1, -1), 0.28], [sysB, 0.74]] as const) for (const t of nodes) { const p = at(t, fy); F.fill(endC, [[p[0] - 1.2, p[1] - 1.6], [p[0] + 1.3, p[1] - 1.5], [p[0] + 1.2, p[1] + 1.7], [p[0] - 1.3, p[1] + 1.6]], 2); }
   // the deck's joists ending under its edge: a row of small dark ends
   for (let i = 2; i < N - 1; i++) { const p = top[i]; if (nz(i * 1.1) < 0.12) continue; F.fill(rgba(C.ink, 0.6), [[p[0] - 0.6, p[1] + 0.5], [p[0] + 0.6, p[1] + 0.5], [p[0] + 0.6, p[1] + 1.8], [p[0] - 0.6, p[1] + 1.8]], 2); }
   rib(F, rgba(C.ink, 0.88), top, { w: 1.25, tin: 0.03, tout: 0.03, wob: 0.2, seed: 70 }, 2);
@@ -820,7 +874,7 @@ function rainbow(env, A, span, Hb, R, o = {}) {
   // 5. the near rail in front of the crowd's feet: posts, a mid rail, a heavy top rail
   const N2 = new Ink(ctx);
   const deckN = ts.map((t) => deckAt(t, 1));
-  const rail = deckN.map(([px, py]) => [px, py - 5]);
+  const rail = deckN.map(([px, py]): Pt => [px, py - 5]);
   for (let i = 0; i <= N; i++) N2.line(rgba(C.ink, 0.7), 0.5, [deckN[i], rail[i]], 0);
   N2.line(rgba(C.ink, 0.45), 0.4, deckN.map(([px, py]) => [px, py - 2.4]), 0);
   rib(N2, rgba(C.ink, 0.86), rail, { w: 0.9, tin: 0.04, tout: 0.04, wob: 0.15, seed: 51 }, 1);
@@ -830,28 +884,28 @@ function rainbow(env, A, span, Hb, R, o = {}) {
 }
 
 // ------------------------------------------------------------------------------------------------ the scene
-export function* draw(env) {
+export function* draw(env: Env) {
   const { ctx, P, ink } = env;
   const { C, rgba } = ink;
   noiseTable();
-  // Randomness: one stream per element, own('house', row, slot) (figures.js streams), so adding or removing a draw in
+  // Randomness: one stream per element, own('house', row, slot) (figures.ts streams), so adding or removing a draw in
   // one element never re-rolls another; a row's layout stream places that row only.
   const own = streams(SEED);
-  const X = (u) => u * REF_PX, Y = (y) => (1 - y) * VH_PX, Ux = (x) => x / REF_PX;
+  const X = (u: number) => u * REF_PX, Y = (y: number) => (1 - y) * VH_PX, Ux = (x: number) => x / REF_PX;
   const f = new Float32Array(SCENE_FIELDS);
-  const banks = (x) => { sceneField(Ux(x), P, f); return [Y(f[1]), Y(f[7])]; };   // [far bank, near bank], world px
-  const farB = (x) => banks(x)[0] + (vnoise(x / 60, 0.2, 5) - 0.5) * 2.5;
-  const nearB = (x) => banks(x)[1] + (vnoise(x / 55, 0.8, 6) - 0.5) * 3;
+  const banks = (x: number) => { sceneField(Ux(x), P, f); return [Y(f[1]), Y(f[7])]; };   // [far bank, near bank], world px
+  const farB = (x: number) => banks(x)[0] + (vnoise(x / 60, 0.2, 5) - 0.5) * 2.5;
+  const nearB = (x: number) => banks(x)[1] + (vnoise(x / 55, 0.8, 6) - 0.5) * 3;
   const x0 = X(1.12), x1 = X(2.0);
 
   // ---- the far bank: the street's paper, a stone embankment along the water, stairs down to the boats
-  const top = [], bot = [];
+  const top: Pt[] = [], bot: Pt[] = [];
   for (let x = x0; x <= x1; x += 6) { top.push([x, farB(x)]); bot.push([x, nearB(x)]); }
   const G = new Ink(ctx);
-  G.fill(rgba(C.paper, 0.85), [...top.map(([x, y]) => [x, y - 13]), ...top.slice().reverse()], 0);
+  G.fill(rgba(C.paper, 0.85), [...top.map(([x, y]): Pt => [x, y - 13]), ...top.slice().reverse()], 0);
   const emb = top.filter((p) => p[0] > x0 + 60 && p[0] < x1 - 40);
   const Remb = own('embankment');
-  for (let k = 0; k < 3; k++) G.fill(rgba(mix3(C.ink2, C.white, 0.55), 0.2), [...emb.map(([x, y]) => [x + (k - 1) * 0.5, y - 0.5 + (k - 1) * 0.4]), ...emb.slice().reverse().map(([x, y]) => [x + (k - 1) * 0.5, y + 3.2 + (k - 1) * 0.4])], 0);
+  for (let k = 0; k < 3; k++) G.fill(rgba(mix3(C.ink2, C.white, 0.55), 0.2), [...emb.map(([x, y]): Pt => [x + (k - 1) * 0.5, y - 0.5 + (k - 1) * 0.4]), ...emb.slice().reverse().map(([x, y]): Pt => [x + (k - 1) * 0.5, y + 3.2 + (k - 1) * 0.4])], 0);
   for (const seg of brokenRuns(emb, Remb, 90, 260, 14)) rib(G, rgba(C.ink, 0.5), seg, { w: 1.1, tin: 0.15, tout: 0.2, wob: 0.6, dry: 0.15, seed: seg[0][0] }, 1);
   for (const seg of brokenRuns(emb, Remb, 40, 140, 30)) rib(G, rgba(C.ink, 0.26), seg.map(([x, y]) => [x, y + 3.4]), { w: 0.8, tin: 0.2, tout: 0.3, wob: 0.6, dry: 0.3, seed: seg[0][0] + 1 }, 1);
   for (const u of [1.24, 1.83]) {   // stone stairs down to the moorings
@@ -864,23 +918,23 @@ export function* draw(env) {
   for (let i = 0; i < 9; i++) { const px = x0 + 90 + Rp() * (x1 - x0 - 180), py = farB(px); G.line(rgba(C.ink, 0.65), 0.7, [[px, py + 2.5], [px + 0.2, py - 3.5]], 2); }
   G.flush();
   // life: the open river between the two banks shimmers (the far bank's line is its top)
-  anchor(env, 'shimmer', bounds([top, bot]), { waterline: top.filter((p, i) => i % 7 === 0) });
+  anchor(env, 'shimmer', bounds([top, bot]), { waterline: top.filter((_p, i) => i % 7 === 0) });
   yield;
 
   // ---- the bridge's place: from the near bank, crossing on a long diagonal into depth
-  const BD = [0.95, -0.3];
+  const BD: Pt = [0.95, -0.3];
   const bc = X(1.565);
   const span = (nearB(bc) - farB(bc) + 4) / -BD[1];
-  const bA = [bc - BD[0] * span * 0.5, nearB(bc - BD[0] * span * 0.5) + 1.5];
-  const bB = [bA[0] + BD[0] * span, bA[1] + BD[1] * span];
+  const bA: Pt = [bc - BD[0] * span * 0.5, nearB(bc - BD[0] * span * 0.5) + 1.5];
+  const bB: Pt = [bA[0] + BD[0] * span, bA[1] + BD[1] * span];
 
   // ---- the town. Rows back to front, each left to right (a house covers the right side of the one before it).
   // Row 1 faces the water; rows 2 and 3 stand behind it up the bank (the shader dissolves them into the mist).
   // Houses of many kinds and sizes; lanes run back into the town between groups; one landmark by the bridge.
-  const streetY = (x) => farB(x) - 13;
+  const streetY = (x: number) => farB(x) - 13;
   const LM = { x: X(1.786), w: 62 };   // the landmark's place (in the wide strip and the phone's closing)
-  const phone = (x) => x > X(1.44) && x < X(1.745);   // the phone strip's view: keep the front row low there
-  const folkPlaces = [];
+  const phone = (x: number) => x > X(1.44) && x < X(1.745);   // the phone strip's view: keep the front row low there
+  const folkPlaces: [a: number, b: number, y: number][] = [];
   let n = 0, lmDone = false;
   for (const [row, depth, sc, far] of [[3, 62, 0.8, 0.82], [2, 31, 0.9, 0.42], [1, 0, 1, 0]]) {
     const R = own('row', row);
@@ -927,7 +981,7 @@ export function* draw(env) {
       }
       const lowRow = row === 1 && phone(xx);
       const T = own('house', row, k);
-      let w;
+      let w: number;
       if (r < 0.3) {   // gable end to the street
         w = (14 + R() * 10) * s;
         const h = (8.5 + R() * 3.5) * s;
@@ -952,7 +1006,7 @@ export function* draw(env) {
       if (++n % 6 === 0) yield;
     }
     if (row === 3) {   // old trees among the houses, behind the second row: their crowns break the roofline
-      [[1.34, 1.3, 'willow'], [1.71, 1.25, 'willow'], [1.93, 1.3, 'dots']].forEach(([u, sz, kind], i) => {
+      ([[1.34, 1.3, 'willow'], [1.71, 1.25, 'willow'], [1.93, 1.3, 'dots']] as const).forEach(([u, sz, kind], i) => {
         const tx = X(u), ty = streetY(tx) + D[1] * 46, T = own('old tree', i);
         if (kind === 'willow') willowT(env, tx, ty, sz * 0.8, T, { form: 'tall' }); else dotTreeT(env, tx, ty, sz, T, { green: true, clusters: 6 });
       });
@@ -964,7 +1018,7 @@ export function* draw(env) {
   {
     const Bs = new Ink(ctx);
     const Rs = own('street places');
-    const stalls = [];
+    const stalls: Pt[] = [];
     for (const [a, b, y] of folkPlaces) {
       const nF = Math.max(0, Math.round((b - a) / 16 + Rs() * 1.6 - 0.5));
       for (let i = 0; i < nF; i++) {
@@ -983,13 +1037,13 @@ export function* draw(env) {
   // ---- boats moored along the embankment (masts up, one laid down), and the big boat coming up to the bridge bow first, its
   // A-frame mast being let down toward the stern: the crew at the bow haul on slack ropes, one on the cabin roof
   // calls up, the people on the bridge lean over to watch
-  const fb = (u) => farB(X(u));
+  const fb = (u: number) => farB(X(u));
   for (const b of [
     { key: 'moored 1', x: X(1.205), y: fb(1.22) + 12, L: 74, o: { s: 0.9, mast: 'up', crew: [[0.9, 0.4, { flip: true, hat: 'cone' }]] } },
     { key: 'moored 2', x: X(1.33), y: fb(1.35) + 15, L: 90, o: { s: 0.95, mast: 'up', c0: 0.22, c1: 0.62, dir: -1 } },
     { key: 'moored 3', x: X(1.832), y: fb(1.84) + 12, L: 60, o: { s: 0.82, mast: 'down' } },
     { key: 'moored 4', x: X(1.885), y: fb(1.9) + 13, L: 70, o: { s: 0.86, mast: 'up', c0: 0.3, c1: 0.66 } },
-  ]) {
+  ] satisfies MooredBoat[]) {
     const r = craft(env, b.x, b.y, b.L, own('boat', b.key), b.o);
     if (b.o.crew) { const Bc = new Ink(ctx); b.o.crew.forEach(([u, w, opt], i) => { const p = r.P(b.L * u, r.sheer(u), r.beam * w); folk(Bc, env, p[0], p[1], b.o.s * 0.92, own('crew', b.key, i), { ...opt, shadow: false }); }); Bc.flush(); }
   }
@@ -998,15 +1052,15 @@ export function* draw(env) {
     const L = 136, bx = X(1.645) + L, by = mix(fb(1.69), nearB(X(1.69)), 0.6);
     const r = craft(env, bx, by, L, own('boat', 'lowering'), { s: 1.1, dir: -1, mast: 'aframe', mastAngle: 38, mastLen: 0.4, c0: 0.2, c1: 0.5 });
     const Bc = new Ink(ctx);
-    const at = (u, w) => r.P(L * u, r.sheer(u), r.beam * w);
+    const at = (u: number, w: number) => r.P(L * u, r.sheer(u), r.beam * w);
     // ropes from the apex forward to the haulers at the bow, sagging
     const haul = [at(0.86, 0.3), at(0.93, 0.55)];
     for (const [i, h] of haul.entries()) {
-      const a = r.masthead, b = [h[0] + 3.5, h[1] - 6.5];
-      const mid = [mix(a[0], b[0], 0.5), mix(a[1], b[1], 0.5) + 4 + i * 1.5];
+      const a = r.masthead, b: Pt = [h[0] + 3.5, h[1] - 6.5];
+      const mid: Pt = [mix(a[0], b[0], 0.5), mix(a[1], b[1], 0.5) + 4 + i * 1.5];
       Bc.line(rgba(C.ink, 0.5), 0.3, [a, [mix(a[0], mid[0], 0.5), mix(a[1], mid[1], 0.5) + 1.2], mid, [mix(mid[0], b[0], 0.5), mix(mid[1], b[1], 0.5) + 0.8], b], 0);
     }
-    const crew = [
+    const crew: [u: number, w: number, opt: FolkOptions][] = [
       [0.86, 0.3, { pose: 'stand', arm: 'haul', flip: true, lean: 0.22 }], [0.93, 0.55, { pose: 'stand', arm: 'haul', flip: true, lean: 0.2, hat: 'cone' }],
       [0.04, 0.35, { load: 'punt', hat: 'cone' }], [0.12, 0.65, { arm: 'up', flip: true }],
     ];
@@ -1033,7 +1087,7 @@ export function* draw(env) {
   // keeps clear of the near rail. Where the layer never moves its sprites he stands, still, on the near flight.
   {
     const Rw = own('walker');
-    const path = [];
+    const path: Pt[] = [];
     for (let i = 0; i <= 60; i++) path.push(bridge.deckAt(-0.1 + (1.2 * i) / 60, 0.5));
     const home = bridge.deckAt(0.16, 0.5);
     ownSprite(env, 'walker', { x: home[0] - 10, y: home[1] - 18, w: 20, h: 21 }, { path, home, speed: 3.4 }, (e) => {
@@ -1077,12 +1131,12 @@ export function* draw(env) {
     ctx.closePath(); ctx.fillStyle = g; ctx.fill();
     const nb = bot.filter((p) => p[0] > x0 + 80 && p[0] < x1 - 60);
     const Rnb = own('near bank');
-    for (let k = 0; k < 3; k++) Bn.fill(rgba(C.ink2, 0.055), [...nb.map(([x, y]) => [x, y + k * 0.6]), ...nb.slice().reverse().map(([x, y]) => [x, y + 4.4 + k * 0.6])], 0);
+    for (let k = 0; k < 3; k++) Bn.fill(rgba(C.ink2, 0.055), [...nb.map(([x, y]): Pt => [x, y + k * 0.6]), ...nb.slice().reverse().map(([x, y]): Pt => [x, y + 4.4 + k * 0.6])], 0);
     for (const seg of brokenRuns(nb, Rnb, 70, 240, 22)) rib(Bn, rgba(C.ink, 0.38 + Rnb() * 0.14), seg, { w: 1.2 + Rnb() * 0.8, tin: 0.2, tout: 0.35, wob: 0.7, dry: 0.12, seed: seg[0][0] }, 1);
     // the road along the bank to the bridge's foot: a pale band worn into the earth
-    const road = [];
+    const road: Pt[] = [];
     for (let x = bA[0] - 200; x <= bA[0] + 30; x += 8) road.push([x, nearB(x) + 9 + (x - bA[0]) * -0.02]);
-    Bn.fill(rgba(C.white, 0.32), [...road.map(([x, y]) => [x, y - 2]), ...road.slice().reverse().map(([x, y]) => [x, y + 3.5])], 0);
+    Bn.fill(rgba(C.white, 0.32), [...road.map(([x, y]): Pt => [x, y - 2]), ...road.slice().reverse().map(([x, y]): Pt => [x, y + 3.5])], 0);
     const Rg = own('grass places');
     const grassC = rgba(ink.strength > 0 ? mix3(C.malD, C.ink, 0.45) : C.ink2, 0.36);
     for (let i = 0; i < 46; i++) {
@@ -1107,7 +1161,7 @@ export function* draw(env) {
     folk(F, env, cx - 4, cy + 1, 1.0, own('cook'), { pose: 'bend', flip: false });
     folk(F, env, cx + 13, cy + 2, 1.0, own('cook', 'guest'), { pose: 'sit', flip: true });
     const Rf = own('foot crowd places');
-    const foot2 = [];
+    const foot2: [x: number, y: number, i: number][] = [];
     for (let i = 0; i < 9; i++) foot2.push([bA[0] - 84 + Rf() * 96, 0, i]);
     for (const p of foot2) p[1] = nearB(p[0]) + 7 + Rf() * 12;
     foot2.sort((a, b) => a[1] - b[1]);

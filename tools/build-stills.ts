@@ -24,14 +24,15 @@
  *      paper (the footer multiplies the stills into whatever paper is behind them) and encodes WebP.
  *   6. Writes the stills and manifest.json: the hash of every generating input and of each file.
  *
- * --check recomputes the input hash (the engine: src/features/landscape/engine/**\/*.js; the mapped places' config
+ * --check recomputes the input hash (the engine: src/features/landscape/engine/**\/*.ts; the mapped places' config
  * in places.ts; the strip-height tokens, which size the windows; this tool's crop table and settings), compares it
  * and each file's hash with the manifest, checks the size caps, and checks that layout.css and places.ts still
  * carry this table's focus, foot fades and order. Exit 1 = stale: regenerate.
  * REGENERATE AFTER ANY ENGINE, SET, PALETTE, PLACE OR STRIP-HEIGHT CHANGE.
  *
  * Ported from design-demo/tools/build-stills.py (demo 4b, record: design-demo/_notes/r4b/RECORD.md §5.1); the same
- * table, settings and in-page steps, so an unchanged engine gives the demo's own bytes.
+ * table, settings and in-page steps, so an unchanged engine gives the demo's own bytes. (The engine has since become
+ * TypeScript, the same program with types: its stills stayed byte-identical.)
  */
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
@@ -245,7 +246,7 @@ function walk(dir: string): string[] {
 function inputs(): [string, string][] {
   const items: [string, string][] = [];
   for (const p of walk(path.join(ROOT, 'src', 'features', 'landscape', 'engine')))
-    if (p.endsWith('.js')) items.push([rel(p), sha(readFileSync(p))]);
+    if (p.endsWith('.ts')) items.push([rel(p), sha(readFileSync(p))]);
   // only the place's config, not its words: what <main data-*> tells the engine, and the strip's kind (its height)
   for (const s of PLACES) {
     const { stretch, distance, presence, horizon, ground, strip } = SITE_PLACES[s.page];

@@ -1,4 +1,4 @@
-// gl.js — WebGL2 renderer for the landscape. Owns GL resources only; index.js decides when to draw.
+// gl.ts — WebGL2 renderer for the landscape. Owns GL resources only; index.ts decides when to draw.
 //
 //   A *view* is one painting: a window onto the world (the page's strip, its closing) or the full viewport (the
 //   desktop horizon). Each view has its own ridge texture and its own scene framebuffer.
@@ -9,21 +9,22 @@
 //                      mipmapped texture (the mip levels give the bleed halo); its sprites (4b small life: Work's punt)
 //                      as `${id}#${i}`, freed with it; figure(id, null) frees it
 //   bitmaps            4b: true when this browser uploads a canvas's ImageBitmap premultiplied (probed once per context;
-//                      index.js then asks the figure worker for bitmaps, else for premultiplied bytes as in 4a)
+//                      index.ts then asks the figure worker for bitmaps, else for premultiplied bytes as in 4a)
 //   scene(id, U)       expensive painting of view `id` -> its framebuffer. A frame in motion (U.draft) is painted into
 //                      a corner of the framebuffer at U.draftScale; present() stretches it back.
 //   present(U)         cheap pass to the screen: the windows at their live boxes, the horizon band, mist, grain
-//   busy()             is the GPU still painting the last presented frame? (a fence; index.js then skips a frame
+//   busy()             is the GPU still painting the last presented frame? (a fence; index.ts then skips a frame
 //                      instead of queueing another behind it)
 //   settle()           wait (blocking) until the GPU has finished everything drawn so far. Only for a page that is
 //                      still hidden under the page wash: its first frame (shader compiles) lands there, not mid-reveal.
 //
 // Survives context loss: resources are rebuilt on 'webglcontextrestored' (views and figures are re-made by
-// index.js, which repaints everything). destroy() frees them but keeps the context alive, so a remount on the same
+// index.ts, which repaints everything). destroy() frees them but keeps the context alive, so a remount on the same
 // canvas (React Strict Mode) works.
 
-import { VERT, NOISE, NOISE_SIZE, SCENE, PRESENT } from './shaders.js';
-import { ROWS, LAYERS } from './ridges.js';
+import { VERT, NOISE, NOISE_SIZE, SCENE, PRESENT } from './shaders';
+import { ROWS, LAYERS } from './ridges';
+import type { FigureImage, Renderer, RendererMemory } from './renderer';
 
 const SOFTWARE = /swiftshader|llvmpipe|softpipe|software|basic render|mesa offscreen|warp/i;
 const NONE4 = new Float32Array([2, 2, -1, -1]);
@@ -33,7 +34,42 @@ const NO_CROP = new Float32Array([0, 1, 0, 0]);                 // an ordinary v
 const ZERO12 = new Float32Array(12);
 const FULL_RECTS = new Float32Array([0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1]);
 
-function detectRenderer(gl) {
+/** What the engine does when the context is lost (a restore is asked for), restored, or cannot be rebuilt. */
+export interface GLHooks {
+  lost?(): void;
+  restored?(): void;
+  failed?(): void;
+}
+/** An error after a context was created: the canvas can no longer give a 2D context (see createGL). */
+export type TaintedError = Error & { tainted?: boolean };
+/** A linked program and its uniform locations (looked up once). */
+interface Program {
+  p: WebGLProgram;
+  u(name: string): WebGLUniformLocation | null;
+}
+/** A view's GPU resources: its scene framebuffer (w x h; a draft paints sw x sh of it) and its ridge texture. */
+interface View {
+  fb: WebGLFramebuffer | null;
+  tex: WebGLTexture | null;
+  w: number;
+  h: number;
+  sw: number;
+  sh: number;
+  ridges: WebGLTexture | null;
+  ridgeW: number;
+}
+/** The live GL resources (rebuilt after a context loss). */
+interface Resources {
+  vao: WebGLVertexArrayObject;
+  noiseP: Program | null;
+  sceneP: Program;
+  presentP: Program;
+  presentL: Program;
+  noise: WebGLTexture;
+  blank: WebGLTexture;
+}
+
+function detectRenderer(gl: WebGL2RenderingContext) {
   // gl.RENDERER first; browsers that mask it ("WebKit WebGL") still expose the debug extension.
   let name = '';
   try { name = String(gl.getParameter(gl.RENDERER) || ''); } catch { /* ignore */ }
@@ -47,40 +83,42 @@ function detectRenderer(gl) {
 }
 
 /**
- * @returns {null | renderer}  null when WebGL2 is unavailable (the canvas is untouched).
+ * @returns null when WebGL2 is unavailable (the canvas is untouched).
  * Throws (err.tainted = true) if a context was created but could not be set up: the canvas can
  * then no longer give a 2D context, and the caller paints the fallback on a fresh canvas.
  */
-export function createGL(canvas, hooks) {
-  let gl = null;
+export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | null {
+  let context: WebGL2RenderingContext | null = null;
   try {
-    gl = canvas.getContext('webgl2', {
+    context = canvas.getContext('webgl2', {
       alpha: false, antialias: false, depth: false, stencil: false,
       premultipliedAlpha: false, preserveDrawingBuffer: false, powerPreference: 'low-power',
     });
-  } catch { gl = null; }
-  if (!gl) return null;
+  } catch { context = null; }
+  if (!context) return null;
+  const gl = context;   // (typed: the helper functions below see a context, never a possible null)
   if (gl.isContextLost()) {
-    const err = new Error('landscape: context lost at init');
+    const err: TaintedError = new Error('landscape: context lost at init');
     err.tainted = true;
     throw err;
   }
 
   const rendererName = detectRenderer(gl);
   const software = SOFTWARE.test(rendererName);
-  const maxTex = gl.getParameter(gl.MAX_TEXTURE_SIZE) || 4096;
-  let R = null;           // live GL resources
+  const maxTex: number = gl.getParameter(gl.MAX_TEXTURE_SIZE) || 4096;
+  let R: Resources | null = null;   // live GL resources
   let W = 0, H = 0;       // drawing-buffer size
-  const views = new Map();    // id -> { fb, tex, w, h, sw, sh, ridges, ridgeW, last }
-  const figs = new Map();     // id -> texture
-  const figBytes = new Map(); // id -> bytes (QA: memory())
-  let fence = null;       // set after a present: has the GPU finished that frame? (see busy())
+  const views = new Map<string, View>();
+  const figs = new Map<string, WebGLTexture>();   // id -> texture
+  const figBytes = new Map<string, number>();     // id -> bytes (QA: memory())
+  let fence: WebGLSync | null = null;   // set after a present: has the GPU finished that frame? (see busy())
   let fenceAt = 0;
   const px1 = new Uint8Array(4);   // settle()'s readback
   let bitmapsOK = false;  // 4b: an ImageBitmap of a 2D canvas uploads premultiplied here (probeBitmaps)
 
-  function compile(type, src) {
-    const s = gl.createShader(type);
+  // (WebGL's create* return null only on a lost context, where every later call is a no-op: the ! below)
+  function compile(type: GLenum, src: string) {
+    const s = gl.createShader(type)!;
     gl.shaderSource(s, src);
     gl.compileShader(s);
     if (!gl.getShaderParameter(s, gl.COMPILE_STATUS) && !gl.isContextLost()) {
@@ -90,7 +128,7 @@ export function createGL(canvas, hooks) {
     }
     return s;
   }
-  function program(frag) {
+  function program(frag: string): Program {
     const p = gl.createProgram();
     const vs = compile(gl.VERTEX_SHADER, VERT);
     const fs = compile(gl.FRAGMENT_SHADER, frag);
@@ -102,17 +140,17 @@ export function createGL(canvas, hooks) {
     if (!gl.getProgramParameter(p, gl.LINK_STATUS) && !gl.isContextLost()) {
       throw new Error(`landscape: link failed\n${gl.getProgramInfoLog(p)}`);
     }
-    const locs = new Map();
+    const locs = new Map<string, WebGLUniformLocation | null>();
     return {
       p,
       u(name) {
         if (!locs.has(name)) locs.set(name, gl.getUniformLocation(p, name));
-        return locs.get(name);
+        return locs.get(name) as WebGLUniformLocation | null;
       },
     };
   }
-  function tex(w, h, internal, format, type, wrap, data = null) {
-    const t = gl.createTexture();
+  function tex(w: number, h: number, internal: GLenum, format: GLenum, type: GLenum, wrap: GLenum, data: ArrayBufferView | null = null): WebGLTexture {
+    const t = gl.createTexture()!;
     gl.bindTexture(gl.TEXTURE_2D, t);
     gl.texImage2D(gl.TEXTURE_2D, 0, internal, w, h, 0, format, type, data);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -126,7 +164,7 @@ export function createGL(canvas, hooks) {
   // The shader wants premultiplied texels. (The WebGL spec has the UNPACK_* flags ignored for an ImageBitmap, whose own
   // premultiply option decides, and transferToImageBitmap leaves it at 'default': so the flags are set for the browsers
   // that honour them, and probeBitmaps() checks what this one does.)
-  function upBitmap(bmp) {
+  function upBitmap(bmp: TexImageSource) {
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
     gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, bmp);
@@ -134,11 +172,11 @@ export function createGL(canvas, hooks) {
     gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.BROWSER_DEFAULT_WEBGL);
   }
   // One 1x1 probe per context, made before anything else is queued (so its readback waits for nothing): does a canvas's
-  // ImageBitmap upload premultiplied here? If not, index.js asks the worker for premultiplied bytes, as in 4a.
+  // ImageBitmap upload premultiplied here? If not, index.ts asks the worker for premultiplied bytes, as in 4a.
   function probeBitmaps() {
     bitmapsOK = false;
     if (typeof OffscreenCanvas !== 'function') return;
-    let t = null, fb = null;
+    let t: WebGLTexture | null = null, fb: WebGLFramebuffer | null = null;
     try {
       const oc = new OffscreenCanvas(1, 1);
       const cx = oc.getContext('2d');
@@ -164,9 +202,9 @@ export function createGL(canvas, hooks) {
   }
 
   function build() {
-    const r = {};
+    const r = {} as Resources;
     probeBitmaps();
-    r.vao = gl.createVertexArray();
+    r.vao = gl.createVertexArray()!;
     gl.bindVertexArray(r.vao);
     r.noiseP = program(NOISE);
     r.sceneP = program(SCENE);
@@ -194,36 +232,36 @@ export function createGL(canvas, hooks) {
   }
 
   // a figure layer's (or a sprite's) mipmapped texture, from premultiplied bytes or an ImageBitmap (closed after)
-  function figTex(img, w, h) {
+  function figTex(img: FigureImage, w: number, h: number): WebGLTexture {
     gl.activeTexture(gl.TEXTURE0);
-    let t;
+    let t: WebGLTexture;
     if (img.bitmap) {
-      t = gl.createTexture();
+      t = gl.createTexture()!;
       gl.bindTexture(gl.TEXTURE_2D, t);
       upBitmap(img.bitmap);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      try { img.bitmap.close?.(); } catch { /* ignore */ }
+      try { (img.bitmap as ImageBitmap).close?.(); } catch { /* ignore */ }
     } else {
       gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
-      t = tex(w, h, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, gl.CLAMP_TO_EDGE, new Uint8Array(img.data.buffer, img.data.byteOffset, w * h * 4));
+      t = tex(w, h, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, gl.CLAMP_TO_EDGE, new Uint8Array(img.data!.buffer, img.data!.byteOffset, w * h * 4));
     }
     gl.generateMipmap(gl.TEXTURE_2D);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
     return t;
   }
-  function closeBitmaps(img) {
-    try { img?.bitmap?.close?.(); for (const s of img?.sprites || []) s?.bitmap?.close?.(); } catch { /* ignore */ }
+  function closeBitmaps(img: FigureImage | null) {
+    try { (img?.bitmap as ImageBitmap | undefined)?.close?.(); for (const s of img?.sprites || []) s?.bitmap?.close?.(); } catch { /* ignore */ }
   }
 
-  function freeView(v) {
+  function freeView(v: View) {
     if (!v || gl.isContextLost()) return;
     if (v.tex) gl.deleteTexture(v.tex);
     if (v.fb) gl.deleteFramebuffer(v.fb);
     if (v.ridges) gl.deleteTexture(v.ridges);
   }
-  function makeTarget(v) {
+  function makeTarget(v: View) {
     if (v.tex) { gl.deleteTexture(v.tex); gl.deleteFramebuffer(v.fb); }
     v.tex = tex(v.w, v.h, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, gl.CLAMP_TO_EDGE);
     v.fb = gl.createFramebuffer();
@@ -253,7 +291,7 @@ export function createGL(canvas, hooks) {
     build();
   } catch (err) {
     try { freeAll(); } catch { /* ignore */ }
-    err.tainted = true;
+    (err as TaintedError).tainted = true;
     throw err;
   }
 
@@ -262,7 +300,7 @@ export function createGL(canvas, hooks) {
     fence = null;
   }
 
-  const onLost = (e) => {
+  const onLost = (e: Event) => {
     e.preventDefault(); // ask for a restore
     fence = null;
     R = null;
@@ -281,12 +319,12 @@ export function createGL(canvas, hooks) {
   canvas.addEventListener('webglcontextlost', onLost);
   canvas.addEventListener('webglcontextrestored', onRestored);
 
-  function bindTex(prog, unit, name, t) {
+  function bindTex(prog: Program, unit: number, name: string, t: WebGLTexture | null | undefined) {
     gl.activeTexture(gl.TEXTURE0 + unit);
-    gl.bindTexture(gl.TEXTURE_2D, t || R.blank);
+    gl.bindTexture(gl.TEXTURE_2D, t || R!.blank);
     gl.uniform1i(prog.u(name), unit);
   }
-  const sceneUV = (v) => {
+  const sceneUV = (v: View | null | undefined) => {
     if (!v || !v.tex) return ZERO4;
     const sw = v.sw || v.w, sh = v.sh || v.h;
     return new Float32Array([sw / v.w, sh / v.h, (sw - 0.5) / v.w, (sh - 0.5) / v.h]);
@@ -320,7 +358,7 @@ export function createGL(canvas, hooks) {
     hasView(id) { return !!views.get(id)?.tex; },
     /** QA: bytes held per view (its scene buffer, RGBA8, and its ridge rows, RGBA16F) and by the figure layers. */
     memory() {
-      const out = { total: 0, views: {}, figures: 0 };   // (figure layers: with their mip levels, x 4/3)
+      const out: RendererMemory = { total: 0, views: {}, figures: 0 };   // (figure layers: with their mip levels, x 4/3)
       for (const [id, v] of views) {
         const b = (v.tex ? v.w * v.h * 4 : 0) + (v.ridges ? v.ridgeW * ROWS * 8 : 0);
         out.views[id] = { w: v.w, h: v.h, bytes: b };
@@ -348,7 +386,7 @@ export function createGL(canvas, hooks) {
      *  or free it (img = null). The bitmaps are closed once uploaded. */
     figure(id, img) {
       if (!R) { closeBitmaps(img); return false; }
-      for (const k of [...figs.keys()]) if (k === id || k.startsWith(`${id}#`)) { gl.deleteTexture(figs.get(k)); figs.delete(k); }
+      for (const k of [...figs.keys()]) if (k === id || k.startsWith(`${id}#`)) { gl.deleteTexture(figs.get(k)!); figs.delete(k); }
       if (!img) return true;
       const w = Math.min(maxTex, img.width), h = Math.min(maxTex, img.height);
       if (w !== img.width || h !== img.height) { closeBitmaps(img); return false; }
@@ -369,7 +407,7 @@ export function createGL(canvas, hooks) {
      */
     busy() {
       if (!fence) return 0;
-      let st = gl.SIGNALED;
+      let st: GLenum = gl.SIGNALED;
       try { if (!gl.isContextLost()) st = gl.getSyncParameter(fence, gl.SYNC_STATUS); } catch { /* treat as done */ }
       if (st === gl.SIGNALED) { clearFence(); return 0; }
       return Math.max(1, performance.now() - fenceAt);
@@ -439,7 +477,7 @@ export function createGL(canvas, hooks) {
       bindTex(P, 0, 'uWin0', wins[0] && views.get(wins[0].id)?.tex);
       bindTex(P, 1, 'uWin1', wins[1] && views.get(wins[1].id)?.tex);
       const hz = U.horizon && views.get(U.horizon.id);
-      const hzK = hz && hz.tex ? U.horizon.k : 0;
+      const hzK = hz && hz.tex ? U.horizon!.k : 0;
       bindTex(P, 2, 'uHzTex', hz?.tex);
       bindTex(P, 3, 'uNoise', R.noise);
       gl.uniform4fv(P.u('uWinR'), rect);
@@ -472,7 +510,7 @@ export function createGL(canvas, hooks) {
       const stOn = !!st && sv.length === 3 && !!sv[0]?.tex;
       const ss = new Float32Array(12);
       for (let i = 0; i < 3; i++) if (stOn && sv[i]?.tex) ss.set(sceneUV(sv[i]), i * 4);
-      bindTex(P, 4, 'uSt0', stOn ? sv[0].tex : null);
+      bindTex(P, 4, 'uSt0', stOn ? sv[0]!.tex : null);
       bindTex(P, 5, 'uSt1', stOn ? sv[1]?.tex : null);
       bindTex(P, 6, 'uSt2', stOn ? sv[2]?.tex : null);
       gl.uniform4fv(P.u('uStS'), ss);

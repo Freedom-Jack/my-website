@@ -1,6 +1,4 @@
-// ESLint (flat config): Next.js's rules (React, hooks, accessibility, Core Web Vitals) and TypeScript's.
-// The landscape engine (src/features/landscape/engine, plain JavaScript ported as-is from demo 4b) is linted for
-// real errors only; its style is the demo's, reviewed there.
+// ESLint (flat config): Next.js's rules (React, hooks, accessibility, Core Web Vitals) and TypeScript's, everywhere.
 import nextVitals from 'eslint-config-next/core-web-vitals';
 import nextTs from 'eslint-config-next/typescript';
 import globals from 'globals';
@@ -23,15 +21,10 @@ const config = [
   ...nextVitals,
   ...nextTs,
   {
-    files: ['src/features/landscape/engine/**/*.js'],
-    languageOptions: { globals: { ...globals.browser, ...globals.worker } },
-    rules: {
-      'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-expressions': 'off',
-      'prefer-const': 'off',
-      'no-empty': 'off',
-    },
+    // the landscape engine (strict TypeScript, ported from demo 4b): a parameter its caller passes but it does not
+    // read is named _x, as tsc's noUnusedParameters accepts
+    files: ['src/features/landscape/engine/**/*.ts'],
+    rules: { '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }] },
   },
   {
     files: ['tools/**/*.ts', 'tests/**/*.ts', '*.config.*'],

@@ -1,4 +1,4 @@
-// shaders.js — GLSL for the WebGL2 landscape (gl.js).
+// shaders.ts — GLSL for the WebGL2 landscape (gl.ts).
 //
 //   NOISE    once per context: a 512² tileable texture. r/g = soft mist fields, b = paper tooth +
 //            short fibres, a = a few long faint fibres.
@@ -14,12 +14,12 @@
 //            bank of a page change (sweep), the reading veil behind text, paper grain. A handful of texture
 //            taps (the wake and the sweep add a few, only where they are).
 
-import { LAYERS, RIVER_FRONT } from './compose.js';
-import { ROWS } from './ridges.js';
+import { LAYERS, RIVER_FRONT } from './compose';
+import { ROWS } from './ridges';
 
 export const VEILS = 12;  // reading-veil rects painted at once (4b: living pages veil a block in bands)
 export const TRAIL = 8;   // points of the pointer's wake (the newest is the pointer itself)
-export const LIFE = 8;    // 4b small life: entries laid in at once (index.js lifeU: shimmer, smoke, willow sway, a boat)
+export const LIFE = 8;    // 4b small life: entries laid in at once (index.ts lifeU: shimmer, smoke, willow sway, a boat)
 
 export const VERT = `#version 300 es
 out vec2 vUv;
@@ -249,7 +249,7 @@ float figSpan(vec4 R, vec2 w) {
   vec2 q = vec2((w.x - R.x) * R.z, (w.y - R.y) * R.w);
   return smoothstep(0.0, 0.13, q.x) * smoothstep(1.0, 0.88, q.x) * step(0.0, q.y) * step(q.y, 1.0);
 }
-// 4b: the river town's depth (compose.js RIVER_FRONT): how high above the far bank the nearest things in a column reach
+// 4b: the river town's depth (compose.ts RIVER_FRONT): how high above the far bank the nearest things in a column reach
 // (the front row and its trees, the landmark, the masts, the bridge and the crowd on its crown); the mist lies behind
 const float FRONT[${RIVER_FRONT.hb.length}] = float[${RIVER_FRONT.hb.length}](${RIVER_FRONT.hb.map((v) => v.toFixed(3)).join(', ')});
 float frontAt(float u) {
@@ -303,7 +303,7 @@ void main() {
     figMist = 1.0 - clamp(max(back * 0.92, drift), 0.0, 1.0) * wS * (1.0 - shoreK);
   }
   // the "Draft art" note: no figures and no pigment under its line. 4b: its guard is a patch of mist, not a box: clear
-  // close round the line (inside the note box's margins: index.js measureKeep), the pigment thinning back in across the
+  // close round the line (inside the note box's margins: index.ts measureKeep), the pigment thinning back in across the
   // box's edge to about a third of its height beyond it, the edge billowing, so over pigment (Contact's indigo water) it
   // never cuts a ruled edge; figures come back by the box's edge, so the scene's figures just off it keep whole
   if (uNote.z > uNote.x) {
@@ -441,7 +441,7 @@ void main() {
       dens += hemp * (0.22 + 0.3 * max(shade, 0.0));
       // terraced fields (the Résumé's shore): bands across the hill, each a dark, dry lip of earth with a paler wet field
       // above it that holds the light (and the malachite); none on the far range, none on the rounded crown, fading into
-      // the foot's mist. 4b: the bands are level, as the figure layer's walls are (sets/terraces.js): a field at level z
+      // the foot's mist. 4b: the bands are level, as the figure layer's walls are (sets/terraces.ts): a field at level z
       // lies at y = z - s (crest - z), sagging where the hill swells toward us (s, one smooth noise along the hill), so
       // its lip never runs parallel to the crest. Where that layer stands on this plane it draws the walls itself, and
       // the bands give way to it (never two rhythms crossing on the flanks)
@@ -672,7 +672,7 @@ uniform float uVeilF[VEILS]; // each rect's feather, x uVeilR (a reserve for sma
 uniform float uVeilR;        // the veil's feather, uv y: 0.13 x the shorter side (it also scales the bottom vignette)
 uniform vec4  uTrail[TRAIL]; // the pointer's wake, newest first: uv x, uv y, strength, 0 (strength 0 = unused)
 uniform vec4  uWakeBox;      // the uv box the wake can reach (x0, y0, x1, y1); x0 > x1 = no wake
-uniform float uWakeR;        // the wake's radius, viewport heights (a local opening: ~110 CSS px, index.js wakeR())
+uniform float uWakeR;        // the wake's radius, viewport heights (a local opening: ~110 CSS px, index.ts wakeR())
 uniform vec4  uSweep;        // the pale bank of a page change: centre (uv x), half-width (vh), strength, thickness
 uniform float uSweepSeed;    // the bank's own billows
 uniform float uPx;           // CSS px per canvas px
@@ -703,13 +703,13 @@ uniform vec4  uLive;         // x 1 = every page (the drift keeps off text; a ve
 uniform vec4  uLive2;        // living veils: x the page's scroll (viewport heights: the swell travels with the words), y
                              // the clearing beyond the feather (vh), z the swell of the veil's edge (vh); w (every page)
                              // one CSS px in viewport heights
-// 4b, small life (index.js lifeU): the few things that move in the painting (the water's shimmer, a thread of smoke, the
+// 4b, small life (index.ts lifeU): the few things that move in the painting (the water's shimmer, a thread of smoke, the
 // willows' sway, one drifting boat). They are worked out once per pixel (lifePrep) for the one view that holds them this
 // frame (uLifeT[1].y: a window, or a layer of the stage), and laid into that view's sample as it is composited (lifeLay),
 // so whatever lies in front of it (a nearer layer, the cloud, the sea, the mist, the veils) passes over them as over the
 // painting. Present only, on the ambient frames and the drift's clock (uTime): they stop with the mist, and uLifeK.x eases
 // them to the still painting (reduced motion, Still, the idle sleep). Never near text: none within 40 CSS px of a veiled
-// line (lifeText), none in a window's keep-out. Compiled in only with LIFE_ON: gl.js builds this program twice and draws
+// line (lifeText), none in a window's keep-out. Compiled in only with LIFE_ON: gl.ts builds this program twice and draws
 // with the life one only while some life is on screen (a software rasteriser runs every branch, taken or not).
 uniform vec4  uLifeU;        // the union of the entries' boxes (canvas uv x0, y0, x1, y1): no life outside it
 uniform vec4  uLifeT[2];     // the entries, sorted by kind: [0] where shimmer, smoke, willow, boat start; [1] x the count,
@@ -855,7 +855,7 @@ void lifePrep(vec2 uv, vec2 wp, vec2 dw, float rx, float keep) {
     lifeDx += B.w * A.z * w * (0.7 * sin(ph) + 0.3 * sin(ph * 2.3 + 1.3)) * uLifeK.x * gText;
   }
   // the sprites (the drifting boat, the bridge's walker, the bobbing ferry): each fills its entry's box (moved by
-  // index.js) from its place in the layer's one atlas (B.z..B.w across, 0..A.y down), over a faint bleed halo like the
+  // index.ts) from its place in the layer's one atlas (B.z..B.w across, 0..A.y down), over a faint bleed halo like the
   // figures' (not x uLifeK: a sprite is no longer in the still painting, so it stays, still, when life stops)
   for (int i = r3; i < r4; i++) {
     vec4 R = uLifeR[i];
@@ -903,7 +903,7 @@ void main() {
              K.y * (1.0 - smoothstep(K.x - K.z, K.x + K.z, l.x)));
   }
 #else
-  const int lv = -1;   // (the program without life: gl.js uses it while none is on screen)
+  const int lv = -1;   // (the program without life: gl.ts uses it while none is on screen)
 #endif
 
   // 1. what lies under this pixel: paper, the horizon band, a window on top (box-anchored, so it moves 1:1 with

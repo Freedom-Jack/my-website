@@ -26,8 +26,9 @@ check, unit tests, stills check) · `npm run test:e2e` (needs a build on port 31
 - `src/styles/` is the global design system ported from the demo (tokens, base, layout, effects, components).
   CSS Modules only place a page's blocks and tune spacing with tokens. They add no new colours, fonts, sizes or
   motion.
-- `src/features/landscape/engine/` is the demo's WebGL2 engine as JavaScript modules behind a typed contract
-  (`types.ts`). Change it only with the engine's own docs in mind (design-demo/README.md, "The landscape engine, inside" and "Figure sets and small life").
+- `src/features/landscape/engine/` is the demo's WebGL2 engine in strict TypeScript (typed from the demo's
+  JavaScript without changing a pixel), behind the contract in `types.ts`; `engine/renderer.ts` is the contract
+  between the engine and its two painters, `figures.ts` the figure sets' API. Change it only with the engine's own docs in mind (design-demo/README.md, "The landscape engine, inside" and "Figure sets and small life").
   After any change to the engine, a figure set, a palette, a place or a strip height, regenerate the stills
   (`npm run build:stills`, which needs a QA build).
 - `places.ts` is the one table of where each page stands in the painting. `PageMain` and the navigation both read

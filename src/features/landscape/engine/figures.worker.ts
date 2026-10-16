@@ -1,17 +1,24 @@
-// figures.worker.js — draws a figure layer off the main thread (SPEC-R4A §7.6, §12.5): an OffscreenCanvas at the
-// layer's size, the brushwork of figures.js (whose figure sets, sets/*.js, load with it), then one of:
-//   out 'gpu'     (WebGL, 4b) an ImageBitmap of the layer (transferToImageBitmap: no readback; gl.js uploads it
+// figures.worker.ts — draws a figure layer off the main thread (SPEC-R4A §7.6, §12.5): an OffscreenCanvas at the
+// layer's size, the brushwork of figures.ts (whose figure sets, sets/*.ts, load with it), then one of:
+//   out 'gpu'     (WebGL, 4b) an ImageBitmap of the layer (transferToImageBitmap: no readback; gl.ts uploads it
 //                 premultiplied), with its moving things apart in one sprite atlas (buildSprites): a boat marked
 //                 params.sprite (Work's punt) is cut out of the layer, a set's own sprite (the bridge's walker, the
 //                 ferry) is painted on its own, so the present pass can move them and no static copy ever ghosts.
 //   out 'bitmap'  (Canvas2D) an ImageBitmap of the layer as drawn: nothing is cut (Canvas2D is still; the boat stays)
 //   out 'bytes'   premultiplied RGBA bytes (the 4a WebGL path, kept for callers that read the bytes)
 // Transferred, never copied. One message in, one message out: { id, width, height, data | bitmap, sprites?, ms, life }
-// or { id, error }. `life` is the layer's life anchors (figures.js, THE LIFE API); `sprites` [{ width, height, bitmap }]
+// or { id, error }. `life` is the layer's life anchors (figures.ts, THE LIFE API); `sprites` [{ width, height, bitmap }]
 // in the order of the anchors that carry `cut` (each anchor's `sprite` is its index here).
 
-import { drawFigures, layerSize, premultiply, registerSets } from './figures.js';
-import { SETS } from './sets/index.js';
+import { drawFigures, layerSize, premultiply, registerSets, type LifeOut, type OwnSprite } from './figures';
+import { SETS } from './sets';
+import type { FigureReply, FigureRequest, FigureResult } from './renderer';
+
+/** This worker's own global (the DOM lib types `self` as a window). */
+declare const self: {
+  onmessage: ((e: MessageEvent<FigureRequest>) => void) | null;
+  postMessage(message: FigureReply, transfer?: Transferable[]): void;
+};
 
 registerSets(SETS);
 
@@ -23,8 +30,8 @@ const GAP = 24;     // atlas px between two sprites, so a coarse mip of one neve
 //  - a set's own sprite (ownSprite: the bridge's walker, the moored ferry) is PAINTED on a canvas of its own, never
 //    into the layer, then cropped to its ink.
 // Each gets cut (its box in layer uv), sprite 0, atlas [u0, u1, v1] (its place in the atlas) and spx (texels).
-function buildSprites(canvas, ctx, life, width, height, own) {
-  const parts = [];   // { a, src, sx, sy, w, h, x0, y0 } (layer px)
+function buildSprites(canvas: OffscreenCanvas, ctx: OffscreenCanvasRenderingContext2D, life: LifeOut[], width: number, height: number, own: OwnSprite[]): NonNullable<FigureResult['sprites']> {
+  const parts: { a: LifeOut; src: OffscreenCanvas; sx: number; sy: number; w: number; h: number; x0: number; y0: number }[] = [];   // (layer px)
   for (const a of life) {
     if (a.kind !== 'boat' || a.params?.sprite !== true || !Array.isArray(a.uv)) continue;
     const x0 = Math.max(0, Math.floor(a.uv[0] * width) - PAD), y0 = Math.max(0, Math.floor(a.uv[1] * height) - PAD);
@@ -87,21 +94,21 @@ function buildSprites(canvas, ctx, life, width, height, own) {
 }
 
 self.onmessage = (e) => {
-  const p = e.data || {};
+  const p = e.data || ({} as FigureRequest);
   try {
     const t0 = performance.now();
     const { width, height } = layerSize(p.stretch, p.scale, p.dpr);
     if (!width || !height) throw new Error('no figure layer for this stretch');
     const canvas = new OffscreenCanvas(width, height);
     // CPU-backed for every consumer but WebGL's ImageBitmap path: 'bytes' reads the pixels back, and 'bitmap' is drawn
-    // into Canvas2D's own canvases, which are all CPU-backed (canvas2d.js createCanvas2D): a GPU-backed bitmap there is
+    // into Canvas2D's own canvases, which are all CPU-backed (canvas2d.ts createCanvas2D): a GPU-backed bitmap there is
     // read back on its first draw, a multi-second raster flush on load in the fallback (final review r1, item 7)
     const ctx = canvas.getContext('2d', { willReadFrequently: p.out !== 'gpu' });
     if (!ctx) throw new Error('no 2d context in the worker');
-    const own = p.out === 'gpu' ? [] : null;   // the set's own sprites: painted apart (buildSprites), not into the layer
+    const own: OwnSprite[] | null = p.out === 'gpu' ? [] : null;   // the set's own sprites: painted apart (buildSprites), not into the layer
     const life = drawFigures(ctx, p, own);
     if (p.out === 'gpu') {
-      const sprites = buildSprites(canvas, ctx, life, width, height, own);
+      const sprites = buildSprites(canvas, ctx, life, width, height, own!);
       const bitmap = canvas.transferToImageBitmap();
       self.postMessage({ id: p.id, width, height, bitmap, sprites, ms: performance.now() - t0, life }, [bitmap, ...sprites.map((s) => s.bitmap)]);
     } else if (p.out === 'bitmap') {
@@ -113,6 +120,6 @@ self.onmessage = (e) => {
       self.postMessage({ id: p.id, width, height, data: img.data, ms: performance.now() - t0, life }, [img.data.buffer]);
     }
   } catch (err) {
-    self.postMessage({ id: p.id, error: String((err && err.message) || err) });
+    self.postMessage({ id: p.id, error: String((err && (err as Error).message) || err) });
   }
 };

@@ -1,14 +1,14 @@
-// ridges.js — ridge profiles for the ink landscape, shared by the WebGL painter (uploaded as a
+// ridges.ts — ridge profiles for the ink landscape, shared by the WebGL painter (uploaded as a
 // small RGBA16F texture: crest height, smoothed slope, broad crest; plus two scene rows: water,
 // waterline, technique, strokes, reflection, banks), the Canvas2D fallback (drawn as paths) and the
-// footer strip (strip.js).
+// footer strip (strip.ts).
 //
-// Heights are sampled in WORLD x (stretch units, see compose.js), so the same mountains slide
+// Heights are sampled in WORLD x (stretch units, see compose.ts), so the same mountains slide
 // across the screen when the camera pans: ridges stay continuous from one stretch to the next.
 // Rebuilt on the CPU only when the view changes (resize, pan, composition); ~1-3 ms.
 
-import { LAYERS, massifs, MASSIF_STRIDE, sceneField, SCENE_FIELDS, resolve, spec } from './compose.js';
-import { pigmentAt } from './palette.js';
+import { LAYERS, massifs, MASSIF_STRIDE, sceneField, SCENE_FIELDS, resolve, spec, type Resolved } from './compose';
+import { pigmentAt } from './palette';
 
 export { LAYERS };
 /** Texture rows: one per plane, then four scene rows (see buildRidges). */
@@ -16,7 +16,7 @@ export const ROWS = LAYERS + 4;
 export const SCENE_ROW = LAYERS;
 
 // Seeded integer hash -> [0, 1)
-function hash(i, seed) {
+function hash(i: number, seed: number) {
   let h = Math.imul(i ^ 0x27d4eb2d, 0x85ebca6b) ^ Math.imul(seed + 0x165667b1, 0xc2b2ae35);
   h ^= h >>> 15;
   h = Math.imul(h, 0x2c1b3c6d);
@@ -25,7 +25,7 @@ function hash(i, seed) {
 }
 
 // 1D gradient noise, roughly [-1, 1]
-function noise1(x, seed) {
+function noise1(x: number, seed: number) {
   const i = Math.floor(x);
   const f = x - i;
   const u = f * f * f * (f * (f * 6 - 15) + 10);
@@ -34,7 +34,7 @@ function noise1(x, seed) {
   return (g0 * f * (1 - u) + g1 * (f - 1) * u) * 2;
 }
 
-function fbm1(x, seed, octaves) {
+function fbm1(x: number, seed: number, octaves: number) {
   let sum = 0;
   let amp = 0.5;
   for (let o = 0; o < octaves; o++) {
@@ -46,7 +46,7 @@ function fbm1(x, seed, octaves) {
 }
 
 // Musgrave ridged multifractal: sharp crests, broad valleys.
-function ridged1(x, seed, octaves) {
+function ridged1(x: number, seed: number, octaves: number) {
   let sum = 0;
   let amp = 0.5;
   let w = 1;
@@ -78,7 +78,7 @@ const WORLD_VH = 1.6;
 // silhouette across the water is the home peak itself: the tall crowned mass, the notch, the second peak.
 // Computed once (lazily); `echo(dx)` takes dx in stretch 0's units from the main summit and returns the
 // host's height above its base there (viewport heights).
-let HOME = null;
+let HOME: { P: Resolved; m: number[]; x0: number } | null = null;
 function homeHost() {
   if (HOME) return HOME;
   const P = resolve(spec('level', 1), 1.6);
@@ -91,13 +91,13 @@ function homeHost() {
   HOME = { P, m, x0 };
   return HOME;
 }
-function echo(dx) {
+function echo(dx: number) {
   const H = homeHost();
   return planeHeight(2, H.x0 + dx, H.m, H.P);
 }
 
 /** How far plane `l` rises above its base at world x `u` (viewport heights), before the scene's water. */
-function planeHeight(l, u, m, P) {
+function planeHeight(l: number, u: number, m: number[], P: Resolved) {
   const { seed, freq, crest: cw, oct, crag } = NOISE[l];
   const xw = u * WORLD_VH;
   const warp = 0.32 * fbm1(xw * 0.8 + seed, seed + 3, 3);
@@ -135,9 +135,9 @@ function planeHeight(l, u, m, P) {
 
 /**
  * The top of plane `l` at world x `u` (viewport heights, before any water): where a figure can stand on it.
- * DOM-free; figures.js places the traveller and the hut on the real slopes with it.
+ * DOM-free; figures.ts places the traveller and the hut on the real slopes with it.
  */
-export function planeTop(l, u, P, m = null) {
+export function planeTop(l: number, u: number, P: Resolved, m: number[] | null = null): number {
   const M = m || massifs(u - 0.05, u + 0.05, P)[l];
   return P.base[l] + planeHeight(l, u, M, P);
 }
@@ -156,7 +156,7 @@ export function planeTop(l, u, P, m = null) {
  *   far shore stands on the water (shore 1; the river's far planes keep their own feet: shore 0); planes 3-4
  *   stand in front of it (headlands at the seams).
  */
-export function buildRidges(samples, view, P, out) {
+export function buildRidges(samples: number, view: RidgeView, P: Resolved, out?: Float32Array | null): Float32Array {
   const n = samples * ROWS;
   if (!out || out.length !== n * 4) out = new Float32Array(n * 4);
   const { left, wvis, aspect } = view;
@@ -243,8 +243,17 @@ export function buildRidges(samples, view, P, out) {
   return out;
 }
 
+/** The world window a ridge buffer is built for (buildRidges). */
+export interface RidgeView {
+  left: number;
+  wvis: number;
+  aspect: number;
+  palette?: string;
+  pigment?: number;
+}
+
 /** Highest crest of each plane in a ridge buffer (for the horizon state). */
-export function crestMax(buf, samples, out = new Float32Array(LAYERS)) {
+export function crestMax(buf: Float32Array, samples: number, out: Float32Array = new Float32Array(LAYERS)): Float32Array {
   for (let l = 0; l < LAYERS; l++) {
     let m = -Infinity;
     for (let c = 0, o = l * samples * 4; c < samples; c++, o += 4) if (buf[o] > m) m = buf[o];
@@ -255,7 +264,7 @@ export function crestMax(buf, samples, out = new Float32Array(LAYERS)) {
 
 // Smoothed slope (dh/dx in viewport heights) so the shader can shade the shadow faces of each
 // peak without the column streaks a raw derivative would give. Two running-sum box blurs.
-function slopes(h, raw, tmp, w, aspect) {
+function slopes(h: Float32Array, raw: Float32Array, tmp: Float32Array, w: number, aspect: number) {
   const k = Math.max(1, Math.round(w * 0.004));
   const dx = ((2 * k) / w) * aspect;
   for (let c = 0; c < w; c++) {
@@ -265,7 +274,7 @@ function slopes(h, raw, tmp, w, aspect) {
   boxBlur(raw, tmp, w, r);
   boxBlur(tmp, raw, w, r);
 }
-function boxBlur(src, dst, w, r) {
+function boxBlur(src: Float32Array, dst: Float32Array, w: number, r: number) {
   let sum = 0;
   let n = 0;
   for (let j = 0; j <= r && j < w; j++) { sum += src[j]; n++; }
@@ -279,7 +288,7 @@ function boxBlur(src, dst, w, r) {
 }
 
 /** Per-plane [foot, fade, ink] for the shader (and the 2D painter). */
-export function layerFeet(P) {
+export function layerFeet(P: Resolved): Float32Array {
   const out = new Float32Array(LAYERS * 3);
   for (let l = 0; l < LAYERS; l++) {
     out[l * 3] = P.foot[l];

@@ -1,16 +1,18 @@
-// strip.js — a tiny static thumbnail of the whole handscroll, for the footer's scroll map (SPEC-R3 §8.6).
+// strip.ts — a tiny static thumbnail of the whole handscroll, for the footer's scroll map (SPEC-R3 §8.6).
 // DOM-free and deterministic: the same world ridges and scene rows the painting is built from
-// (compose.js / ridges.js), sampled once at a fixed level composition, in three planes of silhouettes
+// (compose.ts / ridges.ts), sampled once at a fixed level composition, in three planes of silhouettes
 // (far: planes 0-1, middle: plane 2, near: planes 3-4). Over the lake and the crossing the far shore stands
 // on its waterline and the water is open paper with a waterline drawn in. Equal width per stretch.
 
-import { spec, resolve } from './compose.js';
-import { buildRidges, SCENE_ROW } from './ridges.js';
+import { spec, resolve } from './compose';
+import { buildRidges, SCENE_ROW } from './ridges';
 
 const PER = 40;           // samples per stretch
 const Y0 = 0.1;           // the strip's bottom edge, viewport heights above the painting's bottom...
 const SPAN_Y = 0.62;      // ...and how much of the painting's height it shows (top: 0.72)
 const TOL = 0.22;         // simplification tolerance, strip units
+
+type Pt = [x: number, y: number];
 
 /**
  * @param {{from?:number, to?:number, width?:number, height?:number}} [o]
@@ -19,7 +21,7 @@ const TOL = 0.22;         // simplification tolerance, strip units
  *   gradient (ids sm-wash-0..2) of --strip-ink at the crest opacities --strip-far, --strip-mid, --strip-near,
  *   dissolving toward the foot; the water lines in --strip-water. Fallbacks for each. Same string on every call.
  */
-export function stripSVG({ from = 0, to = 6, width = 600, height = 36 } = {}) {
+export function stripSVG({ from = 0, to = 6, width = 600, height = 36 }: { from?: number; to?: number; width?: number; height?: number } = {}): string {
   from = Number.isFinite(+from) ? +from : 0;
   to = Number.isFinite(+to) && +to > from ? +to : from + 6;
   width = Math.max(1, +width || 600);
@@ -28,11 +30,11 @@ export function stripSVG({ from = 0, to = 6, width = 600, height = 36 } = {}) {
   const n = Math.max(8, Math.round(PER * span));
   const P = resolve(spec('level', 1), 1.6);
   const buf = buildRidges(n, { left: from, wvis: span, aspect: 1.6 * span, pigment: 0 }, P);
-  const X = (c) => ((c + 0.5) / n) * width;
-  const Y = (h) => height * (1 - (h - Y0) / SPAN_Y);
-  const at = (row, c) => buf[(row * n + c) * 4];
-  const water = (c) => at(SCENE_ROW, c);
-  const wline = (c) => Y(buf[(SCENE_ROW * n + c) * 4 + 1]);
+  const X = (c: number) => ((c + 0.5) / n) * width;
+  const Y = (h: number) => height * (1 - (h - Y0) / SPAN_Y);
+  const at = (row: number, c: number) => buf[(row * n + c) * 4];
+  const water = (c: number) => at(SCENE_ROW, c);
+  const wline = (c: number) => Y(buf[(SCENE_ROW * n + c) * 4 + 1]);
 
   const groups = [[0, 1], [2], [3, 4]];
   // Pale ink washes, not flat silhouettes: each plane is one wash of the strip's ink (--strip-ink), densest at its
@@ -47,8 +49,8 @@ export function stripSVG({ from = 0, to = 6, width = 600, height = 36 } = {}) {
     + `<stop offset="1" style="stop-color:var(--strip-ink, #2A3034);stop-opacity:${feet[g]}"/></linearGradient>`);
   const fills = [0, 1, 2].map((g) => `url(#sm-wash-${g})`);
   const paths = groups.map((planes, g) => {
-    const top = [];
-    const bottom = [];
+    const top: Pt[] = [];
+    const bottom: Pt[] = [];
     for (let c = 0; c < n; c++) {
       let h = -Infinity;
       for (const l of planes) h = Math.max(h, at(l, c));
@@ -74,11 +76,11 @@ export function stripSVG({ from = 0, to = 6, width = 600, height = 36 } = {}) {
   // the water: a waterline where the water is open, and a shorter, fainter ripple line under it
   const lines = [];
   for (const [dy, inset, op] of [[0, 0, 1], [height * 0.11, 0.18, 0.6]]) {
-    let run = null;
+    let run: [number, number] | null = null;
     for (let c = 0; c <= n; c++) {
       const on = c < n && water(c) > 0.6;
       if (on && !run) run = [c, c];
-      else if (on) run[1] = c;
+      else if (on) run![1] = c;
       else if (run) {
         const len = run[1] - run[0];
         const a = run[0] + Math.round(len * inset), b = run[1] - Math.round(len * inset * 1.4);
@@ -97,20 +99,20 @@ export function stripSVG({ from = 0, to = 6, width = 600, height = 36 } = {}) {
     + '</svg>';
 }
 
-const r1 = (v) => {
+const r1 = (v: number) => {
   const s = (Math.round(v * 10) / 10).toFixed(1);
   return s.endsWith('.0') ? s.slice(0, -2) : s;
 };
-const fmt = ([x, y]) => `${r1(x)} ${r1(y)}`;
+const fmt = ([x, y]: Pt) => `${r1(x)} ${r1(y)}`;
 
 // Douglas-Peucker on a polyline
-function simplify(pts, tol) {
+function simplify(pts: Pt[], tol: number): Pt[] {
   if (pts.length < 3) return pts.slice();
   const keep = new Uint8Array(pts.length);
   keep[0] = keep[pts.length - 1] = 1;
-  const stack = [[0, pts.length - 1]];
+  const stack: [number, number][] = [[0, pts.length - 1]];
   while (stack.length) {
-    const [a, b] = stack.pop();
+    const [a, b] = stack.pop()!;
     const [ax, ay] = pts[a], [bx, by] = pts[b];
     const dx = bx - ax, dy = by - ay, L = Math.hypot(dx, dy) || 1;
     let best = -1, dmax = tol;

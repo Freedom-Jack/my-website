@@ -1,25 +1,25 @@
-// sets/home.js — Home (stretch 0): his mountain. On the near ridge (plane 3), at the foot of the host peak's crag, a
+// sets/home.ts — Home (stretch 0): his mountain. On the near ridge (plane 3), at the foot of the host peak's crag, a
 // path comes up out of the mist along the ridge, over a small knoll and down into the saddle, then climbs a few steps
 // cut in the rock to a ledge where a thatched hut stands with its front open, a low brushwood fence before it and a
 // pine leaning over its roof. The traveller (him) walks up the path toward it: a broad hat, sloped shoulders, a white
 // robe flaring at the hem, a bundle on his back and a staff planted ahead. Life: a thread of smoke from the hut's
 // ridge (an anchor only: it is not drawn here, so the present pass never doubles it).
 //
-// A figure set (figures.js, THE SET API): meta + draw(env), in world px.
+// A figure set (figures.ts, THE SET API): meta + draw(env), in world px.
 
-import { REF_PX, VH_PX, planeTop, streams, vnoise, mix, mix3, runs, stroke, wash, softWash, dotTree, ellipse, anchor } from '../figures.js';
+import { REF_PX, VH_PX, planeTop, streams, vnoise, mix, mix3, runs, stroke, wash, softWash, dotTree, ellipse, anchor, type Env, type FigureMeta, type Pt, type Rng } from '../figures';
 
 // u1 reaches past the crag (0.97, not 0.9): on phones the hut is drawn larger and must stay clear of the right end's
 // melt (the last 13 % of the rect's width)
-export const meta = { rect: [0.64, 0.97, 0.06, 0.34], plane: 3, phase: 1 };
+export const meta: FigureMeta = { rect: [0.64, 0.97, 0.06, 0.34], plane: 3, phase: 1 };
 
 const SEED = 5;
-const OB = [0.72, -0.48];   // the Song oblique (figures.js D, copied: a set's top level runs before figures.js's own)
+const OB: Pt = [0.72, -0.48];   // the Song oblique (figures.ts D, copied: a set's top level runs before figures.ts's own)
 
-export function* draw(env) {
+export function* draw(env: Env) {
   const { ctx, P, ink } = env;
   const { C, rgba } = ink;
-  const own = streams(SEED, PINS);   // one stream per element (figures.js streams)
+  const own = streams(SEED, PINS);   // one stream per element (figures.ts streams)
   // The phone's album leaf sees this place from further away, so its figures are drawn larger (a painter's licence:
   // figures are always drawn to be read): the traveller by `big` (ts below), so he is never under 12 CSS px tall; the
   // hut by a little less, the trees and the ground marks by less again.
@@ -27,20 +27,20 @@ export function* draw(env) {
   const bh = 1 + (big - 1) * 0.9;    // the hut, its ledge, its fence
   const bt = 1 + (big - 1) * 0.7;    // trees
   const bg = 1 + (big - 1) * 0.6;    // ground marks: the crest, the path, the steps
-  const X = (u) => u * REF_PX, Y = (y) => (1 - y) * VH_PX;
-  const crestY = (x) => Y(planeTop(3, x / REF_PX, P));
+  const X = (u: number) => u * REF_PX, Y = (y: number) => (1 - y) * VH_PX;
+  const crestY = (x: number) => Y(planeTop(3, x / REF_PX, P));
 
   // ---- the ridge under the path: a body of pale wash falling into mist, the crest in broken dry strokes
-  const ridge = [];
+  const ridge: Pt[] = [];
   for (let u = 0.716; u <= 0.83; u += 0.002) ridge.push([X(u), crestY(X(u)) + 0.6]);
   const tone = mix3(C.ink2, C.indigo, 0.5);
   for (const [d, a, r] of [[18, 0.035, 3], [10, 0.045, 1.6], [4.5, 0.06, 0.8]]) {   // darkest under the crest, thinning
-    const lower = ridge.slice().reverse().map(([x, y], i) => [x - 2, y + d * bg * (0.6 + 0.8 * vnoise(i * 0.07, d, 21))]);
+    const lower = ridge.slice().reverse().map(([x, y], i): Pt => [x - 2, y + d * bg * (0.6 + 0.8 * vnoise(i * 0.07, d, 21))]);
     softWash(env, [...ridge, ...lower], rgba(tone, a), r * bg);
   }
   // the crest and the path's edge below it never run side by side (that reads as a road with kerbs): one slow noise
   // gives the crest where it is high and the path's edge where it is low, so the brush alternates between them
-  const gate = (x) => vnoise(x / (24 * bg), 4.2, 41);
+  const gate = (x: number) => vnoise(x / (24 * bg), 4.2, 41);
   const Rc = own('crest');
   for (const seg of gated(ridge, (x) => gate(x) > 0.44)) {
     stroke(ctx, seg, { w: 1.15 * bg, col: rgba(C.ink, 0.3 + Rc() * 0.16), tin: 0.25, tout: 0.5, wob: 0.8, dry: 0.4, seed: seg[0][0] });
@@ -69,17 +69,17 @@ export function* draw(env) {
 
   // ---- the path: a worn pale band just under the crest, its lower edge in broken dry strokes, a few pebbles; over
   // the knoll, down into the saddle, then steps up to the ledge
-  const pathY = (x) => crestY(x) + (2.5 + 1.0 * vnoise(x * 0.045, 1.7, 23)) * bg;
-  const path = [];
+  const pathY = (x: number) => crestY(x) + (2.5 + 1.0 * vnoise(x * 0.045, 1.7, 23)) * bg;
+  const path: Pt[] = [];
   for (let x = X(0.722); x <= X(0.817); x += 1.5) path.push([x, pathY(x)]);
   const Rp = own('path');
   for (const seg of runs(path, Rp, 22 * bg, 70 * bg, 7 * bg)) {
-    const band = [...seg.map(([x, y]) => [x, y - 0.7 * bg]), ...seg.slice().reverse().map(([x, y]) => [x, y + 1.2 * bg])];
+    const band = [...seg.map(([x, y]): Pt => [x, y - 0.7 * bg]), ...seg.slice().reverse().map(([x, y]): Pt => [x, y + 1.2 * bg])];
     softWash(env, band, rgba(C.white, 0.5), 0.5 * bg);
   }
   for (const seg of gated(path, (x) => gate(x) < 0.52 && vnoise(x / (7 * bg), 1.3, 43) > 0.38)) {
     if (seg.length < 3) continue;
-    stroke(ctx, seg.map(([x, y]) => [x, y + 1.6 * bg]), { w: 0.75 * bg, col: rgba(C.ink, 0.28 + Rp() * 0.18), tin: 0.2, tout: 0.5, wob: 0.6, dry: 0.45, seed: seg[0][0] + 3 });
+    stroke(ctx, seg.map(([x, y]): Pt => [x, y + 1.6 * bg]), { w: 0.75 * bg, col: rgba(C.ink, 0.28 + Rp() * 0.18), tin: 0.2, tout: 0.5, wob: 0.6, dry: 0.45, seed: seg[0][0] + 3 });
   }
   for (let i = 0; i < 6; i++) {   // pebbles at the edge (none under his feet)
     const [x, y] = path[Math.floor(Rp() * path.length)];
@@ -98,7 +98,7 @@ export function* draw(env) {
 
   // the steps: short treads cut in the rock from the saddle up to the lip, each a pale top over a dark edge, with
   // the rock's broken edge running up beside them
-  const s0 = [X(0.816), pathY(X(0.816)) + 0.6 * bg], s1 = [lx + 0.6 * bh, y0 + 1.8 * bh];
+  const s0: Pt = [X(0.816), pathY(X(0.816)) + 0.6 * bg], s1: Pt = [lx + 0.6 * bh, y0 + 1.8 * bh];
   const nS = Math.max(3, Math.min(6, Math.round((s0[1] - s1[1]) / (4.2 * bg))));
   const Rst = own('steps');
   for (let i = 0; i < nS; i++) {
@@ -109,7 +109,7 @@ export function* draw(env) {
     stroke(ctx, [[a, py], [b, py - 0.2 * bg]], { w: 0.85 * bg, col: rgba(C.ink, 0.5 + Rst() * 0.2), tin: 0.15, tout: 0.3, dry: 0.15, seed: i + 7 });
     stroke(ctx, [[a, py], [a - 0.2 * bg, py + 2.4 * bg]], { w: 0.5 * bg, col: rgba(C.ink, 0.28), tin: 0, tout: 0.7, seed: i + 9 });
   }
-  const side = [[s0[0] + 2.6 * bg, s0[1] + 0.8 * bg], [mix(s0[0], s1[0], 0.5) + 3 * bg, mix(s0[1], s1[1], 0.5) + 0.4 * bg], [s1[0] + 2.8 * bg, s1[1]]];
+  const side: Pt[] = [[s0[0] + 2.6 * bg, s0[1] + 0.8 * bg], [mix(s0[0], s1[0], 0.5) + 3 * bg, mix(s0[1], s1[1], 0.5) + 0.4 * bg], [s1[0] + 2.8 * bg, s1[1]]];
   stroke(ctx, side, { w: 0.7 * bg, col: rgba(C.ink, 0.32), tin: 0.2, tout: 0.3, wob: 0.6, dry: 0.45, seed: 49 });
   yield;
 
@@ -122,20 +122,20 @@ export function* draw(env) {
   // below in a grey wash with axe-cut texture strokes, moss dots on the lip, mist swallowing its foot
   const Rr = own('rock');
   // the lip wanders (a broken rock edge, never a plank) and dips where a block has fallen from it
-  const lipY = (x) => { const t = (x - rx0) / (rx1 - rx0); return mix(y0 + 2.2 * bh, y0 + 1.3 * bh, t) + (vnoise(x * 0.16 / bh, 2.3, 31) - 0.5) * 2 * bh + Math.exp(-((t - 0.55) ** 2) / 0.006) * 1.2 * bh; };
-  const lip = [];
+  const lipY = (x: number) => { const t = (x - rx0) / (rx1 - rx0); return mix(y0 + 2.2 * bh, y0 + 1.3 * bh, t) + (vnoise(x * 0.16 / bh, 2.3, 31) - 0.5) * 2 * bh + Math.exp(-((t - 0.55) ** 2) / 0.006) * 1.2 * bh; };
+  const lip: Pt[] = [];
   for (let i = 0; i <= 20; i++) { const x = mix(rx0, rx1, i / 20); lip.push([x, lipY(x)]); }
   // the top, reserved (it hides the slope behind: the hut stands in front of the crag); its back edge is the crag's foot
   wash(ctx, [...lip, [rx1 - 1.5 * bh, y0 - 1.2 * bh], [mix(rx0, rx1, 0.62), y0 - 3.2 * bh], [hx - 0.5 * bh, y0 - 2.4 * bh], [rx0 + 1.5 * bh, y0 - 0.4 * bh]], rgba(mix3(C.paper, C.ink2, 0.08), 0.92), { jit: 0.4 * bh, seed: 51 });
   // the face: darkest under the lip, thinning downward
-  const face = [...lip, [rx1 - 1.5 * bh, y0 + 8 * bh], [mix(rx0, rx1, 0.6), y0 + 12.5 * bh], [mix(rx0, rx1, 0.25), y0 + 11 * bh], [rx0 - 0.5 * bh, y0 + 6.5 * bh]];
+  const face: Pt[] = [...lip, [rx1 - 1.5 * bh, y0 + 8 * bh], [mix(rx0, rx1, 0.6), y0 + 12.5 * bh], [mix(rx0, rx1, 0.25), y0 + 11 * bh], [rx0 - 0.5 * bh, y0 + 6.5 * bh]];
   softWash(env, face, rgba(mix3(C.ink2, C.indigo, 0.35), 0.17), 1.2 * bh);
-  softWash(env, [...lip, ...lip.slice().reverse().map(([x, y], i) => [x - 0.6 * bh, y + (3 + 1.4 * Math.sin(i * 0.9)) * bh])], rgba(mix3(C.ink2, C.indigo, 0.3), 0.14), 0.6 * bh);
+  softWash(env, [...lip, ...lip.slice().reverse().map(([x, y], i): Pt => [x - 0.6 * bh, y + (3 + 1.4 * Math.sin(i * 0.9)) * bh])], rgba(mix3(C.ink2, C.indigo, 0.3), 0.14), 0.6 * bh);
   // the face in facets: two creases running down to the left from the lip, each with a few axe-cut strokes beside it
   // (broad, slanting, dry, fading downward), as the Song painters cut their rock
   for (const f of [0.34, 0.72]) {
     const x = mix(rx0, rx1, f + (Rr() - 0.5) * 0.08), y = lipY(x) + 0.5 * bh;
-    const crease = [[x, y], [x - 2.2 * bh, y + (5 + Rr() * 1.5) * bh], [x - 3.2 * bh, y + (9 + Rr() * 2) * bh]];
+    const crease: Pt[] = [[x, y], [x - 2.2 * bh, y + (5 + Rr() * 1.5) * bh], [x - 3.2 * bh, y + (9 + Rr() * 2) * bh]];
     stroke(ctx, crease, { w: 0.85 * bh, col: rgba(C.ink, 0.42), tin: 0.05, tout: 0.7, wob: 0.6, dry: 0.4, seed: 60 + f * 10 });
     for (let k = 0; k < 3; k++) {
       const o = (1.1 + k * 1.3 + Rr() * 0.5) * bh, len = (2.4 + Rr() * 2.2) * bh, dy = (0.6 + k * 0.9) * bh;
@@ -150,11 +150,11 @@ export function* draw(env) {
     ctx.beginPath(); ctx.ellipse(x, lipY(x) - 0.2 * bh, (0.7 + Rr() * 0.4) * bh, 0.5 * bh, 0, 0, Math.PI * 2); ctx.fill();
   }
   // mist at its foot, over the bottom of the face and the lowest steps (the plane's own mist band continues it)
-  const mist = [];
+  const mist: Pt[] = [];
   for (let i = 0; i <= 8; i++) { const t = i / 8; mist.push([mix(rx0 - 8 * bh, rx1 + 3 * bh, t), y0 + (7.5 - 1.5 * t + 2.2 * Math.sin(t * 9 + 1)) * bh]); }
   for (let i = 8; i >= 0; i--) { const t = i / 8; mist.push([mix(rx0 - 10 * bh, rx1 + 1 * bh, t), y0 + (17 + 3 * Math.sin(t * 7)) * bh]); }
   softWash(env, mist, rgba(C.mist, 0.3), 6 * bh);
-  softWash(env, mist.map(([x, y], i) => [x + (i < 9 ? 2 : -2) * bh, y + (i < 9 ? 2 : -3) * bh]), rgba(C.mist, 0.3), 3 * bh);   // denser at its heart
+  softWash(env, mist.map(([x, y], i): Pt => [x + (i < 9 ? 2 : -2) * bh, y + (i < 9 ? 2 : -3) * bh]), rgba(C.mist, 0.3), 3 * bh);   // denser at its heart
   yield;
 
   // ---- behind the hut: a leafy tree on the crag, its crown showing over the roof's far end
@@ -167,7 +167,7 @@ export function* draw(env) {
   fence(env, fx, fx + OB[0] * 6 * bh, (x) => y0 + 0.9 * bh + (x - fx) * (OB[1] / OB[0]), bh, own('fence', 2));
   pineOver(env, hx - 0.6 * bh, y0 + 1.1 * bh, 0.78 * bt, 4.2, own('hut pine'));
   // life: a thread of smoke from the ridge's far end, rising and leaning a little downwind
-  const src = [mix(hut.rL[0], hut.rR[0], 0.72), hut.rL[1] - 0.5 * bh];
+  const src: Pt = [mix(hut.rL[0], hut.rR[0], 0.72), hut.rL[1] - 0.5 * bh];
   anchor(env, 'smoke', { x: src[0] - 9 * bh, y: src[1] - 36 * bh, w: 24 * bh, h: 36 * bh }, { src });
   yield;
 
@@ -183,19 +183,19 @@ export function* draw(env) {
  * planted ahead, a bundle on his back. x = between his feet, s = scale (he is about 10.4 s tall to the hat's crown),
  * G(x) = the ground's y. Only the shade side (his back, the hem) gets a dark contour, broken.
  */
-function traveller(env, x, s, G, R) {
+function traveller(env: Env, x: number, s: number, G: (x: number) => number, R: Rng) {
   const { ctx, ink } = env;
   const { C, rgba } = ink;
-  const fb = [x - 0.95 * s, G(x - 0.95 * s)], ff = [x + 1.05 * s, G(x + 1.05 * s)];
+  const fb: Pt = [x - 0.95 * s, G(x - 0.95 * s)], ff: Pt = [x + 1.05 * s, G(x + 1.05 * s)];
   const by = (fb[1] + ff[1]) / 2;
   const lean = 0.13;                    // into the climb: each unit up moves him this far forward
   const j = () => (R() - 0.5) * 0.16;   // a little seeded unevenness: the brush never repeats a figure exactly
-  const p = (dx, dy) => [x + (dx + lean * dy + j()) * s, by - (dy + j()) * s];
+  const p = (dx: number, dy: number): Pt => [x + (dx + lean * dy + j()) * s, by - (dy + j()) * s];
   // his shadow on the path
   softWash(env, ellipse(x + 0.5 * s, by + 0.25 * s, 3.2 * s, 0.5 * s, 12), rgba(C.ink, 0.13), 0.3 * s);
   // the bundle on his back (drawn first: the robe covers its front half)
   const bc = p(-1.05, 5.5);
-  const bun = ellipse(0, 0, 1.15 * s, 1.45 * s, 12).map(([u, v]) => { const a = -0.35; return [bc[0] + u * Math.cos(a) - v * Math.sin(a), bc[1] + u * Math.sin(a) + v * Math.cos(a)]; });
+  const bun = ellipse(0, 0, 1.15 * s, 1.45 * s, 12).map(([u, v]): Pt => { const a = -0.35; return [bc[0] + u * Math.cos(a) - v * Math.sin(a), bc[1] + u * Math.sin(a) + v * Math.cos(a)]; });
   wash(ctx, bun, rgba(mix3(C.indigo, C.ink, 0.3), 0.9), { jit: 0.12 * s, seed: 81 });
   stroke(ctx, [p(-2.05, 5.0), p(-1.75, 6.35), p(-0.8, 6.95)], { w: 0.3 * s, col: rgba(C.ink, 0.7), tin: 0.1, tout: 0.3, seed: 82 });
   // the shoes under the hem (the robe falls to the ankles): the back one pushing off, the front one stepping up
@@ -203,8 +203,8 @@ function traveller(env, x, s, G, R) {
   stroke(ctx, [[ff[0] - 0.35 * s, ff[1]], [ff[0] + 0.75 * s, ff[1] - 0.25 * s]], { w: 0.5 * s, col: rgba(C.ink, 0.85), tin: 0, tout: 0.3, seed: 86 });
   // the robe: sloped shoulders, a long back falling to a hem that flares and trails, the front lifted by the stride
   const BS = p(-0.2, 6.65), FS = p(1.85, 6.75), N = p(0.85, 7.4);
-  const back = [BS, p(-0.5, 5.1), p(-0.8, 3.0), p(-1.3, 1.2), [x - 2.1 * s, fb[1] - 0.2 * s]];
-  const hem = [back[4], p(-1.0, 0.4), p(0.2, 0.35), p(1.4, 0.7), [x + 2.4 * s, ff[1] - 0.55 * s]];
+  const back: Pt[] = [BS, p(-0.5, 5.1), p(-0.8, 3.0), p(-1.3, 1.2), [x - 2.1 * s, fb[1] - 0.2 * s]];
+  const hem: Pt[] = [back[4], p(-1.0, 0.4), p(0.2, 0.35), p(1.4, 0.7), [x + 2.4 * s, ff[1] - 0.55 * s]];
   const front = [hem[4], p(1.95, 2.9), p(1.95, 4.6), p(2.0, 5.9), FS];
   const top = [FS, p(1.35, 7.2), N, p(0.25, 7.1), BS];
   wash(ctx, [...back, ...hem.slice(1), ...front.slice(1), ...top.slice(1, -1)], rgba(C.white, 0.97), { jit: 0.1 * s, seed: 87 });
@@ -228,9 +228,9 @@ function traveller(env, x, s, G, R) {
   // the staff, planted a little ahead on the rising path (its foot forward of its top), held at chest height, as
   // long as he is to the shoulder whatever the slope; drawn before the hat, which may cover its top
   const kx = H[0] + 1.2 * s;
-  const K = [kx, G(kx) + 0.15 * s];
+  const K: Pt = [kx, G(kx) + 0.15 * s];
   const dl = Math.hypot(H[0] - K[0], H[1] - K[1]) || 1;
-  const T = [K[0] + (H[0] - K[0]) / dl * 6.8 * s, K[1] + (H[1] - K[1]) / dl * 6.8 * s];
+  const T: Pt = [K[0] + (H[0] - K[0]) / dl * 6.8 * s, K[1] + (H[1] - K[1]) / dl * 6.8 * s];
   stroke(ctx, [T, [mix(T[0], K[0], 0.5) + 0.1 * s, mix(T[1], K[1], 0.5)], K], { w: 0.36 * s, col: rgba(C.ink, 0.9), tin: 0.05, tout: 0.1, wob: 0.2, seed: 99 });
   ctx.fillStyle = rgba(mix3(C.white, C.ink2, 0.3), 0.95);
   ctx.beginPath(); ctx.arc(H[0], H[1], 0.36 * s, 0, Math.PI * 2); ctx.fill();
@@ -253,21 +253,21 @@ function traveller(env, x, s, G, R) {
  * of straw, a ragged eave and a bundled ridge (no lifted corners: those belong to tile). (x, y) = front-left foot,
  * b = scale. Returns { rL, rR } (the ridge's ends).
  */
-function thatchedHut(env, x, y, b, R) {
+function thatchedHut(env: Env, x: number, y: number, b: number, R: Rng) {
   const { ctx, ink } = env;
   const { C, rgba } = ink;
   const w = 19 * b, h = 7.8 * b, d = 8.5 * b, rh = 7.6 * b, ov = 3 * b;   // HW, HD in draw()
   const ox = OB[0] * d, oy = OB[1] * d;
   const ey = y - h + 0.9 * b;                          // the thatch hangs below the wall's top
-  const rL = [x + w * (0.2 + R() * 0.04) + ox * 0.5, y - h - rh + oy * 0.5];
-  const rR = [x + w * (0.8 - R() * 0.04) + ox * 0.5, rL[1] + (R() - 0.5) * 0.4 * b];
-  const eave = [];
+  const rL: Pt = [x + w * (0.2 + R() * 0.04) + ox * 0.5, y - h - rh + oy * 0.5];
+  const rR: Pt = [x + w * (0.8 - R() * 0.04) + ox * 0.5, rL[1] + (R() - 0.5) * 0.4 * b];
+  const eave: Pt[] = [];
   for (let i = 0; i <= 10; i++) {
     const t = i / 10;
     eave.push([x - ov + (w + 2 * ov) * t, ey + Math.sin(Math.PI * t) * 0.5 * b + (R() - 0.5) * 0.35 * b]);
   }
-  const eL = eave[0], eF = eave[10], eB = [x + w + ov + ox, ey + oy + 0.3 * b];
-  const bulge = (a, c, k) => [mix(a[0], c[0], 0.5) + k * b, mix(a[1], c[1], 0.5) - Math.abs(k) * 0.5 * b];
+  const eL = eave[0], eF = eave[10], eB: Pt = [x + w + ov + ox, ey + oy + 0.3 * b];
+  const bulge = (a: Pt, c: Pt, k: number): Pt => [mix(a[0], c[0], 0.5) + k * b, mix(a[1], c[1], 0.5) - Math.abs(k) * 0.5 * b];
   const hipL = bulge(eL, rL, -0.9), hipR = bulge(eF, rR, 0.7), hipB = bulge(eB, rR, 0.6);
   // the paper reserve: the hut hides the crag behind it
   wash(ctx, [[x, y + 0.5], [x + w, y + 0.5], [x + w + ox, y + oy + 0.5], [x + w + ox, ey + oy], eB, hipB, rR, rL, hipL, eL, [x, ey]], rgba(C.paper, 1), { jit: 0.15 * b, seed: 110 });
@@ -296,8 +296,8 @@ function thatchedHut(env, x, y, b, R) {
   const n = 6 + Math.round(w / (2.2 * b));
   for (let i = 0; i <= n; i++) {
     const t = i / n;
-    const top = [mix(rL[0] - 2 * b, rR[0] + 2 * b, t), rL[1] - 0.5 * b];
-    const bot = [mix(eL[0], eF[0], t) + (R() - 0.5) * 0.6 * b, ey + 1 * b];
+    const top: Pt = [mix(rL[0] - 2 * b, rR[0] + 2 * b, t), rL[1] - 0.5 * b];
+    const bot: Pt = [mix(eL[0], eF[0], t) + (R() - 0.5) * 0.6 * b, ey + 1 * b];
     const from = 0.15 + R() * 0.35;
     stroke(ctx, [[mix(top[0], bot[0], from), mix(top[1], bot[1], from)], bot], { w: 0.34 * b, col: rgba(C.ink, 0.16 + R() * 0.16), tin: 0.3, tout: 0.1, dry: 0.35, seed: 130 + i });
   }
@@ -315,10 +315,10 @@ function thatchedHut(env, x, y, b, R) {
 }
 
 /** A low brushwood fence from x0 to x1 along y(x): uneven posts, two broken rails, a few crossed sticks. */
-function fence(env, x0, x1, yAt, b, R) {
+function fence(env: Env, x0: number, x1: number, yAt: (x: number) => number, b: number, R: Rng) {
   const { ctx, ink } = env;
   const { C, rgba } = ink;
-  const posts = [];
+  const posts: [x: number, y: number, tx: number, ty: number][] = [];
   for (let x = x0; x <= x1; x += (2.3 + R() * 1.1) * b) {
     const y = yAt(x), hgt = (2.5 + R() * 0.8) * b, lean = (R() - 0.5) * 0.5 * b;
     posts.push([x, y, x + lean, y - hgt]);
@@ -326,7 +326,7 @@ function fence(env, x0, x1, yAt, b, R) {
   }
   if (posts.length < 2) return;
   for (const f of [0.78, 0.38]) {
-    const rail = posts.map(([x, y, tx, ty]) => [mix(x, tx, f), mix(y, ty, f)]);
+    const rail = posts.map(([x, y, tx, ty]): Pt => [mix(x, tx, f), mix(y, ty, f)]);
     stroke(ctx, rail, { w: 0.36 * b, col: rgba(C.ink, f > 0.5 ? 0.55 : 0.38), tin: 0.05, tout: 0.1, wob: 0.4, dry: 0.3, seed: f * 100 + x0 });
   }
   for (let i = 0; i + 1 < posts.length; i++) {
@@ -337,15 +337,15 @@ function fence(env, x0, x1, yAt, b, R) {
 }
 
 /**
- * A pine leaning a known way (figures.js pine() picks its lean at random; this one must lean over the hut): a
+ * A pine leaning a known way (figures.ts pine() picks its lean at random; this one must lean over the hut): a
  * crooked trunk and flat needle tiers, wider on the side it leans to. (x, y) = the foot; lean in units of s.
  */
-function pineOver(env, x, y, s, lean, R) {
+function pineOver(env: Env, x: number, y: number, s: number, lean: number, R: Rng) {
   const { ctx, ink } = env;
   const { C, rgba } = ink;
   const H = 24 * s;
   const L = lean * s;
-  const at = (t) => [x + L * Math.pow(t, 1.6) + Math.sin(t * 7) * 0.5 * s, y - H * t];
+  const at = (t: number): Pt => [x + L * Math.pow(t, 1.6) + Math.sin(t * 7) * 0.5 * s, y - H * t];
   stroke(ctx, [[x, y + 0.5], at(0.3), at(0.55), at(0.8), at(1)], { w: 1.6 * s, col: rgba(C.ink, 0.9), tin: 0, tout: 0.5, wob: 0.45, seed: x * 3 });
   stroke(ctx, [at(0.55), [at(0.55)[0] + 4.5 * s, at(0.55)[1] - 1.2 * s]], { w: 0.8 * s, col: rgba(C.ink, 0.8), tin: 0, tout: 0.6, seed: x * 3 + 1 });   // a bough reaching out
   const needle = ink.strength > 0 ? mix3(C.ink, C.malD, 0.22) : C.ink;
@@ -361,9 +361,9 @@ function pineOver(env, x, y, s, lean, R) {
 }
 
 /** The runs of a polyline where keep(x) holds (two or more points each). */
-function gated(pts, keep) {
-  const out = [];
-  let cur = [];
+function gated(pts: Pt[], keep: (x: number) => boolean) {
+  const out: Pt[][] = [];
+  let cur: Pt[] = [];
   for (const q of pts) {
     if (keep(q[0])) cur.push(q);
     else { if (cur.length > 1) out.push(cur); cur = []; }
@@ -374,4 +374,4 @@ function gated(pts, keep) {
 
 // PINS: seed data. In 4a each element's place in the set's single stream was pinned here; every element of this scene
 // has since been repainted, so none is pinned and each draws from stream(SEED, ...key).
-const PINS = {};
+const PINS: Record<string, number> = {};

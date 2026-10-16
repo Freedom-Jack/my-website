@@ -1,9 +1,9 @@
-// landscape/index.js — public API of the generative ink-landscape background.
+// landscape/index.ts — public API of the generative ink-landscape background.
 // Everything else in the site talks to the landscape ONLY through mountLandscape() and the handle
 // it returns (plus the DOM-free exports stripSVG(), sceneAt(), framingAt(), PALETTES and PIGMENTS). Internals:
-// compose.js (where the mountains and the water stand, how each window frames them), ridges.js (profiles),
-// palette.js (pigments), figures.js + figures.worker.js (the figure layers), gl.js + shaders.js (WebGL2 painter),
-// canvas2d.js (fallback), strip.js (the footer's story map).
+// compose.ts (where the mountains and the water stand, how each window frames them), ridges.ts (profiles),
+// palette.ts (pigments), figures.ts + figures.worker.ts (the figure layers), gl.ts + shaders.ts (WebGL2 painter),
+// canvas2d.ts (fallback), strip.ts (the footer's story map).
 //
 // Round 4a (SPEC-R4A §7, §12): one fixed canvas paints into *windows*, boxes on the page: the page's strip
 // ([data-landscape="strip"]) and its closing ([data-landscape="closing"]). Each window is its own painting of the
@@ -21,25 +21,62 @@
 // (pans, the bloom) are governed: when they run slow they are painted as drafts at a lower internal scale, and one
 // full-quality scene follows ~150 ms after they stop.
 
-import { createGL } from './gl.js';
-import { createCanvas2D } from './canvas2d.js';
-import { buildRidges, layerFeet, crestMax, LAYERS } from './ridges.js';
-import { spec, blendSpec, resolve, framing, cameraLeft, sceneName, framingBlend, widthClass, HS, SCENES, STRETCH_COUNT, featherOf, REF_PX } from './compose.js';
-import { VEILS, TRAIL, LIFE } from './shaders.js';
-import { paletteName } from './palette.js';
-import { figureMeta, registerSets } from './figures.js';
-import { createFigureSource } from './figure-source.js';
-import { SETS } from './sets/index.js';
-import { framingAt, pageSpec } from './compose.js';
+import { createGL, type TaintedError } from './gl';
+import { createCanvas2D } from './canvas2d';
+import { buildRidges, layerFeet, crestMax, LAYERS } from './ridges';
+import { spec, blendSpec, resolve, framing, cameraLeft, sceneName, framingBlend, widthClass, HS, SCENES, STRETCH_COUNT, featherOf, REF_PX } from './compose';
+import { VEILS, TRAIL, LIFE } from './shaders';
+import { paletteName } from './palette';
+import { figureMeta, registerSets } from './figures';
+import { createFigureSource, type FigureSource } from './figure-source';
+import { SETS } from './sets';
+import { framingAt, pageSpec } from './compose';
+import type { Distance, Framing, Resolved, Spec, WidthClass, WindowKind } from './compose';
+import type { FigureMeta, LifeKind, LifeOut, Pt } from './figures';
+import type { FigureImage, FigureSlot, LifeTable, PresentU, PresentWindow, Renderer, SceneBase, StageU } from './renderer';
+import type { LandscapeHandle, LandscapeStats, LandscapeTargets, Mode, MountOptions, PanOptions } from '../types';
 
 registerSets(SETS);   // the figure sets, on the main thread (the worker registers its own)
 
-export { stripSVG } from './strip.js';
-export { PALETTES, PIGMENTS } from './palette.js';
-export { framingAt } from './compose.js';
+export { stripSVG } from './strip';
+export { PALETTES, PIGMENTS } from './palette';
+export { framingAt } from './compose';
 
 /** The scene painted at a stretch (DOM-free): 'peak' | 'river' | 'path' | 'lake' | 'shore' | 'crossing' | 'lone-peak'. */
-export function sceneAt(stretch) { return sceneName(stretch); }
+export function sceneAt(stretch: number): string { return sceneName(stretch); }
+
+/** mountLandscape()'s options: the site's (types.ts MountOptions) and the lab's and QA's (see its JSDoc below). */
+export interface EngineOptions extends Omit<MountOptions, 'veil'> {
+  veil?: Element | Iterable<Element> | null;
+  /** Aliases of strip and closing. */
+  head?: Element | null;
+  descend?: Element | null;
+  figures?: boolean;
+  horizonMedia?: string;
+  fromStretch?: number | null;
+  fromDistance?: Distance;
+  fromPresence?: number;
+  panDuration?: number;
+  arrivalMs?: number;
+  veilStrength?: number;
+  grain?: number;
+  tide?: number;
+  pointer?: boolean;
+  reducedMotion?: boolean;
+  widthClass?: WidthClass;
+}
+/** rebind()'s targets: the contract's (types.ts), with the head / descend aliases and a single veil element. */
+export type EngineTargets = Partial<Omit<LandscapeTargets, 'veil'>> & Pick<EngineOptions, 'veil' | 'head' | 'descend'>;
+/** The handle mountLandscape() returns: the contract's (types.ts LandscapeHandle) and the lab's; QA builds add setState
+ *  and qa. */
+export interface EngineHandle extends LandscapeHandle {
+  setPalette(p: string): void;
+  setVeil(els: Element | Iterable<Element> | null): void;
+  rebind(o: EngineTargets): void;
+  setState?(s: unknown): void;
+  qa?(o?: { veils?: boolean }): void;
+  stats(): LandscapeStats;
+}
 
 const S_SCENE = 2, S_PRESENT = 4, S_MEASURE = 8, S_SCROLL = 16, S_ALL = 31;   // dirty flags
 const ARRIVE_END = 1.7;   // s, the bloom is over (matches the shader's "settled")
@@ -96,14 +133,14 @@ const FIG_KEEP = 6;       // figure layers cached (per stretch x composition x s
 const LAYER_SHARE = [0.6, 1.16];
 const LAYER_STANDIN = [0.4, 1.16];
 // Window feathers, CSS px (painted by the engine): top out of paper, bottom into paper; a document's strip half.
-// (compose.js owns them: the band framings keep summits and ground clear of them.)
+// (compose.ts owns them: the band framings keep summits and ground clear of them.)
 // The deferred first frame under the old page wash (retired in round 3; kept so an old boot script
 // that still covers the page cannot catch the first GPU frame mid-reveal).
 const REVEAL_EVENT = 'ink:reveal';
 const FLOOD_TYPE = ':active-view-transition-type(ink)';
 const COVERED = 'is-covered';
 const DEFER_MAX = 1500;
-const FORCED = new Set(['hero', 'horizon', 'closing']);
+const FORCED = new Set<unknown>(['hero', 'horizon', 'closing']);
 // 4b, the living ground (body[data-ground="living"]: Home and Work; every other page is 4a). On wide screens the page's
 // own scene is painted once, full-bleed, into three DEPTH LAYERS (far: the sky and the far ranges; middle: the host
 // and, on the river, the water and the town; near: the near crags, Home's traveller and hut), each with real coverage.
@@ -119,7 +156,45 @@ const GLIDE_TAU = 150;      // ms: after a pan, and when one combined layer give
 const HOLD_MS = 180;        // ms (round 3): a pan from a lifted pose first brings the camera down to the opening on the three
                             // layers (present-only, eased to exactly 0), and only then does the one combined layer take over:
                             // its planes all stand at one depth, so switching on a lifted pose jumped (shorter for a small pose)
-const STAGE = {
+/** The living ground's numbers (STAGE, per place STAGE_AT): see each one's comment there. */
+interface StageTunables {
+  split: number[];
+  sink: number[];
+  reach: number;
+  ease: number;
+  seaK: number;
+  soft: number;
+  billow: number;
+  haze: number;
+  hazeK: number;
+  anchor: number;
+  cluster: number;
+  slide: number;
+  slideAt: number[];
+  curtain: number;
+  reveal: number;
+  revealAt: number[];
+  /** [world x (stretches), scene height] points that must come out whole. */
+  arch: [number, number][] | null;
+  cloud: number;
+  cloudAt: number[];
+  rise: number;
+  body: number[];
+  descend: number;
+  vmax: number;
+  lead: number;
+  descAt: number[];
+  still: number;
+  core: number;
+  feather: number;
+  swell: number;
+  clear: number;
+  far: number;
+  sky: number;
+  drift: number;
+  lag: number;
+}
+const STAGE: StageTunables = {
   split: [2, 3],              // the first plane of the middle layer and of the near one (far: 0..1, middle: 2, near: 3..4)
   sink: [0.05, 0.17, 0.26],   // each layer's sink once the camera has settled (viewport heights): far, middle, near. The
                               // near layer parks low instead of dropping out, and the sea of mist keeps to the deepest
@@ -190,11 +265,11 @@ const STAGE = {
 // of the mist at the end. (Final review r1, item 2: the anchor was u 1.625, where the arch comes down to the far bank,
 // so the margin held the arch's east half as a sheared stump beside the reader for 3-4 screens.)
 // (round 4: `arch`, the bridge's west foot, crown and east end, measured on the painting at 1440 and 2560)
-const STAGE_AT = { 1: { sink: [0.06, 0.24, 0.24], anchor: 1.755, cluster: 0.175, cloud: 1, cloudAt: [0.25, 0.37, 0.53, 0.65], curtain: 1,
+const STAGE_AT: Record<number, Partial<StageTunables>> = { 1: { sink: [0.06, 0.24, 0.24], anchor: 1.755, cluster: 0.175, cloud: 1, cloudAt: [0.25, 0.37, 0.53, 0.65], curtain: 1,
   arch: [[1.482, 0.204], [1.572, 0.323], [1.655, 0.291]] } };
-const PLACE_KEYS = ['sink', 'anchor', 'cluster', 'cloud', 'cloudAt', 'curtain', 'arch'];
+const PLACE_KEYS = ['sink', 'anchor', 'cluster', 'cloud', 'cloudAt', 'curtain', 'arch'] as const;
 
-const live = new WeakMap(); // canvas -> controller: one live landscape per canvas
+const live = new WeakMap<HTMLCanvasElement, EngineHandle>(); // canvas -> controller: one live landscape per canvas
 // QA builds only (the probes' judging hooks: setState, qa, and stats().veils / memory). The bundler inlines the flag,
 // so a production build carries none of them (design-demo/README "Port to Next.js": never ported to production).
 const QA = typeof process !== 'undefined' && process.env.NEXT_PUBLIC_INK_QA === '1';
@@ -217,7 +292,7 @@ const QA = typeof process !== 'undefined' && process.env.NEXT_PUBLIC_INK_QA === 
  * @param {Element|null} [opts.closing]    [data-landscape="closing"]: window 2, the page's own place once more (DESIGN
  *                                         11.B), never the road to the next one: a small version of its opening, with
  *                                         its figures; on a short page whose closing shares a screen with its strip, a
- *                                         different view of the same place without the strip's figures (compose.js frame.closing.twin). Its
+ *                                         different view of the same place without the strip's figures (compose.ts frame.closing.twin). Its
  *                                         figure layer is drawn at its own scale when that differs from the strip's.
  *                                         Alias: `descend`. With neither window, the first viewport acts as one
  *                                         full-screen window (round 3's hero; the lab).
@@ -298,7 +373,7 @@ const QA = typeof process !== 'undefined' && process.env.NEXT_PUBLIC_INK_QA === 
  *     `figureLayers` (the cached layers' keys and status), `stretch`, `scene`, `state`, `wake`, `still`,
  *     `sweeping`, `ambient`, `drift`, `draft`, `pending`, `running`.
  */
-export function mountLandscape(canvas, opts = {}) {
+export function mountLandscape(canvas: HTMLCanvasElement, opts: EngineOptions = {}): EngineHandle {
   const prev = canvas && live.get(canvas);
   if (prev) prev.destroy();
   if (!canvas || typeof canvas.getContext !== 'function') return inert();
@@ -307,7 +382,7 @@ export function mountLandscape(canvas, opts = {}) {
   return handle;
 }
 
-function inert() {
+function inert(): EngineHandle {
   return {
     mode: 'static',
     panTo: () => Promise.resolve(),
@@ -325,16 +400,237 @@ function inert() {
   };
 }
 
-const num = (v, d) => (Number.isFinite(+v) && v !== null && v !== '' ? +v : d);
-const toList = (els) => (!els ? [] : els instanceof Element ? [els] : [...els].filter((e) => e instanceof Element));
-const elOr = (a, b) => (a instanceof Element ? a : b instanceof Element ? b : null);
-const easeWhip = (t) => (t >= 1 ? 1 : (1 - Math.pow(2, -9 * t)) / (1 - Math.pow(2, -9))); // fast attack, long decay
-const easeCubic = (t) => (t >= 1 ? 1 : 1 - Math.pow(1 - t, 3));
-const clamp01 = (x) => Math.min(1, Math.max(0, x));
-const sstep = (a, b, x) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
-const r3 = (v) => Math.round(v * 1000) / 1000;
+// (undefined and null coerce to NaN and 0, both refused)
+const num = (v: number | string | null | undefined, d: number): number => (Number.isFinite(+v!) && v !== null && v !== '' ? +v! : d);
+const toList = (els: Element | Iterable<Element> | null | undefined): Element[] => (!els ? [] : els instanceof Element ? [els] : [...els].filter((e) => e instanceof Element));
+const elOr = (a: unknown, b: unknown): Element | null => (a instanceof Element ? a : b instanceof Element ? b : null);
+const easeWhip = (t: number) => (t >= 1 ? 1 : (1 - Math.pow(2, -9 * t)) / (1 - Math.pow(2, -9))); // fast attack, long decay
+const easeCubic = (t: number) => (t >= 1 ? 1 : 1 - Math.pow(1 - t, 3));
+const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
+const sstep = (a: number, b: number, x: number) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+const r3 = (v: number) => Math.round(v * 1000) / 1000;
 
-function controller(canvas, opts) {
+// ---------------------------------------------------------------- the controller's state, typed
+/** A box on the page, viewport CSS px (relative to the canvas). */
+interface Rect {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+/** A rect by its edges (a DOMRect, or a text block's lines). */
+interface Edges {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+/** A text box inside its element's box: offsets of its left, top, right and bottom edges. */
+interface Offsets {
+  l: number;
+  t: number;
+  r: number;
+  b: number;
+}
+/** A window's framing (framingOf): its own (compose.ts framingBlend), or the first viewport's in full mode. */
+type ViewFraming = (Framing & { full?: false }) | (Framing & { full: true; hs: number; wvis: number });
+/** The figure layers drawn for the strip (and the stage), or for the closing (at its own scale). */
+type Variant = 'strip' | 'closing';
+/** A window (mkWin): a box on the page, painted at its own framing into its own view. */
+interface Win {
+  kind: WindowKind;
+  id: string;
+  el: Element | null;
+  box: Rect | null;
+  vis: boolean;
+  near: boolean;
+  /** The text's right edge inside the box (box px), where the text overlaps it. */
+  keepR: number | null;
+  keepU: Float32Array | null;
+  viewU: Float32Array | null;
+  wakeOK: boolean;
+  doc: boolean;
+  note: number[] | null;
+  noteEl: Element | null;
+  fr: ViewFraming | null;
+  key: string;
+  buf: Float32Array | null;
+  samples: number;
+  draft: boolean;
+  pending: boolean;
+  painted: boolean;
+  want: boolean;
+  /** 4b, living below 1200 px: how far the strip's painting has sunk inside its box (0..1). */
+  sink?: number;
+}
+/** The horizon band's view. */
+interface HorizonView {
+  id: string;
+  key: string;
+  buf: Float32Array | null;
+  samples: number;
+  draft: boolean;
+  painted: boolean;
+  pending: boolean;
+  want: boolean;
+  view: Float32Array;
+}
+/** One of the stage's three depth layers. */
+interface StageLayer {
+  id: string;
+  key: string;
+  painted: boolean;
+  pending: boolean;
+  draft: boolean;
+  /** Viewport CSS px at the page's top: [x0, y0, x1, y1]. */
+  crop: number[];
+  px: number[];
+}
+/** The geometry a pan's hold shows (the pose it started from). */
+interface HoldGeometry {
+  bottomDoc: number;
+  crest: number;
+  slidePx: number;
+  curtX: number;
+  curtSweep: number;
+  endSink: number;
+  endMid: number;
+  jump: number;
+  liftF: number;
+}
+/** The living ground's stage (`st`): its layers, its framing and its pose (see the comments where it is made). */
+interface Stage extends HoldGeometry {
+  layers: StageLayer[];
+  buf: Float32Array | null;
+  bufC: Float32Array | null;
+  samples: number;
+  view: Float32Array;
+  fr: Framing | null;
+  left: number;
+  wvis: number;
+  wvisX: number;
+  ext: number;
+  ok: boolean;
+  single: boolean;
+  alloc: boolean;
+  pendingSplit?: boolean;
+  geo?: string;
+  topDoc: number;
+  stripVis: boolean;
+  y: number;
+  prog: number;
+  progT: number;
+  desc: number;
+  descT: number;
+  slideK: number;
+  slideT: number;
+  cloudK: number;
+  cloudT: number;
+  midK: number;
+  midT: number;
+  glide: boolean;
+  sepK: number;
+  span: number;
+  curtH: number;
+  holdP: number;
+  holdC: number;
+  holdS: number;
+  holdG: HoldGeometry | null;
+  descP: number;
+  jumpK: number;
+  jumpT: number;
+  hideK: number;
+  hideT: number;
+  revK: number;
+  revT: number;
+  partK: number;
+  archPx: number[][] | null;
+  archNow: number[][] | null;
+  bands: number[][];
+  archGap: number;
+  offsets: Float32Array;
+  k: Float32Array;
+  sea: Float32Array;
+  rects: Float32Array;
+  cloud: Float32Array;
+  curt: Float32Array;
+}
+/** A pan in progress. */
+interface Tween {
+  from: number;
+  to: number;
+  fromSpec: Spec;
+  toSpec: Spec;
+  t: number;
+  dur: number;
+  ease: 'cubic' | 'whip';
+  cut: boolean;
+  resolve: () => void;
+  /** Set on its first frame: its clock, and its hold (from a lifted pose: HOLD_MS) and how much of it has passed. */
+  clock?: number;
+  hold: number;
+  held: number;
+}
+/** A mist sweep in progress. */
+interface Sweep {
+  t: number;
+  dur: number;
+  dir: number;
+  seed: number;
+  resolve: () => void;
+}
+/** A figure layer (one per stretch x composition x scale x palette x resolution x width class). */
+interface Layer {
+  key: string;
+  stretch: number;
+  scale: number;
+  meta: FigureMeta;
+  status: 'pending' | 'ready' | 'failed';
+  img: FigureImage | null;
+  readyAt: number;
+  uploaded: boolean;
+  waiters: (() => void)[];
+  used: number;
+  shownSince: number;
+  life?: LifeOut[];
+  sprites?: number[][];
+}
+/** A figure layer on show: the layer (or a stand-in for the key `want`), its alpha and the window variant it is for. */
+interface Slot {
+  L: Layer;
+  want?: string;
+  v: Variant;
+  k: number;
+}
+/** A view small life may lie in (lifeU): its canvas uv map, its clip, its planes and arrival. */
+interface LifeView {
+  t: number;
+  lo: number;
+  hi: number;
+  clip: ArrayLike<number>;
+  bloom: boolean;
+  vr: Variant;
+  map: (w: number[]) => number[];
+}
+/** A life anchor placed in a view this frame. */
+interface LifeEntry {
+  a: LifeOut;
+  n: number;
+  L: Layer;
+  v: LifeView;
+  rc: number[];
+  k: number;
+  sprite: { id: string; px: number[]; atlas: number[] } | null;
+  area: number;
+}
+/** A figure layer that is drawn and uploaded (ready()). */
+type ReadyLayer = Layer & { status: 'ready' };
+/** QA's forced states. */
+type Forced = 'hero' | 'horizon' | 'closing';
+/** A timer's id (the project's types include Node's timers; in the browser it is a number). */
+type Timer = ReturnType<typeof setTimeout>;
+
+function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandle {
   const mqReduce = matchMedia('(prefers-reduced-motion: reduce)');
   const mqFine = matchMedia('(pointer: fine)');
   const mqHz = matchMedia(typeof opts.horizonMedia === 'string' && opts.horizonMedia ? opts.horizonMedia : HZ_MEDIA);
@@ -344,10 +640,11 @@ function controller(canvas, opts) {
 
   // ---------------------------------------------------------------- renderer + fallbacks
   let surface = canvas;      // the element we draw on (a sibling clone if WebGL died on `canvas`)
-  let renderer = null;
-  let mode = 'static';
-  let lostTimer = 0, readyTimer = 0;
-  let hiddenDisplay = null;
+  // (null only before the first paint and once destroyed: what paints (draw() and below) runs only while running())
+  let renderer: Renderer | null = null;
+  let mode: Mode = 'static';
+  let lostTimer: Timer | 0 = 0, readyTimer: Timer | 0 = 0;
+  let hiddenDisplay: string | null = null;
   const hooks = {
     lost() { stop(); clearTimeout(lostTimer); lostTimer = setTimeout(() => toCanvas2D(), 3000); },
     restored() { clearTimeout(lostTimer); W = H = 0; dropLayers(); resize(true); request(S_ALL); },
@@ -357,7 +654,7 @@ function controller(canvas, opts) {
     renderer = createGL(canvas, hooks);
   } catch (err) {
     renderer = null;
-    if (err && err.tainted) cloneSurface();
+    if (err && (err as TaintedError).tainted) cloneSurface();
   }
   if (renderer) mode = 'webgl';
   else {
@@ -368,7 +665,7 @@ function controller(canvas, opts) {
   function cloneSurface() {
     // A canvas that ever held a WebGL context cannot give a 2D one: paint on a sibling copy.
     // (Insert next to it instead of replacing it, so a framework that owns `canvas` is undisturbed.)
-    const fresh = canvas.cloneNode(false);
+    const fresh = canvas.cloneNode(false) as HTMLCanvasElement;
     fresh.removeAttribute('id');
     canvas.after(fresh);
     hiddenDisplay = canvas.style.display;
@@ -406,23 +703,23 @@ function controller(canvas, opts) {
   const veilK = Math.min(1, Math.max(0, num(opts.veilStrength, 0.72)));
   const ambientWanted = opts.ambient !== false;
   // 4b: the living ground (see STAGE), its tunables (demo URL params, main.js) and its state
-  let ground = opts.ground === 'living' ? 'living' : '';
+  let ground: 'living' | '' = opts.ground === 'living' ? 'living' : '';
   const T = { ...STAGE };
   const placeT = () => {   // the place's own numbers (the destination's during a pan)
     const at = STAGE_AT[Math.round(tween ? tween.to : stretch)] || {};
-    for (const k of PLACE_KEYS) T[k] = at[k] ?? STAGE[k];
+    for (const k of PLACE_KEYS) (T as Record<(typeof PLACE_KEYS)[number], unknown>)[k] = at[k] ?? STAGE[k];
   };
   const living = () => ground === 'living';
   let palette = paletteName(opts.palette);
   const figuresOn = opts.figures !== false;
 
   const target0 = num(opts.stretch, 0);
-  const hasFrom = !quantized() && Number.isFinite(+opts.fromStretch) && opts.fromStretch !== null;
-  let stretch = hasFrom ? +opts.fromStretch : target0;
+  const hasFrom = !quantized() && Number.isFinite(+opts.fromStretch!) && opts.fromStretch !== null;
+  let stretch = hasFrom ? +opts.fromStretch! : target0;
   let curSpec = hasFrom
     ? spec(opts.fromDistance ?? opts.distance, opts.fromPresence ?? opts.presence)
     : spec(opts.distance, opts.presence);
-  let tween = null;          // {from, to, fromSpec, toSpec, t, dur, ease, cut, resolve}
+  let tween: Tween | null = null;
 
   let arriving = !quantized() && opts.arrival !== 'none';
   let arrive = arriving ? 0 : 9;      // shader seconds: the bloom is authored as 1.25 s
@@ -431,7 +728,7 @@ function controller(canvas, opts) {
 
   let cssW = 0, cssH = 0, W = 0, H = 0, aspect = 1.6, bufS = 1;
   let rect = { left: 0, top: 0, width: 1, height: 1 };
-  const clsForced = ['wide', 'tablet', 'phone', 'short'].includes(opts.widthClass) ? opts.widthClass : null;   // lab / QA only
+  const clsForced = ['wide', 'tablet', 'phone', 'short'].includes(opts.widthClass as string) ? opts.widthClass! : null;   // lab / QA only
   const classNow = () => clsForced || widthClass(innerWidth, innerHeight);
   let cls = classNow();
   let time = 40;             // ambient clock, seconds (never jumps after a pause)
@@ -442,25 +739,25 @@ function controller(canvas, opts) {
   const veilF = new Float32Array(VEILS).fill(1);   // each veil's feather, x the shared one (a reserve's is tighter)
   let veilEls = toList(opts.veil);
   // a reserve's text box, as offsets inside its element's box: re-read when the box or the fonts change
-  const textBoxes = new WeakMap();
+  const textBoxes = new WeakMap<Element, { w: number; h: number; f: number; m: boolean; box: Offsets | null }>();
   let fontGen = 0;
   const onFonts = () => { fontGen++; request(S_MEASURE | S_SCROLL); };
 
   // ---------------------------------------------------------------- windows and views
   // A window: a box on the page, painted at its own framing. A view: its painting (and the horizon's).
-  const mkWin = (kind, el) => ({
+  const mkWin = (kind: WindowKind, el: Element | null): Win => ({
     kind, id: kind, el, box: null, vis: false, near: !!el, keepR: null, keepU: null, viewU: null, wakeOK: false, doc: false, note: null, noteEl: null,
     fr: null, key: '', buf: null, samples: 0, draft: false, pending: false, painted: false, want: false,
   });
   const wins = [mkWin('strip', elOr(opts.strip, opts.head)), mkWin('closing', elOr(opts.closing, opts.descend))];
-  const hzv = { id: 'horizon', key: '', buf: null, samples: 0, draft: false, painted: false, pending: false, want: false, view: new Float32Array(4) };
+  const hzv: HorizonView = { id: 'horizon', key: '', buf: null, samples: 0, draft: false, painted: false, pending: false, want: false, view: new Float32Array(4) };
   // the living ground's stage: three depth layers, one framing (the strip's, extended to the viewport)
   // Each layer is painted into its own view: the far one (opaque: sky, far ranges, the keep-out's mist) over the whole
   // viewport at T.far of the buffer's resolution; the middle and near ones (transparent) only over the box where they hold
   // anything (`crop`, viewport CSS px at the page's top: right of the keep-out's mist, from their highest crest or cloud
   // belt down to where the sea always covers them), at full resolution. While a pan or the bloom runs, one combined
   // layer is painted, full size, into the far layer's view.
-  const st = {
+  const st: Stage = {
     layers: STAGE_IDS.map((id) => ({ id, key: '', painted: false, pending: false, draft: false, crop: [0, 0, 1, 1], px: [0, 0] })),
     buf: null, bufC: null, samples: 0, view: new Float32Array(4), fr: null, left: 0, wvis: 1, wvisX: 1, ext: 0, ok: false, single: true, alloc: false,
     topDoc: 0, bottomDoc: 0, stripVis: false, y: 0, prog: 0, progT: 0, desc: 0, descT: 0, endSink: 0,
@@ -489,7 +786,7 @@ function controller(canvas, opts) {
   let horizonP = clamp01(num(opts.horizon, 0.6));
   let hzOn = mqHz.matches;
   let hzK = 0, hzTarget = 0;
-  let forced = null;
+  let forced: Forced | null = null;
   let fullMode = !wins[0].el && !wins[1].el;   // no windows: the first viewport is one (round 3's hero; the lab)
   // the horizon's per-plane sinks and its uniform (sink, foot, ink, squash) x LAYERS
   const crest = new Float32Array(LAYERS);
@@ -498,17 +795,17 @@ function controller(canvas, opts) {
 
   // the wake (viewport CSS px), its trail, and the uniforms
   const wake = { x: 0, y: 0, tx: 0, ty: 0, s: 0, target: 0, has: false, inWin: false, dirty: false, pushedAt: 0, moving: false, px: 0, py: 0, pushed: false };
-  const trail = [];          // [{ x, y, s0, t }], newest first
+  const trail: { x: number; y: number; s0: number; t: number }[] = [];   // newest first
   const trailU = new Float32Array(TRAIL * 4);
   const wakeBox = new Float32Array([2, 2, -1, -1]);
-  let wakeRects = null;
+  let wakeRects: DOMRect[] | null = null;
   // the sweep
-  let sw = null;             // { t, dur, dir, seed, resolve }
+  let sw: Sweep | null = null;
   let sweepN = 0;
   const sweepU = new Float32Array(4);
   let sweepSeed = 0;
 
-  let raf = 0, timer = 0, timerAt = 0, need = 0, clockLast = 0, lastPresent = 0;
+  let raf = 0, timer: Timer | 0 = 0, timerAt = 0, need = 0, clockLast = 0, lastPresent = 0;
   let userPaused = false, hidden = document.visibilityState === 'hidden', onscreen = true, destroyed = false;
   let anyVisible = false, wasVisible = true;   // a window on screen now / something painted on screen at the last present
   // hidden under the old page wash: the first frame waits for the full cover (see DEFER_MAX)
@@ -518,13 +815,13 @@ function controller(canvas, opts) {
     try { return h.matches(FLOOD_TYPE); } catch { return false; }
   };
   let deferred = mode === 'webgl' && !reduced && heldByWash();
-  let deferTimer = 0, deferRaf = 0;
+  let deferTimer: Timer | 0 = 0, deferRaf = 0;
   let drawnOnce = false;
   let lastScroll = 0;        // performance.now() of the last scroll event
-  let gov = [], heavyLast = 0;
-  let gpuWait = 0, prevPlain = false, govP = [], polled = false, telling = false;   // governPresent()
-  let idleId = 0;
-  let lastSlots = [];
+  let gov: number[] = [], heavyLast = 0;
+  let gpuWait = 0, prevPlain = false, govP: number[] = [], polled = false, telling = false;   // governPresent()
+  let idleId: number | Timer = 0;
+  let lastSlots: Slot[] = [];
   const counts = {
     frames: 0, scenes: 0, presents: 0, drafts: 0, ridges: 0,
     ridgeMs: 0, sceneMs: 0, presentMs: 0,             // CPU time of the last call
@@ -535,43 +832,43 @@ function controller(canvas, opts) {
 
   // ---------------------------------------------------------------- figure layers
   // One layer per (stretch, composition, scale, palette, resolution, width class): drawn off the main thread
-  // (figures.worker.js), uploaded once (never while scrolling), cached. A layer is drawn for the composition it is
+  // (figures.worker.ts), uploaded once (never while scrolling), cached. A layer is drawn for the composition it is
   // painted into (the windows': curSpec at rest, each end's own during a pan), so its figures stand on the ground and the
   // waterline the window paints, and at the scale of the window that shows it: the strip and the stage at layerScale(k),
   // the closing at its own framing's (closingScale; a phone's close view of the pavilion is drawn at its own scale, not
   // the strip's layer magnified). A set gets the width class too (env.cls), so it may cull what that class never sees.
   // It is shown with an alpha (fades; see figSlots).
-  const layers = new Map();  // key -> { key, stretch, scale, meta, status, img, readyAt, uploaded, waiters, used, shownSince }
-  let figSrc = null;
+  const layers = new Map<string, Layer>();
+  let figSrc: FigureSource | null = null;
   let drawnFigs = false;     // the first full scene is up (a layer ready before it follows the bloom instead of fading)
   const figSource = () => (figSrc ??= createFigureSource());
-  const layerScale = (k) => {
+  const layerScale = (k: number) => {
     if (cls === 'wide') return Math.round(Math.min(cssW || innerWidth, 1700) / 40) * 40;
     const T = SCENES[Math.min(STRETCH_COUNT - 1, Math.max(0, k))].frame;
     return ((cls === 'short' ? T.short || T.phone : T[cls]) || T.tablet).scale;
   };
   /** The closing's layer scale at stretch k: the strip's when the closing shows it within LAYER_SHARE, else its own
    *  framing's nominal scale (to 40 px). */
-  function closingScale(k) {
+  function closingScale(k: number) {
     const s0 = layerScale(k), b = wins[1].box;
     if (!b) return s0;
     const fr = framingAt(k, cls, { width: b.width, height: b.height, twin: twinNow() }, 'closing');
     const m = fr.scale / s0;
     return m >= LAYER_SHARE[0] && m <= LAYER_SHARE[1] ? s0 : Math.max(40, Math.round(fr.nominal / 40) * 40);
   }
-  const scaleOf = (k, v) => (v === 'closing' ? closingScale(k) : layerScale(k));
+  const scaleOf = (k: number, v: Variant) => (v === 'closing' ? closingScale(k) : layerScale(k));
   /** The composition a layer is drawn for: the preset (a blend's dominant one) and the presence to 0.01. */
-  const figSpec = (s) => ({ distance: specName(s), presence: Math.round(s.presence * 100) / 100 });
+  const figSpec = (s: Spec) => ({ distance: specName(s), presence: Math.round(s.presence * 100) / 100 });
   /** A stretch's own page composition, as a spec (what the router's destination and the "Next" pan will use). */
-  const ownSpec = (k) => { const p = pageSpec(k); return spec(p.distance, p.presence); };
+  const ownSpec = (k: number) => { const p = pageSpec(k); return spec(p.distance, p.presence); };
   const layerDpr = () => Math.min(2, Math.max(1, Math.round(bufS * 1.34 * 4) / 4));
-  const layerKey = (k, v = 'strip', s = curSpec) => {
+  const layerKey = (k: number, v: Variant = 'strip', s: Spec = curSpec) => {
     const f = figSpec(s);
     return `${k}|${f.distance}:${f.presence}|${scaleOf(k, v)}|${palette}|${layerDpr()}|${mode}|${cls}`;
   };
-  const ready = (L) => !!L && L.status === 'ready' && L.uploaded;
+  const ready = (L: Layer | null | undefined): L is ReadyLayer => !!L && L.status === 'ready' && L.uploaded;
   /** Stretch k's layer for a window variant ('strip': the strip and the stage; 'closing') and a composition. */
-  function layerFor(k, create = true, v = 'strip', s = curSpec) {
+  function layerFor(k: number, create = true, v: Variant = 'strip', s: Spec = curSpec): Layer | null {
     k = Math.round(k);
     if (!figuresOn || mode === 'static' || !renderer || k < 0 || k >= STRETCH_COUNT) return null;
     const meta = figureMeta(k);
@@ -588,7 +885,7 @@ function controller(canvas, opts) {
     }).then((res) => {
       if (destroyed || layers.get(key) !== L) return;
       L.img = res;
-      // 4b small life: the layer's anchors (figures.js THE LIFE API), and the sprites cut out of it (the worker's 'gpu'
+      // 4b small life: the layer's anchors (figures.ts THE LIFE API), and the sprites cut out of it (the worker's 'gpu'
       // output; uploaded with the layer as `${key}#${i}`): their sizes, for the present pass's filtering
       L.life = Array.isArray(res.life) ? res.life : [];
       L.sprites = (res.sprites || []).map((sp) => [sp.width, sp.height]);
@@ -606,8 +903,8 @@ function controller(canvas, opts) {
   // a stand-in while a layer is drawn: the same stretch's layer at another palette, width or composition (never a gap),
   // drawn at a scale this window may show it at (LAYER_STANDIN: never a soft magnified one, never figures drawn for a
   // far other scale that would then jump)
-  function standIn(k, scale) {
-    let best = null;
+  function standIn(k: number, scale: number) {
+    let best: Layer | null = null;
     for (const L of layers.values()) {
       if (L.stretch !== k || !ready(L)) continue;
       if (scale && (scale / L.scale < LAYER_STANDIN[0] || scale / L.scale > LAYER_STANDIN[1])) continue;
@@ -616,7 +913,7 @@ function controller(canvas, opts) {
     return best;
   }
   // upload a finished layer, but never while the page is scrolling (it waits for a quiet moment)
-  function uploadSoon(L) {
+  function uploadSoon(L: Layer) {
     if (destroyed || !L.img || L.uploaded) return;
     const since = performance.now() - lastScroll;
     if (since < 120) { setTimeout(() => uploadSoon(L), 140 - since); return; }
@@ -634,7 +931,7 @@ function controller(canvas, opts) {
   }
   // keep what is on show (and what it stands in for), the current stretch's layers, the neighbours' for the "Next" and
   // back pans, a pan's ends and the layer just asked for; the rest go, least recently used first
-  function trimLayers(fresh) {
+  function trimLayers(fresh: string) {
     if (layers.size <= FIG_KEEP) return;
     const k = Math.round(stretch);
     const keep = new Set([fresh, layerKey(k), layerKey(k, 'closing'), layerKey(k + 1, 'strip', ownSpec(k + 1)), layerKey(k - 1, 'strip', ownSpec(k - 1))]);
@@ -642,7 +939,7 @@ function controller(canvas, opts) {
     if (tween) keep.add(layerKey(Math.round(tween.to), 'strip', tween.toSpec));
     const old = [...layers.values()].filter((L) => !keep.has(L.key)).sort((a, b) => a.used - b.used);
     while (layers.size > FIG_KEEP && old.length) {
-      const L = old.shift();
+      const L = old.shift()!;
       layers.delete(L.key);
       try { renderer?.figure(L.key, null); } catch { /* ignore */ }
       L.waiters.splice(0).forEach((f) => f());
@@ -655,27 +952,27 @@ function controller(canvas, opts) {
   }
   const fadeIn = () => (quantized() ? FIG_IN_RM : FIG_IN);
   /** The window a slot is for: the strip's layers (and the stage's), or the closing's own (its scale may differ). */
-  const variantOf = (w) => (kindOf(w) === 'closing' ? 'closing' : 'strip');
+  const variantOf = (w: Win): Variant => (kindOf(w) === 'closing' ? 'closing' : 'strip');
   /** The figure layers on show now, each with its alpha and the window variant it is for: the current stretch's, the
    *  pan's two ends, a neighbour whose layer a window already holds for this composition (never asked for at rest). At
    *  most two per variant; the closing's only while it is near (and not shown by the stage). */
-  function figSlots() {
+  function figSlots(): Slot[] {
     if (!figuresOn || mode === 'static') return [];
     const now = performance.now();
-    const out = [];
-    const late = (L) => {
+    const out: Slot[] = [];
+    const late = (L: Layer) => {
       if (!L.shownSince) L.shownSince = drawnFigs ? now : now - 1e4;
       return clamp01((now - L.shownSince) / fadeIn());
     };
     // the layer itself, or a stand-in for it ({ L, want: the key it stands in for })
-    const show = (k, v, s, create) => {
+    const show = (k: number, v: Variant, s: Spec, create: boolean): { L: Layer; want?: string } | null => {
       const L = layerFor(k, create, v, s);
       if (ready(L)) return { L };
       const j = Math.round(k), S = standIn(j, scaleOf(j, v));
       return S ? { L: S, want: L ? L.key : layerKey(j, v, s) } : null;
     };
     const c = wins[1];
-    const vs = ((c.box && (c.vis || c.want)) || forced === 'closing') && !stageOn() ? ['strip', 'closing'] : ['strip'];
+    const vs: Variant[] = ((c.box && (c.vis || c.want)) || forced === 'closing') && !stageOn() ? ['strip', 'closing'] : ['strip'];
     for (const v of vs) {
       if (tween) {
         // (the destination's closing layer is never asked for mid-pan: the next page brings its own closing)
@@ -693,7 +990,7 @@ function controller(canvas, opts) {
           const S = j === k ? show(j, v, curSpec, true) : { L: layerFor(j, false, v, curSpec) };
           if (!S || !ready(S.L)) continue;
           if (j !== k && !windowsSee(S.L.meta.rect)) continue;
-          out.push({ ...S, v, k: late(S.L) });
+          out.push({ ...S, v, k: late(S.L) } as Slot);
           n++;
         }
       }
@@ -701,7 +998,7 @@ function controller(canvas, opts) {
     return out;   // (alpha 0 included: a layer about to fade in still asks for its frames)
   }
   /** Does the closing, at its framing now, see stretch k's figure layer? (True when that cannot be told yet.) */
-  function closingSees(k) {
+  function closingSees(k: number) {
     const m = figureMeta(k), c = wins[1];
     if (!m || !c.box) return true;
     const fr = framingOf(c);
@@ -711,7 +1008,7 @@ function controller(canvas, opts) {
   }
   // does any window, at its framing now, see that world rect? (an unpainted or off-screen window counts only when it
   // is about to be painted: its stale framing from another stretch must not hold a layer)
-  function windowsSee(r) {
+  function windowsSee(r: number[]) {
     if (stageOn() && st.fr && st.left + (st.wvisX || st.wvis) > r[0] && st.left < r[1]) return true;
     for (const w of wins) {
       if (!w.box || !(w.vis || w.want)) continue;
@@ -722,7 +1019,7 @@ function controller(canvas, opts) {
     }
     return false;
   }
-  const figU = (s) => (s ? {
+  const figU = (s: Slot | undefined): FigureSlot | null => (s ? {
     id: s.L.key, k: s.k, plane: s.L.meta.plane, phase: s.L.meta.phase,
     rect: new Float32Array([s.L.meta.rect[0], s.L.meta.rect[2], 1 / (s.L.meta.rect[1] - s.L.meta.rect[0]), 1 / (s.L.meta.rect[3] - s.L.meta.rect[2])]),
     raw: s.L.meta.rect,
@@ -878,7 +1175,7 @@ function controller(canvas, opts) {
   // it stands clear of the text's veils where the scroll will put it (its crown used to show under the last table's
   // bottom veil while its west leg stood alone below it), late in the descent, and always at the end pose. Read with the
   // scroll's targets; draw() lets the curtain follow at T.reveal's rate, so it never pops in within one wheel tick.
-  function revealTarget(prog, desc, jump, slide, vh) {
+  function revealTarget(prog: number, desc: number, jump: number, slide: number, vh: number) {
     st.archNow = null;
     if (!(st.curtX >= 0) || !(T.curtain > 0)) return quantized() ? 1 : st.revK;   // (no curtain: nothing to reveal)
     if (st.descP >= 0.999 || forced === 'closing') return 1;                   // (the page's end: always whole)
@@ -908,7 +1205,7 @@ function controller(canvas, opts) {
     st.archGap = Number.isFinite(gap) ? Math.round(gap) : 9999;
     return Math.max(grow, sstep(g0, g1, gap));
   }
-  function stepHz(snap) {
+  function stepHz(snap: boolean) {
     let tg = hzTarget;
     if (forced === 'hero') tg = 0;
     else if (forced === 'horizon') tg = hzOn || fullMode ? 1 : 0;
@@ -920,7 +1217,7 @@ function controller(canvas, opts) {
   }
 
   // The union of an element's text lines (client rects of its text nodes), relative to its box; null if none.
-  function textBox(el, r, media = false) {
+  function textBox(el: Element, r: DOMRect, media = false) {
     const c = textBoxes.get(el);
     if (c && c.w === r.width && c.h === r.height && c.f === fontGen && c.m === media) return c.box;
     let l = Infinity, t = Infinity, rt = -Infinity, b = -Infinity;
@@ -936,7 +1233,7 @@ function controller(canvas, opts) {
     const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
     const range = document.createRange();
     for (let n = walk.nextNode(), i = 0; n && i < 400; n = walk.nextNode(), i++) {
-      if (!n.data.trim()) continue;
+      if (!(n as Text).data.trim()) continue;
       // (living: a margin note in the rail is veiled on its own lines, so the column's veil keeps to the column)
       if (media && n.parentElement?.closest('.margin-note') && el.matches?.(':not(.margin-note)')) continue;
       range.selectNodeContents(n);
@@ -957,12 +1254,12 @@ function controller(canvas, opts) {
   // narrow text below it). A band ends where something at least BAND_TOL px wider starts below it, or where a run of
   // narrower lines at least BAND_MIN tall follows it; ragged line ends and short last lines never split a band. Offsets
   // inside the element's box, cached like textBox.
-  const textBandsC = new WeakMap();
-  function textBands(el, r) {
+  const textBandsC = new WeakMap<Element, { w: number; h: number; f: number; bands: Offsets[] }>();
+  function textBands(el: Element, r: DOMRect) {
     const c = textBandsC.get(el);
     if (c && c.w === r.width && c.h === r.height && c.f === fontGen) return c.bands;
-    const items = [];
-    const inside = (q) => !(q.bottom <= r.top || q.top >= r.bottom || q.right <= r.left || q.left >= r.right);
+    const items: number[][] = [];
+    const inside = (q: Edges) => !(q.bottom <= r.top || q.top >= r.bottom || q.right <= r.left || q.left >= r.right);
     for (const m of el.querySelectorAll('img, svg, video, canvas')) {
       if (m.tagName.toLowerCase() === 'svg' && m.parentElement?.closest('svg')) continue;
       const q = m.getBoundingClientRect();
@@ -971,16 +1268,16 @@ function controller(canvas, opts) {
     const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
     const range = document.createRange();
     for (let n = walk.nextNode(), i = 0; n && i < 600; n = walk.nextNode(), i++) {
-      if (!n.data.trim()) continue;
+      if (!(n as Text).data.trim()) continue;
       const pe = n.parentElement;
       if (pe?.closest('svg') || (pe?.closest('.margin-note') && !el.matches?.('.margin-note'))) continue;
       range.selectNodeContents(n);
       for (const q of range.getClientRects()) if (q.width >= 2 && q.height >= 2 && inside(q)) items.push([q.left, q.top, q.right, q.bottom]);
     }
     items.sort((a, b) => a[1] - b[1]);
-    const bands = [];
-    const uni = (a, b) => (a ? [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[2], b[2]), Math.max(a[3], b[3])] : b.slice());
-    let cur = null, nar = null;
+    const bands: number[][] = [];
+    const uni = (a: number[] | null, b: number[]) => (a ? [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[2], b[2]), Math.max(a[3], b[3])] : b.slice());
+    let cur: number[] | null = null, nar: number[] | null = null;
     for (const q of items) {
       if (!cur) { cur = q.slice(); continue; }
       if (q[1] < cur[3] - 4 && !nar) { cur = uni(cur, q); continue; }       // beside what is already in the band
@@ -1008,9 +1305,9 @@ function controller(canvas, opts) {
     veil.fill(-1);
     veilS.fill(0);
     veilF.fill(1);
-    const notes = wins.map((w) => w.noteEl).filter(Boolean);
+    const notes = wins.map((w) => w.noteEl).filter(Boolean) as Element[];
     if ((!veilEls.length && !notes.length) || !cssW) return;
-    const seen = [];
+    const seen: [area: number, r: Edges, s: number, f: number][] = [];
     const live = stageOn();
     // living: every text block the painting must keep clear of (veils, keep-outs, the note) is veiled on its own lines;
     // the margin notes in the rail on their own (the column's veil keeps to the column)
@@ -1021,17 +1318,17 @@ function controller(canvas, opts) {
     if (live) for (const el of veilEls) if (el.isConnected) els = els.concat([...el.querySelectorAll('.margin-note')]);
     for (const el of els) {
       if (!el.isConnected) continue;
-      let r = el.getBoundingClientRect();
+      let r: DOMRect | Edges = el.getBoundingClientRect();
       const v = notes.includes(el) || bare.includes(el) ? '0.95' : (el.getAttribute('data-veil') || '').trim();
       let s = v !== '' && Number.isFinite(+v) ? clamp01(+v) : veilK;
       let f = 1;
       if (live) {
-        if (r.width < 2 || r.height < 2) continue;
+        if ((r as DOMRect).width < 2 || (r as DOMRect).height < 2) continue;
         // (every band of the element's lines is veiled on its own; the "Draft art" note stands in the first screen's
         // sky: a tight reserve, its line and a little round it)
         const fl = notes.includes(el) ? 0.35 : 1;
         const m = (T.core + (T.feather + T.swell * 1.3 + T.clear) * Math.min(1.8, Math.max(1, cssW / 1440))) * fl;   // (a living veil counts while its edge or clearing shows)
-        for (const tb of textBands(el, r)) {
+        for (const tb of textBands(el, r as DOMRect)) {
           const q = { left: r.left + tb.l, top: r.top + tb.t, right: r.left + tb.r, bottom: r.top + tb.b };
           const x0 = Math.max(q.left - m, rect.left), x1 = Math.min(q.right + m, rect.left + cssW);
           const y0 = Math.max(q.top - m, rect.top), y1 = Math.min(q.bottom + m, rect.top + cssH);
@@ -1042,7 +1339,7 @@ function controller(canvas, opts) {
       } else if (s >= RESERVE) {
         // A reserve (small print): solid paper only behind its own lines, with a tighter feather, and only once
         // they are on screen. The landscape around it keeps its ink.
-        const tb = textBox(el, r);
+        const tb = textBox(el, r as DOMRect);
         if (!tb) continue;
         r = { left: r.left + tb.l, top: r.top + tb.t, right: r.left + tb.r, bottom: r.top + tb.b };
         const vis = Math.min(r.bottom, rect.top + cssH) - Math.max(r.top, rect.top);
@@ -1162,7 +1459,7 @@ function controller(canvas, opts) {
 
   // the wake: fine pointers, inside a [data-wake] region, never under reduced motion or still
   const wakeOn = () => opts.pointer !== false && !quantized() && mode === 'webgl' && mqFine.matches && wakeEls.length > 0;
-  function insideWake(x, y) {
+  function insideWake(x: number, y: number) {
     if (stageOn()) return true;   // the stage is everywhere (the veils keep the wake off the text)
     if (!wakeRects) wakeRects = wakeEls.filter((el) => el.isConnected).map((el) => el.getBoundingClientRect());
     for (const r of wakeRects) if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return true;
@@ -1185,7 +1482,7 @@ function controller(canvas, opts) {
     lastInput = performance.now();
     if (driftT < 1 && drifting()) pace(S_PRESENT, 0);
   };
-  const onPointer = (e) => {
+  const onPointer = (e: PointerEvent) => {
     onInput();
     if (e.pointerType === 'touch' || !wakeOn()) return;
     wake.tx = e.clientX;
@@ -1225,7 +1522,7 @@ function controller(canvas, opts) {
     request(S_ALL);
   };
   const onHz = () => { hzOn = mqHz.matches; request(S_SCROLL | S_PRESENT); };
-  let mqDpr = null;
+  let mqDpr: MediaQueryList | null = null;
   const onDpr = () => { watchDpr(); if (resize(true)) request(S_ALL); };
   function watchDpr() {
     mqDpr?.removeEventListener('change', onDpr);
@@ -1234,7 +1531,7 @@ function controller(canvas, opts) {
   }
 
   // resizes: the canvas (a new buffer), the windows and the veiled text (new boxes: re-frame, debounced repaint)
-  let reframeTimer = 0;
+  let reframeTimer: Timer | 0 = 0;
   const reframeSoon = () => { clearTimeout(reframeTimer); reframeTimer = setTimeout(() => request(S_MEASURE | S_SCROLL), 150); };
   const ro = typeof ResizeObserver === 'function'
     ? new ResizeObserver((entries) => {
@@ -1242,7 +1539,7 @@ function controller(canvas, opts) {
       for (const e of entries) { if (e.target === surface) surf = true; else other = true; }
       if (surf && resize()) {
         // Changing the buffer size clears it: repaint right now, before the browser paints.
-        if (running()) draw(performance.now(), true); else need |= S_ALL;
+        if (running()) draw(performance.now()); else need |= S_ALL;
       }
       if (other || surf) { wakeRects = null; request(S_MEASURE | S_SCROLL | S_PRESENT); reframeSoon(); }
     })
@@ -1262,10 +1559,10 @@ function controller(canvas, opts) {
     }, { rootMargin: '30% 0px 30% 0px' })
     : null;
 
-  function observeSurface(on) {
+  function observeSurface(on: boolean) {
     if (on) { ro?.observe(surface); io?.observe(surface); } else { ro?.unobserve(surface); io?.unobserve(surface); }
   }
-  function observeEls(on) {
+  function observeEls(on: boolean) {
     for (const w of wins) {
       if (!w.el) { w.near = false; continue; }
       if (on) { ro?.observe(w.el); winIO?.observe(w.el); w.near = true; } else { ro?.unobserve(w.el); winIO?.unobserve(w.el); }
@@ -1281,18 +1578,18 @@ function controller(canvas, opts) {
   const ambientOn = () => drifting() && (awake() || driftT > 0);
 
   /** Paint on the next animation frame (scroll, resize, pans, arrival). */
-  function request(flags) {
+  function request(flags: number) {
     need |= flags;
     if (!running() || raf) return;
     clearTimer();
     raf = requestAnimationFrame(frame);
   }
   /** Paint no sooner than `gap` ms after the last present (wake, ambient mist). */
-  function pace(flags, gap) {
+  function pace(flags: number, gap: number) {
     need |= flags;
     wakeAt(lastPresent + gap);
   }
-  function wakeAt(at) {
+  function wakeAt(at: number) {
     if (!running() || raf) return;
     if (timer && timerAt <= at) return;
     clearTimer();
@@ -1325,7 +1622,7 @@ function controller(canvas, opts) {
     cancelAnimationFrame(deferRaf);
     deferTimer = deferRaf = 0;
     if (destroyed) return;
-    if (running()) draw(performance.now(), true); else whenReady();
+    if (running()) draw(performance.now()); else whenReady();
     clockLast = 0;
     request(S_PRESENT);
   }
@@ -1343,13 +1640,13 @@ function controller(canvas, opts) {
     if (tries < 60) readyTimer = setTimeout(() => whenReady(tries + 1), 100);
   }
 
-  function frame(now) {
+  function frame(now: number) {
     raf = 0;
     if (!running()) return;
     // The GPU is still painting an earlier frame (a slow or software renderer): skip this one instead
     // of queueing another behind it, so the browser's own frames keep flowing. Animations stay on time
     // (they advance by the elapsed time); they only drop frames.
-    const busy = renderer.busy ? renderer.busy() : 0;
+    const busy = renderer!.busy ? renderer!.busy() : 0;
     // (the first look at the GPU after a present tells its cost only if the GPU is still at it, or if it came soon enough
     // that being done means it was quick: governPresent)
     if (!polled) { polled = true; telling = busy > 0 || performance.now() - lastPresent <= PRESENT_SLOW; }
@@ -1358,7 +1655,7 @@ function controller(canvas, opts) {
     const start = performance.now(); // the rAF timestamp can be a frame early; pace from here
     counts.frames++;
     const p0 = counts.presents, s0 = counts.scenes;
-    const { animating, heavy, due } = draw(now, false);
+    const { animating, heavy, due } = draw(now);
     govern(start, heavy);
     governPresent(counts.presents !== p0, counts.scenes !== s0);
     if (animating) { raf = requestAnimationFrame(frame); return; }
@@ -1372,7 +1669,7 @@ function controller(canvas, opts) {
   // Adaptive quality. Heavy frames (a scene painted for motion: arrival, pan, a figure's fade) that keep arriving
   // slower than SLOW_MS are first painted as drafts at a lower internal scale; if they are still slow, the whole
   // buffer drops to fewer pixels (never below 0.5).
-  function govern(start, heavy) {
+  function govern(start: number, heavy: boolean) {
     if (fixedQ || mode !== 'webgl') return;
     if (!heavy) { if (start - heavyLast > 250) gov = []; return; }
     if (heavyLast && start - heavyLast < 250) {
@@ -1386,7 +1683,7 @@ function controller(canvas, opts) {
     if (quality <= 0.5) return;
     quality = Math.max(0.5, quality * 0.8);
     // a new buffer size clears the canvas: repaint it at once
-    if (resize(true)) draw(performance.now(), true);
+    if (resize(true)) draw(performance.now());
   }
   // 4b (final review r1, item 8): a present (the whole viewport: the stage, or the windows and the horizon) runs on every
   // scroll and drift frame, and govern() never sees it (it is not heavy), so a slow one had no floor: the living stage
@@ -1396,7 +1693,7 @@ function controller(canvas, opts) {
   // was still at it, or the look came within PRESENT_SLOW of the present; an ambient frame 70 ms later tells nothing). When GOV_N
   // of them average PRESENT_SLOW or more, the buffer drops to fewer pixels (never below 0.5, as above); still slow at 0.5,
   // a living page gives its stage up and keeps 4a's strip and closing (stageVeto).
-  function governPresent(presented, painted) {
+  function governPresent(presented: boolean, painted: boolean) {
     if (!presented) return;
     if (prevPlain && telling && !fixedQ && mode === 'webgl') {
       govP.push(gpuWait);
@@ -1418,20 +1715,20 @@ function controller(canvas, opts) {
   }
 
   // ---------------------------------------------------------------- the views
-  function framingOf(w) {
+  function framingOf(w: Win): ViewFraming | null {
     if (!w.box) return null;
     if (fullMode && w.kind === 'strip') {
       const { hs, wvis } = framing(aspect);
       const left = cameraLeft(stretch, wvis);
       return { worldLeft: left, worldTop: 1, scale: cssW / wvis, focus: [0, 0], full: true, hs, wvis };
     }
-    // the closing shows the page's own place once more (compose.js frame.closing): a small version of its opening, or on a
+    // the closing shows the page's own place once more (compose.ts frame.closing): a small version of its opening, or on a
     // short page, whose closing shares a screen with its strip, a different view of it (twin, without the strip's figures)
     const kind = kindOf(w);
     return framingBlend(stretch, cls, { width: w.box.width, height: w.box.height, keepoutRight: w.keepR, doc: w.doc && kind === 'strip', twin: kind === 'closing' && twinNow() }, kind);
   }
   /** The framing a window paints: its own, except that QA's setState('closing') puts the closing's in the strip. */
-  function kindOf(w) { return forced === 'closing' && w.kind === 'strip' ? 'closing' : w.kind; }
+  function kindOf(w: Win) { return forced === 'closing' && w.kind === 'strip' ? 'closing' : w.kind; }
   /** A short page: its strip and its closing share a screen (their gap is under a viewport), so the closing frames a
    *  different view of the place, never the same picture (or the same figures) twice. (Box tops move together: scroll-invariant.) */
   function twinNow() {
@@ -1440,29 +1737,29 @@ function controller(canvas, opts) {
   }
   const specKey = () => `${curSpec.presence.toFixed(3)}:${curSpec.w.level.toFixed(3)}:${curSpec.w.high.toFixed(3)}:${curSpec.w.deep.toFixed(3)}`;
   // can a window at this framing see that figure layer?
-  function seen(fr, b, s) {
+  function seen(fr: ViewFraming, b: Rect, s: Slot) {
     if (fr.full) return false;
     const r = s.L.meta.rect;
     const u0 = fr.worldLeft, u1 = u0 + b.width / fr.scale;
     return u1 > r[0] && u0 < r[1];
   }
   /** Paint one window's scene (if its key changed, or it is in motion). Returns true when it painted. */
-  function paintWin(w, U0, slots, force) {
+  function paintWin(w: Win, U0: SceneBase, slots: Slot[], force: boolean) {
     const fr = w.fr = framingOf(w);
     if (!fr || !w.box) return false;
     const b = w.box;
     const bw = Math.max(2, Math.round(b.width * bufS)), bh = Math.max(2, Math.round(b.height * bufS));
-    const remade = renderer.view(w.id, bw, bh);
+    const remade = renderer!.view(w.id, bw, bh);
     const v = variantOf(w);
     const vis = slots.filter((s) => s.v === v && s.k > 0.001 && seen(fr, b, s));
     const fa = vis[0] ? figU(vis[0]) : null;
     const fb = vis[1] ? figU(vis[1]) : null;
-    const fk = (f) => (f ? `${f.id}@${f.k.toFixed(2)}` : '-');
+    const fk = (f: FigureSlot | null) => (f ? `${f.id}@${f.k.toFixed(2)}` : '-');
     const key = [fr.worldLeft.toFixed(5), fr.worldTop.toFixed(5), fr.scale.toFixed(2), bw, bh, palette, specKey(), w.keepR, String(w.note), fk(fa), fk(fb),
       w.kind === 'strip' ? arrive.toFixed(3) : 'a', U0.draft ? 'd' : 'f', mode].join('|');
     if (!remade && !force && key === w.key && !w.pending) return false;
     const t0 = performance.now();
-    let view, P, left, wvis, asp, hs;
+    let view: number[], P: Resolved, left: number, wvis: number, asp: number, hs: number;
     if (fr.full) {
       P = resolve(curSpec, aspect);
       left = fr.worldLeft; wvis = fr.wvis; asp = aspect; hs = fr.hs;
@@ -1478,7 +1775,7 @@ function controller(canvas, opts) {
     w.samples = samples;
     counts.ridgeMs = Math.round((performance.now() - t0) * 10) / 10;
     counts.ridges++;
-    renderer.ridges(w.id, w.buf, samples);
+    renderer!.ridges(w.id, w.buf, samples);
     // keep-out, in box uv: the text's right edge, active, the mist ramp's half-width (140 px), the figure guard (+40 px)
     const keep = w.keepR !== null && w.keepR > 0
       ? new Float32Array([w.keepR / b.width, 1, 140 / b.width, (w.keepR + 40) / b.width]) : new Float32Array(4);
@@ -1490,7 +1787,7 @@ function controller(canvas, opts) {
       arrive: w.kind === 'strip' ? arrive : 9, hz: hzZero, hzK: 0, lift: 0, P, box: b, fr,
     };
     const t1 = performance.now();
-    const done = renderer.scene(w.id, U) !== false;
+    const done = renderer!.scene(w.id, U) !== false;
     counts.sceneMs = Math.round((performance.now() - t1) * 10) / 10;
     counts.scenes++;
     w.pending = !done;
@@ -1501,8 +1798,8 @@ function controller(canvas, opts) {
     return true;
   }
   /** Paint the horizon band's scene (full viewport, ink only, mist at rest). */
-  function paintHorizon(U0, force) {
-    const remade = renderer.view(hzv.id, W, H);
+  function paintHorizon(U0: SceneBase, force: boolean) {
+    const remade = renderer!.view(hzv.id, W, H);
     const { hs, wvis } = framing(aspect);
     const left = cameraLeft(stretch, wvis);
     const key = [left.toFixed(5), W, H, specKey(), horizonP.toFixed(3), U0.draft ? 'd' : 'f', mode].join('|');
@@ -1511,7 +1808,7 @@ function controller(canvas, opts) {
     const samples = mode === 'webgl' ? Math.min(1536, Math.max(320, Math.round(W / 1.25))) : Math.min(480, Math.max(200, Math.round(W / 3)));
     hzv.buf = buildRidges(samples, { left, wvis, aspect, pigment: 0 }, P, hzv.buf);
     hzv.samples = samples;
-    renderer.ridges(hzv.id, hzv.buf, samples);
+    renderer!.ridges(hzv.id, hzv.buf, samples);
     // each plane flattened and sunk until its highest crest stands at its line (never less than the plane behind)
     crestMax(hzv.buf, samples, crest);
     const pf = framing(aspect).portrait;
@@ -1528,7 +1825,7 @@ function controller(canvas, opts) {
     }
     hzv.view.set([left * hs, 1, 1, aspect]);
     const U = { ...U0, view: hzv.view, hs, feet: layerFeet(P), keep: null, figA: null, figB: null, arrive: 9, hz: hzU, hzK: 1, lift: 0, hzShift: shift, P, horizon: true };
-    const done = renderer.scene(hzv.id, U) !== false;
+    const done = renderer!.scene(hzv.id, U) !== false;
     counts.scenes++;
     hzv.pending = !done;
     hzv.key = done ? key : '';
@@ -1539,7 +1836,7 @@ function controller(canvas, opts) {
 
   /** Free the stage's views (leaving the living ground: a 4a page, or a window narrower than 1200 px). */
   function dropStage() {
-    for (const L of st.layers) { renderer.dropView?.(L.id); L.key = ''; L.painted = false; L.pending = false; L.draft = false; L.px = [0, 0]; }
+    for (const L of st.layers) { renderer!.dropView?.(L.id); L.key = ''; L.painted = false; L.pending = false; L.draft = false; L.px = [0, 0]; }
     st.ok = false; st.single = true; st.pendingSplit = false; st.alloc = false; st.geo = ''; st.buf = null;
     st.prog = st.progT = st.desc = st.descT = st.slideK = st.slideT = st.cloudK = st.cloudT = st.midK = st.midT = 0;
     st.jumpK = st.jumpT = st.hideK = st.hideT = st.revK = st.revT = 0; st.partK = 1;
@@ -1547,8 +1844,8 @@ function controller(canvas, opts) {
   }
   /** Free 4a's views (entering the living ground: the stage stands in for the strip, the closing and the horizon). */
   function drop4a() {
-    for (const w of wins) { renderer.dropView?.(w.id); w.key = ''; w.painted = false; w.pending = false; w.draft = false; w.buf = null; }
-    renderer.dropView?.(hzv.id); hzv.key = ''; hzv.painted = false; hzv.pending = false; hzv.draft = false; hzv.buf = null;
+    for (const w of wins) { renderer!.dropView?.(w.id); w.key = ''; w.painted = false; w.pending = false; w.draft = false; w.buf = null; }
+    renderer!.dropView?.(hzv.id); hzv.key = ''; hzv.painted = false; hzv.pending = false; hzv.draft = false; hzv.buf = null;
   }
   /**
    * 4b: paint the stage's depth layers (the page's own scene at the strip's framing, extended to the whole viewport).
@@ -1557,7 +1854,7 @@ function controller(canvas, opts) {
    * show, then the far one at its own resolution, and only then does the present switch over). Each transparent layer
    * covers only its crop (stageCrops). Returns true when it painted anything.
    */
-  function paintStage(U0, slots, force, single) {
+  function paintStage(U0: SceneBase, slots: Slot[], force: boolean, single: boolean) {
     const sb = wins[0].box;
     if (!sb || !W) return false;
     placeT();
@@ -1577,7 +1874,7 @@ function controller(canvas, opts) {
     const keep = kr !== null ? new Float32Array([kr / cssWX, 1, 140 / cssWX, (kr + 40) / cssWX]) : new Float32Array(4);
     const P = resolve(curSpec, 1.6);
     const vis = slots.filter((s) => s.k > 0.001 && st.left + st.wvisX > s.L.meta.rect[0] && st.left < s.L.meta.rect[1]);
-    const fk = (f) => (f ? `${f.id}@${f.k.toFixed(2)}` : '-');
+    const fk = (f: FigureSlot | null) => (f ? `${f.id}@${f.k.toFixed(2)}` : '-');
     // the ridges (shared by the three layers: a crop reads them at its own columns) and the crops, per geometry
     const samples = mode === 'webgl' ? Math.min(1536, Math.max(320, Math.round((W * cssWX) / cssW / 1.25))) : Math.min(480, Math.max(200, Math.round(W / 3)));
     const geo = [st.view[0].toFixed(5), top.toFixed(5), fr.scale.toFixed(2), W, H, palette, specKey(), kr, samples, Math.round(st.bottomDoc),
@@ -1596,7 +1893,7 @@ function controller(canvas, opts) {
     const sp = T.split;
     const ranges = single ? [[0, LAYERS - 1, 0]] : [[0, sp[0] - 1, 0], [sp[0], sp[1] - 1, 1], [sp[1], LAYERS - 1, 1]];
     // what each layer would paint now, and whether it is stale
-    const jobs = [];
+    const jobs: { j: number; lo: number; hi: number; layer: number; fa: FigureSlot | null; fb: FigureSlot | null; key: string; c: number[]; bw: number; bh: number }[] = [];
     ranges.forEach(([lo, hi, layer], j) => {
       const L = st.layers[j];
       const c = j === 0 ? [0, 0, cssW, cssH] : L.crop;
@@ -1605,13 +1902,13 @@ function controller(canvas, opts) {
       const mine = vis.filter((s) => s.L.meta.plane >= lo && s.L.meta.plane <= hi);
       const fa = mine[0] ? figU(mine[0]) : null, fb = mine[1] ? figU(mine[1]) : null;
       const key = `${base}|${lo}-${hi}-${layer}|${c.map(Math.round).join(',')}|${bw}x${bh}|${fk(fa)}|${fk(fb)}`;
-      const has = renderer.hasView ? renderer.hasView(L.id) : true;
+      const has = renderer!.hasView ? renderer!.hasView(L.id) : true;
       if (!has) { L.painted = false; L.key = ''; }
       if (!has || force || key !== L.key || L.pending || (L.draft && !U0.draft)) jobs.push({ j, lo, hi, layer, fa, fb, key, c, bw, bh });
     });
     if (single) {
       // in motion only the combined layer shows: the middle and near views are freed (repainted once at rest)
-      for (const L of st.layers.slice(1)) if (L.painted || L.key) { renderer.dropView?.(L.id); L.painted = false; L.key = ''; L.draft = false; L.pending = false; }
+      for (const L of st.layers.slice(1)) if (L.painted || L.key) { renderer!.dropView?.(L.id); L.painted = false; L.key = ''; L.draft = false; L.pending = false; }
     }
     if (!jobs.length) {
       if (!single && st.single && st.layers.every((L) => L.painted)) st.single = false;
@@ -1623,9 +1920,9 @@ function controller(canvas, opts) {
     let done = true;
     for (const job of todo) {
       const L = st.layers[job.j];
-      renderer.view(L.id, job.bw, job.bh, job.j > 0 && !single);
+      renderer!.view(L.id, job.bw, job.bh, job.j > 0 && !single);
       st.alloc = true;
-      renderer.ridges(L.id, st.buf, samples);
+      renderer!.ridges(L.id, st.buf, samples);
       const c = job.c;
       const view = new Float32Array(job.j === 0 ? vX : [vX[0], top - c[1] * unit, (c[3] - c[1]) * unit, vX[3]]);
       const U = {
@@ -1634,7 +1931,7 @@ function controller(canvas, opts) {
         crop: new Float32Array([c[0] / cssWX, (c[2] - c[0]) / cssWX, 0, 0]),
       };
       const t1 = performance.now();
-      const ok = renderer.scene(L.id, U) !== false;
+      const ok = renderer!.scene(L.id, U) !== false;
       counts.sceneMs = Math.round((performance.now() - t1) * 10) / 10;
       counts.scenes++;
       counts.stageScenes++;
@@ -1657,15 +1954,15 @@ function controller(canvas, opts) {
    * from their highest crest, cloud belt or figure down to the line below which the sea always covers them (the sea
    * keeps to the deepest sink: a layer that sinks less shows at most that difference more of itself).
    */
-  function stageCrops(P, unit, top, kr, cssWX = cssW) {
+  function stageCrops(P: Resolved, unit: number, top: number, kr: number | null, cssWX = cssW) {
     const feet = layerFeet(P);
-    const sp = T.split, n = st.samples, buf = st.buf;
+    const sp = T.split, n = st.samples, buf = st.buf!;   // (paintStage has just built the ridges)
     // (left of the keep-out's mist a layer is clear; Canvas2D's painter draws whole widths, so it keeps them)
     const x0 = kr !== null && mode === 'webgl' ? Math.max(0, Math.floor(kr - 240)) : 0;
     const c0 = Math.min(n - 1, Math.max(0, Math.floor((x0 / (cssWX || 1)) * n)));
     const vh = cssH || 1;
     const rest = st.bottomDoc / vh;
-    const figs = [Math.round(stretch) - 1, Math.round(stretch), Math.round(stretch) + 1].map((k) => figureMeta(k)).filter(Boolean);
+    const figs = [Math.round(stretch) - 1, Math.round(stretch), Math.round(stretch) + 1].map((k) => figureMeta(k)).filter(Boolean) as FigureMeta[];
     [[sp[0], sp[1] - 1], [sp[1], LAYERS - 1]].forEach(([lo, hi], i) => {
       const L = st.layers[i + 1];
       let h = -Infinity, hm = -Infinity;
@@ -1688,7 +1985,7 @@ function controller(canvas, opts) {
     st.rects.set([0, 0, 1, 1], 0);
   }
   /** The stage's present uniforms: each layer's step, sink, alpha and crop, the sea, the haze deck and the cloud. */
-  function stageU() {
+  function stageU(): StageU {
     const vh = cssH || 1;
     const g = st.holdG || st;                           // (during a pan's hold: the geometry the views on show were painted at)
     const d = st.desc, pk = st.prog * (1 - d);
@@ -1738,7 +2035,7 @@ function controller(canvas, opts) {
     return { ids: STAGE_IDS, offsets: st.offsets, view: st.view, k: st.k, sea: st.sea, rects: st.rects, cloud: st.cloud, curt: st.curt };
   }
 
-  function updateWake(dt, now) {
+  function updateWake(dt: number, now: number) {
     if (wake.dirty) {
       wake.dirty = false;
       wake.target = wakeOn() && wake.has && wake.inWin && insideWake(wake.tx, wake.ty) ? 1 : 0;
@@ -1765,7 +2062,7 @@ function controller(canvas, opts) {
     // uniforms (uv, origin bottom-left)
     trailU.fill(0);
     let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-    const put = (i, x, y, s) => {
+    const put = (i: number, x: number, y: number, s: number) => {
       const u = (x - rect.left) / (cssW || 1), v = 1 - (y - rect.top) / (cssH || 1);
       trailU[i * 4] = u; trailU[i * 4 + 1] = v; trailU[i * 4 + 2] = s;
       x0 = Math.min(x0, u); x1 = Math.max(x1, u); y0 = Math.min(y0, v); y1 = Math.max(y1, v);
@@ -1785,7 +2082,7 @@ function controller(canvas, opts) {
     return wake.moving || n > 0;
   }
 
-  function updateSweep(dt) {
+  function updateSweep(dt: number) {
     sweepU[2] = 0;
     if (!sw) return false;
     sw.t += dt;
@@ -1811,7 +2108,7 @@ function controller(canvas, opts) {
 
   /** Advance animations and paint what is dirty. `animating`: another frame is needed right away; `due`: when the
    *  next frame is due otherwise (a full-quality scene after drafts). */
-  function draw(now) {
+  function draw(now: number) {
     const dt = clockLast ? Math.max(0, Math.min(250, now - clockLast)) : 0;
     clockLast = now;
     let animating = false, due = Infinity, heavy = false;
@@ -1841,7 +2138,7 @@ function controller(canvas, opts) {
       }
     }
     const holding = !!tween && tween.held < tween.hold && stageOn() && st.ok;
-    if (holding) { tween.held += dtT; animating = true; }
+    if (holding) { tween!.held += dtT; animating = true; }
     else if (tween) {
       tween.t = tween.dur > 0 ? Math.min(1, tween.t + dtT / tween.dur) : 1;
       const ease = tween.ease === 'cubic' ? easeCubic : easeWhip;
@@ -1903,11 +2200,11 @@ function controller(canvas, opts) {
       // (a slow frame never takes a big step: the glide's step is capped at 50 ms of its time)
       const kG = dt > 0 ? 1 - Math.exp(-Math.min(dt, 50) / GLIDE_TAU) : 0;
       const gl = pan || (st.glide && !quantized());
-      const ease = (a, b) => (!gl || Math.abs(b - a) < 2e-3 ? b : a + (b - a) * kG);
+      const ease = (a: number, b: number) => (!gl || Math.abs(b - a) < 2e-3 ? b : a + (b - a) * kG);
       if (holding) {
         // the hold: the lift, the cloud and the sideways step come down to exactly 0 (eased in time) and the curtain lifts,
         // on the three layers (the combined layer has one depth and one step for every plane)
-        const h = 1 - sstep(0, tween.hold, tween.held);
+        const h = 1 - sstep(0, tween!.hold, tween!.held);
         st.prog = st.holdP * h;
         st.cloudK = st.holdC * h;
         st.slideK = st.holdS * h;
@@ -1963,7 +2260,7 @@ function controller(canvas, opts) {
     if (shown !== wasVisible) need |= S_PRESENT;
     if ((need & S_PRESENT) && (shown || wasVisible || hzK > 0 || !drawnOnce || sw)) {
       const t = performance.now();
-      renderer.present(presentU());
+      renderer!.present(presentU());
       lastPresent = t;
       counts.presentMs = Math.round((performance.now() - t) * 10) / 10;
       counts.presents++;
@@ -1975,29 +2272,29 @@ function controller(canvas, opts) {
   }
 
   // ---------------------------------------------------------------- 4b small life (the present pass)
-  // The figure layers' life anchors (figures.js THE LIFE API), placed each frame on the canvas through the view each one
+  // The figure layers' life anchors (figures.ts THE LIFE API), placed each frame on the canvas through the view each one
   // lies in (a window at its live box and sink; the stage's layer at its own slide and sink), as a small table the
-  // present shader works out once per pixel and lays into that view's sample (shaders.js, lifePrep / lifeLay): the
+  // present shader works out once per pixel and lays into that view's sample (shaders.ts, lifePrep / lifeLay): the
   // water's shimmer, a thread of smoke, the willows' sway, one drifting boat (a sprite the worker cut out of its layer).
   // No frame of its own: it rides the ambient frames, on the drift's clock, so it stops with the mist (reduced motion,
   // Still, the idle sleep, a hidden tab, nothing on screen), and its strength eases to the still painting with the drift
-  // (the boat stays, where it stands). With nothing that moves on screen, gl.js draws with the program without life.
+  // (the boat stays, where it stands). With nothing that moves on screen, gl.ts draws with the program without life.
   // (a walker is drawn as a boat is: a sprite from the layer's atlas, kind 4)
-  const LIFE_KIND = { shimmer: 1, smoke: 2, willow: 3, boat: 4, walker: 4 };
-  const LIFE_ORDER = { boat: 0, walker: 0, shimmer: 1, smoke: 2, willow: 3 };   // (sprites first: they are no longer in their layer)
-  const SPRITED = (a) => (a.kind === 'boat' || a.kind === 'walker') && Array.isArray(a.cut) && Array.isArray(a.atlas);
-  const LIFE_AMP = { shimmer: 0.3, smoke: 1, willow: 1.2 };          // the shimmer's strength; the sway in CSS px
+  const LIFE_KIND: Record<LifeKind, number> = { shimmer: 1, smoke: 2, willow: 3, boat: 4, walker: 4 };
+  const LIFE_ORDER: Record<LifeKind, number> = { boat: 0, walker: 0, shimmer: 1, smoke: 2, willow: 3 };   // (sprites first: they are no longer in their layer)
+  const SPRITED = (a: LifeOut): a is LifeOut & Required<Pick<LifeOut, 'cut' | 'atlas'>> => (a.kind === 'boat' || a.kind === 'walker') && Array.isArray(a.cut) && Array.isArray(a.atlas);
+  const LIFE_AMP: Partial<Record<LifeKind, number>> = { shimmer: 0.3, smoke: 1, willow: 1.2 };          // the shimmer's strength; the sway in CSS px
   const lifeR = new Float32Array(LIFE * 4), lifeA = new Float32Array(LIFE * 4), lifeB = new Float32Array(LIFE * 4);
   const lifeK = new Float32Array(4), lifeUb = new Float32Array(4), lifeFR = new Float32Array(4);
   const lifeTs = new Float32Array(8);
-  const lifeT = { rect: lifeR, a: lifeA, b: lifeB, k: lifeK, union: lifeUb, figR: lifeFR, starts: lifeTs, ridge: null, sprite: null, fig: null };
-  let lifeN = 0, lifeKinds = [];
+  const lifeT: LifeTable = { rect: lifeR, a: lifeA, b: lifeB, k: lifeK, union: lifeUb, figR: lifeFR, starts: lifeTs, ridge: null, sprite: null, fig: null };
+  let lifeN = 0, lifeKinds: LifeKind[] = [];
   /** The world point (viewport heights across, scene height up) of a world px point of a figure layer. */
-  const lifeW = (x, y) => [(x / REF_PX) * HS, 1 - (y * HS) / REF_PX];
+  const lifeW = (x: number, y: number) => [(x / REF_PX) * HS, 1 - (y * HS) / REF_PX];
   // A walker's place on its path now (world px from its home) and its alpha (out of the mist at the path's start, into it
   // at its end): the path's arc length is walked at params.speed from the point nearest home, and comes round again.
-  const walkCache = new WeakMap();
-  function walkerAt(a, t) {
+  const walkCache = new WeakMap<LifeOut, { s: number[]; len: number; home: Pt; hs: number }>();
+  function walkerAt(a: LifeOut, t: number) {
     const p = a.params || {}, path = Array.isArray(p.path) ? p.path : null;
     if (!path || path.length < 2) return null;
     let W = walkCache.get(a);
@@ -2021,13 +2318,13 @@ function controller(canvas, opts) {
     return { x: x - W.home[0], y: y - W.home[1], alpha: sstep(0, fade, at) * sstep(W.len, W.len - fade, at) };
   }
 
-  function lifeU(windows, stage) {
+  function lifeU(windows: PresentWindow[], stage: StageU | null): LifeTable | null {
     lifeN = 0; lifeKinds = []; lifeK[0] = 0;
     if (mode !== 'webgl' || !figuresOn || fullMode || !W || !lastSlots.length) return null;   // (full mode: no figures)
     const vh = cssH || 1, phone = cls === 'phone';
     // the views on screen, each with its map from world to canvas uv, the planes it holds and its arrival (the strip and
     // the stage ink in with the bloom, as their figures do; the closing never blooms)
-    const views = [];
+    const views: LifeView[] = [];
     if (stage) {
       const M = st.view, sp = T.split;
       const ranges = st.single ? [[0, LAYERS - 1, 0]] : [[0, sp[0] - 1, 0], [sp[0], sp[1] - 1, 1], [sp[1], LAYERS - 1, 2]];
@@ -2051,18 +2348,18 @@ function controller(canvas, opts) {
       });
     }
     if (!views.length) return null;
-    const list = [];
+    const list: LifeEntry[] = [];
     for (const slot of lastSlots) {
       const L = slot.L;
-      if (!L.life?.length || slot.k <= 0.001 || !renderer.hasFigure?.(L.key)) continue;
+      if (!L.life?.length || slot.k <= 0.001 || !renderer!.hasFigure?.(L.key)) continue;
       const r = L.meta.rect, lw = (r[1] - r[0]) * REF_PX, lh = (r[3] - r[2]) * (REF_PX / HS);
       const x0 = r[0] * REF_PX, y0 = (1 - r[3]) * (REF_PX / HS);
       L.life.forEach((a, n) => {
         if (!(a.kind in LIFE_KIND)) return;
-        let box = [a.x, a.y, a.x + a.w, a.y + a.h], alpha = 1, sprite = null;
+        let box = [a.x, a.y, a.x + a.w, a.y + a.h], alpha = 1, sprite: LifeEntry['sprite'] = null;
         if (a.kind === 'boat' || a.kind === 'walker') {
           // it moves only if the worker made it a sprite (else it is painted, still, in the layer)
-          if (!SPRITED(a) || !renderer.hasFigure(`${L.key}#${a.sprite}`)) return;
+          if (!SPRITED(a) || !renderer!.hasFigure(`${L.key}#${a.sprite}`)) return;
           box = [x0 + a.cut[0] * lw, y0 + a.cut[1] * lh, x0 + a.cut[2] * lw, y0 + a.cut[3] * lh];
           const p = a.params || {};
           let dx = 0, dy = 0;
@@ -2080,7 +2377,7 @@ function controller(canvas, opts) {
             // range and out of it at the other
             const rg = Array.isArray(p.range) ? p.range : [box[0], box[2]];
             const home = (a.x + a.w / 2), span = Math.max(1, rg[1] - rg[0]);
-            const run = (home - rg[0]) + (p.dir < 0 ? -1 : 1) * (p.speed || 0) * (time - 40);
+            const run = (home - rg[0]) + (p.dir! < 0 ? -1 : 1) * (p.speed || 0) * (time - 40);   // (no dir: undefined < 0 is false)
             const at = rg[0] + (((run % span) + span) % span);
             const fade = Math.min(40, span * 0.2);
             alpha = sstep(rg[0], rg[0] + fade, at) * sstep(rg[1], rg[1] - fade, at);
@@ -2157,7 +2454,7 @@ function controller(canvas, opts) {
     }
     if (!lifeN) return null;
     // where each kind's run starts (shimmer, smoke, willow, boat), the count, the view
-    const from = (k) => { let i = 0; while (i < lifeN && lifeA[i * 4] < k) i++; return i; };
+    const from = (k: number) => { let i = 0; while (i < lifeN && lifeA[i * 4] < k) i++; return i; };
     lifeTs.set([from(1), from(2), from(3), from(4), lifeN, lv.t, 0, 0]);
     lifeUb.set([Math.max(0, U[0]), Math.max(0, U[1]), Math.min(1, U[2]), Math.min(1, U[3])]);
     lifeK.set([d, 1 / W, 1 / H, 40 / vh]);
@@ -2166,7 +2463,7 @@ function controller(canvas, opts) {
 
   const liveU = new Float32Array(4), liveU2 = new Float32Array(4);
   let qaNoVeil = false;
-  function presentU() {
+  function presentU(): PresentU {
     // 4b, every page: the veil's tear moves only its edge, the drift keeps off the paper under text, and the sky deck
     // lets the mist drift gently perceptibly in open sky (_notes/r4b/RECORD.md §2.3). Living (the stage): a solid core of T.core
     // px round the text's own lines, then a torn edge that swells in and out with the words, and a clearing beyond it
@@ -2180,7 +2477,7 @@ function controller(canvas, opts) {
       mode === 'webgl' ? T.sky * (1 + (staged && st.ok ? T.rise * st.midK : 0)) : 0]);
     liveU2.set([(window.scrollY || 0) / vhPx, T.clear / vhPx, T.swell / vhPx, 1 / vhPx]);
     if (qaNoVeil) { veil.fill(-1); veilS.fill(0); }
-    const windows = [];
+    const windows: PresentWindow[] = [];
     for (const w of wins) {
       if (staged || !w.vis || !w.box || !w.viewU || !w.painted) continue;
       const b = w.box;
@@ -2236,28 +2533,29 @@ function controller(canvas, opts) {
     st.partK = 1;
     t.resolve();
   }
-  function panTo(to, o = {}) {
+  function panTo(to: number, o: PanOptions = {}) {
     if (destroyed || !renderer) return Promise.resolve();
     const dest = num(to, stretch);
     const toSpec = spec(o.distance ?? specName(tween ? tween.toSpec : curSpec), o.presence ?? (tween ? tween.toSpec : curSpec).presence);
     const dur = Math.max(0, num(o.duration, 900));
     finishPanAt();
     const Lb = layerFor(dest, true, 'strip', toSpec);
-    return new Promise((res) => {
+    return new Promise<void>((res) => {
       if (quantized() || dur === 0 || hidden) {
         stretch = dest;
         curSpec = toSpec;
         // a cut: the new page's figures come in at the quick fade (from whenever they are ready), never pop
         if (Lb) Lb.shownSince = ready(Lb) ? performance.now() : 0;
         need |= S_SCENE | S_PRESENT | S_SCROLL | S_MEASURE;
-        if (running()) draw(performance.now(), true);
+        if (running()) draw(performance.now());
         res();
         return;
       }
       // a long jump splices out its middle under a thick mist: its own, unless a sweep is (about to be)
       // running; with cloud: false (back/forward) it travels the whole way instead
       const cut = Math.abs(dest - stretch) > 2 && o.cloud !== false && mode === 'webgl';
-      tween = { from: stretch, to: dest, fromSpec: curSpec, toSpec, t: 0, dur, ease: o.ease === 'cubic-out' ? 'cubic' : 'whip', cut, resolve: res };
+      // (its clock and hold are set on its first frame)
+      tween = { from: stretch, to: dest, fromSpec: curSpec, toSpec, t: 0, dur, ease: o.ease === 'cubic-out' ? 'cubic' : 'whip', cut, resolve: res } as Tween;
       // the destination's layer fades in over the pan's last 40% (or from whenever it is ready, if later)
       if (Lb && !ready(Lb)) Lb.shownSince = 0;
       if (cut && !sw) startSweep(Math.sign(dest - stretch), Math.min(420, dur * 0.75));
@@ -2271,20 +2569,20 @@ function controller(canvas, opts) {
     tween = null;
     t.resolve();
   }
-  function specName(s) {
-    let best = 'level', w = -1;
-    for (const k in s.w) if (s.w[k] > w) { w = s.w[k]; best = k; }
+  function specName(s: Spec): Distance {
+    let best: Distance = 'level', w = -1;
+    for (const k in s.w) if (s.w[k as Distance] > w) { w = s.w[k as Distance]; best = k as Distance; }
     return best;
   }
 
   // ---------------------------------------------------------------- the sweep
-  function startSweep(dir, dur) {
-    return new Promise((res) => {
+  function startSweep(dir: number, dur: number) {
+    return new Promise<void>((res) => {
       sw = { t: 0, dur, dir: dir < 0 ? -1 : 1, seed: ((sweepN++ * 0.6180339887) % 1) * 9, resolve: res };
       request(S_PRESENT);
     });
   }
-  function sweep(o = {}) {
+  function sweep(o: { dir?: 1 | -1; duration?: number } = {}) {
     if (destroyed || !renderer) return Promise.resolve();
     const dur = Math.max(0, num(o.duration, 420));
     const dir = num(o.dir, 1) < 0 ? -1 : 1;
@@ -2298,7 +2596,8 @@ function controller(canvas, opts) {
   // horizon band (desktop), and the next stretch's figure layer for the "Next" pan (drawn for that page's composition).
   function idleSoon() {
     cancelIdle();
-    const ric = window.requestIdleCallback || ((f) => setTimeout(() => f({ timeRemaining: () => 8 }), 700));
+    // (no requestIdleCallback, Safari: a timer, with a deadline of 8 ms)
+    const ric: (f: IdleRequestCallback, o?: IdleRequestOptions) => number | Timer = window.requestIdleCallback || ((f) => setTimeout(() => f({ timeRemaining: () => 8 } as IdleDeadline), 700));
     idleId = ric(() => {
       idleId = 0;
       if (destroyed) return;
@@ -2310,7 +2609,7 @@ function controller(canvas, opts) {
   }
   function cancelIdle() {
     if (!idleId) return;
-    (window.cancelIdleCallback || clearTimeout)(idleId);
+    (window.cancelIdleCallback || clearTimeout)(idleId as number);
     idleId = 0;
   }
 
@@ -2345,13 +2644,13 @@ function controller(canvas, opts) {
   if (hasFrom) panTo(target0, { duration: num(opts.panDuration, 900), distance: opts.distance ?? 'level', presence: opts.presence ?? 1 });
   // First frame synchronously: the canvas is never shown blank (or black).
   if (deferred) deferFirst();
-  else if (renderer && renderer.ready) draw(performance.now(), true);
+  else if (renderer && renderer.ready) draw(performance.now());
   else whenReady();
   clockLast = 0;
   request(S_PRESENT);
   idleSoon();
 
-  const handle = {
+  const handle: EngineHandle = {
     get mode() { return mode; },
     panTo,
     sweep,
@@ -2369,11 +2668,11 @@ function controller(canvas, opts) {
       const j = Math.round(num(k, stretch));
       const L = layerFor(j, true, 'strip', o.distance || o.presence !== undefined ? spec(o.distance, o.presence) : ownSpec(j));
       if (!L || L.status !== 'pending') return Promise.resolve();
-      return new Promise((res) => L.waiters.push(res));
+      return new Promise<void>((res) => L.waiters.push(res));
     },
     rebind(o = {}) {
       if (destroyed) return;
-      const has = (k) => Object.prototype.hasOwnProperty.call(o, k);
+      const has = (k: keyof EngineTargets) => Object.prototype.hasOwnProperty.call(o, k);
       observeEls(false);
       if (has('strip') || has('head')) wins[0].el = elOr(has('strip') ? o.strip : null, has('head') ? o.head : null);
       if (has('closing') || has('descend')) wins[1].el = elOr(has('closing') ? o.closing : null, has('descend') ? o.descend : null);
@@ -2395,7 +2694,7 @@ function controller(canvas, opts) {
       stepHz(true);
       hzv.key = '';
       need |= S_ALL;
-      if (running()) draw(performance.now(), true);
+      if (running()) draw(performance.now());
       request(S_PRESENT);
       idleSoon();
     },
@@ -2467,8 +2766,8 @@ function controller(canvas, opts) {
     },
     ...(QA ? {
       /** QA only: force the opening ('hero'), the settled pose ('horizon') or the end ('closing'); null = the scroll. */
-      setState(s) {
-        const next = FORCED.has(s) ? s : null;
+      setState(s: unknown) {
+        const next = FORCED.has(s) ? (s as Forced) : null;
         if (next === forced) return;
         forced = next;
         for (const w of [...wins, ...st.layers]) w.key = '';
@@ -2476,19 +2775,19 @@ function controller(canvas, opts) {
         request(S_SCROLL | S_SCENE | S_PRESENT);
       },
       /** QA only: { veils: false } paints without the reading veils (to see the painting alone). */
-      qa(o = {}) {
+      qa(o: { veils?: boolean } = {}) {
         if ('veils' in o) qaNoVeil = o.veils === false;
         request(S_SCROLL | S_MEASURE | S_PRESENT);
       },
     } : {}),
     stats() {
-      const winStat = (w) => (w.box ? { top: Math.round(w.box.top), height: Math.round(w.box.height), visible: w.vis } : { top: null, height: 0, visible: false });
-      const frStat = (w) => (w.fr ? { worldLeft: r3(w.fr.worldLeft), worldTop: r3(w.fr.worldTop), scale: Math.round(w.fr.scale), focus: w.fr.focus.map(Math.round), keepoutRight: w.keepR } : null);
-      const figs = {};
+      const winStat = (w: Win) => (w.box ? { top: Math.round(w.box.top), height: Math.round(w.box.height), visible: w.vis } : { top: null, height: 0, visible: false });
+      const frStat = (w: Win) => (w.fr ? { worldLeft: r3(w.fr.worldLeft), worldTop: r3(w.fr.worldTop), scale: Math.round(w.fr.scale), focus: w.fr.focus.map(Math.round), keepoutRight: w.keepR } : null);
+      const figs: Record<number, 'none' | 'pending' | 'ready'> = {};
       for (let k = 0; k < STRETCH_COUNT; k++) {
         if (!figureMeta(k) || !figuresOn) { figs[k] = 'none'; continue; }
         // (the closing's own layer counts too: a closing awaiting its figures is not settled)
-        const of = (L) => (!L ? 'none' : L.status === 'ready' ? 'ready' : L.status === 'failed' ? 'none' : 'pending');
+        const of = (L: Layer | undefined) => (!L ? 'none' : L.status === 'ready' ? 'ready' : L.status === 'failed' ? 'none' : 'pending');
         const a = of(layers.get(layerKey(k))), c = lastSlots.some((s) => s.v === 'closing') ? of(layers.get(layerKey(k, 'closing'))) : 'none';
         figs[k] = c === 'pending' ? 'pending' : a;
       }
@@ -2508,7 +2807,6 @@ function controller(canvas, opts) {
         hzK: r3(hzK),
         horizonOn: hzOn,
         figures: figs,
-        figureMs: counts.figureMs,
         figureSlots: lastSlots.map((s) => ({ stretch: s.L.stretch, k: r3(s.k), v: s.v, scale: s.L.scale, standIn: !!s.want })),
         figureLayers: [...layers.values()].map((L) => ({ key: L.key, status: L.status })),
         stretch,

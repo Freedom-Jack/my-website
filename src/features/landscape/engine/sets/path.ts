@@ -1,4 +1,4 @@
-// sets/path.js — the 404 (stretch 6): the lone peak, and the path running into mist. Off the road entirely: a narrow
+// sets/path.ts — the 404 (stretch 6): the lone peak, and the path running into mist. Off the road entirely: a narrow
 // mountain path comes up out of the mist at the peak's foot and climbs the face under the summit in a few switchbacks
 // (a pale strip the brush left bare, the shade of its bank below it, broken dry edges, a few stone steps where it is
 // steep, a rock or a tuft beside it), past one bare winter tree leaning out from a turn, fainter as it goes; partway
@@ -10,19 +10,20 @@
 // strip's bottom feather and the "Draft art" note keep its lower switchbacks (y < 0.33) out of sight: the wide picture is
 // the upper three legs, the tree and the cloud; phones and tablets see the whole climb. No life anchor (the engine's
 // own drifting mist already passes over the cloud).
-// A figure set (figures.js, THE SET API; guide: README "Figure sets and small life"): meta + draw(env), in world px.
+// A figure set (figures.ts, THE SET API; guide: README "Figure sets and small life"): meta + draw(env), in world px.
 
-import { REF_PX, VH_PX, planeTop, streams, vnoise, mix, smooth, stroke, wash } from '../figures.js';
+import { REF_PX, VH_PX, planeTop, streams, vnoise, mix, smooth, stroke, wash, type Env, type FigureMeta, type Pt, type RGB, type Rng } from '../figures';
 
-export const meta = { rect: [6.6, 7.1, 0.12, 0.54], plane: 2, phase: 0 };
+export const meta: FigureMeta = { rect: [6.6, 7.1, 0.12, 0.54], plane: 2, phase: 0 };
+type Side = [x: number, y: number, nx: number, ny: number];
 
 const SEED = 11;
 
 // The path's centre line, (u, y): stretch units and scene heights (y up), from the near end (in the foot mist) to where
 // it goes into the cloud, under the summit (u 6.80, y 0.584) and right of it. Every point lies >= 0.02 scene heights
-// under the host's crest (draw() checks it against planeTop, so a change to compose.js can never lift the path into
+// under the host's crest (draw() checks it against planeTop, so a change to compose.ts can never lift the path into
 // the sky). Bends are where the direction turns; the tree leans out from bend D.
-const LINE = [
+const LINE: [u: number, y: number][] = [
   [6.884, 0.13], [6.864, 0.168], [6.84, 0.203], [6.812, 0.226],     // the approach, out of the foot mist; bend A
   [6.84, 0.248], [6.868, 0.27],                                      // B, the widest turn (the slope is gentlest here)
   [6.846, 0.29], [6.82, 0.31],                                       // C
@@ -32,30 +33,30 @@ const LINE = [
   [6.829, 0.442], [6.83, 0.456],                                     // into the cloud
 ];
 
-export function* draw(env) {
+export function* draw(env: Env) {
   const { ctx, P, ink } = env;
   const { C, rgba } = ink;
   const own = streams(SEED, {});
-  const X = (u) => u * REF_PX, Y = (y) => (1 - y) * VH_PX;
+  const X = (u: number) => u * REF_PX, Y = (y: number) => (1 - y) * VH_PX;
   // the phone sees this place from further away (scale 450): marks are drawn heavier there, so the path and the tree
   // still read; their places never move (the path is registered to the flank, not to the screen)
   const big = Math.max(1, 0.5 * REF_PX / env.scale);
   // ...but the path's own width grows less: its switchbacks lie only ~18 world px apart, and a wider band would fill them
   const bw = Math.max(1, 0.38 * REF_PX / env.scale);
   // the line on the mountain: never closer than 0.02 scene heights under the host plane's crest
-  const line = LINE.map(([u, y]) => [u, Math.min(y, planeTop(2, u, P) - 0.02)]);
+  const line = LINE.map(([u, y]): [u: number, y: number] => [u, Math.min(y, planeTop(2, u, P) - 0.02)]);
 
   // the line as a smooth curve in world px, with t = 0 (near) .. 1 (into the cloud)
-  const pts = catmull(line.map(([u, y]) => [X(u), Y(y)]), 8);
+  const pts = catmull(line.map(([u, y]): Pt => [X(u), Y(y)]), 8);
   const n = pts.length;
-  const tAt = (i) => i / (n - 1);
+  const tAt = (i: number) => i / (n - 1);
   // how much of the path is left to see: full, then thinning over its last fifth, gone in the cloud
-  const fade = (t) => 1 - smooth(0.8, 1, t);
-  const width = (t) => mix(7.5, 3.2, Math.pow(t, 0.8)) * bw;
+  const fade = (t: number) => 1 - smooth(0.8, 1, t);
+  const width = (t: number) => mix(7.5, 3.2, Math.pow(t, 0.8)) * bw;
 
   // the path's two sides: `dn` the downhill one (screen-down; on a near-vertical leg, the outer, right-hand one), `up`
   // the uphill one. A flip marks where a bend swaps them (an edge stroke never runs across a flip).
-  const dn = [], up = [], flip = [];
+  const dn: Side[] = [], up: Pt[] = [], flip: boolean[] = [];
   for (let i = 0; i < n; i++) {
     const t = tAt(i);
     let [nx, ny] = normal(pts, i);
@@ -65,7 +66,7 @@ export function* draw(env) {
     up.push([pts[i][0] - nx * hw, pts[i][1] - ny * hw]);
     flip.push(i > 0 && nx * dn[i - 1][2] + ny * dn[i - 1][3] < 0);
   }
-  const runOf = (i, j) => { for (let q = i + 1; q <= j; q++) if (flip[q]) return q - 1; return j; };
+  const runOf = (i: number, j: number) => { for (let q = i + 1; q <= j; q++) if (flip[q]) return q - 1; return j; };
 
   // 1. the bank under it: the shelf the path cuts into the slope throws a little shade below it, so the bare path
   //    reads by its pallor against it (a soft grey band under the downhill edge, in pieces)
@@ -80,7 +81,7 @@ export function* draw(env) {
     const deep = width(t) * (1.1 + 0.5 * Rb());
     // two passes, the outer one wider and fainter, so the shade's far edge feathers into the slope
     for (const [d, k] of [[deep * 0.55, 0.6], [deep, 0.5]]) {
-      wash(ctx, [...seg.map(([x, y]) => [x, y]), ...seg.slice().reverse().map(([x, y, nx, ny]) => [x + nx * d, y + ny * d])], rgba(C.ink2, a * k), { jit: 0.6 * big, seed: s0 + d });
+      wash(ctx, [...seg.map(([x, y]): Pt => [x, y]), ...seg.slice().reverse().map(([x, y, nx, ny]): Pt => [x + nx * d, y + ny * d])], rgba(C.ink2, a * k), { jit: 0.6 * big, seed: s0 + d });
     }
   }
 
@@ -95,7 +96,7 @@ export function* draw(env) {
     const a = 0.8 * fade(t) * (0.75 + 0.25 * Rr()) * (1 - 0.7 * lapse);
     if (a < 0.03) continue;
     // (a ribbon between the two sides; where they swap at a bend, the pieces overlap instead of twisting)
-    const A = [], B = [];
+    const A: Pt[] = [], B: Pt[] = [];
     for (let i = s0; i <= e; i++) {
       const [nx, ny] = normal(pts, i);
       const hw = Math.hypot(dn[i][0] - up[i][0], dn[i][1] - up[i][1]) * 0.5;
@@ -110,13 +111,13 @@ export function* draw(env) {
   //    fragments (the slope comes down onto the path); both go drier and fainter as the path recedes
   const Re = own('edges');
   const coarse = env.k < 0.8;   // a phone's layer: the lip carries the path there (its pallor barely shows on the pale foot)
-  for (const [edge, keep, a0, minL, spanL, gap] of [[dn, 0.92, coarse ? 0.8 : 0.62, 9, 14, 3], [up, 0.32, 0.34, 3, 5, 6]]) {
+  for (const [edge, keep, a0, minL, spanL, gap] of [[dn, 0.92, coarse ? 0.8 : 0.62, 9, 14, 3], [up, 0.32, 0.34, 3, 5, 6]] as const) {
     let i = 0;
     while (i < n - 2) {
       const j = runOf(i, Math.min(n - 1, i + minL + Math.floor(Re() * spanL)));
       const t = tAt(i);
       if (j > i + 1 && Re() < keep && fade(t) > 0.04) {
-        const seg = edge.slice(i, j + 1).map(([x, y]) => [x + (Re() - 0.5) * 0.5, y + (Re() - 0.5) * 0.5]);
+        const seg = edge.slice(i, j + 1).map(([x, y]): Pt => [x + (Re() - 0.5) * 0.5, y + (Re() - 0.5) * 0.5]);
         const a = a0 * fade(t) * (0.75 + 0.25 * Re());
         stroke(ctx, seg, { w: mix(2.0, 0.9, t) * big, col: rgba(mixC(C.ink, C.ink2, 0.4), a), tin: 0.2, tout: 0.45, wob: 0.6, dry: 0.22 + 0.4 * t, seed: i * 7 + j });
       }
@@ -181,31 +182,31 @@ export function* draw(env) {
 
 // ---------------------------------------------------------------- the set's own brushes
 // index of control point c in the catmull output (seg points per span)
-function segIndex(c, seg) { return c * seg; }
+function segIndex(c: number, seg: number) { return c * seg; }
 
 // a Catmull-Rom curve through the points, `seg` samples per span
-function catmull(P, seg) {
-  const out = [];
+function catmull(P: Pt[], seg: number): Pt[] {
+  const out: Pt[] = [];
   for (let i = 0; i < P.length - 1; i++) {
     const p0 = P[Math.max(0, i - 1)], p1 = P[i], p2 = P[i + 1], p3 = P[Math.min(P.length - 1, i + 2)];
     for (let s = 0; s < seg; s++) {
       const t = s / seg, t2 = t * t, t3 = t2 * t;
-      const f = (a, b, c, d) => 0.5 * (2 * b + (-a + c) * t + (2 * a - 5 * b + 4 * c - d) * t2 + (-a + 3 * b - 3 * c + d) * t3);
+      const f = (a: number, b: number, c: number, d: number) => 0.5 * (2 * b + (-a + c) * t + (2 * a - 5 * b + 4 * c - d) * t2 + (-a + 3 * b - 3 * c + d) * t3);
       out.push([f(p0[0], p1[0], p2[0], p3[0]), f(p0[1], p1[1], p2[1], p3[1])]);
     }
   }
-  out.push(P[P.length - 1].slice());
+  out.push(P[P.length - 1].slice() as Pt);
   return out;
 }
-function normal(pts, i) {
+function normal(pts: Pt[], i: number): [nx: number, ny: number] {
   const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)];
-  let nx = -(b[1] - a[1]), ny = b[0] - a[0];
+  const nx = -(b[1] - a[1]), ny = b[0] - a[0];
   const l = Math.hypot(nx, ny) || 1;
   return [nx / l, ny / l];
 }
 
 /** Mist: a soft elongated wash (a radial gradient: a true soft edge in one fill, at any resolution). */
-function mist(env, x, y, rx, ry, a, col) {
+function mist(env: Env, x: number, y: number, rx: number, ry: number, a: number, col: RGB) {
   const { ctx, ink } = env;
   const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
   g.addColorStop(0, ink.rgba(col, a));
@@ -224,7 +225,7 @@ function mist(env, x, y, rx, ry, a, col) {
  * A cloud: a flat soft base with a few soft lumps along its top (the billows), all in the mist colour, so the edge is
  * never an ellipse. (x, y) = the base's centre; w, h = its half-width and half-height; a = the densest alpha.
  */
-function cloud(env, x, y, w, h, a, R) {
+function cloud(env: Env, x: number, y: number, w: number, h: number, a: number, R: Rng) {
   const { C } = env.ink;
   mist(env, x, y, w, h, a, C.mist);
   const k = 3 + Math.floor(R() * 3);
@@ -236,18 +237,18 @@ function cloud(env, x, y, w, h, a, R) {
 }
 
 /** A rock beside the path: a small lump, its top left pale, a dark broken contour on the shaded side, a dot of moss. */
-function rock(env, x, y, s, R) {
+function rock(env: Env, x: number, y: number, s: number, R: Rng) {
   const { ctx, ink } = env;
   const { C, rgba } = ink;
   const w = (4 + R() * 3) * s, h = (2.4 + R() * 1.6) * s;
-  const lump = [[x - w * 0.5, y], [x - w * 0.42, y - h * 0.7], [x - w * 0.1, y - h], [x + w * 0.3, y - h * 0.85], [x + w * 0.5, y - h * 0.3], [x + w * 0.48, y]];
+  const lump: Pt[] = [[x - w * 0.5, y], [x - w * 0.42, y - h * 0.7], [x - w * 0.1, y - h], [x + w * 0.3, y - h * 0.85], [x + w * 0.5, y - h * 0.3], [x + w * 0.48, y]];
   wash(ctx, lump, rgba(mixC(C.ink2, C.paper, 0.55), 0.55), { jit: 0.3 * s, seed: x });
   stroke(ctx, [lump[2], lump[3], lump[4], lump[5]], { w: 0.9 * s, col: rgba(C.ink, 0.6), tin: 0.1, tout: 0.4, wob: 0.5, dry: 0.3, seed: y });
   stroke(ctx, [[x - w * 0.5, y + 0.2], [x + w * 0.5, y + 0.3]], { w: 0.7 * s, col: rgba(C.ink, 0.4), tin: 0.2, tout: 0.5, dry: 0.4, seed: x + 1 });
   if (R() < 0.6) dots(env, x - w * 0.1, y - h * 0.95, s * 0.7, R);
 }
 /** A grass tuft: three or four short strokes fanning up from one root. */
-function tuft(env, x, y, s, R) {
+function tuft(env: Env, x: number, y: number, s: number, R: Rng) {
   const { ctx, ink } = env;
   const { C, rgba } = ink;
   const k = 3 + Math.floor(R() * 2);
@@ -260,7 +261,7 @@ function tuft(env, x, y, s, R) {
   }
 }
 /** Moss dots (dian): a few dark dabs. */
-function dots(env, x, y, s, R) {
+function dots(env: Env, x: number, y: number, s: number, R: Rng) {
   const { ctx, ink } = env;
   const { C, rgba } = ink;
   const k = 2 + Math.floor(R() * 3);
@@ -276,13 +277,13 @@ function dots(env, x, y, s, R) {
  * four limbs forking up and outward into a crown wider than the tree is tall, each limb forking again, every twig end
  * hooked down like a claw. (x, y) = the foot; s = scale (1 ~ 40 world px tall); lean > 0 leans right.
  */
-function bareTree(env, x, y, s, R, lean = 1) {
+function bareTree(env: Env, x: number, y: number, s: number, R: Rng, lean = 1) {
   const { ctx, ink } = env;
   const { C, rgba } = ink;
   const H = 40 * s;
   const L = lean * (4 + R() * 3) * s;   // the trunk's lean, world px
   const kink = (R() - 0.5) * 4 * s;
-  const trunk = [[x, y + 1], [x + L * 0.15 + kink, y - H * 0.22], [x + L * 0.55 - kink * 0.5, y - H * 0.4], [x + L, y - H * 0.52]];
+  const trunk: Pt[] = [[x, y + 1], [x + L * 0.15 + kink, y - H * 0.22], [x + L * 0.55 - kink * 0.5, y - H * 0.4], [x + L, y - H * 0.52]];
   stroke(ctx, trunk, { w: 3.0 * s, col: rgba(C.ink, 0.92), tin: 0, tout: 0.5, min: 0.4, wob: 0.55, dry: 0.1, seed: x });
   // a knot and the bark's shade side: one short dry stroke down the trunk
   stroke(ctx, [[trunk[1][0] + 1.1 * s, trunk[1][1] - 2 * s], [trunk[0][0] + 1.2 * s, y - 2 * s]], { w: 0.8 * s, col: rgba(C.paper, 0.5), tin: 0.2, tout: 0.4, dry: 0.4, seed: x + 9 });
@@ -291,18 +292,18 @@ function bareTree(env, x, y, s, R, lean = 1) {
   stroke(ctx, [[x + 5 * s, y + 1.4], [x + 1.2 * s, y]], { w: 1.1 * s, col: rgba(C.ink, 0.5), tin: 0.3, tout: 0.5, seed: x + 3 });
   // limbs at different heights up the trunk: a low one reaching out nearly level against the lean, two rising and
   // spreading, the longest on the leaning side, and the trunk's own top; the crown ends wider than the tree is tall
-  const at = (f) => { const q = f * 3, k = Math.min(2, Math.floor(q)), r = q - k; return [mix(trunk[k][0], trunk[k + 1][0], r), mix(trunk[k][1], trunk[k + 1][1], r)]; };
+  const at = (f: number): Pt => { const q = f * 3, k = Math.min(2, Math.floor(q)), r = q - k; return [mix(trunk[k][0], trunk[k + 1][0], r), mix(trunk[k][1], trunk[k + 1][1], r)]; };
   const LIMBS = [   // [where on the trunk 0..1, side -1..1 (x lean), reach, rise]
     [0.5 + 0.1 * R(), -lean * (0.95 + 0.1 * R()), 14 + R() * 5, 6 + R() * 4],
     [0.7 + 0.1 * R(), -lean * (0.4 + 0.2 * R()), 11 + R() * 5, 15 + R() * 5],
     [0.78 + 0.1 * R(), lean * (0.55 + 0.3 * R()), 15 + R() * 6, 13 + R() * 6],
     [1, lean * (0.15 + 0.2 * R()), 8 + R() * 4, 15 + R() * 5],
   ];
-  const limbs = [];
+  const limbs: [from: Pt, mid: Pt, end: Pt, side: number][] = [];
   for (const [f, side, reach, rise] of LIMBS) {
     const from = at(f);
-    const end = [from[0] + side * reach * s, from[1] - rise * s];
-    const mid = [mix(from[0], end[0], 0.45) + (R() - 0.5) * 2.5 * s, mix(from[1], end[1], 0.6) - 1.2 * s];
+    const end: Pt = [from[0] + side * reach * s, from[1] - rise * s];
+    const mid: Pt = [mix(from[0], end[0], 0.45) + (R() - 0.5) * 2.5 * s, mix(from[1], end[1], 0.6) - 1.2 * s];
     limbs.push([from, mid, end, side]);
     stroke(ctx, [from, mid, end], { w: (f < 0.6 ? 1.9 : 1.6) * s, col: rgba(C.ink, 0.86), tin: 0, tout: 0.65, min: 0.22, wob: 0.45, dry: 0.12, seed: f * 97 + x });
   }
@@ -312,21 +313,21 @@ function bareTree(env, x, y, s, R, lean = 1) {
     const twigs = env.k < 0.5 ? 1 : env.k < 0.8 ? 2 : 3;
     for (let j = 0; j < twigs; j++) {
       const t = 0.3 + j * (0.81 / twigs) + (R() - 0.5) * 0.1;
-      const p = t < 0.5 ? [mix(a[0], b[0], t * 2), mix(a[1], b[1], t * 2)] : [mix(b[0], c[0], t * 2 - 1), mix(b[1], c[1], t * 2 - 1)];
+      const p: Pt = t < 0.5 ? [mix(a[0], b[0], t * 2), mix(a[1], b[1], t * 2)] : [mix(b[0], c[0], t * 2 - 1), mix(b[1], c[1], t * 2 - 1)];
       const dir = R() < 0.35 ? -Math.sign(side || 1) : Math.sign(side || 1);
       const l = (5 + R() * 5) * s * (1.15 - t * 0.45);
-      const q = [p[0] + dir * l * 0.75, p[1] - l * 0.75];
-      const hook = [q[0] + dir * 1.5 * s, q[1] + 2.0 * s];   // the claw: the tip turns down
+      const q: Pt = [p[0] + dir * l * 0.75, p[1] - l * 0.75];
+      const hook: Pt = [q[0] + dir * 1.5 * s, q[1] + 2.0 * s];   // the claw: the tip turns down
       stroke(ctx, [p, [mix(p[0], q[0], 0.5) - dir * 0.6 * s, mix(p[1], q[1], 0.5) - 0.5 * s], q, hook], { w: 0.85 * s, col: rgba(C.ink, 0.8), tin: 0, tout: 0.75, min: 0.2, wob: 0.3, seed: j + p[0] });
       if (R() < 0.75) {
-        const r = [q[0] - dir * 2.2 * s, q[1] - 2.8 * s];
+        const r: Pt = [q[0] - dir * 2.2 * s, q[1] - 2.8 * s];
         stroke(ctx, [q, r, [r[0] - dir * 1.1 * s, r[1] + 1.5 * s]], { w: 0.6 * s, col: rgba(C.ink, 0.72), tin: 0, tout: 0.8, min: 0.2, seed: j + q[0] });
       }
     }
     for (const d of [-1, 1]) {   // the limb's own end splits into two claws
-      const q = [c[0] + d * 2.8 * s, c[1] - 3 * s];
+      const q: Pt = [c[0] + d * 2.8 * s, c[1] - 3 * s];
       stroke(ctx, [c, q, [q[0] + d * 1.3 * s, q[1] + 1.7 * s]], { w: 0.6 * s, col: rgba(C.ink, 0.74), tin: 0, tout: 0.8, min: 0.2, seed: d + c[0] });
     }
   }
 }
-function mixC(A, B, t) { return [mix(A[0], B[0], t), mix(A[1], B[1], t), mix(A[2], B[2], t)]; }
+function mixC(A: RGB, B: RGB, t: number): RGB { return [mix(A[0], B[0], t), mix(A[1], B[1], t), mix(A[2], B[2], t)]; }

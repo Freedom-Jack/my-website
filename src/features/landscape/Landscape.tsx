@@ -32,10 +32,8 @@ export function Landscape() {
     let handle: LandscapeHandle | null = null;
     void (async () => {
       try {
-        const [mod] = await Promise.all([
-          import('./engine/index.js') as Promise<unknown> as Promise<EngineModule>,
-          afterFirstPaint(),
-        ]);
+        // (typed as the contract, so the engine's real signature is checked against it)
+        const [mod]: [EngineModule, void] = await Promise.all([import('./engine'), afterFirstPaint()]);
         if (dead) return;
         const main = currentMain();
         const place = main ? placeOf(main) : null;

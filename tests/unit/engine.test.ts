@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 // The landscape engine's pure parts (no DOM, no GPU): where each place stands, how a window frames it, the palette.
-import { framingAt, sceneName, SCENES, widthClass, STRETCH_COUNT } from '@/features/landscape/engine/compose.js';
-import { PALETTES, PIGMENTS, paletteName, pigmentAt } from '@/features/landscape/engine/palette.js';
+import { framingAt, sceneName, SCENES, widthClass, STRETCH_COUNT } from '@/features/landscape/engine/compose';
+import { PALETTES, PIGMENTS, paletteName, pigmentAt } from '@/features/landscape/engine/palette';
 
 describe('the landscape engine, pure parts', () => {
   it('names each stretch of the one handscroll', () => {

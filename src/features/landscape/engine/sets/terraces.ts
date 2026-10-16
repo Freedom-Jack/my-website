@@ -1,4 +1,4 @@
-// sets/terraces.js — Résumé (stretch 4): the terraced fields of his record, stepping down to the shore. The two low
+// sets/terraces.ts — Résumé (stretch 4): the terraced fields of his record, stepping down to the shore. The two low
 // hills of plane 2 (the shader's tech.terr bands give them their pale malachite body) are cut into terraces, in rows
 // like a record. Each terrace wall is a level line (a field is flat: the water in it lies level), so its dry-brush lip
 // runs across the hill's face, sagging a little where the hill swells toward us, bending down over each spur and back
@@ -11,9 +11,9 @@
 // the saddle, one on the right shoulder, two where the path leaves the shore. Mist takes the left flank's foot, a
 // wisp across it, every foot and the shore end. Life: smoke from the farmhouse (one anchor).
 //
-// A figure set (figures.js, THE SET API): meta + draw(env), in world px. Painted on plane 2 after its ink and before
+// A figure set (figures.ts, THE SET API): meta + draw(env), in world px. Painted on plane 2 after its ink and before
 // its mist band (phase 0): plane 2's mist softens the lowest terraces, and plane 3's hills in front cover the rest.
-// Ground: plane 2's crest from planeTop, rounded here the way ridges.js rounds terraced planes (the engine
+// Ground: plane 2's crest from planeTop, rounded here the way ridges.ts rounds terraced planes (the engine
 // rounds per view, by 3.5 % of the view's width; this uses a fixed radius between the wide and phone views, within
 // ~0.004 scene heights of both), so the lips stop a few px inside the outline, and the trees on the crowns stand a
 // little under it. No shader change: the walls are drawn here, not registered to the shader's lips (those follow
@@ -21,17 +21,20 @@
 
 import {
   REF_PX, VH_PX, SCENE_FIELDS, planeTop, sceneField, streams, vnoise, mix, mix3, clamp01, smooth, stroke, wash, softWash,
-  runs, ellipse, anchor, D,
-} from '../figures.js';
+  runs, ellipse, anchor, D, type Env, type FigureMeta, type Pt, type Rng,
+} from '../figures';
+import type { Resolved } from '../compose';
 
-export const meta = { rect: [4.16, 5.0, 0.1, 0.34], plane: 2, phase: 0 };
+export const meta: FigureMeta = { rect: [4.16, 5.0, 0.1, 0.34], plane: 2, phase: 0 };
+type PtData = [x: number, y: number, ...data: number[]];
+interface TreeOptions { pale?: boolean; upright?: boolean }
 
 const SEED = 11;
 
 // ---------------------------------------------------------------- the ground (plane 2, as the engine rounds it)
 const DU = 0.002;          // ground samples, in stretches
-const ROUND_R = 0.033;     // the terraced planes' rounding radius, in stretches (ridges.js: 3.5 % of the view)
-function boxBlur(src, r) {
+const ROUND_R = 0.033;     // the terraced planes' rounding radius, in stretches (ridges.ts: 3.5 % of the view)
+function boxBlur(src: Float32Array, r: number) {
   const n = src.length, out = new Float32Array(n);
   let sum = 0, cnt = 0;
   for (let j = 0; j <= r && j < n; j++) { sum += src[j]; cnt++; }
@@ -43,7 +46,7 @@ function boxBlur(src, r) {
   }
   return out;
 }
-function groundModel(P, ua, ub) {
+function groundModel(P: Resolved, ua: number, ub: number) {
   const n = Math.round((ub - ua) / DU) + 1;
   const raw = new Float32Array(n), terr = new Float32Array(n), f = new Float32Array(SCENE_FIELDS);
   for (let i = 0; i < n; i++) {
@@ -57,18 +60,18 @@ function groundModel(P, ua, ub) {
   const crest = raw.map((h, i) => h + (b[i] - h) * terr[i] * 0.75);
   const b2 = boxBlur(boxBlur(crest, r), r);
   const broad = crest.map((h, i) => Math.max(b2[i], h - 0.25));
-  const at = (A) => (u) => {
+  const at = (A: Float32Array) => (u: number) => {
     const x = (u - ua) / DU, i = Math.max(0, Math.min(n - 2, Math.floor(x))), t = Math.min(1, Math.max(0, x - i));
     return A[i] + (A[i + 1] - A[i]) * t;
   };
   return { crestAt: at(crest), broadAt: at(broad) };
 }
 
-export function* draw(env) {
+export function* draw(env: Env) {
   const { ctx, P, ink } = env;
   const { C, rgba } = ink;
   const own = streams(SEED, {});
-  const X = (u) => u * REF_PX, Y = (y) => (1 - y) * VH_PX;
+  const X = (u: number) => u * REF_PX, Y = (y: number) => (1 - y) * VH_PX;
   // phones see this place from further away: the walls a little further apart and heavier, the house and the trees
   // larger (a painter's licence: they are drawn to be read)
   const big = Math.max(1, 0.7 * REF_PX / env.scale);
@@ -78,9 +81,9 @@ export function* draw(env) {
   const G = groundModel(P, env.rect[0] - 0.14, env.rect[1] + 0.14);
   const crest = G.crestAt, broad = G.broadAt;
   const foot = P.foot[2], fade = P.fade[2];
-  const footK = (y) => smooth(foot + 0.02, foot + fade * 0.95, y);         // the plane's ink dissolving into its foot
+  const footK = (y: number) => smooth(foot + 0.02, foot + fade * 0.95, y);         // the plane's ink dissolving into its foot
   // mist: a wisp across the left hill's face, the left flank's foot lost in it; the terraces end at the shore
-  const mistK = (u, y) => {
+  const mistK = (u: number, y: number) => {
     const w1 = Math.exp(-Math.pow((y - 0.212 + (u - 4.36) * 0.1) / 0.011, 2)) * smooth(4.31, 4.34, u) * (1 - smooth(4.37, 4.41, u));
     const w2 = (1 - smooth(4.29, 4.36, u)) * (1 - smooth(0.19, 0.245, y));
     const n = vnoise(u * 60, y * 140, 31);
@@ -91,8 +94,8 @@ export function* draw(env) {
   // down over the spurs and back into the gullies (sp), more the further down the face it runs
   const uA = 4.27, uB = 4.9;
   const KAP = 0.3, SPUR = 0.26;
-  const sp = (u) => (vnoise(u * 26, 0.5, 41) - 0.5) * 2 + (vnoise(u * 61, 1.5, 43) - 0.5) * 0.4;
-  const levelY = (u, z) => { const dz = Math.max(0, broad(u) - z); return z - dz * (KAP + SPUR * sp(u)); };
+  const sp = (u: number) => (vnoise(u * 26, 0.5, 41) - 0.5) * 2 + (vnoise(u * 61, 1.5, 43) - 0.5) * 0.4;
+  const levelY = (u: number, z: number) => { const dz = Math.max(0, broad(u) - z); return z - dz * (KAP + SPUR * sp(u)); };
   const M0 = 0.0065;                                                            // the lips stop this far inside the outline
 
   // the terrace levels, from just under the crowns down into the mist: ordered, a little uneven
@@ -100,13 +103,13 @@ export function* draw(env) {
   let zTop = 0;
   for (let u = uA; u <= uB; u += DU) zTop = Math.max(zTop, crest(u));
   const S = 0.0128 * Math.min(1.5, Math.pow(big, 0.45));
-  const levels = [];
+  const levels: number[] = [];
   for (let z = zTop - 0.018; z > foot + 0.045; z -= S * (0.86 + 0.28 * Rl())) levels.push(z);
 
   // each level: its runs across the hill (where the ground stands above it), as [x, y, u, ysc] in world px
   const walls = levels.map((z, k) => {
-    const out = [];
-    let cur = null;
+    const out: PtData[][] = [];
+    let cur: PtData[] | null = null;
     for (let u = uA; u <= uB + 1e-9; u += DU) {
       const c = crest(u);
       if (c - z > M0) {
@@ -118,7 +121,7 @@ export function* draw(env) {
     return { z, k, runs: out };
   });
   // where a wall runs at u: its point, or null
-  const wallAt = (k, u) => {
+  const wallAt = (k: number, u: number) => {
     if (k < 0 || k >= walls.length) return null;
     for (const run of walls[k].runs) if (u >= run[0][2] - 1e-9 && u <= run[run.length - 1][2] + 1e-9) {
       return run[Math.min(run.length - 1, Math.max(0, Math.round((u - run[0][2]) / DU)))];
@@ -126,7 +129,7 @@ export function* draw(env) {
     return null;
   };
   const rh = 2.3 * wk;                                                          // a wall's face, seen from above
-  const fade2 = (u, y) => footK(y) * (1 - 0.9 * mistK(u, y));
+  const fade2 = (u: number, y: number) => footK(y) * (1 - 0.9 * mistK(u, y));
   yield;
 
   // the fields on the treads, between a wall's lip and the foot of the wall above: each a long band, pinched a little at
@@ -147,7 +150,7 @@ export function* draw(env) {
         const n = seg.length;
         let open = false;                                       // a field against the outline: dry, never flooded
         const pr = Math.min(0.3, (6 * big) / (n * DU * REF_PX));
-        const top = seg.map(([x, y, u], j) => {
+        const top = seg.map(([x, y, u], j): Pt => {
           const up = wallAt(w.k - 1, u);
           if (!up) open = true;
           // (where no wall runs above, the tread reaches toward the outline, but never deeper than one step)
@@ -158,7 +161,7 @@ export function* draw(env) {
         const kind = R();
         const m = seg[n >> 1];
         const a = fade2(m[2], m[3]);
-        const poly = [...seg.map(([x, y]) => [x, y - 0.5]), ...top.slice().reverse()];
+        const poly = [...seg.map(([x, y]): Pt => [x, y - 0.5]), ...top.slice().reverse()];
         const seed = w.k * 13 + i0;
         if (kind < 0.26 && !open && w.k > 1 && n * DU * REF_PX < 70 * big) wash(ctx, poly, rgba(flood, (0.44 + R() * 0.2) * a), { jit: 0.4, seed });
         else if (kind < 0.6) wash(ctx, poly, rgba(young, (0.26 + R() * 0.2) * a), { jit: 0.4, seed });
@@ -175,14 +178,14 @@ export function* draw(env) {
     const R = own('wall', w.k);
     const wf = 0.82 + 0.3 * R() + (w.k % 3 === 1 ? 0.18 : 0);                // a rhythm: some walls heavier
     for (const run of w.runs) {
-      for (const seg of runs(run, R, 70 * big, 300 * big, 3.5 * big)) {
-        const m = seg[seg.length >> 1];
+      for (const seg of runs(run as Pt[], R, 70 * big, 300 * big, 3.5 * big)) {
+        const m: PtData = seg[seg.length >> 1];
         const sl = (crest(m[2] + 0.012) - crest(m[2] - 0.012)) / 0.024;
         const shadeK = smooth(0.05, -0.6, sl);
         const a = fade2(m[2], m[3]);
         if (a < 0.04) continue;
-        const pts = seg.map(([x, y]) => [x, y]);
-        softWash(env, [...pts, ...pts.slice().reverse().map(([x, y]) => [x, y + rh])], rgba(mix3(C.ink2, C.malD, colour ? 0.3 : 0), (0.09 + 0.09 * shadeK) * a), 0.6);
+        const pts = seg.map(([x, y]): Pt => [x, y]);
+        softWash(env, [...pts, ...pts.slice().reverse().map(([x, y]): Pt => [x, y + rh])], rgba(mix3(C.ink2, C.malD, colour ? 0.3 : 0), (0.09 + 0.09 * shadeK) * a), 0.6);
         stroke(ctx, pts, {
           w: (1.1 + 0.4 * R()) * wk * wf, col: rgba(C.ink, (0.46 + 0.22 * shadeK + R() * 0.1) * a * Math.min(1.15, wf)),
           tin: 0.08, tout: 0.25, wob: 0.6, dry: 0.24, seed: seg[0][0] * 0.37 + w.k,
@@ -190,7 +193,7 @@ export function* draw(env) {
         // here and there the brush went back over the wall: a second, fainter line along part of it
         if (R() < 0.3 && pts.length > 30) {
           const i0 = Math.floor(R() * pts.length * 0.4), i1 = Math.min(pts.length - 1, i0 + 15 + Math.floor(R() * pts.length * 0.5));
-          stroke(ctx, pts.slice(i0, i1).map(([x, y]) => [x, y + 0.9 * wk]), { w: 0.7 * wk, col: rgba(C.ink, 0.3 * a), tin: 0.2, tout: 0.4, wob: 0.6, dry: 0.4, seed: i0 + w.k });
+          stroke(ctx, pts.slice(i0, i1).map(([x, y]): Pt => [x, y + 0.9 * wk]), { w: 0.7 * wk, col: rgba(C.ink, 0.3 * a), tin: 0.2, tout: 0.4, wob: 0.6, dry: 0.4, seed: i0 + w.k });
         }
       }
     }
@@ -214,7 +217,7 @@ export function* draw(env) {
   // across two or three terraces (cutting their walls, a few steps where it does), then over to the farmhouse's door.
   // Its height is read off the walls themselves (q: a fractional wall index, 0 at the top), so it lies on the steps.
   const Rp = own('path');
-  const qY = (u, q) => {
+  const qY = (u: number, q: number) => {
     const k0 = Math.floor(q), a = wallAt(k0, u), b = wallAt(k0 + 1, u);
     if (!a || !b) return null;
     return mix(a[1], b[1], q - k0) - 1.3 * wk;
@@ -223,14 +226,14 @@ export function* draw(env) {
   let q = walls.length - 1.6;
   while (q > kh + 1 && qY(uR, q) == null) q -= 0.25;
   let u = uR, dir = -1;
-  const legs = [];
-  const leg = (u0, q0, u1, q1) => {
-    const pts = [];
+  const legs: PtData[][] = [];
+  const leg = (u0: number, q0: number, u1: number, q1: number) => {
+    const pts: PtData[] = [];
     const nn = Math.max(2, Math.round(Math.abs(u1 - u0) / 0.003));
     for (let j = 0; j <= nn; j++) { const uu = mix(u0, u1, j / nn), y = qY(uu, mix(q0, q1, j / nn)); if (y != null) pts.push([X(uu), y, mix(q0, q1, j / nn)]); }
     if (pts.length > 1) legs.push(pts);
   };
-  const start = qY(u, q) != null ? [X(u), qY(u, q)] : null;
+  const start: Pt | null = qY(u, q) != null ? [X(u), qY(u, q)!] : null;
   while (q > kh + 2.2) {
     const qn = Math.max(kh + 1.2, q - (1.7 + Rp() * 0.9));
     let un = dir < 0 ? uL + Rp() * 0.02 : uR - Rp() * 0.025;
@@ -245,8 +248,8 @@ export function* draw(env) {
     const a = fade2(m[0] / REF_PX, 1 - m[1] / VH_PX);
     if (a < 0.04) continue;
     // a pale band of trodden earth (it cuts the walls it crosses), its lower edge a faint broken line
-    stroke(ctx, pts, { w: 2.3 * fk, col: rgba(C.white, 0.8 * a), tin: 0.05, tout: 0.05, wob: 0.4, dry: 0.08, seed: pts[0][0] });
-    stroke(ctx, pts.map(([x, y]) => [x, y + 1.25 * wk]), { w: 0.45 * wk, col: rgba(C.ink, 0.3 * a), tin: 0.15, tout: 0.25, dry: 0.45, seed: pts[0][1] });
+    stroke(ctx, pts as Pt[], { w: 2.3 * fk, col: rgba(C.white, 0.8 * a), tin: 0.05, tout: 0.05, wob: 0.4, dry: 0.08, seed: pts[0][0] });
+    stroke(ctx, pts.map(([x, y]): Pt => [x, y + 1.25 * wk]), { w: 0.45 * wk, col: rgba(C.ink, 0.3 * a), tin: 0.15, tout: 0.25, dry: 0.45, seed: pts[0][1] });
     // steps where it crosses a wall
     for (let j = 1; j < pts.length; j++) {
       if (Math.floor(pts[j - 1][2]) === Math.floor(pts[j][2])) continue;
@@ -266,17 +269,17 @@ export function* draw(env) {
   anchor(env, 'smoke', { x: roofTop[0] - 8 * hs, y: roofTop[1] - 30 * hs, w: 22 * hs, h: 30 * hs }, { src: roofTop });
   const Rf = own('fence');
   const fx0 = hx - 9.2 * hs, fy = hy + 0.2;
-  const fence = [];
+  const fence: Pt[] = [];
   for (let i = 0; i <= 4; i++) fence.push([fx0 - i * 2.1 * hs, fy + Math.sin(i * 0.8) * 0.25 * hs + i * 0.12 * hs]);
-  stroke(ctx, fence.map(([x, y]) => [x, y - 1.6 * hs]), { w: 0.42 * wk, col: rgba(C.ink, 0.55), tin: 0.1, tout: 0.4, dry: 0.25, seed: 3 });
-  stroke(ctx, fence.map(([x, y]) => [x, y - 0.7 * hs]), { w: 0.36 * wk, col: rgba(C.ink, 0.4), tin: 0.1, tout: 0.5, dry: 0.35, seed: 4 });
+  stroke(ctx, fence.map(([x, y]): Pt => [x, y - 1.6 * hs]), { w: 0.42 * wk, col: rgba(C.ink, 0.55), tin: 0.1, tout: 0.4, dry: 0.25, seed: 3 });
+  stroke(ctx, fence.map(([x, y]): Pt => [x, y - 0.7 * hs]), { w: 0.36 * wk, col: rgba(C.ink, 0.4), tin: 0.1, tout: 0.5, dry: 0.35, seed: 4 });
   for (const [x, y] of fence) if (Rf() < 0.85) stroke(ctx, [[x, y + 0.2], [x + (Rf() - 0.5) * 0.4, y - 2.1 * hs]], { w: 0.42 * wk, col: rgba(C.ink, 0.6), tin: 0, tout: 0.2 });
   yield;
 
   // ---- trees: a small grove on the left hill's crown, two in the saddle, a field-edge tree on the right hill's
   // shoulder (their feet a little under the outline: the engine rounds the crest per view, so a foot drawn on it
   // could float), and a pair where the path leaves the shore, fading with the hill's foot
-  const onCrest = (u, dz, s, key, o = {}) => {
+  const onCrest = (u: number, dz: number, s: number, key: string, o: TreeOptions = {}) => {
     const y = crest(u) - dz;
     if (fade2(u, y) < 0.3) return;
     fieldTree(env, X(u), Y(y), s * fk, own('tree', key), o);
@@ -303,7 +306,7 @@ export function* draw(env) {
  * at a few px. (x, y) = the foot; s = scale (1 ~ 14 world px tall). o.pale: a lighter crown; o.upright: a narrow,
  * tall crown of upright dabs (a cypress-like tree for a row along a crest).
  */
-function fieldTree(env, x, y, s, R, o = {}) {
+function fieldTree(env: Env, x: number, y: number, s: number, R: Rng, o: TreeOptions = {}) {
   const { ctx, ink } = env;
   const { C, rgba } = ink;
   const up = !!o.upright;
@@ -314,8 +317,8 @@ function fieldTree(env, x, y, s, R, o = {}) {
   stroke(ctx, [[x, y + 0.4], [x + lean * 0.5 + (R() - 0.5) * 0.8 * s, y - H * 0.35], [cx, cy]], { w: 1.15 * s, col: rgba(C.ink, 0.85), tin: 0, tout: 0.5, wob: 0.5, seed: x });
   const leaf = ink.strength > 0 ? mix3(C.ink, C.malD, o.pale ? 0.45 : 0.25) : (o.pale ? mix3(C.ink, C.white, 0.28) : C.ink);
   const body = ink.strength > 0 ? mix3(C.malD, C.ink2, o.pale ? 0.2 : 0.45) : mix3(C.ink2, C.white, o.pale ? 0.5 : 0.3);
-  const blobs = up ? 2 : 3;
-  const B = [];
+  const blobs: number = up ? 2 : 3;
+  const B: [x: number, y: number, rx: number, ry: number][] = [];
   for (let i = 0; i < blobs; i++) {
     const t = blobs === 1 ? 0 : i / (blobs - 1) - 0.5;
     B.push(up ? [cx + (R() - 0.5) * 1.2 * s, cy + t * ry * 0.9, rx, ry * 0.7] : [cx + t * rx * 1.1 + (R() - 0.5) * 1.5 * s, cy + (R() - 0.5) * 1.6 * s - (i === 1 ? ry * 0.35 : 0), rx * (0.6 + R() * 0.2), ry * (0.75 + R() * 0.2)]);
@@ -339,7 +342,7 @@ function fieldTree(env, x, y, s, R, o = {}) {
  * eaves straight and thick (thatch never lifts at the corners like tile), a dark doorway, the side wall in shade.
  * (x, y) = front-left foot; s = scale (1 ~ 16 world px wide). Returns the middle of the roof's ridge (the smoke).
  */
-function farmhouse(env, x, y, s, R) {
+function farmhouse(env: Env, x: number, y: number, s: number, R: Rng): Pt {
   const { ctx, ink } = env;
   const { C, rgba } = ink;
   const w = 15 * s, h = 4.6 * s, d = 7 * s, rh = 5.6 * s, ov = 2.2 * s;
@@ -360,10 +363,10 @@ function farmhouse(env, x, y, s, R) {
   stroke(ctx, [[x - 0.6, y + 0.4], [x + w + 0.5, y + 0.3], [x + w + ox, y + oy + 0.3]], { w: 0.75 * s, col: rgba(C.ink, 0.6), tin: 0.05, tout: 0.1, dry: 0.2 });
   // the thatch: a heavy roof, its front slope and the hip on the right, a rounded ridge
   const ey = y - h + 0.4 * s;
-  const eave = [];
+  const eave: Pt[] = [];
   for (let i = 0; i <= 10; i++) { const t = i / 10; eave.push([x - ov + (w + 2 * ov) * t, ey + Math.sin(Math.PI * t) * 0.35 * s + 0.5 * s * Math.pow(Math.abs(t * 2 - 1), 3)]); }
-  const rL = [x + w * 0.2 + ox * 0.5, y - h - rh + oy * 0.5], rR = [x + w * 0.8 + ox * 0.5, y - h - rh + oy * 0.5];
-  const eF = eave[eave.length - 1], eB = [x + w + ov + ox, ey + oy + 0.3 * s];
+  const rL: Pt = [x + w * 0.2 + ox * 0.5, y - h - rh + oy * 0.5], rR: Pt = [x + w * 0.8 + ox * 0.5, y - h - rh + oy * 0.5];
+  const eF = eave[eave.length - 1], eB: Pt = [x + w + ov + ox, ey + oy + 0.3 * s];
   // straw gone grey: cool, never beige; a breath of green so the grey does not turn pink against the malachite
   const thatch = ink.strength > 0 ? mix3(mix3(C.earth, C.ink2, 0.4), C.malD, 0.22) : mix3(C.earth, C.ink2, 0.4);
   wash(ctx, [eF, eB, rR], rgba(mix3(thatch, C.ink, 0.3), 0.9), { jit: 0.3 });
@@ -373,7 +376,7 @@ function farmhouse(env, x, y, s, R) {
     const t = i / 9, ex = mix(eave[0][0], eF[0], t) + (R() - 0.5) * 0.6, rx = mix(rL[0], rR[0], t);
     stroke(ctx, [[mix(rx, ex, 0.15), mix(rL[1], ey, 0.15)], [ex, ey - 0.4]], { w: 0.32 * s, col: rgba(C.ink, 0.22 + R() * 0.12), tin: 0.2, tout: 0.3, dry: 0.3, seed: i });
   }
-  stroke(ctx, eave.map(([ex, eyy]) => [ex, eyy + 0.7 * s]).slice(1, 10), { w: 0.9 * s, col: rgba(C.ink2, 0.35), tin: 0.1, tout: 0.1 });
+  stroke(ctx, eave.map(([ex, eyy]): Pt => [ex, eyy + 0.7 * s]).slice(1, 10), { w: 0.9 * s, col: rgba(C.ink2, 0.35), tin: 0.1, tout: 0.1 });
   stroke(ctx, eave, { w: 1.0 * s, col: rgba(C.ink, 0.8), tin: 0.08, tout: 0.08, wob: 0.4, seed: x });
   stroke(ctx, [eF, eB], { w: 0.7 * s, col: rgba(C.ink, 0.7), tin: 0.05, tout: 0.2 });
   stroke(ctx, [eave[0], rL], { w: 0.55 * s, col: rgba(C.ink, 0.55), tin: 0.05, tout: 0.15, dry: 0.2 });

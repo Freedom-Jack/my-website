@@ -1,4 +1,4 @@
-// sets/pavilion.js — Writing and the Note (stretch 3): the still lake. One corner, in the manner of Ma Yuan and Xia
+// sets/pavilion.ts — Writing and the Note (stretch 3): the still lake. One corner, in the manner of Ma Yuan and Xia
 // Gui: at the lower right a low rocky spit runs out from the shore (lost in mist) into the still water; on it an
 // open pavilion, four posts under one low pyramidal roof whose eave corners lift only a little (Song restraint: one
 // storey, one eave, never tiered); inside it one scholar in a plain white robe sits looking out over the water to
@@ -7,7 +7,7 @@
 // shader mirrors only the far shore: the reflection is drawn here). Ink only: ink greys on every palette.
 // Life: the faintest shimmer in the reflection.
 //
-// A figure set (figures.js, THE SET API; guide: README "Figure sets and small life"): meta + draw(env), in world
+// A figure set (figures.ts, THE SET API; guide: README "Figure sets and small life"): meta + draw(env), in world
 // px. Painted after plane 2's mist band and the water (phase 1), so the lake lies under the spit.
 //
 // Where: the spit's waterline at scene height 0.214, in open water in front of the far shore (its waterline is
@@ -18,24 +18,25 @@
 // there). The spit's tail runs on to u 4.215, into the layer's melting end, so on wide screens it leaves the frame
 // at the right edge.
 
-import { REF_PX, VH_PX, streams, vnoise, mix, mix3, wash, softWash, stroke, dryBrush, runs, ellipse, anchor, bounds } from '../figures.js';
+import { REF_PX, VH_PX, streams, vnoise, mix, mix3, wash, softWash, stroke, dryBrush, runs, ellipse, anchor, bounds, type Env, type FigureMeta, type Pt, type RGB } from '../figures';
 
-export const meta = { rect: [3.78, 4.22, 0.10, 0.37], plane: 2, phase: 1 };
+export const meta: FigureMeta = { rect: [3.78, 4.22, 0.10, 0.37], plane: 2, phase: 1 };
+interface Rock { key: string; top: Pt[]; k: number; P: Pt[] }
 
 const SEED = 31;
-const DP = [0.72, -0.48];   // Song oblique depth (as figures.js D, which a set may not read at its top level)
+const DP: Pt = [0.72, -0.48];   // Song oblique depth (as figures.ts D, which a set may not read at its top level)
 
-export function* draw(env) {
+export function* draw(env: Env) {
   const { ctx, ink } = env;
   const { C, rgba } = ink;
   const own = streams(SEED, PINS);
   // a phone's album leaf sees the lake from further away: the spit, the pavilion and the pine are drawn larger there
   // (as Home does), so the roof's lifted corners and the seated figure still read at 390
   const b = Math.max(1, 0.7 * REF_PX / env.scale);
-  const X = (u) => u * REF_PX, Y = (y) => (1 - y) * VH_PX;
+  const X = (u: number) => u * REF_PX, Y = (y: number) => (1 - y) * VH_PX;
   const cx = X(3.925), wy = Y(0.214);
-  const at = (p) => [cx + p[0] * b, wy + p[1] * b];     // local (pavilion units) -> world px
-  const pts = (list) => list.map(at);
+  const at = (p: Pt): Pt => [cx + p[0] * b, wy + p[1] * b];     // local (pavilion units) -> world px
+  const pts = (list: Pt[]) => list.map(at);
   // ink only: every colour here is an ink grey (the palette's ink and ink2, the paper's whites); a breath of indigo in
   // the shade, which 'ink' turns grey with the rest
   const INK = C.ink, INK2 = C.ink2, PAL = mix3(C.ink2, C.white, 0.62), SHADE = mix3(C.ink2, C.indigo, 0.3);
@@ -48,32 +49,32 @@ export function* draw(env) {
     { key: 'ledge', top: [[-49, 0.5], [-47.6, -1.4], [-44.5, -2.3], [-42, -1.9], [-39.5, -3.5], [-36.5, -4.2], [-33.5, -3.4], [-32, 0.2]], k: 0.9 },
     { key: 'pavilion rock', top: [[-34, 0.4], [-32.5, -3.4], [-30, -6.2], [-27.4, -7.8], [-24.6, -7.3], [-21.5, -9.8], [-16, -10.5], [-6, -10.7], [4, -10.9], [11.5, -10.7], [15, -11.6]], k: 1 },
     { key: 'pine rock', top: [[11, -10.8], [13.4, -14.6], [16.6, -16.8], [19.4, -16.1], [22.2, -19.4], [26.2, -20.6], [29.4, -19.2], [31.6, -16.6], [34.2, -15.8], [37.2, -12.6], [41, -11.3], [46, -10.4]], k: 0.95 },
-  ];
+  ] as Rock[];
   for (const R of ROCKS) R.P = pts(R.top);
-  const tailL = [[44, -10.4], [49, -8.8], [55, -7.4], [64, -5.8], [77, -4.4], [93, -3.1]];
+  const tailL: Pt[] = [[44, -10.4], [49, -8.8], [55, -7.4], [64, -5.8], [77, -4.4], [93, -3.1]];
   const tail = pts(tailL);
   for (let x = tail[tail.length - 1][0] + 5, x0 = x; x <= xEnd; x += 5) {   // low rocks, lower as they go, to the shore
     const t = (x - x0) / Math.max(1, xEnd - x0);
     tail.push([x, wy - b * (1.3 + 1.5 * vnoise(x / 34, 1.7, 21) + 1.1 * vnoise(x / 11, 2.3, 22)) * (1 - 0.4 * t)]);
   }
-  const shore = (top) => [...top, [top[top.length - 1][0], wy + 0.6], [top[0][0], wy + 0.8]];
+  const shore = (top: Pt[]): Pt[] => [...top, [top[top.length - 1][0], wy + 0.6], [top[0][0], wy + 0.8]];
   const bodyT = shore(tail);
   const A = ROCKS[2].P;
 
   // ---- the pavilion: a square of four posts on a low stone plinth, seen from the front and its right side
   const w = 26 * b, d = 13 * b, h = 13 * b, ov = 5.2 * b, rh = 9.6 * b, lift = 1.5 * b;
-  const o = [DP[0] * d, DP[1] * d];
-  const FL = at([-13, -12.4]), FR = [FL[0] + w, FL[1]], BR = [FR[0] + o[0], FR[1] + o[1]], BL = [FL[0] + o[0], FL[1] + o[1]];
+  const o: Pt = [DP[0] * d, DP[1] * d];
+  const FL = at([-13, -12.4]), FR: Pt = [FL[0] + w, FL[1]], BR: Pt = [FR[0] + o[0], FR[1] + o[1]], BL: Pt = [FL[0] + o[0], FL[1] + o[1]];
   const ey = FL[1] - h;                                   // the front eave's height
-  const apex = [FL[0] + w / 2 + o[0] / 2, ey + o[1] / 2 - rh];
-  const eave = [];                                        // the front eave: a long, gentle line, its ends lifted a little
+  const apex: Pt = [FL[0] + w / 2 + o[0] / 2, ey + o[1] / 2 - rh];
+  const eave: Pt[] = [];                                  // the front eave: a long, gentle line, its ends lifted a little
   for (let i = 0; i <= 16; i++) {
     const t = i / 16;
     const sag = Math.sin(Math.PI * t) * lift * 0.35 - Math.pow(Math.abs(t * 2 - 1), 5) * lift;
     eave.push([FL[0] - ov + (w + 2 * ov) * t, ey + 0.6 * b + sag]);
   }
   const eF = eave[eave.length - 1];
-  const side = [];                                        // the right eave, running back into depth
+  const side: Pt[] = [];                                  // the right eave, running back into depth
   for (let i = 0; i <= 10; i++) {
     const t = i / 10;
     const sag = Math.sin(Math.PI * t) * lift * 0.3 - Math.pow(Math.abs(t * 2 - 1), 5) * lift * 0.8;
@@ -81,27 +82,27 @@ export function* draw(env) {
   }
   const eB = side[side.length - 1];
   // the scholar sits on the floor near the open water side, toward the front (his head clear of the eave), facing left
-  const seat = [mix(FL[0], BL[0], 0.3) + 3.2 * b, mix(FL[1], BL[1], 0.3) + 0.2 * b];
+  const seat: Pt = [mix(FL[0], BL[0], 0.3) + 3.2 * b, mix(FL[1], BL[1], 0.3) + 0.2 * b];
 
   // ---- the pine: from the rock behind the pavilion it rises, twists, and leans out over the roof and the water
   const root = at([24, -19]);
-  const trunkL = [[0, 0], [-2.2, -6.5], [0.6, -13], [-1.8, -20], [0.2, -24.5], [-6, -30.5], [-12.5, -33.6], [-20.5, -36.8], [-28.5, -36], [-36, -33.4]];
-  const trunk = trunkL.map(([x, y]) => [root[0] + x * b, root[1] + y * b]);
-  const T = (i) => trunk[i];
-  const boughs = [
+  const trunkL: Pt[] = [[0, 0], [-2.2, -6.5], [0.6, -13], [-1.8, -20], [0.2, -24.5], [-6, -30.5], [-12.5, -33.6], [-20.5, -36.8], [-28.5, -36], [-36, -33.4]];
+  const trunk = trunkL.map(([x, y]): Pt => [root[0] + x * b, root[1] + y * b]);
+  const T = (i: number) => trunk[i];
+  const boughs: Pt[][] = [
     [T(3), [T(3)[0] + 5 * b, T(3)[1] - 6 * b], [T(3)[0] + 9.5 * b, T(3)[1] - 7.4 * b]],
     [T(5), [T(5)[0] - 1.5 * b, T(5)[1] - 6 * b], [T(5)[0] - 4.5 * b, T(5)[1] - 9.5 * b]],
     [T(7), [T(7)[0] - 3 * b, T(7)[1] - 4.2 * b], [T(7)[0] - 6 * b, T(7)[1] - 5.6 * b]],
     [T(8), [T(8)[0] - 5 * b, T(8)[1] + 1.2 * b], [T(8)[0] - 9.5 * b, T(8)[1] + 3.6 * b]],
   ];
   // needle masses: flat, layered, darkest in the middle of the tree (centre, half-width, rows)
-  const masses = [
+  const masses: [c: Pt, hw: number, rows: number][] = [
     [boughs[0][2], 8.5, 2], [[T(4)[0] + 1 * b, T(4)[1] - 2.5 * b], 7, 2], [boughs[1][2], 9, 3],
     [[T(6)[0] - 1 * b, T(6)[1] - 2.6 * b], 9.5, 2], [boughs[2][2], 8.5, 2], [boughs[3][2], 8, 2],
   ];
 
   // ---------------------------------------------------------------- painters (each takes `r`: the reflection pass)
-  const paintRocks = (r) => {
+  const paintRocks = (r: boolean) => {
     const fade = ctx.createLinearGradient(tail[0][0], 0, xEnd, 0);   // the tail pales as it goes into the mist
     fade.addColorStop(0, rgba(PAL, r ? 0.5 : 0.62));
     fade.addColorStop(0.35, rgba(PAL, r ? 0.3 : 0.4));
@@ -129,10 +130,10 @@ export function* draw(env) {
         const n = Math.floor(Math.hypot(q[0] - p[0], q[1] - p[1]) / (4 * b));
         for (let j = 0; j < n; j++) {   // broad side strokes, set into the face below the edge and dragged down-left
           const t = (j + 0.2 + Ra() * 0.6) / n;
-          const s0 = [mix(p[0], q[0], t), mix(p[1], q[1], t) + (0.9 + Ra() * 0.8) * b];
+          const s0: Pt = [mix(p[0], q[0], t), mix(p[1], q[1], t) + (0.9 + Ra() * 0.8) * b];
           const len = Math.min(wy - s0[1] - 0.8 * b, (2.4 + Ra() * 2.4) * b);
           if (len < 1.2 * b) continue;
-          const s1 = [s0[0] - len * (0.7 + Ra() * 0.4), s0[1] + len];
+          const s1: Pt = [s0[0] - len * (0.7 + Ra() * 0.4), s0[1] + len];
           stroke(ctx, [s0, s1], { w: (2 + Ra() * 1) * b, col: rgba(INK2, (0.2 + Ra() * 0.16) * R.k), tin: 0.1, tout: 0.7, wob: 0.6, dry: 0.55, seed: i * 11 + j });
         }
       }
@@ -157,7 +158,7 @@ export function* draw(env) {
       for (let i = 0; i < top.length - 1; i++) {
         if (Rm() < 0.45) continue;
         const f = Rm();
-        const p = [mix(top[i][0], top[i + 1][0], f), mix(top[i][1], top[i + 1][1], f) - 0.3 * b];
+        const p: Pt = [mix(top[i][0], top[i + 1][0], f), mix(top[i][1], top[i + 1][1], f) - 0.3 * b];
         ctx.fillStyle = rgba(INK, 0.6 + Rm() * 0.3);
         ctx.beginPath(); ctx.ellipse(p[0], p[1], (0.7 + Rm() * 0.5) * b, 0.45 * b, 0, 0, Math.PI * 2); ctx.fill();
       }
@@ -168,7 +169,7 @@ export function* draw(env) {
     softWash(env, [at([-56, 1.2]), at([-40, -1.0]), at([-10, -1.6]), at([20, -1.4]), at([44, -2]), at([60, 1.4]), at([20, 2.2]), at([-30, 2.4])], rgba(C.mist, 0.5), 1.6 * b);
   };
 
-  const paintPavilion = (r) => {
+  const paintPavilion = (r: boolean) => {
     // the plinth: a low stone base; its top, the floor, a pale stone grey (never a white box: the pavilion is open,
     // and through its posts we see the rock and the water behind it)
     const ph = 2.4 * b;
@@ -179,12 +180,12 @@ export function* draw(env) {
       stroke(ctx, [[FL[0] - 0.4 * b, FL[1]], FR, BR], { w: 0.7 * b, col: rgba(INK, 0.6), tin: 0.05, tout: 0.15, dry: 0.2, seed: 24 });
       stroke(ctx, [[FL[0], FL[1] + ph], [FR[0], FR[1] + ph + 0.2 * b], [BR[0], BR[1] + ph]], { w: 0.65 * b, col: rgba(INK, 0.5), tin: 0.05, tout: 0.2, dry: 0.3, seed: 25 });
       // the shade under the roof: dark just under the eaves, thinning toward the floor; the lower half stays open
-      const shadeTop = (t) => [[FL[0] + t * o[0], ey + t * o[1] + 0.8 * b], [FR[0] + t * o[0] + 0.5 * b, ey + t * o[1] + 0.8 * b]];
+      const shadeTop = (t: number): Pt[] => [[FL[0] + t * o[0], ey + t * o[1] + 0.8 * b], [FR[0] + t * o[0] + 0.5 * b, ey + t * o[1] + 0.8 * b]];
       softWash(env, [...shadeTop(0.9), [BR[0] + 0.5 * b, BR[1] - h * 0.45], [FL[0], FL[1] - h * 0.55]], rgba(SHADE, 0.3), 1.0 * b);
       softWash(env, [...shadeTop(1), [BR[0], BR[1] - 0.6 * b], [FR[0], FR[1] - 0.6 * b], [FL[0], FL[1] - 0.6 * b]], rgba(SHADE, 0.16), 1.0 * b);
     }
     // posts: the back two through the open sides, thinner and paler; a low rail along the back and the right side
-    const post = (p, k, s) => stroke(ctx, [[p[0], p[1] + 0.3 * b], [p[0] + 0.12 * b, p[1] - h]], { w: 1.15 * b * k, col: rgba(INK, (r ? 0.75 : 0.92) * k), tin: 0, tout: 0.08, wob: 0.15, seed: s });
+    const post = (p: Pt, k: number, s: number) => stroke(ctx, [[p[0], p[1] + 0.3 * b], [p[0] + 0.12 * b, p[1] - h]], { w: 1.15 * b * k, col: rgba(INK, (r ? 0.75 : 0.92) * k), tin: 0, tout: 0.08, wob: 0.15, seed: s });
     post(BL, 0.62, 31); post(BR, 0.7, 32);
     if (!r) {
       const rail = 3.4 * b;
@@ -192,7 +193,7 @@ export function* draw(env) {
       scholar(env, seat[0], seat[1], 1.12 * b, INK, PAL);
       stroke(ctx, [[FR[0], FR[1] - rail], [BR[0], BR[1] - rail]], { w: 0.7 * b, col: rgba(INK, 0.65), tin: 0.05, tout: 0.1, seed: 34 });
       for (const t of [0.33, 0.66]) {
-        const p = [mix(FR[0], BR[0], t), mix(FR[1], BR[1], t)];
+        const p: Pt = [mix(FR[0], BR[0], t), mix(FR[1], BR[1], t)];
         stroke(ctx, [p, [p[0], p[1] - rail]], { w: 0.42 * b, col: rgba(INK, 0.5), tin: 0, tout: 0, seed: 35 + t });
       }
     }
@@ -203,8 +204,8 @@ export function* draw(env) {
     wash(ctx, [...eave, apex], rgba(tile, r ? 0.8 : 0.82), { jit: 0.3 * b, seed: 42 });
     if (r) return;
     // the rafters' shadow under the eaves (a thin dark band: the roof hovers over the open posts)
-    wash(ctx, [...eave.slice(1, -1), ...eave.slice(1, -1).reverse().map(([x, y]) => [x, y + 1.3 * b])], rgba(INK2, 0.55), { jit: 0.15 * b, seed: 43 });
-    wash(ctx, [...side.slice(1), ...side.slice(1).reverse().map(([x, y]) => [x, y + 1.1 * b])], rgba(INK2, 0.5), { jit: 0.15 * b, seed: 44 });
+    wash(ctx, [...eave.slice(1, -1), ...eave.slice(1, -1).reverse().map(([x, y]): Pt => [x, y + 1.3 * b])], rgba(INK2, 0.55), { jit: 0.15 * b, seed: 43 });
+    wash(ctx, [...side.slice(1), ...side.slice(1).reverse().map(([x, y]): Pt => [x, y + 1.1 * b])], rgba(INK2, 0.5), { jit: 0.15 * b, seed: 44 });
     // tile rows near the eave, a few and broken
     ctx.save();
     ctx.beginPath(); ctx.moveTo(eave[0][0], eave[0][1]); for (const p of eave) ctx.lineTo(p[0], p[1]); ctx.lineTo(apex[0], apex[1]); ctx.closePath(); ctx.clip();
@@ -226,18 +227,18 @@ export function* draw(env) {
     stroke(ctx, [[apex[0], apex[1] - 0.6 * b], [apex[0] + 0.1 * b, apex[1] - 2.2 * b]], { w: 0.55 * b, col: rgba(INK, 0.85), tin: 0, tout: 0.5, seed: 50 });
   };
 
-  const paintPine = (r) => {
+  const paintPine = (r: boolean) => {
     // the needle masses behind the trunk first (a soft dark bed), the trunk, then the needles over it
     for (const [c, hw, rows] of masses) softWash(env, ellipse(c[0], c[1] - (rows - 1) * 0.7 * b, hw * 0.9 * b, (1.2 + rows * 0.7) * b, 12), rgba(INK2, r ? 0.3 : 0.2), 1.0 * b);
     stroke(ctx, trunk, { w: 3.9 * b, col: rgba(INK, r ? 0.7 : 0.9), tin: 0, tout: 0.75, min: 0.3, wob: 0.45, seed: 61 });
     for (const bg of boughs) stroke(ctx, bg, { w: 1.3 * b, col: rgba(INK, r ? 0.6 : 0.85), tin: 0.02, tout: 0.8, wob: 0.4, seed: bg[2][0] });
     if (r) return;
     // bark: a pale dry streak down the lit side, and a few scale marks
-    dryBrush(ctx, trunk.slice(0, 6).map(([x, y]) => [x + 0.8 * b, y]), { w: 1.6 * b, col: rgba(C.white, 0.5), bristles: 3, seed: 62, thr: 0.45 });
+    dryBrush(ctx, trunk.slice(0, 6).map(([x, y]): Pt => [x + 0.8 * b, y]), { w: 1.6 * b, col: rgba(C.white, 0.5), bristles: 3, seed: 62, thr: 0.45 });
     const Rb = own('bark');
     for (let i = 0; i < 7; i++) {
       const j = Math.floor(Rb() * 6), f = Rb();
-      const p = [mix(trunk[j][0], trunk[j + 1][0], f), mix(trunk[j][1], trunk[j + 1][1], f)];
+      const p: Pt = [mix(trunk[j][0], trunk[j + 1][0], f), mix(trunk[j][1], trunk[j + 1][1], f)];
       stroke(ctx, [[p[0] - 0.9 * b, p[1] - 0.3 * b], [p[0], p[1] + 0.4 * b], [p[0] + 0.9 * b, p[1] - 0.2 * b]], { w: 0.4 * b, col: rgba(INK, 0.5), tin: 0.1, tout: 0.4, seed: i });
     }
     // needles: each mass a few flat rows of short strokes fanning out from its bough, the rows' undersides darker
@@ -270,7 +271,7 @@ export function* draw(env) {
   paintPavilion(true);
   paintPine(true);
   ctx.restore();
-  const reflBox = bounds([[[A[0][0] - 2 * b, wy], [xEnd, wy]], trunk.map(([x, y]) => [x, 2 * wy - y]), [[apex[0], 2 * wy - apex[1] + 3 * b]]], 2 * b);
+  const reflBox = bounds([[[A[0][0] - 2 * b, wy], [xEnd, wy]], trunk.map(([x, y]): Pt => [x, 2 * wy - y]), [[apex[0], 2 * wy - apex[1] + 3 * b]]], 2 * b);
   ctx.save();
   ctx.globalCompositeOperation = 'destination-out';
   const g = ctx.createLinearGradient(0, wy + 4 * b, 0, wy + 48 * b);
@@ -281,7 +282,7 @@ export function* draw(env) {
   const Rr = own('ripples');
   for (let yy = wy + (2.6 + Rr() * 1.2) * b; yy < wy + 50 * b; yy += (1.2 + Rr() * 2.6) * b * (1 + (yy - wy) / (36 * b))) {
     const deep = Math.min(1, (yy - wy) / (30 * b));   // near the waterline the mirror is nearly whole; deeper, torn
-    const line = [];
+    const line: Pt[] = [];
     for (let x = reflBox.x - 4 * b; x <= reflBox.x + reflBox.w + 4 * b; x += 5 * b) line.push([x, yy + (Rr() - 0.5) * 0.4 * b]);
     for (const seg of runs(line, Rr, (8 + 14 * deep) * b, (30 + 50 * deep) * b, (14 - 8 * deep) * b)) {
       stroke(ctx, seg, { w: (0.3 + Rr() * (0.4 + 0.6 * deep)) * b, col: 'rgba(0,0,0,0.9)', tin: 0.3, tout: 0.3, wob: 0.6, seed: seg[0][0] + yy });
@@ -313,8 +314,8 @@ export function* draw(env) {
 }
 
 // a polyline resampled every `step` world px (for broken contours)
-function resampled(list, step) {
-  const out = [list[0]];
+function resampled(list: Pt[], step: number): Pt[] {
+  const out: Pt[] = [list[0]];
   for (let i = 1; i < list.length; i++) {
     const [x0, y0] = list[i - 1], [x1, y1] = list[i];
     const n = Math.max(1, Math.ceil(Math.hypot(x1 - x0, y1 - y0) / step));
@@ -328,10 +329,10 @@ function resampled(list, step) {
  * a broken ink line on his back, a pale sleeve over the knees, dark hair with a small topknot, the face a pale sliver.
  * (x, y) = where he sits; s = size (about 8 world px from the floor to the topknot at s = 1).
  */
-function scholar(env, x, y, s, INK, PAL) {
+function scholar(env: Env, x: number, y: number, s: number, INK: RGB, PAL: RGB) {
   const { ctx, ink } = env;
   const { C, rgba } = ink;
-  const robe = [[x + 2.4 * s, y + 0.2 * s], [x + 2.2 * s, y - 2.4 * s], [x + 1.3 * s, y - 5.2 * s], [x - 0.6 * s, y - 5.5 * s], [x - 1.5 * s, y - 3.6 * s], [x - 3.6 * s, y - 1.9 * s], [x - 4.1 * s, y + 0.2 * s]];
+  const robe: Pt[] = [[x + 2.4 * s, y + 0.2 * s], [x + 2.2 * s, y - 2.4 * s], [x + 1.3 * s, y - 5.2 * s], [x - 0.6 * s, y - 5.5 * s], [x - 1.5 * s, y - 3.6 * s], [x - 3.6 * s, y - 1.9 * s], [x - 4.1 * s, y + 0.2 * s]];
   wash(ctx, robe, rgba(C.white, 0.97), { jit: 0.15 * s, seed: 81 });
   // the back: one line, broken; the hem on the floor; the sleeve (a pale grey fold) resting over the knees
   stroke(ctx, [robe[0], robe[1], robe[2], robe[3]], { w: 0.55 * s, col: rgba(INK, 0.8), tin: 0.1, tout: 0.3, dry: 0.15, seed: 82 });
@@ -349,4 +350,4 @@ function scholar(env, x, y, s, INK, PAL) {
 }
 
 // PINS: none (a new set; every element draws from stream(SEED, ...key)).
-const PINS = {};
+const PINS: Record<string, number> = {};
