@@ -37,6 +37,14 @@
   white-space: nowrap;               /* the address never breaks (it fits a 320 px screen at 22 px) */
 }
 .contact__email a:focus-visible { outline-offset: 2px; }
+/* Under 240 CSS px (a 390 px phone at 200 % page zoom, iOS Safari's aA: a 195 px viewport) the address cannot hold one
+   line at 22 px, and the page never scrolls sideways (html overflow-x: clip), so its last letters were simply lost. There
+   it breaks after the "@" (the <wbr> in the page), mid-word only as a last resort, and its brush stays under the last
+   line. (Final review r1, item 6.) */
+@media (max-width: 14.99rem) {
+  .contact__email a { white-space: normal; overflow-wrap: anywhere; --brush-y: 100%; }
+  .contact__copy .ink-btn { --ink-tail: 4px; }   /* (the swash's dry tail stays inside the gutter there) */
+}
 
 /* "Copy email": the one ink button, beside the address (below it when the line is too short) */
 .contact__copy {
@@ -112,6 +120,11 @@ html:not(.js) .contact__copy { display: none; }   /* copying needs JS; the addre
   color: var(--ink-1);
 }
 .contact > .contact__where { margin-block-start: var(--space-s); }
+/* under 240 CSS px (200 % page zoom on a phone) the label column leaves the link too little room: label above link */
+@media (max-width: 14.99rem) {
+  .contact__way { grid-template-columns: minmax(0, 1fr); }
+  .contact__way a { overflow-wrap: anywhere; }
+}
 
 /* ---------- reduced motion: the stamp simply appears, and fades ---------- */
 @media (prefers-reduced-motion: reduce) {

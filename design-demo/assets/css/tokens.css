@@ -232,7 +232,8 @@ html[data-name-size='96'] { --fs-name: clamp(3rem, 2.0625rem + 4.38vw, 6rem); } 
   --strip-sub: clamp(110px, 20svh, 170px);   /* 169 @ 844 */
   --strip-doc: clamp(88px, 12svh, 110px);
   --closing-h: 160px;
-  --story-map-art: 28px;      /* the footer's map of the painting; 36 from 640 */
+  --story-map-art: 2.75rem;   /* the footer's map of the painting (its scene stills): 44; from 640 .37 of a map column
+                                 (56-74), so each scene's window lies inside its still (layout.css) */
 
   /* Fluid small spaces for paddings and gaps inside components (unchanged from round 3) */
   --space-3xs: clamp(.25rem, .23rem + .1vw, .3125rem);
@@ -262,7 +263,7 @@ html[data-name-size='96'] { --fs-name: clamp(3rem, 2.0625rem + 4.38vw, 6rem); } 
     --strip-sub: 220px;
     --strip-doc: 160px;
     --closing-h: 200px;
-    --story-map-art: 36px;
+    --story-map-art: clamp(3.5rem, (100vw - 4rem) * .0617, 4.625rem);   /* .37 x (frame / 6): 56 @ 640-970, 59 @ 1024 */
   }
 }
 @media (min-width: 75rem) {           /* wide */
@@ -273,6 +274,7 @@ html[data-name-size='96'] { --fs-name: clamp(3rem, 2.0625rem + 4.38vw, 6rem); } 
     --strip-sub: clamp(300px, 40svh, 360px);    /* 360 @ 900 */
     --strip-doc: 180px;                          /* the low end of SPEC-R4A's 180–220: documents open on their text */
     --closing-h: 240px;
+    --story-map-art: clamp(3.5rem, (100vw - 5rem) * .0617, 4.625rem);   /* 69 @ 1200, 74 from 1280 */
   }
 }
 @media (max-height: 31.25rem) and (max-width: 74.99rem) {   /* short: sideways phones */

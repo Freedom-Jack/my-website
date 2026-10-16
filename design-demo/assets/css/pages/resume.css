@@ -58,6 +58,12 @@
   inline-size: var(--sep);
   text-align: center;
 }
+/* Under 240 CSS px (a 390 px phone at 200 % page zoom: a 195 px viewport) the LinkedIn and site addresses are wider
+   than the line, and the line's clip cut their ends off: there an item may wrap, mid-address if it must (final review
+   r1, item 6) */
+@media (max-width: 14.99rem) {
+  .cv-head__contact > span { white-space: normal; overflow-wrap: anywhere; min-inline-size: 0; }
+}
 .cv-head__contact a {
   --brush-y: calc(50% + .78em);
   display: inline-flex;

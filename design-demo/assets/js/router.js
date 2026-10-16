@@ -130,7 +130,9 @@ export function initRouter(site) {
     if (!land || typeof land.prepare !== 'function') return;
     const stretch = num(doc.body?.dataset.stretch, NaN);
     if (!Number.isFinite(stretch)) return;
-    try { Promise.resolve(land.prepare(stretch)).catch(() => { /* the pan fades it in when it is ready */ }); }
+    // (the destination's own composition, as the pan will ask for it: the layer drawn now is the one it shows)
+    const o = { distance: doc.body.dataset.distance || 'level', presence: num(doc.body.dataset.presence, 1) };
+    try { Promise.resolve(land.prepare(stretch, o)).catch(() => { /* the pan fades it in when it is ready */ }); }
     catch { /* never let the painting stop a navigation */ }
   }
 

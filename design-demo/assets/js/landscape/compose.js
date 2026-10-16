@@ -30,12 +30,13 @@ const STRETCHES = [
   // scene's water, with a near bank); the town stands on its far bank (figures.js) and the hills rise behind it
   // out of the mist, lower than the home peak, so town, bridge and hills fit one strip (fixer: a little lower again,
   // so their summits sit inside the wide strip instead of running into its top). A crag at the seam: the
-  // road leaves the town past it, toward the fields.
+  // road leaves the town past it, toward the fields. (4b: the hill behind the east end of the town is a broad, rounded
+  // hill, u .77; as a narrow cone it read as a spire, a pagoda's, beside the reading column: DESIGN §4.6.)
   [
     [0, 0.30, 0.26, 0.30, 'far'], [0, 0.80, 0.24, 0.34, 'far'],
     [1, 0.42, 0.10, 0.48, 'guest'], [1, 0.97, 0.09, 0.52, 'guest'],
     [2, 0.47, 0.06, 0.40, 'host'], [2, 0.585, 0.055, 0.52, 'host'], [2, 0.675, 0.05, 0.64, 'host'],
-    [2, 0.765, 0.055, 0.56, 'host'], [2, 0.875, 0.05, 0.44, 'host'],
+    [2, 0.775, 0.115, 0.42, 'host'], [2, 0.875, 0.05, 0.44, 'host'],
     [3, 1.03, 0.07, 0.62, 'near'],
     [4, 1.06, 0.06, 0.4, 'fg'],
   ],
@@ -122,11 +123,24 @@ const tableFor = (k) => (k < 0 || k >= STRETCH_COUNT ? QUIET : STRETCHES[k]);
 //                                 top edge; the keep-out rule may move it left (focus >= keepoutRight + 180 px)
 //   tablet / phone { scale, fx, fy }  `scale` CSS px per stretch; the focus at (fx, fy) of the box
 //   short (optional)               sideways phones (else the phone's): a sliver of a strip needs a wider view
-//   closing { u, y, fx, fy, scale? }  the road toward the next place: point (u, y) at (fx, fy) of the box
+//   closing                        the page's own place once more (DESIGN 11.B), never the road to the next one:
+//     wide { scale, band, right, hug?, keepU? }   a small version of the opening, framed as a band (bandFrame) with the
+//                                 view's right edge at stretch-local `right` (hug: its keepU KEEP_GAP right of the text
+//                                 instead, when the text overlaps it); `scale` is the nominal scale its figure layer is
+//                                 drawn at (the band fits within 0.8-1.15 of it)
+//     tablet / phone / short (optional)    overrides of that class's strip framing; without one, the closing frames
+//                                 the place exactly as the class's opening does, in the closing's own box (sideways
+//                                 phones never borrow the phone's)
+//     twin { wide, tablet, phone }  a different view of the same place, for a short page whose closing shares a
+//                                 screen with its strip (framingAt's box.twin): never the same picture twice, and never
+//                                 the strip's figures or landmark again (Writing: the lake's west end; Contact: the
+//                                 crossing's west, its low far shore over open water). A view may be a `span` [u0, u1]
+//                                 (spanFrame) instead of a scale: the box right of the text holds exactly that much of
+//                                 the stretch at any width (with `band` for its height)
+//     keepU (each)                the leftmost figurative point the keep-out keeps clear (default: frame.keepU)
 export const SCENES = [
   // Narrow framings (fixer, 10 Oct): every strip shows its mountains whole. A `band` [y0, y1] puts the scene's highest
-  // summits (the far range included) just under the top feather and its ground above the bottom one (bandFrame);
-  // a `cband` does the same for the closing; `cscale` keeps a closing's own scale where its strip's changed.
+  // summits (the far range included) just under the top feather and its ground above the bottom one (bandFrame).
   { name: 'peak', page: ['level', 1],
     frame: {
       focus: [0.79, 0.2], keepU: 0.72,
@@ -134,36 +148,73 @@ export const SCENES = [
       // tablet and phone: the whole mountain (summits 0.58) with the hut and the traveller (0.2) on a wider album leaf;
       // on phones the figures are drawn larger (figures.js `big`), so the traveller stays >= 12 CSS px tall. The view
       // ends at u 1.06, before the river town; it may begin a little left of u 0, where the scroll opens in mist.
-      tablet: { scale: 620, band: [0.195, 0.588], fbIn: 0, u: 0.76, fx: 0.62, uMax: 1.14, cband: [0.16, 0.6], cu: 1.0, cfx: 0.5 },
-      phone: { scale: 270, band: [0.195, 0.588], fbIn: 0, u: 0.76, fx: 0.6, uMax: 1.06, cband: [0.16, 0.6], cu: 1.0, cfx: 0.5 },
+      tablet: { scale: 620, band: [0.195, 0.588], fbIn: 0, u: 0.76, fx: 0.62, uMax: 1.14 },
+      phone: { scale: 270, band: [0.195, 0.588], fbIn: 0, u: 0.76, fx: 0.6, uMax: 1.06 },
       // sideways phones: an 80 px sliver holds the summits above their mist (the figures cannot read at that size)
       short: { scale: 600, band: [0.44, 0.588], u: 0.72, fx: 0.62, uMax: 1.06 },
-      closing: { u: 1.02, y: 0.22, fx: 0.62, fy: 0.94 },
+      // closing: the whole mountain with the hut and the traveller, ending before the river town (the wide one only off
+      // the living ground, which ends on the opening itself); on phones the summits sit lower in the taller box, so the
+      // near crags at the scroll's left end stay in its bottom feather
+      closing: { wide: { scale: 600, band: [0.19, 0.6], fbIn: 0, right: 1.06 }, phone: { slack: 1 } },
     },
     figures: 'home' },
   { name: 'river', page: ['deep', 0.8], tech: { at: [0.06, 0.98], bone: 1.0, ink: 1.5 },
-    water: { at: [0.04, 1.0], y: 0.32, near: 0.235, strokes: 0.5, refl: 0.12, banks: 0, shore: 0 },
+    water: { at: [0.04, 1.0], y: 0.32, near: 0.235, strokes: 0.5, refl: 0.12, banks: 0, shore: 0,
+      // 4b: the town's depth for its mist (shaders.js figMist, canvas2d.js figure()). The river's mist lies among the
+      // back rows, behind the nearest things in each column: `front` is how high those reach above the far bank (scene
+      // heights), every `step` stretches from u `at` (stretch-local): the front row's roofs and its trees, the landmark,
+      // the masts, and over the river the bridge with the crowd on its crown. Measured from sets/market.js drawn with
+      // its rows table cut to row 1 (the top inked pixel per bin at 1440 @ 2, widened by a bin each side, + 0.002);
+      // re-measure when the set's town or bridge moves. Thousandths of a scene height.
+      front: { at: 0.10, step: 0.005, hb: [
+        31, 31, 31, 17, 17, 17, 29, 33, 40, 40, 40, 40, 40, 46, 52, 56, 56, 56, 55, 45, 41, 47, 53, 55, 55, 55, 53, 49, 49,
+        49, 49, 49, 48, 47, 53, 58, 63, 63, 63, 63, 63, 63, 63, 63, 61, 61, 61, 58, 46, 46, 51, 51, 51, 51, 51, 51, 51, 51,
+        49, 48, 46, 45, 45, 45, 45, 45, 45, 41, 41, 41, 41, 41, 44, 49, 55, 56, 56, 56, 52, 45, 38, 38, 38, 43, 48, 52, 52,
+        52, 51, 48, 48, 51, 54, 54, 56, 58, 58, 58, 57, 57, 57, 57, 57, 55, 55, 55, 52, 50, 48, 42, 40, 34, 29, 27, 27, 27,
+        30, 37, 37, 37, 37, 37, 39, 43, 46, 46, 46, 46, 46, 46, 46, 48, 48, 48, 48, 48, 49, 54, 59, 64, 64, 64, 64, 64, 64,
+        64, 64, 64, 61, 60, 59, 48, 48, 48, 48, 48, 46, 45, 45, 45, 51, 51, 51, 51, 51, 51, 51, 51, 55, 58, 58, 58, 55, 48,
+        39, 39, 39, 38, 28, 17, 17, 17, 31, 31, 31] } },
     frame: {
       focus: [0.565, 0.272], keepU: 0.482,
       wide: { top: 0.565 },
       tablet: { scale: 1440, fx: 0.55, fy: 0.64 },
-      phone: { scale: 1440, fx: 0.42, fy: 0.42 },
+      // 4b: a band, so the whole town (its highest roofs and trees, 0.373) and the bridge's crown stand under the top
+      // feather and its near foot (0.207) sits over the bottom one, the bridge left of centre, at 320-639 px. The
+      // nominal scale (the layer's) is 1300 so the short strips (110-135 px) may look from as far as 1040 and still
+      // hold the bridge's feet; a 390 x 844 phone frames it at about 1240 either way.
+      phone: { scale: 1300, band: [0.205, 0.375], fx: 0.42 },
       short: { scale: 1000, fx: 0.42, fy: 0.5 },
-      closing: { u: 0.93, y: 0.29, fx: 0.62, fy: 0.55 },
+      // closing: the bridge with the town behind it (the wide one only off the living ground)
+      closing: { wide: { scale: 1100, band: [0.17, 0.42], right: 1.02 } },
     },
     figures: 'market' },
   { name: 'path', page: ['high', 0.8],
-    frame: { focus: [0.83, 0.3], wide: { top: 0.66 }, tablet: { scale: 1440, fx: 0.6, fy: 0.62 }, phone: { scale: 1224, fx: 0.55, fy: 0.62 }, closing: { u: 0.95, y: 0.2, fx: 0.62, fy: 0.6 } } },
+    frame: { focus: [0.83, 0.3], wide: { top: 0.66 }, tablet: { scale: 1440, fx: 0.6, fy: 0.62 }, phone: { scale: 1224, fx: 0.55, fy: 0.62 }, closing: { wide: { scale: 900, band: [0.1, 0.45], right: 1 } } } },
   // Writing: a still lake. Its strips hold the low far shore and its whole reflection: the waterline across the middle
   // of the band, the mirror below it (water.mirror: a still, whole reflection, few strokes). Ink only.
   { name: 'lake', page: ['level', 0.6], tech: { at: [-0.10, 1.02], bone: 0.1, ink: 1.0 }, water: { at: [-0.17, 0.98], y: 0.35, strokes: 0.25, refl: 1, banks: 1, mirror: 1 },
     frame: {
       focus: [0.74, 0.3],
       wide: { top: 0.56, band: [0.14, 0.43], docBand: [0.12, 0.4], docScale: 1300, right: 1.1 },
-      tablet: { scale: 760, band: [0.14, 0.43], u: 0.66, fx: 0.5, cscale: 1440 },
-      phone: { scale: 560, band: [0.14, 0.43], u: 0.7, fx: 0.5, cscale: 1224 },
-      short: { scale: 520, band: [0.26, 0.43], u: 0.7, fx: 0.5, uMin: 0.03, cscale: 1224 },
-      closing: { u: 0.9, y: 0.3, fx: 0.62, fy: 0.55 },
+      tablet: { scale: 760, band: [0.14, 0.43], u: 0.66, fx: 0.5 },
+      phone: { scale: 560, band: [0.14, 0.43], u: 0.7, fx: 0.5 },
+      short: { scale: 520, band: [0.26, 0.43], u: 0.7, fx: 0.5, uMin: 0.03 },
+      // closing: the lake with the pavilion (the Note). On Writing, whose closing shares the first screen with its strip
+      // (any page of this place where they share a screen), the other end of the lake: looking west down the still water to the
+      // long pale ranges and their faint reflection (at phone size with the headland at its left), the pavilion out of
+      // frame (its layer starts at u 0.78). (Final review r1, item 1: the pavilion's corner close repeated the strip's
+      // pine-over-pavilion on the same screen, the clip-art repetition DESIGN 4.6 bans; the story map carries it.)
+      closing: {
+        wide: { scale: 1060, band: [0.14, 0.4], right: 1.1 },
+        phone: { u: 0.74 },   // (the closing's box is taller than the Note's strip: the pavilion kept clear of the right edge)
+        twin: {
+          // (spans, as Contact's: a fixed scale reached west to the road's peak, u 2.83, on wide screens and cut the
+          // strip's own lake peak, u ~0.75, at the right edge on tablets; final review r2, the art verifier's fix)
+          wide: { span: [0.0, 0.6], band: [0.22, 0.42] },
+          tablet: { span: [0.0, 0.58], band: [0.24, 0.42] },
+          phone: { scale: 460, band: [0.22, 0.42], u: 0.3, fx: 0.5, uMax: 0.62, keepU: 0.3 },
+        },
+      },
     } },
   // Résumé: terraced fields, low and banded (tech.terr), in pale malachite; a document's low strip, so it looks from a
   // little further away to hold whole hills.
@@ -171,10 +222,14 @@ export const SCENES = [
     frame: {
       focus: [0.7, 0.2],
       wide: { top: 0.43, docBand: [0.11, 0.37], docScale: 1300, right: 1.08 },
-      tablet: { scale: 760, band: [0.11, 0.37], u: 0.66, fx: 0.5, cscale: 1440 },
-      phone: { scale: 480, band: [0.11, 0.37], u: 0.68, fx: 0.5, cscale: 760 },
-      short: { scale: 520, band: [0.22, 0.37], u: 0.66, fx: 0.5, uMin: 0.02, cscale: 760 },
-      closing: { u: 0.95, y: 0.2, fx: 0.62, fy: 0.6 },
+      tablet: { scale: 760, band: [0.11, 0.37], u: 0.66, fx: 0.5 },
+      // (final review r1, item 15: phones look closer, at the right hill's terraces, the farmhouse and the path, so the
+      // rows of fields read at 390 and the low doc strip is not taken for Home's misted green-blue range; at 480 the two
+      // hills sat small in the left half, and newcomers sorting the six strips confused the two)
+      phone: { scale: 760, band: [0.12, 0.31], u: 0.7, fx: 0.48 },
+      short: { scale: 520, band: [0.22, 0.37], u: 0.66, fx: 0.5, uMin: 0.02 },
+      // closing: both terraced hills with the farmhouse on the right one's shoulder
+      closing: { wide: { scale: 1000, band: [0.085, 0.36], right: 0.9, hug: true, keepU: 0.36 } },
     } },
   // Contact: the crossing, mostly water: the far shore (the echo of his mountain at the right) high in the band, the
   // open water below it in pale indigo with long ripples.
@@ -182,22 +237,47 @@ export const SCENES = [
     frame: {
       focus: [0.78, 0.38],
       wide: { top: 0.58, band: [0.12, 0.485], slack: 0 },
-      tablet: { scale: 660, band: [0.12, 0.485], u: 0.62, fx: 0.5, uMin: 0.0, uMax: 1.1, cscale: 1440 },
-      phone: { scale: 560, band: [0.12, 0.485], u: 0.7, fx: 0.55, cscale: 1224 },
-      short: { scale: 420, band: [0.32, 0.485], u: 0.66, fx: 0.5, uMin: 0.0, cscale: 1224 },
-      closing: { u: 0.84, y: 0.38, fx: 0.66, fy: 0.58 },
+      tablet: { scale: 660, band: [0.12, 0.485], u: 0.62, fx: 0.5, uMin: 0.0, uMax: 1.1 },
+      phone: { scale: 560, band: [0.12, 0.485], u: 0.7, fx: 0.55 },
+      short: { scale: 420, band: [0.32, 0.485], u: 0.66, fx: 0.5, uMin: 0.0 },
+      // closing: the ferry at the jetty under the far mountain. Contact's closing shares the first screen with its strip,
+      // so it looks the other way, west along the crossing: the far shore's long low ranges over the open water and its
+      // long ripples, the part of the place the wide strip keeps under its title's mist. His mountain's echo (u 0.59-1.09)
+      // and the ferry's layer (from u 0.5) stay out of it at every width (a span: its scale follows the width), so
+      // nothing on the screen is shown twice. (Final review r1, item 1: the jetty close repeated the ferry, ferryman and
+      // jetty; r2, item 1: the far shore's close then repeated the echo's double-peaked silhouette straight under the
+      // strip's at 1512-1920 and on tablets. Left of u -0.13 the Résumé's terraced hills come in: the spans stop short.)
+      closing: {
+        wide: { scale: 920, band: [0.15, 0.485], right: 1.04, keepU: 0.6 },
+        twin: {
+          wide: { span: [-0.08, 0.49], band: [0.26, 0.46] },     // (right of the text: under it the keep-out's mist)
+          tablet: { span: [-0.12, 0.49], band: [0.22, 0.46] },
+          phone: { span: [-0.1, 0.49], band: [0.22, 0.46] },
+        },
+      },
     } },
   // The 404: one peak alone (the high distance: a tall host over a low far range), mist all round it.
+  // 4b: on wide screens and tablets the summit (0.585) sits just under the top feather, so the path's climb (0.23-0.46,
+  // its lower legs) comes up out of the bottom feather into view; wide, the view ends a little past the scroll's end in
+  // mist, which moves the climb left, clear of the "Draft art" note's guard at the lower right.
   { name: 'lone-peak', page: ['high', 1],
     frame: {
       focus: [0.78, 0.4],
-      wide: { top: 0.66, band: [0.2, 0.63], slack: 0 },
-      tablet: { scale: 530, band: [0.16, 0.63], u: 0.78, fx: 0.55, uMin: 0.05, cscale: 1440 },
-      phone: { scale: 450, band: [0.16, 0.63], u: 0.78, fx: 0.5, cscale: 1224 },
-      short: { scale: 340, band: [0.42, 0.63], u: 0.78, fx: 0.55, uMin: 0.05, cscale: 1224 },
-      closing: { u: 0.9, y: 0.25, fx: 0.62, fy: 0.6 },
+      wide: { top: 0.66, band: [0.2, 0.595], slack: 0, right: 1.05 },
+      tablet: { scale: 530, band: [0.16, 0.595], u: 0.78, fx: 0.55, uMin: 0.05 },
+      phone: { scale: 450, band: [0.16, 0.63], u: 0.78, fx: 0.5 },
+      short: { scale: 340, band: [0.42, 0.63], u: 0.78, fx: 0.55, uMin: 0.05 },
+      // (the 404 has no closing; a pan through this stretch still frames one)
+      closing: { wide: { scale: 640, band: [0.16, 0.63], right: 1.04 } },
     } },
 ];
+/** 4b: the river town's depth profile (the river's water.front) in world stretches, { u0, du, hb (scene heights), def }:
+ *  the shader bakes it in (shaders.js frontAt), Canvas2D reads it (canvas2d.js figure()). `def` holds off the profile. */
+export const RIVER_FRONT = (() => {
+  const k = SCENES.findIndex((s) => s.water?.front);
+  const f = k < 0 ? null : SCENES[k].water.front;
+  return { u0: f ? k + f.at : 0, du: f ? f.step : 1, hb: f ? f.hb.map((v) => v / 1000) : [0.031, 0.031], def: 0.031 };
+})();
 const SEAM = 0.09;
 const win = (u, a, b) => smooth(a - SEAM, a + SEAM, u) * (1 - smooth(b - SEAM, b + SEAM, u));
 
@@ -462,12 +542,15 @@ export function pageSpec(stretch) {
  * Where a window onto stretch `stretch` looks (DOM-free; the lab and QA call it too).
  * @param {number} stretch
  * @param {'wide'|'tablet'|'phone'|'short'} cls
- * @param {{width:number, height:number, keepoutRight?:number|null, doc?:boolean}} box  the window's CSS box;
- *   keepoutRight = the text block's right edge inside it (CSS px from the box's left), when the text overlaps the box
- *   (wide screens); doc = a document's low strip (strip--doc), framed on the band around the scene's focus
- * @param {'strip'|'closing'} kind
- * @returns {{worldLeft:number, worldTop:number, scale:number, focus:[number, number]}}  world x (stretches) at the
- *   box's left edge, scene height (viewport heights) at its top edge, CSS px per stretch, the focus in box px.
+ * @param {{width:number, height:number, keepoutRight?:number|null, doc?:boolean, twin?:boolean}} box  the window's CSS
+ *   box; keepoutRight = the text block's right edge inside it (CSS px from the box's left), when the text overlaps the
+ *   box (wide screens); doc = a document's low strip (strip--doc), framed on the band around the scene's focus;
+ *   twin = (a closing) the page's strip and its closing share a screen (a short page), so the closing frames a
+ *   different view of the place (frame.closing.twin) instead of a small version of the opening
+ * @param {'strip'|'closing'} kind  the closing shows the page's own place once more (DESIGN 11.B), never the next one
+ * @returns {{worldLeft:number, worldTop:number, scale:number, focus:[number, number], nominal:number}}  world x
+ *   (stretches) at the box's left edge, scene height (viewport heights) at its top edge, CSS px per stretch, the focus
+ *   in box px, and the nominal scale (CSS px per stretch) this window's figure layer is drawn at.
  */
 export function framingAt(stretch, cls = 'wide', box = {}, kind = 'strip') {
   const k = clampK(Math.round(Number(stretch) || 0));
@@ -475,51 +558,77 @@ export function framingAt(stretch, cls = 'wide', box = {}, kind = 'strip') {
   const width = Math.max(1, +box.width || 1440);
   const height = Math.max(1, +box.height || 360);
   const kr = box.keepoutRight === null || box.keepoutRight === undefined || !Number.isFinite(+box.keepoutRight) ? null : +box.keepoutRight;
-  const closing = kind === 'closing';
-  const c = F.closing;
   const T = (cls === 'short' ? F.short || F.phone : F[cls]) || F.tablet;
-  let scale, left, top, fu, fy;
-  if (cls === 'wide') {
+  let scale, left, top, fu, fy, nominal, ku, spanned = false;
+  if (kind === 'closing') {
+    // the page's own place once more: a span (spanFrame), a band (bandFrame) or a point at (fx, fy), from the closing's
+    // own data
+    const C = closingOf(F, cls, T, !!box.twin);
+    if (C.span) { ({ scale, left, top, fu } = spanFrame(k, C, cls, width, height, kr)); spanned = true; }
+    else if (C.band) ({ scale, left, top, fu } = bandFrame(k, C, cls, width, height, false, F.focus[0]));
+    else {
+      scale = C.scale;
+      fu = C.u ?? F.focus[0];
+      left = k + fu - C.fx * (width / scale);
+      top = (C.y ?? F.focus[1]) + C.fy * height * HS / scale;
+    }
+    fy = C.y ?? F.focus[1];
+    nominal = C.scale ?? scale;
+    ku = C.keepU ?? F.keepU ?? fu;
+    // hug: the place stands right beside the text (its keepU exactly KEEP_GAP right of it) whatever the width, so a wide
+    // screen shows more of the place's own open water and mist rather than the neighbour beyond the text
+    if (C.hug && !spanned && kr !== null && kr > 0) left = k + ku - (kr + KEEP_GAP) / scale;
+  } else if (cls === 'wide') {
     // one stretch is the box's width (today's scale), up to 1700 px on very wide screens; a document's low strip may
     // look from further away (wide.docScale, at 1440), so its band holds whole hills
-    scale = Math.min(width, 1700) * (box.doc && !closing && F.wide.docScale ? F.wide.docScale / 1440 : 1);
-    if (closing) { fu = c.u; fy = c.y; left = k + c.u - c.fx * (width / scale); top = c.y + c.fy * height * HS / scale; }
-    else {
-      fu = F.focus[0]; fy = F.focus[1]; left = k + (F.wide.right ?? 1) - width / scale;
-      // a document's low strip (Résumé, the Note) frames the band around the focus, not the tall strip's sky
-      top = box.doc ? F.focus[1] + (F.wide.docFy ?? 0.62) * height * HS / scale : F.wide.top;
-      // a band (as on narrow screens): its summits just under the top feather, the rest of the box below them
-      const B = box.doc ? F.wide.docBand : F.wide.band;
-      if (B) {
-        const dk = box.doc ? 0.5 : 1;
-        const unit = HS / scale, ft = FEATHER.wide[0] * dk, fb = FEATHER.wide[1] * dk;
-        const topA = B[1] + ft * unit, topB = B[0] + (height - fb * 0.5) * unit;
-        top = topB > topA ? topA + (topB - topA) * (F.wide.slack ?? 0.5) : topA;
-      }
+    scale = nominal = Math.min(width, 1700) * (box.doc && F.wide.docScale ? F.wide.docScale / 1440 : 1);
+    fu = F.focus[0]; fy = F.focus[1]; left = k + (F.wide.right ?? 1) - width / scale;
+    // a document's low strip (Résumé, the Note) frames the band around the focus, not the tall strip's sky
+    top = box.doc ? F.focus[1] + (F.wide.docFy ?? 0.62) * height * HS / scale : F.wide.top;
+    // a band (as on narrow screens): its summits just under the top feather, the rest of the box below them
+    const B = box.doc ? F.wide.docBand : F.wide.band;
+    if (B) {
+      const dk = box.doc ? 0.5 : 1;
+      const unit = HS / scale, ft = FEATHER.wide[0] * dk, fb = FEATHER.wide[1] * dk;
+      const topA = B[1] + ft * unit, topB = B[0] + (height - fb * 0.5) * unit;
+      top = topB > topA ? topA + (topB - topA) * (F.wide.slack ?? 0.5) : topA;
     }
-  } else if (closing ? T.cband : T.band) {
-    // a band of the scene (strip: band; closing: cband), see bandFrame()
-    ({ scale, left, top, fu } = bandFrame(k, closing ? { band: T.cband, u: T.cu, fx: T.cfx, uMin: T.cuMin, uMax: T.cuMax, scale: T.scale, slack: T.cslack }
-      : T, cls, width, height, !!box.doc, closing ? c.u : F.focus[0]));
-    fy = closing ? c.y : F.focus[1];
+  } else if (T.band) {
+    // a band of the scene, see bandFrame()
+    ({ scale, left, top, fu } = bandFrame(k, T, cls, width, height, !!box.doc, F.focus[0]));
+    fy = F.focus[1];
+    nominal = T.scale;
   } else {
-    scale = closing ? (c.scale ?? T.cscale ?? T.scale) : T.scale;
-    const P = closing ? [c.u, c.y, c.fx, c.fy] : [F.focus[0], F.focus[1], T.fx, T.fy];
-    fu = P[0]; fy = P[1];
-    left = k + P[0] - P[2] * (width / scale);
-    top = P[1] + P[3] * height * HS / scale;
+    scale = nominal = T.scale;
+    fu = F.focus[0]; fy = F.focus[1];
+    left = k + fu - T.fx * (width / scale);
+    top = fy + T.fy * height * HS / scale;
   }
-  // the keep-out rule: the scene's leftmost figurative point (frame.keepU, else the focus; the closing: its focus)
-  // stands at least KEEP_GAP px right of the text, never past the box's right edge
+  // the keep-out rule: the scene's leftmost figurative point (frame.keepU, else the focus; a closing may name its own)
+  // stands at least KEEP_GAP px right of the text, never past the box's right edge (a span is already placed beside the
+  // text, and holds no figure: it never moves)
+  ku ??= F.keepU ?? fu;
   let focusX = (k + fu - left) * scale;
-  const ku = closing ? fu : (F.keepU ?? fu);
   const keepX = (k + ku - left) * scale;
-  if (kr !== null && kr > 0 && keepX < kr + KEEP_GAP) {
+  if (!spanned && kr !== null && kr > 0 && keepX < kr + KEEP_GAP) {
     const shift = Math.min(kr + KEEP_GAP - keepX, Math.max(0, width - 24 - focusX));
     left -= shift / scale;
     focusX += shift;
   }
-  return { worldLeft: left, worldTop: top, scale, focus: [focusX, (top - fy) * scale / HS] };
+  return { worldLeft: left, worldTop: top, scale, focus: [focusX, (top - fy) * scale / HS], nominal };
+}
+
+// The closing's framing for a width class (DESIGN 11.B): a short page's twin (a different view of the place, when the
+// strip and the closing share a screen), else the class's own closing (wide: authored; narrower: the opening's own
+// framing, under any overrides), so the page ends on its own place, never on the next one.
+const CLOSING_WIDE = { scale: 900, band: [0.12, 0.5], right: 1 };
+function closingOf(F, cls, T, twin) {
+  const c = F.closing || {};
+  const tw = twin && c.twin ? c.twin[cls] : undefined;
+  if (tw) return tw;
+  const own = c[cls];
+  if (cls === 'wide') return own || CLOSING_WIDE;
+  return own ? { ...T, ...own } : T;
 }
 
 /**
@@ -527,8 +636,8 @@ export function framingAt(stretch, cls = 'wide', box = {}, kind = 'strip') {
  * the window's top feather, never cut by it (a strip shows whole mountains and lets only the mist dissolve into the
  * paper), and its ground (Home's traveller) above the bottom feather when the box is tall enough; else the summits
  * win. The scale fits the band to the box within 0.8-1.15 of the class's nominal scale T.scale (the figure layers are
- * drawn at the nominal one). Horizontally: T.u at T.fx of the width, kept inside [T.uMin, T.uMax] (stretch-local)
- * where the width allows.
+ * drawn at the nominal one). Horizontally: T.u at T.fx of the width (or the view's right edge at T.right), kept inside
+ * [T.uMin, T.uMax] (stretch-local) where the width allows.
  */
 function bandFrame(k, T, cls, width, height, doc, u) {
   const [y0, y1] = T.band;
@@ -537,15 +646,39 @@ function bandFrame(k, T, cls, width, height, doc, u) {
   const fbIn = T.fbIn ?? 0.5;   // how far into the bottom feather the ground may sit (0: Home's traveller stays clear of it)
   const fit = (Math.max(8, height - ft - fb * (1 - fbIn)) * HS) / Math.max(0.02, y1 - y0);
   const scale = Math.min(T.scale * 1.15, Math.max(T.scale * 0.8, fit));
-  const unit = HS / scale;
-  const topA = y1 + ft * unit, topB = y0 + (height - fb * (1 - fbIn)) * unit;
-  const top = topB > topA ? topA + (topB - topA) * (T.slack ?? 0.5) : topA;
+  const top = bandTop(T, cls, height, scale, dk);
   const fu = T.u ?? u;
   const vw = width / scale;
-  let left = k + fu - (T.fx ?? 0.5) * vw;
+  // (a wide closing anchors the view's right edge at T.right instead: the place stays at the right whatever the width)
+  let left = T.right !== undefined ? k + T.right - vw : k + fu - (T.fx ?? 0.5) * vw;
   if (T.uMax !== undefined && left + vw > k + T.uMax) left = k + T.uMax - vw;
   if (T.uMin !== undefined && left < k + T.uMin) left = k + T.uMin;
   return { scale, left, top, fu };
+}
+
+/** The top (scene height at the box's top edge) that puts a band's summits (band[1]) just under the top feather, and
+ *  its ground (band[0]) above the bottom one when the box is tall enough at this scale (else the summits win). */
+function bandTop(T, cls, height, scale, dk = 1) {
+  const [y0, y1] = T.band;
+  const [ft, fb] = featherOf(cls).map((v) => v * dk);
+  const fbIn = T.fbIn ?? 0.5;
+  const unit = HS / scale;
+  const topA = y1 + ft * unit, topB = y0 + (height - fb * (1 - fbIn)) * unit;
+  return topB > topA ? topA + (topB - topA) * (T.slack ?? 0.5) : topA;
+}
+
+/**
+ * A span of the place (final review r2, item 1; a twin closing): the part of the box right of the text (its keep-out
+ * edge `kr`, where the text overlaps the box on wide screens; else the whole box) holds exactly stretch-local
+ * T.span [u0, u1], so the scale follows the width: no width, from a 320 phone to an ultrawide, shows past the span
+ * (into a neighbour's scene, a figure layer, or the strip's landmark). Vertically the band's summits (T.band[1]) sit
+ * just under the top feather (bandTop). Left of `kr` the keep-out's mist covers whatever lies beyond u0.
+ */
+function spanFrame(k, T, cls, width, height, kr) {
+  const [u0, u1] = T.span;
+  const x0 = kr !== null && kr > 0 ? Math.min(kr, width * 0.6) : 0;   // (a text over most of the box: its right 40 %)
+  const scale = (width - x0) / Math.max(0.05, u1 - u0);
+  return { scale, left: k + u1 - width / scale, top: bandTop(T, cls, height, scale), fu: T.u ?? (u0 + u1) / 2 };
 }
 
 /**

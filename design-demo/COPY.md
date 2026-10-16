@@ -72,7 +72,7 @@ Single source of truth for every word on the redesigned site. Builders paste tex
   - *[`href="/resume.pdf" target="_blank" rel="noopener" type="application/pdf"`. It opens the browser's own PDF viewer. Never `download`. Never the old file. Every other link opens in the same tab, so no other hint is needed.]*
 - **Closing link at the end of a page:** Next: {page} → *[e.g. "Next: Work →". "Next:" is its label (lighter); the arrow is `aria-hidden`. The landmark label of the closing `<nav>` is "Next page". Destinations: Home → Work · Work → Résumé · Writing → Résumé · Note → Writing · Résumé → Contact · Contact → Home · the 404 has none.]*
 - **Closing landmark label:** Next page
-- **Draft-art label (demo 4a only, Home's and Work's strips):** Draft art *[Small print in the strip's bottom feather, on paper. Removed when the scenes are finished (4b).]*
+- **Draft-art label (demo only, on every page whose scene is a draft):** Draft art *[In demo 4b on seven pages: Home, Work, the Résumé, Contact, Writing, the Note and the 404 (4a had it on Home's and Work's strips only). Small print on paper in the strip: its bottom feather, right (on Home's phone strip and on the Note, left); on Home and Work at ≥ 1200 px, the first screen's top-right sky. Hidden without JS or without the landscape. Removed from each page when Jack approves that page's scene; never in the build.]*
 - **Copy-email button:** Copy email
 - **Copy-email confirmation (live region):** Copied
 - **Route announcement (visually hidden live region, after an in-site page change):** the new page's `<title>`, exactly. *[No extra words.]*
@@ -94,7 +94,7 @@ Single source of truth for every word on the redesigned site. Builders paste tex
 
 *[Round 4a: Home is Jack's "about me" page: a greeting, not a résumé header. Order: 1.1 hero (the strip) · 1.2 About me (photo, words, signature) · 1.3 What I work on · 1.4 Now · 1.5 Writing · 1.6 Say hello · 1.7 closing. No text fades in on scroll. Retired from draft 2: the "Qijin (Jack) Xu" hero, the statement and the six-row ledger (both move to Work: 3.2 and 3.1), "How I build" (moves to Work, 3.2), the vista, "In brief" with the grey byline, "Latest writing" (now 1.5), and the consulting-style closing question.]*
 
-### 1.1 Hero (inside the painted strip) — DRAFT (from Jack's answers, 9 Oct)
+### 1.1 Hero (inside the painted strip) — APPROVED by Jack 2026-10-16 (drafted from Jack's answers, 9 Oct)
 
 - **h1:** Qijin Xu
 - **Lead (one paragraph):** Lead AI/ML Architect at CGI’s AI Center of Excellence in Toronto. I design and ship production AI for banks and insurers: LLM agents, retrieval systems, and the data platforms underneath them.
@@ -104,7 +104,7 @@ Single source of truth for every word on the redesigned site. Builders paste tex
 - **Draft-art label:** Draft art *[section 0]*
 - *[Nothing else in the hero: no "(Jack)", no role stack, no pronunciation line (Jack has not asked for one), no scroll cue.]*
 
-### 1.2 About me (the photo beside Jack's words) — DRAFT (from Jack's answers, 9 Oct)
+### 1.2 About me (the photo beside Jack's words) — APPROVED by Jack 2026-10-16 (drafted from Jack's answers, 9 Oct)
 
 - **Photo file:** `/assets/img/qijin-xu-colour.jpg` *[720 × 900, made from `public/images/selfie.jpg` by `tools/build-photo.swift` (SPEC-R4A §9.2): full colour, light grade, the wall made into paper, the shoulders fading into it. No metadata. A reshoot replaces this one file.]*
 - **Photo alt text:** Qijin Xu in glasses and a red sweater, head and shoulders
@@ -124,7 +124,7 @@ Single source of truth for every word on the redesigned site. Builders paste tex
   *[The em dash and a space, then "Jack". The small 徐 seal beside it is decorative (`aria-hidden`), static, never stamped. Screen readers read "— Jack".]*
 - *["five years" counts full-time work from Aug 2021; in the real build, compute it. "two CGI Impact Awards" is Jack's own claim (2024 and 2026, section 9); it appears in this prose only, never as a figure.]*
 
-### 1.3 What I work on — DRAFT (from existing facts)
+### 1.3 What I work on — APPROVED by Jack 2026-10-16 (drafted from existing facts)
 
 - **h2:** What I work on
 - *[Three rows. Each row: a title that links to the case on Work, and one line of proof. Figures inside the lines are bold at text size (shown here in `**`). Every figure is in the claims ledger (section 9).]*
@@ -137,7 +137,7 @@ Single source of truth for every word on the redesigned site. Builders paste tex
 
 - **Link after the rows:** All six projects → `/work/`
 
-### 1.4 Now — DRAFT (from Jack's answers, 9–10 Oct)
+### 1.4 Now — APPROVED by Jack 2026-10-16 (drafted from Jack's answers, 9–10 Oct)
 
 - **h2:** Now
 - **Date (small print inside the heading, after the word):** · October 2026 *[`<time datetime="2026-10">October 2026</time>`. Update the date whenever the lines change.]*
@@ -155,7 +155,7 @@ Single source of truth for every word on the redesigned site. Builders paste tex
 - **Description:** What an AI agent is, and how it differs from an AI assistant.
 - **Link:** All writing → `/writing/`
 
-### 1.6 Say hello — DRAFT (from Jack's decision on who should write)
+### 1.6 Say hello — APPROVED by Jack 2026-10-16 (drafted from Jack's decision on who should write)
 
 - **h2:** Say hello
 - **Line:** For collaborations on production AI, or an invitation to speak or write about agents and retrieval, email me at qxjack@gmail.com. I’m also on LinkedIn and GitHub.
@@ -1012,7 +1012,7 @@ Key facts (details and sources on the linked pages):
 7. **Domain.** Open. Not bought yet. Keep `my-website-freedomjack.vercel.app` as the canonical; a custom domain is the largest single SEO lever left. Swap every URL here when it exists.
 8. **Phone number.** RESOLVED 9 Oct 2026: none on the public site or PDF. Add the number only to copies Jack sends directly.
 9. **The Note's title and typos.** RESOLVED (Jack, 10 Oct 2026): keep the title "What is an AI agent?"; fix the typos (4.2 lists every change).
-10. **DRAFT words for Jack to approve or rewrite:** the hero lead and second line (1.1), About me (1.2) and Now (1.4), all drafted from his own answers; What I work on (1.3) and Say hello (1.6), drafted from existing facts. A text-only swap.
+10. **Resolved 2026-10-16: Jack approved the DRAFT words as written.** (Was: DRAFT words for Jack to approve or rewrite:) the hero lead and second line (1.1), About me (1.2) and Now (1.4), all drafted from his own answers; What I work on (1.3) and Say hello (1.6), drafted from existing facts. A text-only swap.
 11. **Glossary notes on Work (Cases 1 and 2).** Open. Short public definitions of RAG, LangChain, LangGraph, vLLM, EBNF and PII: keep or drop?
 12. **Who should write.** RESOLVED (Jack, 9 Oct 2026): collaboration and speaking; no hiring language (1.6, 6).
 13. **Writing intro.** Open. "I write when I’ve learned something worth passing on." is a statement about Jack's habits written in draft 1, not by Jack. Keep, rewrite or drop.

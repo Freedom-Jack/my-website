@@ -113,6 +113,10 @@ time { font-variant-numeric: lining-nums tabular-nums; }
   white-space: nowrap;
 }
 .nowrap { white-space: nowrap; }
+/* ...except under 240 CSS px (a 390 px phone at 200 % page zoom, iOS Safari's aA: a 195 px viewport), where a kept
+   phrase ("2020 – 2021 · Research assistant", the Note's dateline) is wider than the column and the page never scrolls
+   sideways (html overflow-x: clip): the end of the line was simply lost. There it wraps (final review r1, item 6). */
+@media (max-width: 14.99rem) { .nowrap { white-space: normal; } }
 /* Round 4a: cinnabar is the seal's only. The round-3 accent full stops become plain ink. */
 .accent { color: inherit; }
 .ink-defs { position: absolute; width: 0; height: 0; overflow: hidden; }

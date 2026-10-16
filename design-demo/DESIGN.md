@@ -1,11 +1,17 @@
 # DESIGN.md: Qijin Xu personal site v2 (the single source of truth)
 
 **Start here.** Any session that continues this redesign reads this file first, then what it points to.
-Last updated **2026-10-15**, after demo 4a; verified against the code by two independent audits. Branch: `redesign/v2`.
+Last updated **2026-10-16**, after Jack reviewed demo 4b and answered §11.E (the 4b record: `_notes/r4b/RECORD.md`).
+Branch: `redesign/v2`.
 
 **Status:**
 - **Demo 4a** (static HTML/CSS/JS in `design-demo/`) is done. Jack: "overall it looks great".
-- **Next:** **demo 4b** (§11) → Jack's approval → the Next.js build → launch on **qijinxu.com**.
+- **Demo 4b** (§11 A–D) is built in the same folder, at draft quality for the new scenes, and reviewed (art, reader,
+  engineer, hard rules, newcomers). The record is `_notes/r4b/RECORD.md` (decisions and why, how each feature works,
+  measurements, open items, lessons); how to run the QA probes: README "QA".
+- **2026-10-16: Jack reviewed 4b** ("a good baseline for everything") and answered §11.E (answers recorded there).
+  4b is committed on `redesign/v2`; the working notes were condensed into `_notes/r4b/RECORD.md` (his answer 15).
+- **Next:** the Next.js build (§12) in a fresh session → launch on **qijinxu.com** through the §2 launch gate.
 - This order changes the earlier plan, in which the build started at 4a. On 2026-10-14 Jack accepted a short 4b round first ("Sure continue").
 
 **Authority:**
@@ -16,7 +22,7 @@ Last updated **2026-10-15**, after demo 4a; verified against the code by two ind
 5. `README.md`: how to make a page, module APIs, router contract, the QA matrix, demo URL switches, and **the Next.js port table**. Read it before building.
 6. `_notes/r4/proposal.md` (the approved round-4 plan and its research).
 
-Where they disagree with this file, this file wins; fix them. Known stale bits elsewhere: COPY §10.7 says the domain is "not bought yet" (it is bought), and SPEC's "order of authority" cites `brief-r4a.md`. That brief, and the lead's QA probes (`budget.py`, `gaps.py`, `contrast.py`, `router.py`, the audit's `measure.js`), lived in the scratchpad and were **lost**. Their content is folded in here; rebuild the probes in `tools/qa/` when budgets need re-measuring.
+Where they disagree with this file, this file wins; fix them. Known stale bits elsewhere: COPY §10.7 says the domain is "not bought yet" (it is bought), and SPEC's "order of authority" cites `brief-r4a.md`. That brief lived in a session's temporary folder and was **lost**; its content is folded in here. The lead's QA probes, lost with it, were **rebuilt in `tools/qa/`** for 4b (13 files: the driver `cdp.py`, `compliance.py`, `linkcheck.py`, `budget.py`, `gaps.py`, `contrast.py`, `drift.py`, `frames.py`, `places.py`, `router.py`, `storymap.py`, `measure.js`, `qa_common.py`; how to run them: README "QA"; how 4b was verified: `_notes/r4b/RECORD.md` §6).
 
 ---
 
@@ -29,7 +35,7 @@ Where they disagree with this file, this file wins; fix them. Known stale bits e
 - **Git:**
   - Commit or push only when he asks. The repo `Freedom-Jack/my-website` is **public**, so pushing publishes.
   - Pushing to `master` deploys production. The permission classifier blocks that, so Jack runs those pushes himself.
-- **Research screenshots** are for viewing only. Keep them in the scratchpad and **never commit them**. The scratchpad (`/private/tmp/...`) gets wiped repeatedly, so keep tools and notes in the repo.
+- **Research screenshots** are for viewing only. Keep them in the session's temporary folder, outside the repo, and **never commit them**. That folder gets wiped repeatedly, so keep tools and notes in the repo.
 - **Performance work:** don't start the speed backlog unprompted. Ask before any change that visibly alters the effects. GitHub data is the exception (§10).
 
 ## 2. Hard rules (never break)
@@ -67,7 +73,7 @@ Where they disagree with this file, this file wins; fix them. Known stale bits e
 | Domain | **qijinxu.com** (Cloudflare Registrar). **Parked; connect only at launch.** The canonical is the `vercel.app` URL until then. |
 | Interests (About me / Now) | Basketball, gaming, wuxia and xianxia novels. Building an agent memory system and **Logic Foundry** (an agent that extracts logic buried in old materials into reusable artifacts: docs for people, rubrics for LLM agents, even model weights). Exploring an AI-powered stock app. |
 
-**The hero lead, About me, Now, What I work on and Say hello are DRAFTS** (built from Jack's answers and existing facts). Jack has seen 4a but **has not explicitly approved the wording**; ask. The full list of questions for Jack is COPY §10 (see §11.E).
+**The hero lead, About me, Now, What I work on and Say hello are APPROVED** (Jack, 2026-10-16: "Approve"; COPY.md marks them). The remaining questions are in COPY §10 and §11.E.
 
 ## 4. Design principles
 
@@ -158,15 +164,15 @@ Where they disagree with this file, this file wins; fix them. Known stale bits e
 - Off the road, by the still lake, is the pavilion where he writes (**Writing**).
 - Off the road entirely, the path fades into mist (**404**).
 
-| Page (stretch) | Place and its one focus | Misted strength · rich | State in 4a |
-|---|---|---|---|
-| Home (0) | His mountain; a tiny traveller on the path; a hut in the ridge's saddle | azurite + malachite · 0.55 · 0.75 | Draft figures (traveller, hut) |
-| Work (1) | River market town at a heavy timber rainbow bridge; still crowd; a boat lowering its mast; willows | blue-green hills · 0.40 · 0.60; town in light colour over ink | Draft art |
-| (2) | The road between (no page) | 0.30 · 0.45 | — |
-| Writing and Note (3) | The still lake; **to add:** an open pavilion with one seated figure | ink only · 0 | Lake and reflection |
-| Résumé (4) | Terraced fields stepping down to the shore | pale malachite · **0.55** · 0.75 | Low banded terraces (`tech.terr`), no figures |
-| Contact (5) | The crossing: his mountain echoed on the far shore; **to add:** a ferry at the jetty, turned toward you | indigo water · **0.50** · 0.70 | Water, far shore and echo; no ferry yet |
-| 404 (6) | The lone peak; the path running into mist | ink only · 0 | Lone peak |
+| Page (stretch) | Place and its one focus | Misted strength · rich | State in 4a | State in 4b (draft art; `landscape/sets/`) |
+|---|---|---|---|---|
+| Home (0) | His mountain; a tiny traveller on the path; a hut in the ridge's saddle | azurite + malachite · 0.55 · 0.75 | Draft figures (traveller, hut) | Polished traveller and hut (`home.js`), smoke; the living ground at ≥ 1200 px |
+| Work (1) | River market town at a heavy timber rainbow bridge; still crowd; a boat lowering its mast; willows | blue-green hills · 0.40 · 0.60; town in light colour over ink | Draft art | Rebuilt market (`market.js`): back rows in depth mist, willows sway, the stall smokes, the punt drifts; the living ground at ≥ 1200 px |
+| (2) | The road between (no page) | 0.30 · 0.45 | — | — |
+| Writing and Note (3) | The still lake; an open pavilion with one seated figure | ink only · 0 | Lake and reflection | The pavilion on its spit under a pine (`pavilion.js`), shimmer in its reflection |
+| Résumé (4) | Terraced fields stepping down to the shore | pale malachite · **0.55** · 0.75 | Low banded terraces (`tech.terr`), no figures | Terraces with level walls, fields, a path and a thatched farmhouse (`terraces.js`), its smoke; phones look closer |
+| Contact (5) | The crossing: his mountain echoed on the far shore; a ferry at the jetty, turned toward you | indigo water · **0.50** · 0.70 | Water, far shore and echo; no ferry yet | The ferry at the jetty with the ferryman (`ferry.js`), the water's shimmer |
+| 404 (6) | The lone peak; the path running into mist | ink only · 0 | Lone peak | The path climbing into mist (`path.js`) |
 
 - **Pigments:** azurite #2C5C8A (misted #7F9FB8) · malachite #3A806A (#8DB5A4) · timber brown #6B5444 (#8F8078), small areas only · ink grey #2A3034 · indigo wash #3E5664 · cinnabar #B1362B, seal only · paper #EFF1EE. Rejected: ochre glaze #CDB096 (reads beige). In the rich palette the figures run at 1.25.
 - **Behaviour in 4a:**
@@ -174,10 +180,29 @@ Where they disagree with this file, this file wins; fix them. Known stale bits e
   - The strip scrolls away.
   - Desktop only: a faint, ink-only horizon (no pigment, no figures). Phones read on plain paper.
   - Each page ends with a closing scene plus "Next: …".
-  - The footer story map is drawn in pale feathered grey washes.
+  - The footer story map is drawn in pale feathered grey washes (4b: the real scenes, see below).
   - The pan between pages travels along the one painting.
   - Figures are drawn once per page (Canvas2D, in a worker where available) and composited with the same mist, grain and bleed. They are prepared before the pan, so they never pop in.
   - The cursor wake is a soft local opening of the mist, with no straight edge.
+- **Behaviour in 4b** (on top of 4a's; details in `landscape/index.js` and `_notes/r4b/RECORD.md` §2–§5):
+  - **The living ground** (§11.A, `body[data-ground="living"]`: Home and Work), on wide screens (≥ 1200 px) painted by a
+    hardware GPU: the page's scene in three depth layers; as you scroll the camera lifts (near crags drop away, the
+    middle peaks settle over a sea of mist, the far ranges barely move), the scene parks beside the reading column (Work:
+    the town east of the bridge, in the margin, a curtain of mist hiding the rest), and near the end the camera comes down
+    to the opening behind "Next: …" (Work: the bridge grows out of the mist east to west across the closing's run-in).
+    Text sits on living veils (paper round its own lines, a torn mist edge). Below 1200 px, in Canvas2D and on a software
+    rasteriser, the 4a strip and closing (the strip's painting leaves at 0.55 of the scroll); a present governor lowers
+    the quality, and on a living page gives the stage up, if the GPU cannot present at 30 fps.
+  - **Endings** (§11.B): every closing shows the page's own place (never the road to the next). A short page whose strip
+    and closing share a screen (Writing, Contact) shows a different view of it, never the strip's figures or landmark
+    again: the lake's west end; the crossing's west, its low far shore over open water (his mountain's echo stays in the
+    strip; the view's scale follows the width, so no width brings it, the ferry or the Résumé's terraces in).
+  - **The story map** (§11.B): five build-time stills cut from the engine (`tools/build-stills.py`, `assets/img/scenes/`),
+    each place's own opening scene, joined in mist into one small handscroll.
+  - **Small life** (§11.C): water shimmer, smoke, willow sway, one drifting punt; all stop for reduced motion, Still and
+    the idle sleep. Not built (questions for Jack): a walker on the bridge, the ferry's bob.
+  - **The mist drift** is gently perceptible in open sky on every page (a sky deck; open sky p99 3–6/255 over 8 s,
+    mean 0.5–1.6 because most sky is uniform; text 0).
 - **Engine discipline (keep):**
   - no rAF spin; frames only when dirty;
   - ambient drift ≤ 15 fps, sleeping after 45 s idle; wake ≤ 30 fps;
@@ -194,7 +219,7 @@ Where they disagree with this file, this file wins; fix them. Known stale bits e
 ## 8. The photo
 
 `assets/img/qijin-xu-colour.jpg` (720×900, ≤ 80 KB, no metadata), made by `tools/build-photo.swift` (Core Image) from `public/images/selfie.jpg`.
-- **Full colour.** The white wall is flattened, lifted, and multiplied into the paper; the shoulders fade out with a mask. No frame, radius, grey, mist, caption or vignette.
+- **Full colour.** The white wall is flattened, lifted, and multiplied into the paper; the shoulders fade into white along their own line in the file itself (`build-photo.swift` step 3d, 4b; 4a's straight CSS mask is gone). No frame, radius, grey, mist, caption or vignette.
 - **Placement:** directly below the Home hero. Beside "About me" from 640 px up (tablet 240 + 600, wide 280 + 640); above it on phones (72% wide).
 - **Reshoot:** Jack will reshoot later, and swapping is one file. Side daylight, a real smile, someone else holding the camera. The top is undecided: the proposal said "the red top"; Claude's later advice (2026-10-09) was navy, grey or muted green, to blend with the palette.
 
@@ -215,8 +240,17 @@ Where they disagree with this file, this file wins; fix them. Known stale bits e
 - `?router=off`
 - `?slow=5`
 - `?y=`, `?t=`: pre-scroll, and freeze the name's ink settle.
+- `?ground=4a`: Home and Work with 4a's strip and closing (A/B against the living ground).
+- `?sink=…&lag=…`: the living ground's 33 tunables (the keys of `main.js` `TUNE`; defaults and meanings in
+  `landscape/index.js` `STAGE` and `STAGE_AT`), read per URL, never remembered. Some thin the reading veils, so a tuned
+  URL is never a contrast measurement.
+- In the build they are compiled out with the engine's QA hooks (`opts.tune`, `qa()`, `stats().tune` / `veils` /
+  `memory`): README's port table.
 
-**"Draft art" label:** demo-only. It marks unfinished scenes and comes off as each scene is approved; give 4b's new draft scenes one too. Set in ink-3 on a paper reserve. Hide it without JS. It is the accepted fifth type size on Home.
+**"Draft art" label:** demo-only. It marks unfinished scenes and comes off as each scene is approved. In 4b it is on all
+seven pages with a scene (Home, Work, the Résumé, Contact, Writing, the Note, the 404): in the strip's bottom feather, on
+Home and Work at ≥ 1200 px in the first screen's top-right sky. Set in ink-3 on a paper reserve. Hidden without JS or
+landscape. It is the accepted fifth type size on Home.
 
 ## 10. Content pipelines (performance first)
 
@@ -259,32 +293,97 @@ Where they disagree with this file, this file wins; fix them. Known stale bits e
   - phones stay calm;
   - the landscape is preserved (§4.3).
 - Prototype on Home and Work first, then show Jack.
+- **Built in 4b** (the "depth" prototype won, `_notes/r4b/RECORD.md` §1.2): see §7, "Behaviour in 4b". Jack, 2026-10-16: "Yes" (answer 7).
 
 **B. Page endings must match each page's real scene.** The footer story map (grey washes today) and the "Next: …" closing scenes should be small, faithful versions of each page's actual opening scene: the market for Work, his mountain for Home, and so on. This relaxes "the story map stays grey". Jack's words were "that horizontal scroll doesn't match the heroes of each page"; if unsure which strip he meant, do both.
+**Built in 4b** (both): every closing shows its own place; the story map is five stills of the real scenes. Awaiting Jack.
 
 **C. The places and their life:**
 - The pavilion (Writing), the ferry and jetty (Contact), the terraces given real character (Résumé), and the path into mist (404), all at draft quality with the "Draft art" label.
 - Polish Home's traveller and hut and Work's market (§7 known issues).
 - **Small life:** water shimmer, a drifting boat, smoke, willow sway. Crowds stand still. Allow one slow walker on the bridge only if it looks like the painting breathing. Everything stops for reduced motion, Still and idle.
 - **The "tell the places apart" test:** show the six strips, text hidden, at phone size, to people new to the site. They must sort them into six different places and pick out Work and Contact unaided. Run round 3 as the baseline.
+- **Built in 4b** at draft quality (§7 table), with shimmer, smoke, willow sway and the drifting punt; the walker and the ferry's bob are not built (Jack's call). The places test (`tools/qa/places.py`, blind sheet, seed 31, 390 px) was run in the final review with three fresh agents standing in for newcomers: **all three matched all six places (6/6)**. (The workflow first reported a Résumé miss; that was a scoring bug that dropped the accents of "Résumé", not a viewer's error. The tighter phone framing of the terraces made because of it is kept: it also reads better; `_notes/r4b/RECORD.md` §8.3.) Agents are a proxy: rerun it with people new to the site before Jack signs off.
 
 **D. Smaller items:**
-- The mist drift is barely visible (4a QA measured ≈ 0.4/255 in the sky over 8 s); make it gently perceptible.
-- The photo's bottom fade is a straight gradient; make it follow the shoulders.
-- Hide the "Draft art" label without JS.
-- Hide the header and actions in print on every page (the closing is already hidden).
-- At 1440, Home below the hero is one column with about 45% of the width empty on the right.
-- **Real-phone check:** the iOS Simulator, Jack's own iPhone over home Wi-Fi, and an Android if available. This belongs to 4b, not the performance backlog.
+- The mist drift is barely visible (4a QA measured ≈ 0.4/255 in the sky over 8 s); make it gently perceptible. **Done** (the sky deck).
+- The photo's bottom fade is a straight gradient; make it follow the shoulders. **Done** (in the file, step 3d).
+- Hide the "Draft art" label without JS. **Done.**
+- Hide the header and actions in print on every page (the closing is already hidden). **Done.**
+- At 1440, Home below the hero is one column with about 45% of the width empty on the right. **Done** by the living ground (his mountain parks at the right).
+- **Real-phone check:** the iOS Simulator, Jack's own iPhone over home Wi-Fi, and an Android if available. This belongs to 4b, not the performance backlog. **Not done:** it needs Jack's device (and Safari: `texelFetch` on RGBA16F and bitmap premultiply are unjudged).
 
-**E. Questions waiting for Jack** (ask; don't assume). The full list is COPY §10; these are the key ones:
+**State of A–C after 4b:** A, B and C are built at draft quality and reviewed; Jack has not seen them. Open art points for
+Jack (`_notes/r4b/RECORD.md` §7.1): Home's About me (photo and text, the page's one wide block) covers the middle peaks
+mid-lift, so the painting thins there; the walker and the ferry's bob (C); the places' approval, which removes each
+"Draft art" label.
+
+**E. Questions for Jack, and his answers of 2026-10-16** (his words in quotes; where an answer was ambiguous, the
+reading below is the art lead's and is marked *confirm*):
 1. Approve or rewrite the **DRAFT** words: hero lead, About me, Now, What I work on, Say hello. **Launch needs this.**
+   → "Approve". Done (COPY.md marks them APPROVED).
 2. **Work's length** is 6.24 / 7.70 / 8.34 screens against ≤ 5 / 6 / 8. Options: (a) accept; (b) fold How I build's drawing behind its "Read as steps" (5.62 / 6.93 / 7.40); (c) fold the flagships' Evidence and Stack (5.83 / 7.19 / 7.83). Claude suggested (b) to Jack on 2026-10-10; he hasn't answered.
+   → "A bit too long, maybe keep it concise and have dedicated pages for the rest." **Build:** `/work/` becomes a concise
+   index (the six-project table, How I build, In the open); every case gets its own page `/work/<slug>/` (one MDX file each),
+   linked from its table row. The length budget then holds by construction.
 3. **"At RBC"** appears on Work and the Résumé while the rest of the site keeps clients anonymous. Keep it, or say "a major Canadian bank"?
+   → "Yes": read as **keep "At RBC"** (as built). *Confirm.*
 4. The honour wording; whether the 2026 award's project may be named; "The hard part" for the two flagship cases (OMITTED until he writes it); his game tools / side projects (OMITTED); "For organisers" bios (OMITTED); keep or drop Work's glossary notes.
+   → "Yes" (a several-part question): the built defaults stand: honour wording as built, the 2026 award's project unnamed,
+   OMITTED items stay out until he writes them, glossary notes kept. The dedicated case pages (answer 2) are the natural home
+   for "The hard part" when he writes it. *Confirm the parts that matter to him.*
 5. **The launch-gate route:** a fresh v2 repo (Claude suggested this) vs a history rewrite (irreversible) vs making it private. Then make `job-application` private (§2).
+   → "Just commit to the repo and rewrite the old version… Put the old version site into a branch archive/…". **Route:** the same
+   repo; v2 replaces the old site on `master`; the old site lives on in a branch **`archive/v1-site`**. Because the repo is public and
+   the old résumé PDF (with his phone number) is in its history, every branch, the archive included, must have
+   `public/documents/QijinXu_Resume.pdf` purged from history (`git filter-repo`) before anything is pushed, then all branches
+   force-pushed. That is irreversible and public: Jack gives the explicit go at launch and runs the pushes (§1). Ask GitHub
+   to drop cached views of the old commits if they still serve. Then make `job-application` private once
+   `qijinxu.com/resume.pdf` is live.
 6. **Off-site consistency:** GitHub profile name "Qijin Xu", company CGI, location Toronto, a photo; LinkedIn title "Lead AI/ML Architect". A similarly named biotech executive competes in name searches.
+   → "Will do" (Jack's to-do).
 
-## 12. The real build (after Jack approves 4b)
+**New with 4b** (the art lead's recommendation in brackets):
+7. **Is this the "mountain following my scrolls" he remembers?** The camera lifts, as in round 1: scrolling down, the painting sinks on screen while the text rises, settles beside the reading column, and comes back to the opening at the end. Compare `?ground=4a`. (Keep.)
+   → "Yes". Keep; port it.
+8. **Short pages' endings** (Writing, Contact): a different view of the same place under "Next: …" (built), or end on the story map alone? (Keep the different view.)
+   → "The 'Next' feels off." Art lead's reading: the fixed tour (Home → Work → Résumé → Contact → Home) under a large
+   "Next: …" reads like a slide deck. **Build default:** no "Next: …" link. Long pages (Home, Work, the Résumé, the Note, the
+   case pages) end on their own closing scene; short pages (Writing, Contact, the 404) end on the story map alone (no twin
+   closing). The story map, which links every place, is the way on. *Confirm on the build's first preview.*
+9. **Small life:** is it visible enough? It is deliberately quiet (the punt, the hut's smoke, the shimmer). Add the one slow walker on Work's bridge, or the ferry's bob? (Neither: people stand still, as DESIGN §4 says.)
+   → "Yes but have an option to toggle it off." **Build:** add the one slow walker on the bridge and the ferry's bob, each only if
+   it reads as the painting breathing; and give life a clear off switch: "Still the landscape" (footer) already stops all
+   motion, so make it obvious and remembered across visits (not only per session). *Confirm the walker on the first preview.*
+10. **Motion while reading** on desktop Home and Work: the mist and life keep breathing at ≤ 15 fps until 45 s idle (4a was still mid-page). Keep, or let it calm once the painting has settled? (Keep; measure on his laptop first.)
+   → "Keep it".
+11. **Machines without a usable GPU** (software rendering, many remote desktops) get 4a's strip and closing on Home and Work, not the living ground. Acceptable? (Yes.)
+   → "Sure if this is the best". Keep.
+12. **Print:** printed Work, Contact, Writing, the Note and the 404 no longer carry his name (the header is hidden in print). Add a print-only name line? (Yes, small.)
+   → "Sure." **Build:** a small print-only "Qijin Xu · qijinxu.com" line on every page except the Résumé (which has its own header).
+13. **The photo's red top** is now the strongest colour beside the blue-green crags: more weight for the reshoot in navy, grey or muted green (§8).
+   → "Leave it for now".
+14. **Real-phone check:** open the demo on his iPhone (and an Android, Safari on a Mac) before approval; Xcode is not installed, so the iOS Simulator was not available.
+   → "Leave it, will check later". Do it on the build's previews (Vercel preview URLs work on any phone).
+15. **What to commit:** 4b is uncommitted (about 33 modified and 59 new files, including `_notes/r4b/` with 29 working notes). Commit all, or condense the notes first? Pushing publishes (the repo is public).
+   → "Condense first". Done: `_notes/r4b/RECORD.md`; 4b committed on `redesign/v2` (not pushed).
+
+## 12. The real build (Jack approved 4b as the baseline on 2026-10-16)
+
+**Jack's requirements (2026-10-16): "nice organized code structure, latest stacks, easy to update in the future".** So:
+- **Latest stable versions, verified on the day** (the versions below are from October 2026 research; re-check each before
+  pinning, never from memory), pinned exactly, with a lockfile and Renovate or Dependabot for updates.
+- **Organised by feature:** `app/` routes thin; `components/` (ui, layout, sections), `features/landscape/` (the engine as a
+  typed module with its hooks), `content/` (all words and data), `lib/`, `styles/` (tokens + CSS Modules); one owner per
+  concern; no dead demo code (compare panel, URL tunables, QA hooks compiled out, README port table).
+- **Easy to update:** every word and fact lives in content files, never in components: `resume.json` (the single source
+  of the web résumé, the PDF and the JSON-LD), one MDX file per writing note and per Work case (answer 2), a small typed
+  `site` config (name, links, nav, Now); adding a note or a case is one new file; a short `CONTENT.md` says how.
+- **Safe to update:** CI on every push (typecheck, lint, unit tests for the content schemas and the engine's pure parts,
+  Playwright smoke tests per route, the compliance gates: phone, CJK, PMP, old PDF; the §6 budgets; link check).
+- **New from the 4b answers:** Work's dedicated case pages (2), no "Next: …" link and short pages ending on the story map
+  (8), the walker and the ferry's bob plus a remembered off switch for motion (9), a print-only name line (12), the launch
+  route (5).
 
 - **Stack:** Next.js 16 App Router on Vercel (the free Hobby plan; custom domains are included). TypeScript strict. MDX via `@next/mdx`, replacing `next-mdx-remote`. Shiki, RSS, and `next/font` self-hosting, which fixes the slow first paint from Google Fonts.
 - **Architecture** (port table in README):
@@ -301,7 +400,7 @@ Where they disagree with this file, this file wins; fix them. Known stale bits e
   - `<ViewTransition>` is stable in React 19.3;
   - `@next/mdx` is at 16.4.0.
 - **Launch:**
-  - Pass the §2 launch gate. Jack approves the DRAFT words and the Work market scene.
+  - Pass the §2 launch gate by the route of §11.E answer 5 (archive branch, history purge, Jack's go). The DRAFT words are approved (2026-10-16); the 4b scenes are the approved baseline ("Draft art" is a demo-only label and is not ported).
   - Connect **qijinxu.com** (Cloudflare DNS → Vercel) and redirect `my-website-freedomjack.vercel.app` → `qijinxu.com`.
   - Update canonicals, JSON-LD, `llms.txt`, `resume.json` and the résumé contact line to `https://qijinxu.com`.
   - `qijinxu.com/resume.pdf` becomes Jack's résumé link.
@@ -316,19 +415,22 @@ That serves http://localhost:4173 with the designed 404. In the Claude desktop a
 
 | Tool | Purpose |
 |---|---|
-| `tools/qa/cdp.py` | Headless Chrome driver (real scrolling, hover, clicks, true phone viewports, bursts, print/PDF, console). Screenshots go to the scratchpad only. |
+| `tools/qa/cdp.py` | Headless Chrome driver (real scrolling, hover, clicks, true phone viewports, bursts, print/PDF, console). Screenshots go outside the repo only (`$QA_OUT`). |
 | `tools/qa/compliance.py` | Hard-rule sweep: phone, address, PMP, old PDF, CJK, motto, JSON-LD, images, PDF pages |
 | `tools/qa/linkcheck.py` | Internal links, fragments and SVG-filter ids; external links https and allow-listed (needs the server) |
 | `tools/build-pdf.py` | `/resume/` → `resume.pdf`, with the phone gate |
 | `tools/sync-shared.py [--check]` | Shared head / top / bottom blocks into every page |
 | `tools/sync-projects.py [--discover] [--check]` | GitHub "In the open", at build time |
 | `tools/build-photo.swift` | The colour photo pipeline |
+| `tools/build-stills.py [--check]` | The footer story map's scene stills, cut from the engine (regenerate after any engine or scene change) |
+| `tools/qa/budget.py`, `gaps.py`, `contrast.py`, `drift.py`, `frames.py`, `places.py`, `router.py`, `storymap.py` | The QA probes (§6 budgets, gaps, contrast on the painted background, mist drift, frames, the places test, router, story map); usage: README "QA". On this Mac prefix `CDP_ARGS='--use-angle=metal --enable-gpu --ignore-gpu-blocklist'` to judge the painting on the real GPU |
 
 **QA matrix (README):** 1440×900, 1280×720, 1024×768, 768×1024, 390×844 DPR 3, 375×667, 360×800, 320×640, 844×390, plus reduced motion, no-WebGL (`CDP_ARGS="--disable-3d-apis"`), print, and router bursts.
 
 **Folders:**
-- `assets/` (CSS: tokens, base, layout, components, effects, `pages/*`; JS: main, router, header, story-map, compare, disclosure, effects, `pages/*`, `landscape/*`; SVG; the photo).
-- `_lab/landscape/` (engine lab pages: index, strips, wake, bench, …).
+- `assets/` (CSS: tokens, base, layout, components, effects, `pages/*`; JS: main, router, header, story-map, compare, disclosure, effects, `pages/*`, `landscape/*` with `landscape/sets/` (each place's figure set); SVG; the photo; `img/scenes/` (the story map's stills)).
+- `_lab/landscape/` (engine lab pages: index, strips, wake, bench, figures (a figure set's layer alone), …).
+- `_notes/r4b/RECORD.md` (the 4b record, condensed from the round's 28 working notes: decisions, how each feature works, measurements, open items, lessons).
 - `_studies/` (the round-1 hero studies A/B/C; A's engine won, C's typography won).
 - `_notes/r4/` (the round-4 research: `layouts.md` with 31 measured personal sites, `ia.md`, `scenes.md`, `identity.md`, `audit.md`; `proposal.md`; `prototypes/` with wireframes and scene sketches).
 - `SPEC-R3.md` (previous round, partly superseded).
@@ -340,3 +442,4 @@ That serves http://localhost:4173 with the designed 404. In the Claude desktop a
 - **Round 3:** answered "too sparse, PowerPoint-like, transitions not smooth" with content-sized sections, three type tiers, the pan transition, water scenes and the photo. It still felt "huge, CV-like".
 - **Round 4:** researched 31 real personal sites, leading to the readable layout, Home as "about me", the narrative painting, colour and the colour photo.
 - **Demo 4a** implemented that. Jack: "looks great", plus the two points in §11.A–B, and he agreed to finish with a short 4b round in a fresh session.
+- **Demo 4b** (2026-10-15, one long session run as multi-agent workflows): two prototypes of the scroll-following background ("settle", "depth") judged by three lenses; depth won and was refined in three adversarially reviewed rounds; six figure-set artists painted the places in parallel; the closings and the story map now show each page's own place; small life; the QA probes rebuilt; a final real-GPU review with two fix rounds. Record: `_notes/r4b/RECORD.md`.

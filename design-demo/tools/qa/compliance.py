@@ -11,7 +11,9 @@ Enforces Jack's hard rules on every shipped file under design-demo/ (skips _stud
   - no CJK character other than the seal glyph, and never the forbidden four-character motto
     (checked by code point, so this file never contains it)
   - every application/ld+json block parses; resume.json parses
-  - raster images: only the allow-listed photo, as a JPEG with no EXIF/XMP metadata
+  - raster images: only the allow-listed photo, as a JPEG with no EXIF/XMP metadata, and the footer story map's ten
+    scene stills (tools/build-stills.py): exactly those WebP files, no metadata chunks, each <= 16 KB and <= 60 KB
+    together, and in the pages only as decorative <img alt=""> inside the story map's aria-hidden art
   - resume.pdf exists and has at most 2 pages (its phone gate is tools/build-pdf.py, which prints it from
     /resume/; this script also checks that page's source)
 Markdown files (COPY.md, README.md, SPEC-*.md, DESIGN.md) state the rules in words, so their findings are
@@ -42,6 +44,12 @@ LDJSON = re.compile(r"""<script[^>]*type\s*=\s*["']application/ld\+json["'][^>]*
 TEXT = {".html", ".css", ".js", ".mjs", ".svg", ".json", ".txt", ".xml", ".md", ".py", ".swift"}
 RASTER = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".avif", ".bmp", ".tif", ".tiff", ".heic", ".ico"}
 ALLOWED_RASTER = {"assets/img/qijin-xu-colour.jpg"}
+# the footer story map's scene stills (tools/build-stills.py): decorative, exact files, capped
+SCENE_STILLS = {f"assets/img/scenes/{p}@{d}x.webp" for p in ("home", "work", "writing", "resume", "contact") for d in (1, 2)}
+SCENE_CAP, SCENE_CAP_TOTAL = 16 * 1024, 60 * 1024
+SCENE_REF = re.compile(r"/assets/img/scenes/")
+IMG_TAG = re.compile(r"<img\b[^>]*>", re.I | re.S)
+STORY_ART = re.compile(r'<div class="story-map__art" aria-hidden="true">(.*?)</div>', re.S)
 ALLOWED_PDF_HREF = {"/resume.pdf", "https://my-website-freedomjack.vercel.app/resume.pdf", "https://qijinxu.com/resume.pdf"}
 
 fails, notes = [], []
@@ -77,10 +85,46 @@ def jpeg_has_metadata(data):
     return False
 
 
+def webp_problem(data):
+    """None for a plain WebP (RIFF/WEBP with image chunks only); else why not."""
+    if len(data) < 12 or data[:4] != b"RIFF" or data[8:12] != b"WEBP":
+        return "not a WebP file"
+    i = 12
+    while i + 8 <= len(data):
+        tag, n = data[i:i + 4], int.from_bytes(data[i + 4:i + 8], "little")
+        if tag in (b"EXIF", b"XMP ", b"ICCP"):
+            return f"carries a {tag.decode().strip()} metadata chunk"
+        i += 8 + n + (n & 1)
+    return None
+
+
+def scene_imgs(rel, text):
+    """The story map's scene stills may appear only as <img alt=""> inside its aria-hidden art."""
+    inside = set()
+    for block in STORY_ART.finditer(text):
+        for tag in IMG_TAG.finditer(block.group(1)):
+            inside.add(block.start(1) + tag.start())
+            if not re.search(r'\salt=""', tag.group(0)):
+                fails.append(f"scene still without alt=\"\" in {rel}: {tag.group(0)[:100]}")
+    for tag in IMG_TAG.finditer(text):
+        if SCENE_REF.search(tag.group(0)) and tag.start() not in inside:
+            fails.append(f"scene still outside the story map's aria-hidden art in {rel}: {tag.group(0)[:100]}")
+
+
 def main():
+    scene_bytes = 0
     for p, rel in files():
         ext = p.suffix.lower()
         if ext in RASTER:
+            if rel in SCENE_STILLS:
+                data = p.read_bytes()
+                scene_bytes += len(data)
+                why = webp_problem(data)
+                if why:
+                    fails.append(f"scene still {rel}: {why}")
+                if len(data) > SCENE_CAP:
+                    fails.append(f"scene still {rel} is {len(data)} bytes (cap {SCENE_CAP})")
+                continue
             if rel not in ALLOWED_RASTER:
                 fails.append(f"raster image not allow-listed: {rel}")
             elif ext in (".jpg", ".jpeg") and jpeg_has_metadata(p.read_bytes()):
@@ -112,6 +156,7 @@ def main():
                 if ch != SEAL:
                     report(md, f"CJK character other than the seal ({ch!r})  {where}")
         if ext == ".html":
+            scene_imgs(rel, text)
             for href in PDF_HREF.findall(text):
                 if href not in ALLOWED_PDF_HREF:
                     fails.append(f"PDF link other than /resume.pdf: {href}  ({rel})")
@@ -120,6 +165,8 @@ def main():
                     json.loads(block)
                 except Exception as e:  # noqa: BLE001
                     fails.append(f"JSON-LD block {i} does not parse in {rel}: {e}")
+    if scene_bytes > SCENE_CAP_TOTAL:
+        fails.append(f"the scene stills weigh {scene_bytes} bytes together (cap {SCENE_CAP_TOTAL})")
     try:
         json.loads((ROOT / "resume.json").read_text("utf-8"))
     except Exception as e:  # noqa: BLE001

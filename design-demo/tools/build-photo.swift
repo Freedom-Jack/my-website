@@ -2,7 +2,8 @@
 //
 //   swift -O tools/build-photo.swift <source.jpg> <out.jpg> [--crop x,y,w,h] [--size 720x900] [--sat .90]
 //        [--warm .02] [--shadow-tint -.02,.01,.02] [--mid .03] [--wall-luma .62] [--wall-chroma .10]
-//        [--lift auto|0.9] [--quality .75] [--debug-mask mask.png]
+//        [--lift auto|0.9] [--fade auto|off] [--fade-width .17] [--fade-neck .14] [--fade-edge 1]
+//        [--quality .55] [--debug-mask mask.png] [--debug-fade fade.png]
 //
 //   The flags of the shipped file (assets/img/qijin-xu-colour.jpg), from public/images/selfie.jpg:
 //     swift -O tools/build-photo.swift ../public/images/selfie.jpg assets/img/qijin-xu-colour.jpg
@@ -29,14 +30,31 @@
 //           kept between 0.85 and 0.97) so the wall and the corner line between its planes map to 255; outside
 //           the mask the same gain applies only through a soft shoulder (near-white, near-neutral pixels), so skin
 //           highlights and the sweater keep their tone;
-//   4. JPEG at --quality (ImageIO's scale; 0.55 by default, ~70 KB), sRGB (the ICC profile is kept), every APP1
+//        d. THE SHOULDER FADE, baked into the file (demo 4b; it replaces 4a's CSS mask, which Chrome's PDF dropped,
+//           printing a hard rectangle with the whole sweater). The body dissolves into white along its own shoulder
+//           line; white is the paper once the page multiplies the photo, exactly as a CSS mask to transparent
+//           would be, so the fade also survives print, forced colours and any renderer. It is derived from the
+//           wall mask, so a reshoot refits it:
+//           - the body's top per column: the run of not-wall pixels that reaches the bottom edge. Where that run
+//             stops below 55 % of the height it is a shoulder; where it climbs higher it is the neck (the longest
+//             such run of columns);
+//           - the dissolve's half-way line: on each shoulder, the shoulder's top plus a depth that grows from
+//             "already gone" where the shoulder meets the frame's side (no cut sleeve) to --fade-neck beside the
+//             neck (fast at first, t^0.7, so the shoulder keeps its line for most of its width); it only goes
+//             down toward the neck (one bowl, no dent where the shoulder climbs into the neck); across the neck an
+//             arch, deepest under the chin, as low as the frame allows; then smoothed (σ ≈ 18 px) into one curve;
+//           - the dissolve: a smoothstep --fade-width tall around that line (--fade-edge times that where a
+//             shoulder meets the frame's side), blurred σ ≈ 8 px, ending (< 1 % left) at the shoulder's top on the frame's sides
+//             and at the bottom row. The face and neck are untouched; the report says where the fade starts.
+//           --fade off reproduces 4a's file byte for byte (the steps before 3d are unchanged);
+//   4. JPEG at --quality (ImageIO's scale; 0.55 by default, ~65 KB with the fade), sRGB (the ICC profile is kept), every APP1
 //      (EXIF, XMP), APP13 (IPTC) and COM segment stripped. Target <= 80 KB.
-// It prints the size in KB, the wall's minimum channel (>= 250 wanted), the corner-line step, and the outer ring's
-// colour difference against the paper as the page shows it (multiplied, with the shoulder fade; ΔE ≤ 2 wanted).
-// Verify with `sips -g all` and `mdls`.
-// The page then does the rest (components.css .hello__photo): mix-blend-mode multiply (the white wall becomes the
-// paper exactly) and a mask fade at the shoulders (bottom 83 % → 100 %, an 8 % side feather that only the
-// sweater reaches). No frame, radius, grey or vignette.
+// It prints the size in KB, the wall's minimum channel (>= 250 wanted), the corner-line step, the outer ring's
+// colour difference against the paper as the page shows it (all four sides, multiplied; where it is wall and where
+// the body meets the frame; ΔE ≤ 2 wanted), the fade's half-way line, and where the fade starts (the head must
+// keep 1). Verify with `sips -g all` and `mdls`.
+// The page then does the rest (components.css .hello__photo): mix-blend-mode multiply, so the white wall and the
+// dissolved body become the paper exactly. No CSS mask, frame, radius, grey or vignette.
 
 import CoreImage
 import Foundation
@@ -56,7 +74,12 @@ struct Options {
     var wallChroma: Float = 0.10
     var lift: Float? = nil          // nil = auto
     var quality = 0.55            // ImageIO's scale: 0.55 here is ~70 KB at 720 × 900 (the spec's "~0.75" is libjpeg's)
+    var fade = true               // 3d: the shoulder fade, baked in (--fade off leaves the body whole: comparisons only)
+    var fadeWidth: Float = 0.17   // the dissolve's height beside the neck, as a fraction of the frame's height
+    var fadeNeck: Float = 0.14    // how far below the shoulder's top the dissolve is half done, beside the neck (fraction)
+    var fadeEdge: Float = 1.00    // the dissolve's height where a shoulder meets the frame's side, relative to --fade-width
     var debugMask: String? = nil
+    var debugFade: String? = nil
 }
 
 func fail(_ msg: String) -> Never {
@@ -87,7 +110,12 @@ func parse() -> Options {
         case "--wall-chroma": o.wallChroma = Float(nums(val(), 1)[0])
         case "--lift": let v = val(); o.lift = v == "auto" ? nil : Float(nums(v, 1)[0])
         case "--quality": o.quality = nums(val(), 1)[0]
+        case "--fade": let v = val(); if v != "auto" && v != "off" { fail("--fade takes auto or off") }; o.fade = v == "auto"
+        case "--fade-width": o.fadeWidth = Float(nums(val(), 1)[0])
+        case "--fade-neck": o.fadeNeck = Float(nums(val(), 1)[0])
+        case "--fade-edge": o.fadeEdge = Float(nums(val(), 1)[0])
         case "--debug-mask": o.debugMask = val()
+        case "--debug-fade": o.debugFade = val()
         case "-h", "--help": print("usage: swift -O tools/build-photo.swift <source.jpg> <out.jpg> [flags] (see the header)"); exit(0)
         default:
             if a.hasPrefix("--") { fail("unknown flag \(a)") }
@@ -324,6 +352,80 @@ for i in 0..<N {
     lifted[i * 4 + 2] = UInt8(min(255, max(0, (b * (1 + (gb - 1) * k)) * 255 + 0.5)))
 }
 
+// 3d. the shoulder fade, from the wall mask (so a reshoot refits it): see the header
+var fadeA = [Float](repeating: 1, count: N)
+var neckSpan = (l: 0, r: -1)
+var lineB = [Float](repeating: Float(H), count: W)          // the dissolve's half-way line, per column
+var shoulderLine = [Float](repeating: Float(H), count: W)
+if o.fade {
+    let F = o.fadeWidth * Float(H)
+    let soft = 8                                            // the last blur, sigma ~ 8 px
+    let reach: Float = 0.45                                 // "ended": 0.45 of the dissolve past its half-way line (< 1 % left)
+    // a. the body's top in each column: the run of subject pixels (not wall) that reaches the bottom edge
+    var top = [Int](repeating: H, count: W)                 // H: no body in this column
+    for x in 0..<W {
+        var y = H - 1
+        while y >= 0 && Mf[y * W + x] < 0.5 { y -= 1 }
+        top[x] = y + 1
+    }
+    let headRun = Int(0.55 * Float(H))                      // a run that climbs above this is the neck and head
+    var best = (l: 0, r: -1), runL = -1
+    for x in 0...W {
+        let neck = x < W && top[x] < headRun
+        if neck && runL < 0 { runL = x }
+        if !neck && runL >= 0 { if x - 1 - runL > best.r - best.l { best = (runL, x - 1) }; runL = -1 }
+    }
+    if best.r < best.l { best = (W * 2 / 5, W * 3 / 5) }   // no neck found: arch under the middle fifth
+    neckSpan = best
+    // the shoulder line on each side, smoothed (a column with no body, or a stray run, takes its neighbour's line)
+    var line = top.map { Float($0) }
+    func side(_ xs: [Int]) {                                // xs runs from the neck outward
+        var last = Float(H) - F / 2
+        for x in xs { if top[x] < H && top[x] >= headRun { last = Float(top[x]) }; line[x] = last }
+        let vals = boxBlur(xs.map { line[$0] }, xs.count, 1, radius: 12, passes: 2)
+        for (k, x) in xs.enumerated() { line[x] = vals[k] }
+    }
+    if best.l > 0 { side(Array((0..<best.l).reversed())) }
+    if best.r < W - 1 { side(Array((best.r + 1)..<W)) }
+    shoulderLine = line
+    // b. along each shoulder the half-way line sits a depth below the shoulder's top: from "already gone" where the
+    //    shoulder meets the frame's side (the dissolve ends at the shoulder's top there, so no cut sleeve) to
+    //    --fade-neck beside the neck; the dissolve itself narrows from --fade-width to --fade-edge of it at the side.
+    //    The depth grows quickly from the side (t^0.7), so the shoulder keeps its line for most of its width.
+    let dNeck = o.fadeNeck * Float(H)
+    var Fx = [Float](repeating: F, count: W)
+    for x in 0..<W where x < best.l || x > best.r {
+        let t = x < best.l ? Float(x) / Float(max(1, best.l)) : Float(W - 1 - x) / Float(max(1, W - 1 - best.r))
+        let s = smooth(0, 1, powf(t, 0.7))
+        Fx[x] = F * (o.fadeEdge + (1 - o.fadeEdge) * s)
+        let dEdge = -reach * Fx[x] - Float(soft)
+        lineB[x] = line[x] + dEdge + (dNeck - dEdge) * s
+    }
+    let floorX = Fx.map { Float(H) - 1 - reach * $0 }      // the lowest line that still ends at the bottom row
+    // one bowl, never a dent: from each side toward the neck the line only goes down (where the shoulder climbs
+    // steeply into the neck it would otherwise turn back up)
+    if best.l > 1 { for x in 1..<best.l { lineB[x] = min(floorX[x], max(lineB[x], lineB[x - 1])) } }
+    if best.r < W - 2 { for x in stride(from: W - 2, to: best.r, by: -1) { lineB[x] = min(floorX[x], max(lineB[x], lineB[x + 1])) } }
+    // across the neck: an arch from one shoulder's line to the other's, deepest under the chin (at the floor)
+    let bl = best.l > 0 ? lineB[best.l - 1] : floorX[best.l], br = best.r < W - 1 ? lineB[best.r + 1] : floorX[best.r]
+    for x in best.l...best.r {
+        let t = (Float(x - best.l) + 0.5) / Float(best.r - best.l + 1)
+        let base = bl + (br - bl) * smooth(0, 1, t)
+        let s = sinf(Float.pi * t)
+        lineB[x] = base + (floorX[x] - base) * s * s
+    }
+    lineB = boxBlur((0..<W).map { min(lineB[$0], floorX[$0]) }, W, 1, radius: 18, passes: 3)   // sigma ~ 18: one smooth curve
+    lineB = (0..<W).map { min(lineB[$0], floorX[$0]) }
+    Fx = boxBlur(Fx, W, 1, radius: 8, passes: 2)
+    // c. the dissolve (a smoothstep across Fx around the line), softened, then blended toward white: white is the
+    //    paper once the page multiplies the photo, exactly as a CSS mask to transparent would be
+    for y in 0..<H { for x in 0..<W { fadeA[y * W + x] = 1 - smooth(lineB[x] - Fx[x] / 2, lineB[x] + Fx[x] / 2, Float(y)) } }
+    fadeA = boxBlur(fadeA, W, H, radius: soft)
+    for i in 0..<N where fadeA[i] < 1 {
+        for c in 0..<3 { lifted[i * 4 + c] = UInt8(min(255, max(0, 255 - fadeA[i] * (255 - Float(lifted[i * 4 + c])) + 0.5))) }
+    }
+}
+
 // 4. encode, strip, write
 let jpeg = encodeJPEG(lifted, W, H, quality: o.quality)
 do { try jpeg.write(to: URL(fileURLWithPath: o.out)) } catch { fail("cannot write \(o.out): \(error)") }
@@ -353,40 +455,58 @@ wallVals.sort()
 let wallMin = wallVals.first ?? 255
 let wallP = wallVals.isEmpty ? 255 : wallVals[wallVals.count / 1000]
 let out = ship
-// the outer 4 px ring (top, left, right) as the page shows it: multiplied onto the paper (#EFF1EE), through the
-// shoulder fade (components.css: opaque to 83 % of the height, transparent at 100 %; the sides' 8 % feather
-// is left out here, so the figure is a conservative bound), against the paper
+// the outer 4 px ring (all four sides) as the page shows it: the file multiplied onto the paper (#EFF1EE), with
+// no mask (the fade is in the file), against the paper
 let paper: (Float, Float, Float) = (239 / 255, 241 / 255, 238 / 255)
 let paperLab = toLab(paper.0, paper.1, paper.2)
 // The ring is reported where it is wall (the frame's edge must vanish there) and, separately, where the body
-// meets the frame (the sweater at the lower sides, which the page fades out toward the bottom).
-var dE: Float = 0, dEmax: Float = 0, ringN = 0, bodyE: Float = 0, bodyN = 0
+// meets the frame (the sweater at the lower sides and the bottom, which the shoulder fade must have dissolved).
+var dE: Float = 0, dEmax: Float = 0, ringN = 0, bodyE: Float = 0, bodyMax: Float = 0, bodyN = 0
 for y in 0..<H {
-    let alpha = 1 - min(1, max(0, (Float(y) / Float(H - 1) - 0.83) / 0.17))
-    for x in 0..<W where y < 4 || x < 4 || x >= W - 4 {
+    for x in 0..<W where y < 4 || y >= H - 4 || x < 4 || x >= W - 4 {
         let i = (y * W + x) * 4
-        let seen = { (c: UInt8) -> Float in 1 - alpha + alpha * Float(c) / 255 }
+        let seen = { (c: UInt8) -> Float in Float(c) / 255 }
         let lab = toLab(paper.0 * seen(out[i]), paper.1 * seen(out[i + 1]), paper.2 * seen(out[i + 2]))
         let d = deltaE(lab, paperLab)
-        if Mf[y * W + x] >= 0.5 { dE += d; dEmax = max(dEmax, d); ringN += 1 } else { bodyE += d; bodyN += 1 }
+        if Mf[y * W + x] >= 0.5 { dE += d; dEmax = max(dEmax, d); ringN += 1 } else { bodyE += d; bodyMax = max(bodyMax, d); bodyN += 1 }
     }
 }
-if let path = o.debugMask {
+// the fade must leave the face and neck alone: the highest row it reaches (alpha < 0.98) across the neck, and
+// the strongest it gets on the face (the subject above the shoulder line's highest point)
+var reachNeck = H, reachMid = H, faceMin: Float = 1
+let shoulderTop = (0..<W).filter { $0 < neckSpan.l || $0 > neckSpan.r }.map { shoulderLine[$0] }.min() ?? Float(H)
+for x in max(0, neckSpan.l)...max(0, neckSpan.r) {
+    for y in 0..<H where fadeA[y * W + x] < 0.98 { reachNeck = min(reachNeck, y); break }
+}
+let midX = (max(0, neckSpan.l) + max(0, neckSpan.r)) / 2
+for y in 0..<H where fadeA[y * W + midX] < 0.98 { reachMid = y; break }
+for y in 0..<min(H, Int(shoulderTop)) { for x in 0..<W where Mf[y * W + x] < 0.5 { faceMin = min(faceMin, fadeA[y * W + x]) } }
+func writeGrey(_ v: [Float], _ path: String) {
     var m = [UInt8](repeating: 0, count: N * 4)
-    for i in 0..<N { let v = UInt8(min(255, Mf[i] * 255)); m[i * 4] = v; m[i * 4 + 1] = v; m[i * 4 + 2] = v; m[i * 4 + 3] = 255 }
+    for i in 0..<N { let g = UInt8(min(255, max(0, v[i] * 255))); m[i * 4] = g; m[i * 4 + 1] = g; m[i * 4 + 2] = g; m[i * 4 + 3] = 255 }
     let bc = m.withUnsafeMutableBytes { CGContext(data: $0.baseAddress, width: W, height: H, bitsPerComponent: 8, bytesPerRow: W * 4,
                                                    space: sRGB, bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue)!.makeImage()! }
     if let d = CGImageDestinationCreateWithURL(URL(fileURLWithPath: path) as CFURL, "public.png" as CFString, 1, nil) {
         CGImageDestinationAddImage(d, bc, nil); CGImageDestinationFinalize(d)
     }
 }
+if let path = o.debugMask { writeGrey(Mf, path) }
+if let path = o.debugFade { writeGrey(fadeA, path) }
 print(String(format: "build-photo: %@ %dx%d, %.1f KB (target <= 80), quality %.2f", o.out, W, H, Double(jpeg.count) / 1024, o.quality))
 print(String(format: "  wall: %.1f%% of the frame; light %.3f–%.3f; after the divide p0.2 %.3f · p1 %.3f · p5 %.3f; knee %.3f",
              100 * Float(wallCount) / Float(N), LR.min()!, LR.max()!, pct(0.002), pct(0.01), pct(0.05), knee))
 print(String(format: "  shipped wall: minimum channel %d, 0.1th percentile %d (>= 250 wanted; the few below are stray hair tips)", wallMin, wallP))
 print(String(format: "  corner line: largest step %d/255 (<= 2 wanted); the frame's edge on paper, where it is wall: mean ΔE %.2f, max %.2f (<= 2 wanted)",
              step, dE / Float(max(1, ringN)), dEmax))
-print(String(format: "  where the body meets the frame (%.0f%% of the ring, faded by the page toward the bottom): mean ΔE %.1f",
-             100 * Float(bodyN) / Float(max(1, ringN + bodyN)), bodyE / Float(max(1, bodyN))))
+print(String(format: "  where the body meets the frame (%.0f%% of the ring, %@): mean ΔE %.2f, max %.2f (<= 2 wanted)",
+             100 * Float(bodyN) / Float(max(1, ringN + bodyN)), o.fade ? "dissolved by the shoulder fade" : "NO FADE: --fade off",
+             bodyE / Float(max(1, bodyN)), bodyMax))
+if o.fade {
+    let f = { (x: Int) -> Float in lineB[min(W - 1, max(0, x))] / Float(H) }
+    print(String(format: "  shoulder fade: neck x %d–%d; half-way line (fraction of the height) edge %.3f · junctions %.3f, %.3f · centre %.3f · edge %.3f",
+                 neckSpan.l, neckSpan.r, f(0), f(neckSpan.l - 1), f(neckSpan.r + 1), f((neckSpan.l + neckSpan.r) / 2), f(W - 1)))
+    print(String(format: "  face and neck: across the neck the fade starts at %.3f of the height (%.3f under the chin); above the shoulders' highest point (%.3f) the head keeps >= %.3f (1 wanted)",
+                 Float(reachNeck) / Float(H), Float(reachMid) / Float(H), shoulderTop / Float(H), faceMin))
+}
 if Double(jpeg.count) > 80 * 1024 { print("  WARNING: over 80 KB: lower --quality") }
 if wallP < 250 { print("  WARNING: the wall is not white enough: try a lower --lift (e.g. 0.9)") }

@@ -295,8 +295,9 @@
 </head>
 
 <!-- Page config (SPEC-R4A §10.0), read by main.js and copied onto <body> by the router: stretch 1, the river
-     market at the rainbow bridge; deep; presence .8 in the strip and the closing; .55 for the desktop horizon. -->
-<body data-page="work" data-stretch="1" data-distance="deep" data-presence=".8" data-horizon=".55">
+     market at the rainbow bridge; deep; presence .8 in the strip and the closing; .55 for the desktop horizon;
+     data-ground 'living' (demo 4b): the market is the page's ground, full-bleed behind it, sinking as you read. -->
+<body data-page="work" data-stretch="1" data-distance="deep" data-presence=".8" data-horizon=".55" data-ground="living">
   <!-- @shared:top -->
   <a class="skip-link" href="#main">Skip to content</a>
   <!-- The landscape: one fixed canvas behind everything; mountLandscape() paints the page's scene into its
@@ -958,14 +959,27 @@
   </main>
 
   <!-- @shared:bottom -->
-  <!-- The footer, on paper. The story map: the whole painting as a thin map of the journey (story-map.js
-       fills the art with the landscape's stripSVG(); without JS only the labels show), one label per place,
-       laid out by geography (li[data-stretch]); aria-current marks "you are here". Then the links line and
-       the "updated" line. -->
+  <!-- The footer, on paper. The story map: the whole painting as one small handscroll of the journey, each place
+       its own opening scene in miniature (build-time stills from the engine: tools/build-stills.py writes
+       assets/img/scenes/; decorative, so alt="" in an aria-hidden art, and shown with or without JS), each in a
+       soft window (the span) that meets its neighbours in mist, one label per place, laid out by geography
+       (data-stretch: the road, 2, has no page; the 404, 6, lies off the map), a tick over each place;
+       aria-current marks "you are here". Then the links line and the "updated" line. -->
   <footer class="site-footer">
     <div class="frame">
       <nav class="story-map" aria-label="All pages">
-        <div class="story-map__art" aria-hidden="true"></div>
+        <div class="story-map__art" aria-hidden="true">
+          <span class="story-map__scene" data-stretch="0"><img src="/assets/img/scenes/home@1x.webp" srcset="/assets/img/scenes/home@1x.webp 1x, /assets/img/scenes/home@2x.webp 2x" width="252" height="70" alt="" loading="lazy" decoding="async"></span>
+          <span class="story-map__scene" data-stretch="1"><img src="/assets/img/scenes/work@1x.webp" srcset="/assets/img/scenes/work@1x.webp 1x, /assets/img/scenes/work@2x.webp 2x" width="355" height="70" alt="" loading="lazy" decoding="async"></span>
+          <span class="story-map__scene" data-stretch="3"><img src="/assets/img/scenes/writing@1x.webp" srcset="/assets/img/scenes/writing@1x.webp 1x, /assets/img/scenes/writing@2x.webp 2x" width="386" height="70" alt="" loading="lazy" decoding="async"></span>
+          <span class="story-map__scene" data-stretch="4"><img src="/assets/img/scenes/resume@1x.webp" srcset="/assets/img/scenes/resume@1x.webp 1x, /assets/img/scenes/resume@2x.webp 2x" width="317" height="70" alt="" loading="lazy" decoding="async"></span>
+          <span class="story-map__scene" data-stretch="5"><img src="/assets/img/scenes/contact@1x.webp" srcset="/assets/img/scenes/contact@1x.webp 1x, /assets/img/scenes/contact@2x.webp 2x" width="252" height="70" alt="" loading="lazy" decoding="async"></span>
+          <span class="story-map__tick" data-stretch="0"></span>
+          <span class="story-map__tick" data-stretch="1"></span>
+          <span class="story-map__tick" data-stretch="3"></span>
+          <span class="story-map__tick" data-stretch="4"></span>
+          <span class="story-map__tick" data-stretch="5"></span>
+        </div>
         <ol class="story-map__list" role="list">
           <li data-stretch="0"><a class="brush" href="/">Home</a></li>
           <li data-stretch="1"><a class="brush" href="/work/" aria-current="page">Work</a></li>

@@ -19,8 +19,8 @@
    Phone: the photo first (72% wide, at most 20rem), then the text. Tablet: 240 + 600. Wide: 280 + 640.
    Asymmetric, never 50/50. The photo's top lines up with the heading's cap height.
    Blended in, in colour: the file's wall is pure white, so multiply turns it into the paper exactly,
-   and the shoulders fade into the paper. No border, radius, frame, shadow, caption, grey, mist,
-   vignette or radial mask; no motion, no hover.
+   and the shoulders, faded to white in the file along their own line, dissolve into the paper. No border,
+   radius, frame, shadow, caption, grey, mist, vignette or mask; no motion, no hover.
    ========================================================================== */
 .hello {
   display: grid;
@@ -35,15 +35,11 @@
   max-width: 20rem;
   height: auto;
   aspect-ratio: 4 / 5;
+  /* The shoulders' fade is IN THE FILE (tools/build-photo.swift, step 3d): the body dissolves into white along its
+     own shoulder line, the face and neck untouched, so multiply turns it into the paper exactly as it does the
+     wall. No CSS mask: 4a's (a straight bottom fade from 83 % and an 8 % side feather) left a horizontal line and
+     soft vertical sleeve edges, and Chrome's PDF dropped it, printing a hard rectangle. */
   mix-blend-mode: multiply;
-  /* the shoulders fade into the paper: the bottom from 83 % of the height, and a soft 8 % feather at the
-     sides, which only the sweater reaches (the wall is paper already). Intersected, never radial, so the head
-     stays whole and crisp. (SPEC-R4A's first value, a bottom fade from 72 %, began at the collar: it washed
-     the red sweater to pink and left the sweater's cut sides as hard vertical edges.) */
-  -webkit-mask-image: linear-gradient(to bottom, #000 83%, transparent 100%), linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
-  -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(to bottom, #000 83%, transparent 100%), linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
-  mask-composite: intersect;
 }
 .hello__text > * { max-width: var(--measure-read); }
 .hello__text > * + * { margin-block-start: var(--space-para); }
@@ -64,7 +60,7 @@
   }
 }
 @media (forced-colors: active) {
-  .hello__photo { mix-blend-mode: normal; -webkit-mask-image: none; mask-image: none; }
+  .hello__photo { mix-blend-mode: normal; }   /* the file's white wall and faded shoulders on Canvas */
 }
 
 /* ==========================================================================
@@ -260,7 +256,8 @@ summary.case__summary:hover::after { text-decoration-color: var(--ink-2); }
   .table thead {
     position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
   }
-  .table tbody tr { display: grid; row-gap: .25rem; padding-block: .75rem; }
+  /* (one column no wider than the row: a cell that cannot shrink must never widen every cell of its row) */
+  .table tbody tr { display: grid; grid-template-columns: minmax(0, 1fr); row-gap: .25rem; padding-block: .75rem; }
   .table tbody th {
     order: -1;
     padding: 0 0 .125rem;
@@ -287,6 +284,14 @@ summary.case__summary:hover::after { text-decoration-color: var(--ink-2); }
   }
   .table tbody td[data-label=''] { padding-inline-start: 0; }
   .table tbody td[data-label='']::before { content: none; }
+}
+/* Under 240 CSS px (a phone at 200 % page zoom: a 195 px viewport) the hanging label column leaves ~70 px for the
+   value, and "2025 – present" or "no public page" ran past the edge, where nothing scrolls sideways: each label sits
+   above its value instead, and a word longer than the line breaks rather than leaves the screen (final review r1, 6). */
+@media (max-width: 14.99rem) {
+  .table tbody :is(th, td) { overflow-wrap: anywhere; }
+  .table tbody td { padding-inline-start: 0; }
+  .table tbody td::before { position: static; display: block; width: auto; }
 }
 
 /* ==========================================================================

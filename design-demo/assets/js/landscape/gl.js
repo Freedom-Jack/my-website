@@ -4,8 +4,12 @@
 //   desktop horizon). Each view has its own ridge texture and its own scene framebuffer.
 //   view(id, w, h)     make sure view `id` has a w x h scene buffer (buffer px); dropView(id) frees it
 //   ridges(id, d, n)   upload view `id`'s ridge rows (n columns)
-//   figure(id, img)    upload a figure layer ({ width, height, data: premultiplied RGBA bytes, top row first }) as a
-//                      mipmapped texture (the mip levels give the bleed halo); figure(id, null) frees it
+//   figure(id, img)    upload a figure layer ({ width, height, data: premultiplied RGBA bytes, top row first }, or 4b
+//                      { width, height, bitmap: an ImageBitmap, sprites?: [{ width, height, bitmap }] }) as a
+//                      mipmapped texture (the mip levels give the bleed halo); its sprites (4b small life: Work's punt)
+//                      as `${id}#${i}`, freed with it; figure(id, null) frees it
+//   bitmaps            4b: true when this browser uploads a canvas's ImageBitmap premultiplied (probed once per context;
+//                      index.js then asks the figure worker for bitmaps, else for premultiplied bytes as in 4a)
 //   scene(id, U)       expensive painting of view `id` -> its framebuffer. A frame in motion (U.draft) is painted into
 //                      a corner of the framebuffer at U.draftScale; present() stretches it back.
 //   present(U)         cheap pass to the screen: the windows at their live boxes, the horizon band, mist, grain
@@ -19,11 +23,15 @@
 // canvas (React Strict Mode) works.
 
 import { VERT, NOISE, NOISE_SIZE, SCENE, PRESENT } from './shaders.js';
-import { ROWS } from './ridges.js';
+import { ROWS, LAYERS } from './ridges.js';
 
 const SOFTWARE = /swiftshader|llvmpipe|softpipe|software|basic render|mesa offscreen|warp/i;
 const NONE4 = new Float32Array([2, 2, -1, -1]);
 const ZERO4 = new Float32Array(4);
+const ALL_PLANES = new Float32Array([0, LAYERS - 1, 0, 0]);   // an ordinary view: every plane, opaque (4b depth layers set their own)
+const NO_CROP = new Float32Array([0, 1, 0, 0]);                 // an ordinary view: the whole width of its ridges
+const ZERO12 = new Float32Array(12);
+const FULL_RECTS = new Float32Array([0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1]);
 
 function detectRenderer(gl) {
   // gl.RENDERER first; browsers that mask it ("WebKit WebGL") still expose the debug extension.
@@ -65,9 +73,11 @@ export function createGL(canvas, hooks) {
   let W = 0, H = 0;       // drawing-buffer size
   const views = new Map();    // id -> { fb, tex, w, h, sw, sh, ridges, ridgeW, last }
   const figs = new Map();     // id -> texture
+  const figBytes = new Map(); // id -> bytes (QA: memory())
   let fence = null;       // set after a present: has the GPU finished that frame? (see busy())
   let fenceAt = 0;
   const px1 = new Uint8Array(4);   // settle()'s readback
+  let bitmapsOK = false;  // 4b: an ImageBitmap of a 2D canvas uploads premultiplied here (probeBitmaps)
 
   function compile(type, src) {
     const s = gl.createShader(type);
@@ -112,13 +122,56 @@ export function createGL(canvas, hooks) {
     return t;
   }
 
+  // 4b: a figure layer (or a life sprite) arrives as an ImageBitmap of the worker's canvas: no getImageData readback.
+  // The shader wants premultiplied texels. (The WebGL spec has the UNPACK_* flags ignored for an ImageBitmap, whose own
+  // premultiply option decides, and transferToImageBitmap leaves it at 'default': so the flags are set for the browsers
+  // that honour them, and probeBitmaps() checks what this one does.)
+  function upBitmap(bmp) {
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+    gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, bmp);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+    gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.BROWSER_DEFAULT_WEBGL);
+  }
+  // One 1x1 probe per context, made before anything else is queued (so its readback waits for nothing): does a canvas's
+  // ImageBitmap upload premultiplied here? If not, index.js asks the worker for premultiplied bytes, as in 4a.
+  function probeBitmaps() {
+    bitmapsOK = false;
+    if (typeof OffscreenCanvas !== 'function') return;
+    let t = null, fb = null;
+    try {
+      const oc = new OffscreenCanvas(1, 1);
+      const cx = oc.getContext('2d');
+      if (cx && typeof oc.transferToImageBitmap === 'function') {
+        cx.fillStyle = 'rgba(200, 100, 50, 0.5)';
+        cx.fillRect(0, 0, 1, 1);
+        const bmp = oc.transferToImageBitmap();
+        t = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, t);
+        upBitmap(bmp);
+        bmp.close?.();
+        fb = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t, 0);
+        const px = new Uint8Array(4);
+        gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+        bitmapsOK = Math.abs(px[0] - 100) <= 3 && Math.abs(px[1] - 50) <= 3 && Math.abs(px[3] - 128) <= 3;
+      }
+    } catch { bitmapsOK = false; }
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    if (fb) gl.deleteFramebuffer(fb);
+    if (t) gl.deleteTexture(t);
+  }
+
   function build() {
     const r = {};
+    probeBitmaps();
     r.vao = gl.createVertexArray();
     gl.bindVertexArray(r.vao);
     r.noiseP = program(NOISE);
     r.sceneP = program(SCENE);
     r.presentP = program(PRESENT);
+    r.presentL = program(PRESENT.replace('#define LIFE ', '#define LIFE_ON 1\n#define LIFE '));   // 4b: with small life
     // paper + mist noise, painted once
     r.noise = tex(NOISE_SIZE, NOISE_SIZE, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, gl.REPEAT);
     const fb = gl.createFramebuffer();
@@ -138,6 +191,30 @@ export function createGL(canvas, hooks) {
     // a 1x1 transparent texture for unused samplers
     r.blank = tex(1, 1, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, gl.CLAMP_TO_EDGE, new Uint8Array(4));
     R = r;
+  }
+
+  // a figure layer's (or a sprite's) mipmapped texture, from premultiplied bytes or an ImageBitmap (closed after)
+  function figTex(img, w, h) {
+    gl.activeTexture(gl.TEXTURE0);
+    let t;
+    if (img.bitmap) {
+      t = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, t);
+      upBitmap(img.bitmap);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      try { img.bitmap.close?.(); } catch { /* ignore */ }
+    } else {
+      gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
+      t = tex(w, h, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, gl.CLAMP_TO_EDGE, new Uint8Array(img.data.buffer, img.data.byteOffset, w * h * 4));
+    }
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    return t;
+  }
+  function closeBitmaps(img) {
+    try { img?.bitmap?.close?.(); for (const s of img?.sprites || []) s?.bitmap?.close?.(); } catch { /* ignore */ }
   }
 
   function freeView(v) {
@@ -166,6 +243,7 @@ export function createGL(canvas, hooks) {
     figs.clear();
     gl.deleteProgram(R.sceneP.p);
     gl.deleteProgram(R.presentP.p);
+    gl.deleteProgram(R.presentL.p);
     for (const t of [R.noise, R.blank]) if (t) gl.deleteTexture(t);
     gl.deleteVertexArray(R.vao);
     R = null;
@@ -240,6 +318,18 @@ export function createGL(canvas, hooks) {
     },
     dropView(id) { const v = views.get(id); if (v) { freeView(v); views.delete(id); } },
     hasView(id) { return !!views.get(id)?.tex; },
+    /** QA: bytes held per view (its scene buffer, RGBA8, and its ridge rows, RGBA16F) and by the figure layers. */
+    memory() {
+      const out = { total: 0, views: {}, figures: 0 };   // (figure layers: with their mip levels, x 4/3)
+      for (const [id, v] of views) {
+        const b = (v.tex ? v.w * v.h * 4 : 0) + (v.ridges ? v.ridgeW * ROWS * 8 : 0);
+        out.views[id] = { w: v.w, h: v.h, bytes: b };
+        out.total += b;
+      }
+      for (const [id, b] of figBytes) if (figs.has(id)) out.figures += b;
+      out.total += out.figures;
+      return out;
+    },
     ridges(id, data, samples) {
       const v = views.get(id);
       if (!R || !v) return;
@@ -254,22 +344,24 @@ export function createGL(canvas, hooks) {
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, samples, ROWS, gl.RGBA, gl.FLOAT, data);
       }
     },
-    /** Upload a figure layer (premultiplied RGBA bytes, top row first), or free it (img = null). */
+    /** Upload a figure layer (premultiplied RGBA bytes, top row first; or an ImageBitmap, 4b, with its life sprites),
+     *  or free it (img = null). The bitmaps are closed once uploaded. */
     figure(id, img) {
-      if (!R) return false;
-      const old = figs.get(id);
-      if (old) { gl.deleteTexture(old); figs.delete(id); }
+      if (!R) { closeBitmaps(img); return false; }
+      for (const k of [...figs.keys()]) if (k === id || k.startsWith(`${id}#`)) { gl.deleteTexture(figs.get(k)); figs.delete(k); }
       if (!img) return true;
       const w = Math.min(maxTex, img.width), h = Math.min(maxTex, img.height);
-      if (w !== img.width || h !== img.height) return false;
-      gl.activeTexture(gl.TEXTURE0);
-      gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
-      const t = tex(w, h, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, gl.CLAMP_TO_EDGE, new Uint8Array(img.data.buffer, img.data.byteOffset, w * h * 4));
-      gl.generateMipmap(gl.TEXTURE_2D);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-      figs.set(id, t);
+      if (w !== img.width || h !== img.height) { closeBitmaps(img); return false; }
+      figs.set(id, figTex(img, w, h));
+      figBytes.set(id, Math.round(w * h * 4 * 4 / 3));
+      (img.sprites || []).forEach((s, i) => {
+        if (!s || !(s.width > 0) || s.width > maxTex || s.height > maxTex) { s?.bitmap?.close?.(); return; }
+        figs.set(`${id}#${i}`, figTex(s, s.width, s.height));
+        figBytes.set(`${id}#${i}`, Math.round(s.width * s.height * 4 * 4 / 3));
+      });
       return true;
     },
+    get bitmaps() { return bitmapsOK; },
     hasFigure(id) { return figs.has(id); },
     /**
      * 0 when the GPU has finished the last presented frame, else how long (ms) it has been at it.
@@ -319,18 +411,20 @@ export function createGL(canvas, hooks) {
       gl.uniform1f(P.u('uTide'), U.tide);
       gl.uniform4fv(P.u('uHz'), U.hz);
       gl.uniform1f(P.u('uHzK'), U.hzK);
+      gl.uniform4fv(P.u('uPlanes'), U.planes || ALL_PLANES);
+      gl.uniform4fv(P.u('uCrop'), U.crop || NO_CROP);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     },
     present(U) {
       if (!R) return;
-      const P = R.presentP;
+      const P = U.life ? R.presentL : R.presentP;   // (4b: the program with small life only while some is on screen)
       gl.bindVertexArray(R.vao);
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.viewport(0, 0, W, H);
       gl.useProgram(P.p);
       const wins = U.windows || [];
-      const rect = new Float32Array(8), map = new Float32Array(8), suv = new Float32Array(8), fea = new Float32Array(8), kee = new Float32Array(8);
+      const rect = new Float32Array(8), map = new Float32Array(8), suv = new Float32Array(8), fea = new Float32Array(8), kee = new Float32Array(8), sink = new Float32Array(8);
       for (let i = 0; i < 2; i++) {
         const w = wins[i];
         const v = w && views.get(w.id);
@@ -340,6 +434,7 @@ export function createGL(canvas, hooks) {
         suv.set(sceneUV(v), i * 4);
         fea.set(w.feather, i * 4);
         kee.set(w.keep || ZERO4, i * 4);
+        sink[i * 4 + 1] = w.sink || 0;
       }
       bindTex(P, 0, 'uWin0', wins[0] && views.get(wins[0].id)?.tex);
       bindTex(P, 1, 'uWin1', wins[1] && views.get(wins[1].id)?.tex);
@@ -352,6 +447,7 @@ export function createGL(canvas, hooks) {
       gl.uniform4fv(P.u('uWinS'), suv);
       gl.uniform4fv(P.u('uWinF'), fea);
       gl.uniform4fv(P.u('uWinK'), kee);
+      gl.uniform4fv(P.u('uWinO'), sink);
       gl.uniform1f(P.u('uHzK'), hzK);
       gl.uniform4fv(P.u('uHzS'), hz ? sceneUV(hz) : ZERO4);
       gl.uniform4fv(P.u('uHzM'), U.horizon ? U.horizon.view : ZERO4);
@@ -370,6 +466,40 @@ export function createGL(canvas, hooks) {
       gl.uniform1f(P.u('uPanPx'), U.panPx);
       gl.uniform1f(P.u('uGrain'), U.grain);
       gl.uniform1f(P.u('uGrainPx'), U.grainPx);
+      // 4b: the living ground's depth layers (units 4-6) and the living veils
+      const st = U.stage;
+      const sv = st ? st.ids.map((id) => views.get(id)) : [];
+      const stOn = !!st && sv.length === 3 && !!sv[0]?.tex;
+      const ss = new Float32Array(12);
+      for (let i = 0; i < 3; i++) if (stOn && sv[i]?.tex) ss.set(sceneUV(sv[i]), i * 4);
+      bindTex(P, 4, 'uSt0', stOn ? sv[0].tex : null);
+      bindTex(P, 5, 'uSt1', stOn ? sv[1]?.tex : null);
+      bindTex(P, 6, 'uSt2', stOn ? sv[2]?.tex : null);
+      gl.uniform4fv(P.u('uStS'), ss);
+      gl.uniform4fv(P.u('uStO'), stOn ? st.offsets : ZERO12);
+      gl.uniform4fv(P.u('uStR'), stOn && st.rects ? st.rects : FULL_RECTS);
+      gl.uniform4fv(P.u('uStM'), stOn ? st.view : ZERO4);
+      gl.uniform4fv(P.u('uSt'), stOn ? st.k : ZERO4);
+      gl.uniform4fv(P.u('uSea'), stOn ? st.sea : ZERO4);
+      gl.uniform4fv(P.u('uStC'), stOn && st.cloud ? st.cloud : ZERO4);
+      gl.uniform4fv(P.u('uStV'), stOn && st.curt ? st.curt : ZERO4);
+      gl.uniform4fv(P.u('uLive'), U.live || ZERO4);
+      gl.uniform4fv(P.u('uLive2'), U.live2 || ZERO4);
+      // 4b small life (the life program only; units 7-9): its table, the ridges of the view it lies in (where its water
+      // is), the drifting boat's sprite and the figure layer the water's shimmer keeps off (boats, the bridge)
+      const lf = U.life;
+      if (lf) {
+        bindTex(P, 7, 'uLifeRid', (lf.ridge && views.get(lf.ridge)?.ridges) || null);
+        bindTex(P, 8, 'uLifeSpr', lf.sprite ? figs.get(lf.sprite) : null);
+        bindTex(P, 9, 'uLifeFig', lf.fig ? figs.get(lf.fig) : null);
+        gl.uniform4fv(P.u('uLifeU'), lf.union);
+        gl.uniform4fv(P.u('uLifeT'), lf.starts);
+        gl.uniform4fv(P.u('uLifeR'), lf.rect);
+        gl.uniform4fv(P.u('uLifeA'), lf.a);
+        gl.uniform4fv(P.u('uLifeB'), lf.b);
+        gl.uniform4fv(P.u('uLifeK'), lf.k);
+        gl.uniform4fv(P.u('uLifeFigR'), lf.fig && figs.has(lf.fig) ? lf.figR : ZERO4);
+      }
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       if (!fence) {
         try { fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0); fenceAt = performance.now(); } catch { fence = null; }

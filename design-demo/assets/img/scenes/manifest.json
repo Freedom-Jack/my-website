@@ -1,0 +1,136 @@
+{
+ "about": "Footer story-map stills, made by tools/build-stills.py from the engine; regenerate after any engine or scene change. inputs = sha256 over inputList.",
+ "inputs": "42c6927d715e70efd7f5da0073ef134043933f90acf1ef23bc2c9eaa2f368290",
+ "inputList": {
+  "assets/css/tokens.css#strip-heights": "9fedcbc35efd3d3917b4861054021d7878c6eea7f422f6acc0b34d1dc35dc668",
+  "assets/js/landscape/canvas2d.js": "31ef8526916aaf34de3fc0573ed9b3b2f565cc01fbbc9c6e15994f34c1e219e5",
+  "assets/js/landscape/compose.js": "3a44f8892fc60fbc35f323cbd278a3993b429db032df56c6bdbf944aa6840206",
+  "assets/js/landscape/figures.js": "40a57c9be6532d172b63625074d6e1746b45eacf020cccd2eb3ecb81b301e75f",
+  "assets/js/landscape/figures.worker.js": "729008966b7f90f5e534153a7a2234cac3361b0cd92b49caed8b2d4ef4a367ab",
+  "assets/js/landscape/gl.js": "8052d38f1248deafc495855010bf2525342f3afdd976db252c3105533eb750c0",
+  "assets/js/landscape/index.js": "ba79c88bcba161f0c6c14f91d2fb5727e07871cd9fb8e4625d1686924f93783b",
+  "assets/js/landscape/palette.js": "3c57a3e9a66ce963a83e241cca33c0248e68a24529a5bcf52afb463f863a37da",
+  "assets/js/landscape/ridges.js": "f672f81a72c767d9c9a10533c8a61161b7222dc04a94b2e7aedfd4daf35b8cc9",
+  "assets/js/landscape/sets/ferry.js": "1b5f0ca05ce2cf228bab3b0221345f1031774c2ef328ab00359ce5f553fd3410",
+  "assets/js/landscape/sets/home.js": "44f570b6df588d7ea13d946755be4aa6b0f0941b710bc900f462d6dd76c5da4d",
+  "assets/js/landscape/sets/index.js": "e2d3b8f61f35790632e70fb895f76e371a7664683818b723d8a5f3f28fc53fc1",
+  "assets/js/landscape/sets/market.js": "23b7e62195d184603367c3ae467ed228ef868121f83e29d0dda01f97bbcb291e",
+  "assets/js/landscape/sets/path.js": "48798fd73c7de4fa5e2ab6d72c3943050d747bde6ead65ac77c6c3c549b3ab54",
+  "assets/js/landscape/sets/pavilion.js": "8005e0d42849c5d013d9f439c98cb3ea54641437f309405c31d697dcfd43588b",
+  "assets/js/landscape/sets/terraces.js": "5f7180aca6ac4dbab3dc8fc0ebf23a6cea093fb5fbf92e88ad34e0a2b8b546ae",
+  "assets/js/landscape/shaders.js": "912944ae13b6c0956ef2bf8b1c80083801fdcdb8c25bd7e703401ca6a0f95b28",
+  "assets/js/landscape/strip.js": "6f2b10571864770bc8ca0b8ad0c1ac0eb06464f9f499fdabac11a12064dd4f8a",
+  "assets/js/main.js": "be8c20a6375225a9240fe32a580c1e21f7bca35226d8c2ded29190baed98353a",
+  "contact/index.html#body": "80abd395cf7f1e6ff4d6ccf8a10fecf3cef60f6e316cf8c7302ec16548f6d1ae",
+  "index.html#body": "31be6535f9421faf0ffae355614bee852a8de1f2d595a28abcab4a2f4efb43ba",
+  "resume/index.html#body": "2a1a1c2d0202071badac48dae99b93aa706b4fa1c66730715fd5d4d9fb4bacf7",
+  "tools/build-stills.py#settings": "965117884d8504a46d636429a01fc6d03489fb31aaaa58426af62589fe4a5752",
+  "work/index.html#body": "ef28e32b945d29a1b8848d1186a46695930f104f2ef829296fb12491d2cfdd0d",
+  "writing/index.html#body": "56d91c06c1b8f4f4eb44fa67127bdfc99d1b538f18d740561485aea24dfff937"
+ },
+ "tiles": {
+  "home": [
+   252,
+   70
+  ],
+  "work": [
+   355,
+   70
+  ],
+  "writing": [
+   386,
+   70
+  ],
+  "resume": [
+   317,
+   70
+  ],
+  "contact": [
+   252,
+   70
+  ]
+ },
+ "files": {
+  "contact@1x.webp": {
+   "bytes": 2194,
+   "sha256": "b43cd78323a2d30d740554f7de787865ca1bed73f27c447a8228f3f6915e05ae",
+   "size": [
+    252,
+    70
+   ]
+  },
+  "contact@2x.webp": {
+   "bytes": 4974,
+   "sha256": "fb75a9c50adff492330d7516e02ff9007d6e02d07b35ce802bf1dcca612182f9",
+   "size": [
+    504,
+    140
+   ]
+  },
+  "home@1x.webp": {
+   "bytes": 2092,
+   "sha256": "518aeadf8ef52065e628af619e1bd3ffcf5ce6967d5102d30ee552cec11fb92b",
+   "size": [
+    252,
+    70
+   ]
+  },
+  "home@2x.webp": {
+   "bytes": 6832,
+   "sha256": "c4a7625d9b4ace035f14533984f3319505ab3122ac40ad4997c8fad1d2135dfd",
+   "size": [
+    504,
+    140
+   ]
+  },
+  "resume@1x.webp": {
+   "bytes": 3126,
+   "sha256": "3bbe7351cb801eaf493220a7a691d30f1d9f2f320377443e086ff6fe11ce5588",
+   "size": [
+    317,
+    70
+   ]
+  },
+  "resume@2x.webp": {
+   "bytes": 7514,
+   "sha256": "9b01d8eebc16bc064ca548d3e36d805639b76f24974d6b10109a765af36f6430",
+   "size": [
+    634,
+    140
+   ]
+  },
+  "work@1x.webp": {
+   "bytes": 5862,
+   "sha256": "e055fff1dd5f0e99fda4f6a6575aa62de59c18e87723bb7cc0d716f6eb6e47c7",
+   "size": [
+    355,
+    70
+   ]
+  },
+  "work@2x.webp": {
+   "bytes": 13102,
+   "sha256": "d2d6fc7e2ce8bd9e0b8bc58ae88a654f2e2fbbcca18d850d67fb5228d8de61a8",
+   "size": [
+    710,
+    140
+   ]
+  },
+  "writing@1x.webp": {
+   "bytes": 3396,
+   "sha256": "47783d54f687868e8ba4c770b4d5b883e12ac8e1fbae32fb4586f08f6cbb22b7",
+   "size": [
+    386,
+    70
+   ]
+  },
+  "writing@2x.webp": {
+   "bytes": 7084,
+   "sha256": "e775e33ae40123202688cfaba039317cfb6dcce9053f3815e10559bbbe337778",
+   "size": [
+    772,
+    140
+   ]
+  }
+ },
+ "totalBytes": 56176
+}

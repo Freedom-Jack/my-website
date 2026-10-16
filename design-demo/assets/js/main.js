@@ -8,6 +8,8 @@
 //   data-distance  landscape composition: 'level' | 'high' | 'deep'
 //   data-presence  0..1, how strongly the page's scene shows in its strip and closing
 //   data-horizon   0..1, the desktop ink horizon's presence while the reader is between them (default 0.6)
+//   data-ground    'living' (4b: Home and Work): the page's own scene is the page's ground, painted full-bleed behind
+//                  it in depth layers that sink as you scroll; absent = 4a's strip and closing windows
 // and on <html>, set by the inline boot script before first paint (demo switches, SPEC-R4A §9.10):
 //   data-palette   'ink' | 'misted' | 'rich' (default 'misted')
 //
@@ -60,11 +62,23 @@ export const config = Object.freeze({
   get distance() { return body.dataset.distance || 'level'; },
   get presence() { return num(body.dataset.presence, 1); },
   get horizon() { return num(body.dataset.horizon, 0.6); },
+  get ground() { return body.dataset.ground === 'living' && params.get('ground') !== '4a' ? 'living' : ''; },
   get palette() { return PALETTES.includes(html.dataset.palette) ? html.dataset.palette : 'misted'; },
 });
 
 // DEMO ONLY: screenshot helpers, loaded only when ?y= or ?t= is in the URL.
 const params = new URLSearchParams(location.search);
+// DEMO ONLY (4b): the living ground's tunables, for the art lead's comparisons (landscape/index.js STAGE documents
+// them): ?sink=.05,.17,.26&reach=1&ease=2&split=2,3&seaK=1&soft=.06&billow=.035&haze=.56&hazeK=.75&anchor=-1
+// &cluster=0&slide=-1 (from the anchor; px at 1440 otherwise)&slideAt=.38,.52&cloud=0&cloudAt=.1,.3,.62,.88&rise=1
+// &body=.45,1&curtain=0&reveal=.9&revealAt=.45,1&descend=1&vmax=.5&lead=0&descAt=.02,.3,.55,.88&still=.25&core=40&feather=56&swell=72&clear=170&far=.5&sky=.45&drift=1.25&lag=.55,
+// and ?ground=4a
+// for 4a. (Work's own numbers, STAGE_AT, apply unless the URL sets them.)
+const TUNE = ['sink', 'reach', 'ease', 'split', 'seaK', 'soft', 'billow', 'haze', 'hazeK', 'anchor', 'cluster', 'slide', 'slideAt', 'cloud', 'cloudAt', 'rise', 'body', 'curtain', 'reveal', 'revealAt',
+  'descend', 'vmax', 'lead', 'descAt', 'still', 'core', 'feather', 'swell', 'clear', 'far', 'sky', 'drift', 'lag'];
+const tune = Object.fromEntries(TUNE.filter((k) => params.has(k)).map((k) => [k, params.get(k)]));
+// (the 4a comparison keeps 4a's "Draft art" placement too: layout.css reads this)
+if (params.get('ground') === '4a') html.dataset.ground4a = '';
 const demo = params.has('y') || params.has('t') ? await import('./demo.js') : null;
 demo?.scrollFromParams(params);
 
@@ -87,6 +101,7 @@ function landscapeTargets(main) {
     veil: main.querySelectorAll('[data-veil]'),
     wake: main.querySelectorAll('[data-wake]'),
     horizon: config.horizon,
+    ground: config.ground,
     head: strip,
     descend: closing,
   };
@@ -116,6 +131,7 @@ async function mountLand() {
       ...landscapeTargets(document.getElementById('main') || document.body),
       still: isStill(),
       arrival: 'bloom',
+      tune,
     });
   } catch (err) {
     console.warn('landscape unavailable', err);
