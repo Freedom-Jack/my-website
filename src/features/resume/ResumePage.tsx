@@ -10,8 +10,9 @@ import { bareUrl, resume } from './resume';
 import styles from './resume.module.css';
 
 /**
- * The Résumé (/resume/), rendered from content/resume.json. A low doc strip of the terraced fields (art only),
- * then the letterhead on paper and the document as a hanging indent; it ends on the fields once more. This page's
+ * The Résumé (/resume/), rendered from content/resume.json. The terraced fields' hero with the name and the title
+ * (the same hero as every subpage), then the rest of the letterhead on paper and the document as a hanging indent;
+ * it ends on the fields once more. This page's
  * print stylesheet IS the PDF (tools/build-pdf.ts prints it), so the page and the PDF never disagree.
  * No phone number, ever: the schema refuses one (features/resume/schema.ts).
  */
@@ -54,12 +55,17 @@ export function ResumePage() {
   const linkedin = profile('LinkedIn');
   return (
     <PageMain page="resume" className={styles.page} printName={false}>
-      <Strip variant="doc" />
       <article className={styles.cv} aria-labelledby="cv-name">
-        <header className={styles['cv-head']} data-veil="0.9">
+        <Strip variant="sub" labelledBy="cv-name">
           <h1 className="page-title" id="cv-name">
             {r.basics.name}
           </h1>
+          <p className="lead">{r.basics.label}</p>
+        </Strip>
+        <div className={styles['cv-head']} data-veil="0.9">
+          {/* The PDF's letterhead prints the name and the title beside the contact details; the hero above is not
+              printed, so these two print-only lines carry them (hidden on screen, where the hero has them). */}
+          <p className={`page-title ${styles['cv-head__name']}`}>{r.basics.name}</p>
           <p className={`lead ${styles['cv-head__role']}`}>{r.basics.label}</p>
           <p className={`small ${styles['cv-head__contact']}`}>
             {/* No phone number: Jack decided it stays off the public résumé and its PDF. */}
@@ -101,7 +107,7 @@ export function ResumePage() {
             </a>
           </p>
           <p className={`small ${styles['cv-head__note']}`}>{t.note}</p>
-        </header>
+        </div>
 
         <section className={`sec ${styles['cv-sec']}`} aria-labelledby="cv-summary-title" data-veil="">
           <h2 className="sec__title" id="cv-summary-title">

@@ -142,6 +142,7 @@ const VIEWPORT = { width: 1440, height: 900, dpr: 2 };
 const ENGINE_QUALITY = 1.5; // the engine's fixed internal resolution (its buffer's long side is capped at 1920 px)
 const PALETTE = 'misted'; // the site's default palette
 const PAPER = [239, 241, 238]; // --paper and the shader's PAPER (#EFF1EE); divided out to white
+const STABLE_MS = 1500; // two captures this far apart must match before a still is cut
 const CAP_FILE = 16 * 1024; // bytes, any one still
 const CAP_TOTAL = 60 * 1024; // bytes, all ten
 const CHROME_ARGS = [
@@ -505,12 +506,24 @@ async function build(): Promise<number> {
         throw new Error(
           `${s.name}: crop ${JSON.stringify(s.rect)} leaves the strip window ${JSON.stringify(windowOf(fr, box))} (u0, u1, y0, y1); re-aim the crop table`,
         );
-      const png = await page.screenshot({
-        clip: { x: clip[0], y: clip[1], width: clip[2], height: clip[3] },
-        scale: 'device',
-        animations: 'allow',
-        caret: 'initial',
-      });
+      // Stable: two captures 1.5 s apart must match, byte for byte (round 5: once, a settled engine was caught before
+      // Writing's pavilion had come in; a third capture never differed). Retried, then refused.
+      const shot = () =>
+        page.screenshot({
+          clip: { x: clip[0], y: clip[1], width: clip[2], height: clip[3] },
+          scale: 'device',
+          animations: 'allow',
+          caret: 'initial',
+        });
+      let png = await shot();
+      for (let tries = 0; ; tries++) {
+        await page.waitForTimeout(STABLE_MS);
+        await waitFor(page, SETTLE_JS, '__stillsHandle', s.name, timeout);
+        const again = await shot();
+        if (again.equals(png)) break;
+        if (tries >= 3) throw new Error(`${s.name}: the painting kept changing between captures; nothing written`);
+        png = again;
+      }
       if (preview) await writeFile(path.join(preview, `${s.name}-crop.png`), png);
       const sizes = DENSITIES.map((d) => [d, s.w * d, TILE_H * d]);
       const out = (await page.evaluate(

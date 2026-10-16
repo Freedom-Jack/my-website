@@ -1,6 +1,6 @@
 {
  "about": "Footer story-map stills, made by tools/build-stills.ts from the engine; regenerate after any engine or scene change. inputs = sha256 over inputList.",
- "inputs": "8e831ddc6e87c3781eaa6b57e1143797005ca17ba57978d1b38a2f96fb070e7e",
+ "inputs": "fd90c8af2f2bc7bfd84d0c6768d9498f32fdc5e97e01e5cf108e04dace0f8278",
  "inputList": {
   "src/features/landscape/engine/canvas2d.ts": "8febb3093b7ae19b2cf0c95fa1027e9f00fd3473f8ef53c56eeae6ac406ea9ac",
   "src/features/landscape/engine/compose.ts": "370ec0e9e92f5ecc022568fb466c021eb0d39ed7b328c057cb68e53f1bc4f150",
@@ -23,7 +23,7 @@
   "src/features/landscape/engine/strip.ts": "ef3634c8666f5bde5dcbdca35c0640557ee9976ed0cc3350414420363ebf5384",
   "src/features/landscape/places.ts#contact": "962fbf772aa612feba795ed770af4a30602491633b5ce020663e38456815803d",
   "src/features/landscape/places.ts#home": "08e3672733131327a202106f1e907e5a57894a3a7c67e8f9f8125a63629a5180",
-  "src/features/landscape/places.ts#resume": "5bbd24dc2ca973e1152ef75dbec7282d20cdee1ce6c9398eaa81bbcd9b3d4dd5",
+  "src/features/landscape/places.ts#resume": "575975e52ec9d48a74dade364b82789d500ffc373e1c436806a60e0591b3e1b8",
   "src/features/landscape/places.ts#work": "c7be9f7084e07284824c11a006e2d320de47b97bc1e63e9dd1ad33eb75d5720a",
   "src/features/landscape/places.ts#writing": "5aea3511311057cf19b0282f744c77cd921c3fb59d1e36b0baf665c76e7ce413",
   "src/styles/tokens.css#strip-heights": "4411417b7c9f21fed417a6aba8aa0d2257c4ed6769abcbbdff77684fb8a11a23",
@@ -85,16 +85,16 @@
    ]
   },
   "resume@1x.webp": {
-   "bytes": 3126,
-   "sha256": "3bbe7351cb801eaf493220a7a691d30f1d9f2f320377443e086ff6fe11ce5588",
+   "bytes": 3354,
+   "sha256": "55273b157a7864a2c908e79ae10229a3e9e6e9b8a8a112d89a278e7852af732d",
    "size": [
     317,
     70
    ]
   },
   "resume@2x.webp": {
-   "bytes": 7514,
-   "sha256": "9b01d8eebc16bc064ca548d3e36d805639b76f24974d6b10109a765af36f6430",
+   "bytes": 8298,
+   "sha256": "7d3220477bb70300a7aff9c0224bae24bedac7f0e76f43f84fb3e4e2a3242fab",
    "size": [
     634,
     140
@@ -133,5 +133,5 @@
    ]
   }
  },
- "totalBytes": 55852
+ "totalBytes": 56864
 }

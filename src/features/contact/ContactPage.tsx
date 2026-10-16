@@ -9,7 +9,8 @@ import styles from './contact.module.css';
 /**
  * Contact (/contact/): the crossing's strip with the title and its one sentence in the mist; then the address,
  * the page's focal point, with "Copy email" beside it; the other ways, one per line; the time zone. A short page:
- * it ends on the footer's story map, no closing scene (DESIGN §11.E answer 8). Words: content/pages/contact.ts.
+ * it ends on the crossing's closing scene (a different view of the place), then the footer's story map.
+ * Words: content/pages/contact.ts.
  */
 export function ContactPage() {
   const [user, domain] = site.email.split('@');

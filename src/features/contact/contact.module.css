@@ -1,7 +1,7 @@
 /* Contact's LAYOUT only (SPEC-R4A §10.4): placement and spacing with tokens. Type, ink and weights come from the
    shared roles (the email takes the section-heading size and the UI weight, as specified). The crossing's strip,
    then the address: "Email" in small print, the address with "Copy email" beside it, the other ways as a short
-   definition list on hairlines, and the time zone. It ends on the story map. No form. */
+   definition list on hairlines, and the time zone. It ends on the crossing's closing scene, then the story map. No form. */
 
 /* ---------- the address: the focal point ---------- */
 .contact > .contact__label {

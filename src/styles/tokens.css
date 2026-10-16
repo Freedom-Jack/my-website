@@ -189,8 +189,8 @@
   ); /* 22 → 26 (= --fs-h2, so a figure adds no type size to its
                                                             screen; the condensed 900 face still marks it): a case's
                                                             summary figure, timeline years */
-  --fs-nav: 0.9375rem; /* 15; 16 from 640; 14 at ≤ 375 */
-  --fs-brand: 1.0625rem; /* 17: "Qijin Xu" in the header; 16 at ≤ 375 */
+  --fs-nav: 0.9375rem; /* 15; 16 from 640; 14 at ≤ 416 */
+  --fs-brand: 1.0625rem; /* 17: "Qijin Xu" in the header; 16 at ≤ 416 */
 
   --lh-body: 1.6;
   --lh-lead: 1.55;
@@ -228,9 +228,9 @@
 
   --gutter: 1.25rem; /* 20 phone; 16 at ≤ 360; 32 from 640; 40 from 1200 */
   --header-h: 3.5rem; /* 56 phone; 64 from 640; 48 on short screens */
-  --seal-size: 28px; /* the header seal; 24 at ≤ 375 */
-  --brand-gap: 10px; /* seal → "Qijin Xu"; 8 at ≤ 375 */
-  --nav-gap: 14px; /* between the nav links; 28 from 640; 10 at ≤ 375 */
+  --seal-size: 28px; /* the header seal; 24 at ≤ 416 */
+  --brand-gap: 10px; /* seal → "Qijin Xu"; 8 at ≤ 416 */
+  --nav-gap: 14px; /* between the nav links; 28 from 640; 10 at ≤ 416; 8 at ≤ 360 */
 
   /* the painted strips and the closing scene (art boxes; the engine paints inside them) */
   --strip-home: clamp(96px, 14svh, 120px); /* 118 @ 390 × 844 */
@@ -251,8 +251,8 @@
   --space-2xl: clamp(4rem, 3.29rem + 3.57vw, 6.5rem);
   --space-3xl: clamp(6rem, 4.86rem + 5.71vw, 10rem);
 }
-@media (max-width: 23.4375rem) {
-  /* tight header (≤ 375) */
+@media (max-width: 26rem) {
+  /* tight header (≤ 416): the home link and the four nav links share one row down to 360 */
   :root {
     --fs-nav: 0.875rem;
     --fs-brand: 1rem;
@@ -262,9 +262,10 @@
   }
 }
 @media (max-width: 22.5rem) {
-  /* narrow gutter (≤ 360) */
+  /* narrow gutter (≤ 360), and 2 px less between the nav links so the header keeps one row */
   :root {
     --gutter: 1rem;
+    --nav-gap: 8px;
   }
 }
 @media (min-width: 40rem) {

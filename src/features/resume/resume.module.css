@@ -1,8 +1,8 @@
 /* The Résumé's LAYOUT (SPEC-R4A §10.3): the type, ink and weights come from the shared tokens and components;
    this places them.
    Screen
-     strip       the low "doc" strip of the terraced fields (art only). The letterhead sits on paper below it.
-     letterhead  the name (page title), the title, the contact line, the PDF button and JSON, the note.
+     hero        the terraced fields with the name (the page title) and the title, as every subpage's hero.
+     letterhead  the contact line, the PDF button and JSON, the note (and, for print only, the name and title).
      document    a hanging indent: the section headings and the timeline's years stand in the margin, and every
                  line of text shares one edge (from 640). On phones the text uses the full width.
      timeline    each role's start year in the margin, on the role's baseline (phones: above the role); one
@@ -28,9 +28,10 @@
 .cv-head {
   padding-top: var(--space-strip-text);
 }
+/* the name and the title are the hero's on screen; these copies exist for the PDF's letterhead (print, below) */
+.cv-head__name,
 .cv-head__role {
-  margin-block-start: 0.25rem;
-  font-weight: var(--w-ui);
+  display: none;
 }
 
 /* The contact line: one line where it fits, wrapping by item. Each item carries its separator before it;
@@ -337,6 +338,10 @@
     padding: 0;
     break-after: avoid;
   }
+  .cv-head__name,
+  .cv-head__role {
+    display: block;
+  }
   .cv-head :global(.page-title) {
     grid-column: 1;
     font-size: 30pt;
@@ -344,6 +349,7 @@
   }
   .cv-head__role {
     grid-column: 1;
+    font-weight: var(--w-ui);
     max-width: none;
     margin-block-start: 1.6mm;
     font-size: 12pt;

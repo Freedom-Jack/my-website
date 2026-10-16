@@ -11,7 +11,7 @@ import { useStackedHeader } from '@/features/chrome/stacked-header';
 
 /**
  * The header: one home link (the seal and the words "Qijin Xu"; its accessible name "Qijin Xu, home"), then
- * Work · Résumé · Contact (content/site.ts). In normal flow, on paper, above the strip; once the strip has
+ * Work · Writing · Résumé · Contact (content/site.ts, the painting's order). In normal flow, on paper, above the strip; once the strip has
  * scrolled away it returns, solid, on scroll-up (features/chrome/returning-header). Never a menu button:
  * one row at 360 px, the nav on a row of its own below 340.
  */

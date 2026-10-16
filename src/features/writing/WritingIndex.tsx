@@ -9,7 +9,7 @@ import styles from './writing.module.css';
 /**
  * Writing (/writing/): the lake's strip with the title and intro in its mist; then one dated list, newest on top
  * (kind and date in small print, the title as the row's link, its description). No filters, pages or empty states:
- * a new piece is one more file (CONTENT.md). A short page: it ends on the story map.
+ * a new piece is one more file (CONTENT.md). It ends on the lake's closing scene, then the story map.
  */
 export async function WritingIndex() {
   const notes = await allNotes();

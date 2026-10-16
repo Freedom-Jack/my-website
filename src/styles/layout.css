@@ -26,7 +26,7 @@ main {
 
 /* ==========================================================================
    Header (components/layout/SiteHeader, the returning-header effect). One home link (the seal and "Qijin Xu"),
-   then Work · Résumé · Contact. In normal flow, on paper, directly above the strip.
+   then Work · Writing · Résumé · Contact, the painting's order. In normal flow, on paper, directly above the strip.
      <header class="site-header"><div class="site-header__inner frame">
        <a class="home-link" href="/"><span class="seal" aria-hidden="true"><svg class="seal__mark">…</svg></span>
          <span class="home-link__name">Qijin Xu</span><span class="visually-hidden">, home</span></a>
@@ -210,11 +210,14 @@ main {
      </header>
    .strip__art is an EMPTY box that reserves the strip's height: the text never depends on the painting
    (layout is identical with JS off, WebGL off, or the engine still loading).
-     wide (>= 1200), home and sub: art and text share one grid cell; the title sits in the art's mist at
-       the frame's left edge (home: vertically centred; sub: low in the band, so the intro stays close to the
-       content it introduces); the scene's figures stand to its right (the engine keeps pigment and figures
-       out of the keep-out box).
-     below 1200, and doc at every width: the art first, then the text on paper below it.
+     One hero system (round 5): Home has the tall hero; every other page has the same sub hero, the same height
+     with the title at the same place, so moving between pages never moves the title.
+     wide (>= 1200): art and text share one grid cell; the title sits in the art's mist at the frame's left
+       edge (home: vertically centred; sub: its first line at the same height on every page, 200 px above the
+       band's foot, so the longest title block still ends inside the band); the scene's figures stand to its right
+       (the engine keeps pigment and figures out of the keep-out box).
+     below 1200: the art first, then the text on paper below it.
+     (doc, a low art-only band, is unused since round 5.)
    ========================================================================== */
 .strip {
   position: relative;
@@ -265,11 +268,12 @@ main {
     max-width: var(--strip-text-max);
     padding-block: var(--space-l);
   }
-  /* a subpage's short intro (Work, Writing, Contact, 404) sits low in the band: centred in 300–360 px it left
-     140–200 px of blank paper before the first section; low, the gap is the section's own (~90 px) */
+  /* every subpage's title starts at the same height: 200 px above the band's foot (the tallest title block with
+     its padding, the 404's title, line and button, is ~197 px), so every hero keeps its height and a shorter intro
+     leaves a little more paper below it instead of moving the title */
   .strip--sub > .strip__text {
-    align-self: end;
-    padding-block: var(--space-l) var(--space-m);
+    align-self: start;
+    padding-block: calc(var(--strip-h) - 12.5rem) var(--space-m);
   }
 }
 
@@ -524,9 +528,11 @@ html.no-landscape .closing__art {
 
 /* ==========================================================================
    The closing scene: the page's own place once more, the last child of <main> on
-   the long pages (Home, Work, a case, the Résumé, the Note). Art only: there is no
-   "Next: …" link (DESIGN §11.E answer 8); the footer's story map is the way on.
-   The short pages (Writing, Contact, the 404) have none and end on the story map.
+   every page on the road (round 5: every page ends the same way). On a short page
+   (Writing, Contact) the hero and the closing share a screen, so the engine paints
+   the closing as a different view of the place (its twin framing). Art only: there
+   is no "Next: …" link (DESIGN §11.E answer 8); the footer's story map is the way on.
+   The 404 lies off the map and has none.
      <div class="closing"><div class="closing__art bleed" data-landscape="closing" data-wake aria-hidden="true"></div></div>
    It feathers into the footer's paper.
    ========================================================================== */

@@ -43,11 +43,12 @@ export const site = {
   },
 
   /**
-   * The header's nav, in order. Writing joins (between Work and Résumé) once there are three pieces; then
-   * re-measure the header at 360 px (DESIGN §5).
+   * The header's nav, in the painting's order (DESIGN §12, round 5): the nav, the handscroll and the footer's
+   * story map all run Work → Writing → Résumé → Contact, so moving along the nav moves along the painting.
    */
   nav: [
     { label: 'Work', href: '/work/' },
+    { label: 'Writing', href: '/writing/' },
     { label: 'Résumé', href: '/resume/' },
     { label: 'Contact', href: '/contact/' },
   ],

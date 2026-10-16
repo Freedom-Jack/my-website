@@ -66,14 +66,11 @@
   }
 }
 
-/* ---------- the head: the title and the byline, on paper below the doc strip ---------- */
-.note__head {
-  padding-top: var(--space-strip-text);
-}
-.note__head > :global(.page-title) {
+/* ---------- the head: the title and the byline, in the hero (layout.css .strip) ---------- */
+.page :global(.strip__text) > :global(.page-title) {
   max-width: var(--measure-read);
 }
-.note__byline {
+.page :global(.strip__text) > .note__byline {
   margin-block-start: 0.625rem;
   max-width: var(--measure-read);
 }
@@ -287,9 +284,6 @@
   .read-progress,
   .note__actions {
     display: none !important;
-  }
-  .note__head {
-    padding-top: 0;
   }
   .prose {
     max-width: none;

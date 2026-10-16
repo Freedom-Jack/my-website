@@ -26,9 +26,16 @@ export interface Place {
   horizon: number;
   /** 'living' (Home, Work): the page's own scene is its ground on wide screens painted by a hardware GPU. */
   ground: 'living' | '';
-  /** The strip's kind: home (the tall hero), sub (a subpage), doc (a low band over a document). */
+  /**
+   * The hero's kind (round 5: one hero system): home (the landing page's tall hero) or sub (every other page: the
+   * same height, the title at the same place). 'doc' (the low art-only band the Résumé and the Note had)
+   * is unused; it and the engine's framing for it go once Jack approves the round-5 heroes.
+   */
   strip: 'home' | 'sub' | 'doc';
-  /** Long pages end on their own closing scene; short ones (Writing, Contact, the 404) on the story map alone. */
+  /**
+   * Every page on the road ends the same way: on its own closing scene, a different view of the same place, then
+   * the footer's story map. The 404 lies off the map, so its path just ends in mist (no closing).
+   */
   closing: boolean;
 }
 
@@ -71,7 +78,7 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
     horizon: 0.5,
     ground: '',
     strip: 'sub',
-    closing: false,
+    closing: true,
   },
   article: {
     page: 'article',
@@ -80,7 +87,7 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
     presence: 0.45,
     horizon: 0.35,
     ground: '',
-    strip: 'doc',
+    strip: 'sub',
     closing: true,
   },
   resume: {
@@ -90,7 +97,7 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
     presence: 0.5,
     horizon: 0.35,
     ground: '',
-    strip: 'doc',
+    strip: 'sub',
     closing: true,
   },
   contact: {
@@ -101,7 +108,7 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
     horizon: 0.5,
     ground: '',
     strip: 'sub',
-    closing: false,
+    closing: true,
   },
   'not-found': {
     page: 'not-found',

@@ -131,7 +131,7 @@ describe('places (features/landscape/places)', () => {
     expect(placeForPath('/contact/').stretch).toBe(5);
     expect(placeForPath('/nowhere/').stretch).toBe(6);
   });
-  it('lives on Home and Work only; short pages end on the story map', () => {
+  it('lives on Home and Work only; every page on the road ends on its closing scene (round 5)', () => {
     expect(
       Object.values(PLACES)
         .filter((p) => p.ground === 'living')
@@ -141,7 +141,13 @@ describe('places (features/landscape/places)', () => {
       Object.values(PLACES)
         .filter((p) => !p.closing)
         .map((p) => p.page),
-    ).toEqual(['writing', 'contact', 'not-found']);
+    ).toEqual(['not-found']);
+    // one hero system: Home's tall hero, the same sub hero everywhere else
+    expect(
+      Object.values(PLACES)
+        .filter((p) => p.strip !== 'sub')
+        .map((p) => p.page),
+    ).toEqual(['home']);
   });
   it('normalises paths like the site writes them', () => {
     expect(normPath('/work')).toBe('/work/');

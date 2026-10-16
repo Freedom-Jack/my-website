@@ -18,18 +18,17 @@ function Quote({ cite, children }: { cite?: string; children: ReactNode }) {
 }
 
 /**
- * One note (/writing/<slug>/): the lake's low doc strip (art only), then the title and the byline on paper, the
- * note in the reading column, and at its end the author's seal, the author line and the one ink button. It ends
- * on the lake once more. Words: content/writing/<slug>.mdx and content/pages/writing.ts.
+ * One note (/writing/<slug>/): the lake's hero with the title and the byline (the article's own header, the same
+ * hero as every subpage), the note in the reading column, and at its end the author's seal, the author line and
+ * the one ink button. It ends on the lake once more. Words: content/writing/<slug>.mdx and content/pages/writing.ts.
  */
 export function NotePage({ note }: { note: Note }) {
   const { meta, Body } = note;
   return (
     <PageMain page="article" className={styles.page} ld={[blogPostingLd(meta)]}>
       <div className={styles['read-progress']} aria-hidden="true" />
-      <Strip variant="doc" />
       <article className="note" aria-labelledby="note-title">
-        <header className={styles.note__head} data-veil="0.9">
+        <Strip variant="sub" labelledBy="note-title">
           <h1 className="page-title" id="note-title">
             {meta.title}
           </h1>
@@ -47,7 +46,7 @@ export function NotePage({ note }: { note: Note }) {
               </span>
             ) : null}
           </p>
-        </header>
+        </Strip>
         <div className={styles.prose} data-veil="">
           <Body
             components={{

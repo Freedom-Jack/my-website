@@ -15,7 +15,9 @@ Branch: `redesign/v2`.
   2026-10-16 as "Build v2", not pushed). Every page is ported from 4b and checked side by side with it on the real GPU; the case pages,
   the content files, CI and the stills tool are in. How it is organised: the root `README.md`; where the words live:
   `CONTENT.md`; what is left and what waits for Jack: §12 "Build status" below.
-- **Next:** Jack reviews a local preview, then a Vercel preview → launch on **qijinxu.com** through the §2 launch gate.
+- **Round 5 (the macro pass) is under way:** Jack's five inputs and the agreed order are in §12 "Round 5". Step 1 (one
+  order, one hero system, one ending) is built as a local preview for his review.
+- **Next:** steps 2–4 of round 5 → a Vercel preview → launch on **qijinxu.com** through the §2 launch gate.
 - This order changes the earlier plan, in which the build started at 4a. On 2026-10-14 Jack accepted a short 4b round first ("Sure continue").
 
 **Authority:**
@@ -420,8 +422,8 @@ reading below is the art lead's and is marked *confirm*):
   tool settings. CI: type-check, lint, format, 66 unit tests, the stills check, the audit (runtime dependencies), the
   PDF gate, compliance, links, and 35 Playwright tests (a smoke test per route, client navigation, the §6 budgets at
   1440, 1280 and 390).
-- **Added from §11.E:** the case pages `/work/<slug>/`, endings without "Next" (Writing, Contact and the 404 end on the
-  story map), Still remembered across visits (`localStorage`), the print-only name line, the 301 redirects, GitHub at
+- **Added from §11.E:** the case pages `/work/<slug>/`, endings without "Next" (round 5: every page but the 404 ends on
+  its own closing scene, then the story map), Still remembered across visits (`localStorage`), the print-only name line, the 301 redirects, GitHub at
   build time and daily (ISR), never in the browser. **The walker** (one figure crossing Work's bridge, about 4 px a
   second) and **the ferry's bob** (about a pixel, over a 7 s period) are in. Both are sprites that move on the GPU; Jack
   confirms them on the preview.
@@ -434,8 +436,54 @@ reading below is the art lead's and is marked *confirm*):
      committed.
   4. The Vercel project: Node 24 comes from `engines` in `package.json`; turn on Deployment Protection; a preview needs
      this branch pushed (public).
+- **The engine is strict TypeScript** (2026-10-16, `7923e2a`, from a side session; stills byte-identical).
 - **Known locally:** this Mac's network cannot reach `api.github.com`, so local builds use `content/github/snapshot.json`
   (logged as a warning). Vercel's builds fetch live.
+
+### Round 5: the macro pass (Jack's inputs, 2026-10-16)
+
+Jack, after the first preview ("not hard requirements"): (1) the big scroll is not coherent; (2) the heroes differ, at least
+in height, and all pages should share something common; (3) no scrolling effect across the pages; (4) a "younger" look,
+like Wuthering Waves' Chinese ink style; (5) content after the macro work. Order agreed: **1 structure → 2 style mockups →
+3 scroll motion (built in the chosen style) → 4 content.**
+
+**Step 1, structure** (built on the branch as a local preview; waiting for Jack's review):
+- **One order everywhere, the painting's** (Jack: "use the painting order, so it maxes out the coherence of the
+  painting"). The nav is now Work · Writing · Résumé · Contact, matching the handscroll and the story map. Writing joins the
+  nav with one note (the content step will deal with that). The empty road between Work and Writing stays, as deliberate
+  mist; it is reconsidered only if it still reads as a gap. The header keeps one row down to 360 px: the tight sizes now
+  apply up to 416 px, and 8 px between the links at 360.
+- **One hero system.** Home keeps its tall hero. Every other page has the same hero: the same height (360 / 300 / 169 at
+  1440 / 1280 / 390), with the title at the same place (its first line 200 px above the band's foot on wide screens).
+  The Résumé and the Note give up their low art-only band and take the same hero. Their titles move into it, the Note's
+  as its article's header. The Résumé's PDF keeps its letterhead exactly, through a print-only copy of the name and the
+  title. The engine's framing for the low band (`doc`) is unused; remove it once Jack approves.
+- **One ending.** Every page on the road ends on its own closing scene, then the story map. This undoes the build default
+  of §11.E answer 8, where Jack's words were only "the 'Next' feels off". On Writing and Contact the closing is the twin
+  view the engine already has for short pages. The 404, off the map, has none.
+
+**Jack on the step-1 preview (2026-10-16), two corrections:**
+- "For the hero alignment, the text is aligned, but the images/hero background is not." Step 1 aligned the title block.
+  Each hero's scene still sits at its own place, height and scale (Work's town centred on a high horizon, Writing's peak
+  high with the pavilion far right, the Résumé's hill low and small, Contact's ferry low and tiny). **The scenes must line
+  up too:** the same focal area, horizon and scale in every inner hero. That is the engine's framing (compose.ts), so it
+  belongs with the painting's recomposition.
+- **Point 1 was about the painting, not the nav.** "The big scroll is not coherent" means the painting does not read as one
+  handscroll. Five separate vignettes float in mist, with a hole where the empty road is, a different scale and horizon at
+  each place, and five abrupt palettes. Making the nav follow the painting's order was right, but it fixes none of that.
+  **The painting-coherence session** recomposes it as one continuous scroll:
+  - one river the whole length: Home's mountain stream → Work's river town → Writing's lake → it waters the Résumé's
+    terraces → Contact's open water;
+  - one unbroken far range along the top;
+  - real transitions between neighbours (a river bend, trees, a bridge) instead of blank mist;
+  - no empty road;
+  - one shared horizon and scale, and a palette that shifts gradually along the scroll;
+  - plus the aligned hero scenes.
+  The panorama is shown to Jack before anything ships.
+- Jack asked for the remaining items to run as their own sessions. Running: **painting coherence** (above) and **"younger"
+  style mockups** (2–3 directions, mockups only). Held until both land: scroll motion (built in the chosen style on the
+  recomposed painting), then content.
+
 
 ## 13. Running the demo and its tools
 
