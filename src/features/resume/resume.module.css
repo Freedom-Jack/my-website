@@ -1,0 +1,502 @@
+/* The Résumé's LAYOUT (SPEC-R4A §10.3): the type, ink and weights come from the shared tokens and components;
+   this places them.
+   Screen
+     strip       the low "doc" strip of the terraced fields (art only). The letterhead sits on paper below it.
+     letterhead  the name (page title), the title, the contact line, the PDF button and JSON, the note.
+     document    a hanging indent: the section headings and the timeline's years stand in the margin, and every
+                 line of text shares one edge (from 640). On phones the text uses the full width.
+     timeline    each role's start year in the margin, on the role's baseline (phones: above the role); one
+                 dry-brush stroke runs from each year down to the next (drawn still: nothing here moves).
+   Print: this page IS the source of the résumé PDF (tools/build-pdf.ts). Ink only, no landscape or chrome, two
+   pages on Letter or A4 (the end of the file). Every print rule is scoped to this page (.page on its <main>): the
+   App Router keeps a visited page's CSS loaded. */
+
+.cv {
+  --cv-rail: 0px; /* phones: the year stands above its role (no rail) */
+  --cv-gap: 1.5rem; /* 24: the stroke's lane, then the text */
+  --cv-indent: 0px; /* phones: the text on the frame's edge */
+  --cv-entry-gap: var(--space-l); /* between two roles */
+}
+@media (min-width: 40rem) {
+  .cv {
+    --cv-rail: 6rem; /* 96: the years' margin */
+    --cv-indent: calc(var(--cv-rail) + var(--cv-gap));
+  }
+}
+
+/* ---------- the letterhead ---------- */
+.cv-head {
+  padding-top: var(--space-strip-text);
+}
+.cv-head__role {
+  margin-block-start: 0.25rem;
+  font-weight: var(--w-ui);
+}
+
+/* The contact line: one line where it fits, wrapping by item. Each item carries its separator before it;
+   the line is pulled left by one separator and that strip is clipped, so a dot that lands at the start of
+   a line is never seen and no line ends on one. The dots are read as nothing. Every link is a 44 px row
+   target with its brush mark just under the word (as in the footer). */
+.cv-head__contact {
+  --sep: 1.4em;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-inline-start: calc(var(--sep) * -1); /* no top margin: the 44 px rows carry their own air */
+  clip-path: inset(-0.75rem -1rem -0.75rem calc(var(--sep) - 5px)); /* keeps a focus ring whole */
+}
+.cv-head__contact > span {
+  /* every item a 44 px row, so wrapped lines keep one even rhythm */
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  white-space: nowrap;
+}
+.cv-head__contact > span::before {
+  content: '·' / '';
+  flex: none;
+  inline-size: var(--sep);
+  text-align: center;
+}
+/* Under 240 CSS px (a 390 px phone at 200 % page zoom: a 195 px viewport) the LinkedIn and site addresses are wider
+   than the line, and the line's clip cut their ends off: there an item may wrap, mid-address if it must (final review
+   r1, item 6) */
+@media (max-width: 14.99rem) {
+  .cv-head__contact > span {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    min-inline-size: 0;
+  }
+}
+.cv-head__contact :global(a) {
+  --brush-y: calc(50% + 0.78em);
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  padding-bottom: 0;
+  color: var(--ink-2);
+}
+
+.cv-head__actions {
+  margin-block-start: 0.5rem;
+  margin-inline-start: -2px; /* the swash's loaded start sits on the text edge */
+  column-gap: 0.25rem; /* phones: the swash's dry tail is the gap, so both share a row at 390 */
+}
+@media (min-width: 40rem) {
+  .cv-head__actions {
+    column-gap: 1.75rem;
+  }
+}
+.cv-head__actions :global(.brush) {
+  /* "JSON Resume": a 44 px target, its mark just under the word */
+  --brush-y: calc(50% + 0.78em);
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  padding-bottom: 0;
+  margin-inline-start: 2px;
+  font-weight: var(--w-ui);
+}
+.cv-head__note {
+  max-width: 36em;
+  margin-block-start: 0.5rem;
+}
+/* Wide: the note stands beside the actions as their caption, set off by a hairline, so the letterhead
+   keeps to four lines and the first role reaches the first screen. */
+@media (min-width: 75rem) {
+  .cv-head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 30em);
+    justify-content: start;
+    column-gap: 2.5rem;
+  }
+  .cv-head > * {
+    grid-column: 1 / -1;
+  }
+  .cv-head > .cv-head__actions {
+    grid-column: 1;
+  }
+  .cv-head > .cv-head__note {
+    grid-column: 2;
+    align-self: center;
+    margin-block-start: 0.5rem;
+    padding-inline-start: 1.25rem;
+    border-inline-start: 1px solid var(--rule);
+  }
+}
+
+/* ---------- the document: a hanging indent from 640 ---------- */
+@media (min-width: 40rem) {
+  .cv-sec > :not(:global(.sec__title), .timeline) {
+    margin-inline-start: var(--cv-indent);
+  }
+}
+.cv-sec > .timeline {
+  max-width: none;
+} /* the rail and the text: from 640 the text keeps the reading measure */
+@media (min-width: 40rem) {
+  .cv-sec > .timeline {
+    max-width: calc(var(--cv-indent) + var(--measure-read));
+  }
+}
+
+/* ---------- experience: the timeline ---------- */
+.timeline {
+  display: grid;
+  row-gap: var(--cv-entry-gap);
+}
+/* Phones: the year above its role, at the frame's edge; the stroke runs down the edge below it and the
+   role's text sits one lane in, at the full width less 24 px. From 640: the year in the 96 px margin on its
+   role's baseline, the text at the indent. */
+.timeline__entry {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: 0.375rem;
+  padding-inline-start: var(--cv-gap);
+}
+.timeline__year {
+  margin-inline-start: calc(var(--cv-gap) * -1);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+@media (min-width: 40rem) {
+  .timeline__entry {
+    grid-template-columns: var(--cv-rail) minmax(0, 1fr);
+    column-gap: var(--cv-gap);
+    padding-inline-start: 0;
+    align-items: baseline; /* the year shares its baseline with the role */
+  }
+  .timeline__year {
+    grid-column: 1;
+    grid-row: 1;
+    margin-inline-start: 0;
+  }
+  .timeline__body {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+
+/* The brush stroke: from just under a year to just above the next. One tapering body, loaded at its year
+   and thinning as it runs (a filled shape: its viewBox is stretched to the entry's height, so only its
+   length scales and its width stays true), with a dry bristle that breaks up as the ink runs out.
+   Annotation ink at half strength; drawn still. The svg is set in the year's own face and size, so em is
+   the year's size and 1ch one tabular figure. Phones: down the frame's edge; from 640: under the middle of
+   the year's four figures. */
+.timeline__stroke {
+  position: absolute;
+  font: 900 var(--fs-figure) / 1 var(--font-name);
+  inset-inline-start: 0;
+  inset-block-start: 1.25em;
+  inline-size: 12px;
+  block-size: calc(100% - 1.25em + var(--cv-entry-gap) - 0.5em);
+  overflow: visible;
+  color: var(--ink-annot);
+  opacity: 0.5;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, #000 10%, rgb(0 0 0 / 0.35));
+  mask-image: linear-gradient(to bottom, #000 10%, rgb(0 0 0 / 0.35));
+}
+@media (min-width: 40rem) {
+  .timeline__stroke {
+    inset-inline-start: calc(2ch - 6px);
+  }
+}
+.timeline__ink {
+  fill: currentColor;
+}
+.timeline__dry {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 0.55;
+  stroke-linecap: round;
+  stroke-dasharray: 22 3 12 5 7 6 4 8 2 31;
+}
+
+.timeline__role {
+  margin: 0;
+}
+.timeline__meta {
+  margin-block-start: 0.25rem;
+}
+.timeline__points {
+  display: grid;
+  gap: 0.5rem;
+  margin-block-start: 0.75rem;
+}
+/* bullets: a hanging en dash. The dash is an inline box in a hanging indent, never absolutely positioned:
+   positioned boxes paint (and so print into the PDF's text) after everything else, which would read every
+   bullet out of order to a résumé parser. */
+.timeline__points > li {
+  padding-inline-start: 1.15em;
+  text-indent: -1.15em;
+}
+.timeline__points > li::before {
+  content: '–' / '';
+  display: inline-block;
+  inline-size: 1.15em;
+  text-indent: 0;
+  color: var(--ink-4);
+}
+.timeline__url {
+  overflow-wrap: anywhere;
+}
+
+/* ---------- skills: the group above its tools on phones; beside them from 640 ---------- */
+.cv-skills {
+  display: grid;
+  gap: 0.75rem;
+}
+.cv-skills :global(dt) {
+  font-weight: var(--w-strong);
+}
+@media (min-width: 40rem) {
+  .cv-skills {
+    gap: 0.5rem;
+  }
+  .cv-skills > div {
+    display: grid;
+    grid-template-columns: 11rem minmax(0, 1fr);
+    column-gap: 1rem;
+    align-items: baseline;
+  }
+}
+
+/* ---------- education ---------- */
+.cv-sec > .cv-edu__detail {
+  margin-block-start: 0.25rem;
+}
+
+.cv-print-foot {
+  display: none;
+}
+
+/* ==========================================================================
+   Print: the source of the résumé PDF. Ink only. No landscape, no chrome, no strip or closing, nothing
+   animated. The same hanging indent as the screen, in millimetres: the headings and the years at the
+   margin, the text beside them, the letterhead's contact details stacked on the right. Two pages on
+   Letter or A4. Every link on the résumé already shows its address, so none needs it appended.
+   ========================================================================== */
+@media print {
+  @page {
+    margin: 13mm 14mm;
+  } /* the default orientation: upright */
+
+  :global(html):has(.page) {
+    background: none;
+  }
+  :global(html):has(.page) :global(body) {
+    min-height: 0;
+    color: #000;
+    font-size: 10pt;
+    line-height: 1.42;
+    word-spacing: 0.02em; /* helps PDF text extraction (ATS) find every space */
+    font-variation-settings: 'FLAR' 0;
+    print-color-adjust: economy;
+    -webkit-print-color-adjust: economy;
+  }
+  :global(html):has(.page) :global(body)::before {
+    content: none !important;
+  }
+  .page :global(.strip),
+  .page :global(.closing),
+  .page :global(.print-name),
+  .cv-head__actions,
+  .cv-head__note {
+    display: none !important;
+  }
+  .page *,
+  .page *::before,
+  .page *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .page {
+    width: auto !important;
+    margin-inline: 0 !important;
+  }
+  .page :global(a) {
+    color: inherit !important;
+    text-decoration: none !important;
+    background: none !important;
+  }
+
+  .cv {
+    --cv-rail: 17mm;
+    --cv-gap: 5mm;
+    --cv-indent: calc(var(--cv-rail) + var(--cv-gap));
+    --cv-entry-gap: 3mm;
+  }
+
+  /* letterhead: the name and the title on the left, the contact details stacked on the right */
+  .cv-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 8mm;
+    align-items: end;
+    padding: 0;
+    break-after: avoid;
+  }
+  .cv-head :global(.page-title) {
+    grid-column: 1;
+    font-size: 30pt;
+    line-height: 1;
+  }
+  .cv-head__role {
+    grid-column: 1;
+    max-width: none;
+    margin-block-start: 1.6mm;
+    font-size: 12pt;
+    line-height: 1.25;
+    color: #000;
+  }
+  .cv-head__contact {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    display: grid;
+    justify-items: end;
+    gap: 0.3mm;
+    margin: 0;
+    clip-path: none;
+    font-size: 8.6pt;
+    line-height: 1.35;
+    text-align: right;
+    color: var(--ink-2);
+  }
+  .cv-head__contact > span {
+    min-block-size: 0;
+  }
+  .cv-head__contact > span::before {
+    content: none;
+  }
+  .cv-head__contact :global(a) {
+    display: inline;
+    min-block-size: 0;
+    padding: 0;
+    color: #000 !important;
+  }
+
+  /* Reading order of the PDF's text (a résumé parser reads the paint order): positioned boxes paint after
+     everything that is not, so the timeline's roles (positioned, for their strokes) and the list rows would
+     come out last. Positioning every block of the document makes them all paint in tree order. */
+  .cv-head,
+  .cv-sec,
+  .cv-print-foot {
+    position: relative;
+  }
+
+  /* sections: the heading at the margin, then the text at the indent */
+  .page :global(.sec) {
+    margin-block-start: 5mm;
+  }
+  .page :global(.sec) > * {
+    max-width: none;
+  }
+  .page :global(.sec) > * + * {
+    margin-block-start: 1.4mm;
+  }
+  .page :global(.sec) > :global(.sec__title) + * {
+    margin-block-start: 1.8mm;
+  }
+  .page :global(.sec__title) {
+    font-size: 12.5pt;
+    line-height: 1.2;
+    letter-spacing: 0;
+    color: #000;
+    break-after: avoid;
+  }
+  .cv-sec > :not(:global(.sec__title), .timeline) {
+    margin-inline-start: var(--cv-indent);
+  }
+  .cv-sec > .timeline {
+    max-width: none;
+  }
+
+  /* Experience prints as plain block flow, so a role never splits across pages (Chrome does not honour
+     break-inside: avoid inside a fragmented grid row); each role is a small grid of year and text. */
+  .timeline {
+    display: block;
+  }
+  .timeline__entry {
+    grid-template-columns: var(--cv-rail) minmax(0, 1fr);
+    column-gap: var(--cv-gap);
+    padding-inline-start: 0;
+    align-items: baseline;
+    break-inside: avoid;
+  }
+  .timeline__year {
+    grid-column: 1;
+    grid-row: 1;
+    margin-inline-start: 0;
+  }
+  .timeline__body {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .timeline__entry + .timeline__entry {
+    margin-block-start: var(--cv-entry-gap);
+  }
+  .timeline__year {
+    font-size: 15pt;
+    letter-spacing: 0;
+    color: #000;
+  } /* no tracking: it extracts as one word */
+  .timeline__stroke {
+    inset-inline-start: calc(2ch - 6px);
+    font-size: 15pt;
+    color: var(--ink-3);
+    opacity: 0.6;
+  }
+  .timeline__role {
+    font-size: 11pt;
+    line-height: 1.25;
+    color: #000;
+  }
+  .timeline__meta {
+    margin-block-start: 0.4mm;
+    font-size: 8.6pt;
+    line-height: 1.4;
+  }
+  .timeline__points {
+    gap: 0.8mm;
+    margin-block-start: 1.2mm;
+  }
+  .timeline__points > li {
+    font-size: 10pt;
+    line-height: 1.42;
+  }
+
+  .cv-skills {
+    gap: 0.9mm;
+  }
+  .cv-skills > div {
+    display: grid;
+    grid-template-columns: 34mm minmax(0, 1fr);
+    column-gap: 3mm;
+    align-items: baseline;
+  }
+  .cv-sec > .cv-edu__detail {
+    margin-block-start: 0.4mm;
+  }
+  .cv-certs {
+    gap: 0.6mm;
+  }
+
+  .page :global(h2),
+  .page :global(h3) {
+    break-after: avoid;
+  }
+  .page :global(li),
+  .page :global(p) {
+    orphans: 2;
+    widows: 2;
+  }
+
+  .cv-print-foot {
+    display: block;
+    margin-block-start: 6mm;
+    font-size: 8pt;
+    color: var(--ink-3);
+    break-inside: avoid;
+  }
+}

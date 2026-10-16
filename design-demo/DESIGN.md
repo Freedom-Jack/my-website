@@ -11,7 +11,11 @@ Branch: `redesign/v2`.
   measurements, open items, lessons); how to run the QA probes: README "QA".
 - **2026-10-16: Jack reviewed 4b** ("a good baseline for everything") and answered §11.E (answers recorded there).
   4b is committed on `redesign/v2`; the working notes were condensed into `_notes/r4b/RECORD.md` (his answer 15).
-- **Next:** the Next.js build (§12) in a fresh session → launch on **qijinxu.com** through the §2 launch gate.
+- **2026-10-16: the Next.js build (§12) exists** at the repo root (branch `claude/vibrant-chatelet-febd04`, committed
+  2026-10-16 as "Build v2", not pushed). Every page is ported from 4b and checked side by side with it on the real GPU; the case pages,
+  the content files, CI and the stills tool are in. How it is organised: the root `README.md`; where the words live:
+  `CONTENT.md`; what is left and what waits for Jack: §12 "Build status" below.
+- **Next:** Jack reviews a local preview, then a Vercel preview → launch on **qijinxu.com** through the §2 launch gate.
 - This order changes the earlier plan, in which the build started at 4a. On 2026-10-14 Jack accepted a short 4b round first ("Sure continue").
 
 **Authority:**
@@ -405,6 +409,33 @@ reading below is the art lead's and is marked *confirm*):
   - Update canonicals, JSON-LD, `llms.txt`, `resume.json` and the résumé contact line to `https://qijinxu.com`.
   - `qijinxu.com/resume.pdf` becomes Jack's résumé link.
 - **Performance backlog** (Claude's memory note `website-perf-backlog`; don't start it unprompted; visuals first): a pre-rendered still of each strip, a device check, CI budgets. **Exception: GitHub data must never cost visitors performance.**
+
+### Build status (2026-10-16)
+
+- **Versions** (checked as the latest stable on 2026-10-16, pinned exactly): Next.js and `@next/mdx` 16.4.2, React
+  19.3.1, TypeScript 6.0.3, zod 4.6.7, Vitest 5.0.5, Playwright 1.64.1, ESLint 9.39.5, Node 24.22.0. `next-mdx-remote` is not used. Route changes use the demo's own exit / travel / enter
+  and the CSS `@view-transition` cross-fade, not React's `<ViewTransition>`. Shiki is not added: no note has code yet.
+- **Verified:** Home, Résumé and the Note match the demo pixel for pixel apart from the two removed demo-only bits ("Draft
+  art", "Next: …"); Home's, Writing's and Résumé's story-map stills come out byte-identical to the demo's, from the same
+  tool settings. CI: type-check, lint, format, 66 unit tests, the stills check, the audit (runtime dependencies), the
+  PDF gate, compliance, links, and 35 Playwright tests (a smoke test per route, client navigation, the §6 budgets at
+  1440, 1280 and 390).
+- **Added from §11.E:** the case pages `/work/<slug>/`, endings without "Next" (Writing, Contact and the 404 end on the
+  story map), Still remembered across visits (`localStorage`), the print-only name line, the 301 redirects, GitHub at
+  build time and daily (ISR), never in the browser. **The walker** (one figure crossing Work's bridge, about 4 px a
+  second) and **the ferry's bob** (about a pixel, over a 7 s period) are in. Both are sprites that move on the GPU; Jack
+  confirms them on the preview.
+- **Open for Jack:**
+  1. A case page at 390 is over the display-to-reading budget (.28 > .10): the case's long title is the h1 at title
+     size (32 px, two or three lines). Accept it, or set case titles at the section-heading size on phones.
+  2. An old address without its trailing slash (`/about`) takes one 308 to `/about/` and then the 301. Next.js adds the
+     slash first; a single hop would need middleware.
+  3. Deleting `legacy-v1/` (the old app, moved there with `git mv`) and untracking the old `.next/` files the v1 repo
+     committed.
+  4. The Vercel project: Node 24 comes from `engines` in `package.json`; turn on Deployment Protection; a preview needs
+     this branch pushed (public).
+- **Known locally:** this Mac's network cannot reach `api.github.com`, so local builds use `content/github/snapshot.json`
+  (logged as a warning). Vercel's builds fetch live.
 
 ## 13. Running the demo and its tools
 

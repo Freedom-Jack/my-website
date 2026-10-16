@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 64" preserveAspectRatio="none">
+  <!-- Primary-button silhouette, used as a CSS mask: one loaded brush stroke, pressed hard at the
+       start, running dry at the tail where the bristles split into streaks (feibai). Alpha only. -->
+  <defs>
+    <linearGradient id="load" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-opacity="1"/>
+      <stop offset=".8" stop-opacity="1"/>
+      <stop offset="1" stop-opacity=".55"/>
+    </linearGradient>
+    <filter id="dry" x="-4%" y="-12%" width="108%" height="124%" color-interpolation-filters="sRGB">
+      <!-- ragged, slightly wicked outline -->
+      <feTurbulence type="fractalNoise" baseFrequency="0.07 0.16" numOctaves="3" seed="13" result="edge"/>
+      <feDisplacementMap in="SourceGraphic" in2="edge" scale="3.2" xChannelSelector="R" yChannelSelector="G" result="shape"/>
+      <!-- bristle streaks: long horizontal noise, thresholded; they only bite where the load runs out -->
+      <feTurbulence type="fractalNoise" baseFrequency="0.009 0.36" numOctaves="2" seed="5" result="streak"/>
+      <feComposite in="shape" in2="streak" operator="arithmetic" k2="4.1" k3="2.5" k4="-4.2" result="dry"/>
+      <feFlood flood-color="#000"/>
+      <feComposite in2="dry" operator="in"/>
+    </filter>
+  </defs>
+  <path filter="url(#dry)" fill="url(#load)" d="M11.5 13.2C5.6 15.6 3.4 25.2 4 33.6c.6 9 4.4 15.2 11.8 16.1 26 1.5 62 .7 98-.1 33-.8 63-1.7 83-3.7 11.2-1.1 19-3.4 20-7.7.6-3-1.6-5.1-1-7.7.8-3.3 3.9-5.6 2.7-9.5-1.2-3.7-9.5-6.2-21.5-7.4-31-2.8-76-3.2-116-3-28 .1-55 .2-69.5 2.6z"/>
+  <!-- three bristle tails that leave the body as the brush lifts -->
+  <path filter="url(#dry)" fill="#000" fill-opacity=".5" d="M196 14.6c14 .3 27 1.3 34.5 3.4 3.6 1 5.2 2.4 4.8 3.6-6.4-.9-20.4-1.9-39.6-2.6zM199 44.2c14-.6 26-1.6 33.6-3.2 2.6-.6 4.3-.4 4.1.8-.3 1.6-3.6 3-9.4 4-8 1.3-17.6 1.8-28.4 2z"/>
+</svg>

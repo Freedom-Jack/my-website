@@ -1,391 +1,117 @@
-# Modern Full-Stack Portfolio Website
+# Qijin Xu: personal site (v2)
 
-<div align="center">
+The personal site of Qijin Xu, Lead AI/ML Architect in Toronto. Every page stands in one long ink-wash handscroll,
+a WebGL2 landscape painted behind the text. Moving between pages pans along the painting: from his mountain (Home)
+down to the river town (Work), past the still lake (Writing), up through the terraced fields (Résumé), to the ferry
+(Contact).
 
-[![Next.js](https://img.shields.io/badge/Next.js-15.4.6-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/React-19.1.1-61DAFB?style=for-the-badge&logo=react)](https://react.dev/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.1-38B2AC?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com/)
+- **Words:** all of them are in `content/`. To edit, read [CONTENT.md](CONTENT.md).
+- **Design:** the source of truth is [design-demo/DESIGN.md](design-demo/DESIGN.md), the approved static demo 4b in
+  `design-demo/`, and its copy deck [design-demo/COPY.md](design-demo/COPY.md). This app is that demo, built for real.
 
-[![Deploy Status](https://img.shields.io/badge/Deploy-Vercel-000000?style=flat-square&logo=vercel)](https://vercel.com)
-[![Performance Score](https://img.shields.io/badge/Lighthouse-100%25-brightgreen?style=flat-square&logo=lighthouse)](https://pagespeed.web.dev)
-[![Code Quality](https://img.shields.io/badge/Code%20Quality-A+-brightgreen?style=flat-square)](https://github.com/Freedom-Jack/my-website)
-[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
+## Stack
 
-**[Architecture](#architecture) • [Contributing](#contributing)**
+Next.js 16 (App Router, Turbopack) · React 19 · TypeScript 6 (strict) · MDX 3 · zod 4 · next/font · CSS Modules on
+the demo's design tokens · a hand-written WebGL2 engine (Canvas2D and static fallbacks) · Vitest · Playwright ·
+ESLint 9 · Prettier · Vercel. Versions are pinned exactly in `package.json`, with `package-lock.json`. Dependabot
+proposes updates weekly (`.github/dependabot.yml`).
 
-</div>
+## Run it
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Technical Architecture](#technical-architecture)
-- [Core Features](#core-features)
-- [Performance Metrics](#performance-metrics)
-- [Technology Stack](#technology-stack)
-- [System Design](#system-design)
-- [Getting Started](#getting-started)
-- [Testing Strategy](#testing-strategy)
-- [Deployment](#deployment)
-- [Contributing](#contributing)
-
-## Overview
-
-A production-grade portfolio website engineered with modern web technologies and best practices. This project demonstrates proficiency in full-stack development, performance optimization, and scalable architecture design - key competencies valued at FAANG companies.
-
-### Key Highlights
-
-- **Enterprise-Grade Architecture**: Modular, maintainable codebase following SOLID principles
-- **Performance-First Design**: Achieves 100/100 Lighthouse scores across all metrics
-- **Scalable Infrastructure**: Optimized for high traffic with CDN integration and edge caching
-- **Modern Tech Stack**: Latest versions of Next.js 15, React 19, and TypeScript 5.9
-- **Real-Time Data Integration**: Live GitHub statistics via REST API with optimized caching
-- **Responsive & Accessible**: WCAG 2.1 AA compliant with mobile-first responsive design
-
-## Technical Architecture
-
-### System Architecture
-
-```mermaid
-graph TB
-    subgraph "Client Layer"
-        A[Browser] --> B[Next.js App Router]
-        B --> C[React Components]
-        C --> D[UI Layer]
-    end
-    
-    subgraph "Server Layer"
-        B --> E[API Routes]
-        E --> F[GitHub API Client]
-        F --> G[External APIs]
-    end
-    
-    subgraph "Data Layer"
-        H[MDX Content] --> B
-        I[Static Assets] --> B
-        J[Environment Config] --> E
-    end
-    
-    subgraph "Infrastructure"
-        K[Vercel Edge Network]
-        L[CDN Cache]
-        M[Image Optimization]
-    end
-```
-
-### Project Structure
-
-```typescript
-src/
-├── app/                      # Next.js 15 App Router
-│   ├── (routes)/            # File-based routing
-│   ├── api/                 # Server-side API endpoints
-│   └── layout.tsx           # Root layout with providers
-├── components/              # React component library
-│   ├── ui/                 # Reusable UI primitives (Radix UI based)
-│   ├── layout/             # Layout components with CSS modules
-│   ├── sections/           # Page sections with modular CSS
-│   └── animations/         # Performance-optimized animations
-├── features/               # Feature-based modules
-│   ├── blog/              # MDX blog system with SSG
-│   ├── github/            # GitHub API integration
-│   └── theme/             # Dark/light theme system
-├── lib/                   # Core utilities and helpers
-│   ├── mdx-utils.ts      # MDX processing pipeline
-│   ├── performance.ts    # Performance monitoring
-│   └── github.ts         # GitHub API client with caching
-├── styles/               # Modular CSS architecture
-│   ├── shared/          # Shared CSS modules system
-│   ├── components/      # Component-specific styles
-│   └── pages/           # Page-specific styles
-└── content/             # Content management layer
-    └── pages/           # TypeScript-based content
-```
-
-## Core Features
-
-### Performance Optimizations
-
-- **Server-Side Rendering (SSR)**: Leveraging Next.js 15 App Router for optimal SEO and initial load
-- **Static Site Generation (SSG)**: Pre-rendering blog content at build time
-- **Image Optimization**: Automatic WebP/AVIF conversion with responsive srcsets
-- **Code Splitting**: Route-based chunking with dynamic imports
-- **Bundle Optimization**: Tree-shaking, minification, and compression
-- **Font Optimization**: Self-hosted variable fonts with font-display: swap
-- **Critical CSS**: Inline critical styles for faster FCP
-
-### UI/UX Engineering
-
-- **Component Architecture**: Atomic design with composable React components
-- **Design System**: Custom Tailwind configuration with semantic tokens
-- **Accessibility**: ARIA labels, keyboard navigation, screen reader support
-- **Animations**: GPU-accelerated CSS transforms and Framer Motion
-- **Theme System**: CSS variables with prefers-color-scheme support
-- **Responsive Design**: Mobile-first with container queries
-
-### Data Integration
-
-- **GitHub API**: Real-time repository statistics with rate limiting
-- **MDX Content**: Type-safe content with frontmatter validation
-- **Environment Management**: Secure secrets handling with validation
-- **Error Boundaries**: Graceful error handling with fallback UI
-- **Loading States**: Skeleton screens and progressive enhancement
-
-## Performance Metrics
-
-### Lighthouse Scores
-
-| Metric | Score | Details |
-|--------|-------|---------|
-| **Performance** | 100 | FCP: 0.8s, LCP: 1.2s, CLS: 0 |
-| **Accessibility** | 100 | WCAG 2.1 AA compliant |
-| **Best Practices** | 100 | HTTPS, no vulnerabilities |
-| **SEO** | 100 | Meta tags, structured data |
-
-### Technical Metrics
-
-- **First Contentful Paint**: < 1s
-- **Time to Interactive**: < 2s
-- **Bundle Size**: < 150KB (gzipped)
-- **Code Coverage**: > 80%
-- **TypeScript Coverage**: 100%
-
-## Technology Stack
-
-### Frontend
-
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **Next.js** | 15.4.6 | Full-stack React framework with App Router |
-| **React** | 19.1.1 | UI component library |
-| **TypeScript** | 5.9.2 | Type safety and developer experience |
-| **Tailwind CSS** | 3.4.1 | Utility-first CSS framework |
-| **Radix UI** | Latest | Accessible component primitives |
-| **Framer Motion** | Latest | Animation library |
-| **MDX** | 3.1.0 | Markdown with JSX support |
-
-### Backend & Infrastructure
-
-| Technology | Purpose |
-|------------|---------|
-| **Vercel** | Edge deployment and hosting |
-| **GitHub API** | Dynamic content integration |
-| **Sharp** | Image optimization pipeline |
-| **Turbopack** | Fast development builds |
-
-### Development Tools
-
-| Tool | Purpose |
-|------|---------|
-| **ESLint** | Code quality and standards |
-| **Prettier** | Code formatting |
-| **Jest** | Unit and integration testing |
-| **Bundle Analyzer** | Performance monitoring |
-| **Husky** | Git hooks for quality checks |
-
-## System Design
-
-### Data Flow Architecture
-
-```typescript
-// Example: GitHub API Integration with Caching
-class GitHubService {
-  private cache: Map<string, CachedData> = new Map();
-  
-  async fetchRepositories(username: string): Promise<Repository[]> {
-    const cacheKey = `repos:${username}`;
-    const cached = this.cache.get(cacheKey);
-    
-    if (cached && !this.isExpired(cached)) {
-      return cached.data;
-    }
-    
-    const repos = await this.apiClient.repos.listForUser({
-      username,
-      sort: 'updated',
-      per_page: 100
-    });
-    
-    this.cache.set(cacheKey, {
-      data: repos,
-      timestamp: Date.now()
-    });
-    
-    return repos;
-  }
-}
-```
-
-### Design Patterns
-
-- **Component Composition**: Leveraging React's composition model
-- **Provider Pattern**: Context API for theme and state management
-- **Module Pattern**: Encapsulated feature modules
-- **Factory Pattern**: Dynamic component generation
-- **Observer Pattern**: Event-driven updates
-
-## Getting Started
-
-### Prerequisites
+Node 24 (`.node-version`). With [fnm](https://github.com/Schniz/fnm):
 
 ```bash
-# Required versions
-node >= 18.17.0
-npm >= 9.0.0
+fnm install && fnm use
 ```
 
-### Installation
-
 ```bash
-# Clone repository
-git clone https://github.com/Freedom-Jack/my-website.git
-cd my-website
-
-# Install dependencies
-npm install
-
-# Environment setup
-cp .env.example .env.local
-# Add your GitHub token and username
+npm ci
 ```
 
-### Development
-
 ```bash
-# Start development server with Turbopack
 npm run dev
-
-# Run type checking
-npm run typecheck
-
-# Run linting
-npm run lint
-
-# Run tests
-npm run test
-
-# Build for production
-npm run build
-
-# Analyze bundle
-npm run analyze
 ```
 
-### Environment Variables
+The site is then at http://localhost:3000. `.env.local` may hold a `GITHUB_TOKEN` (read-only, public repositories)
+for Work's "In the open" list. Without one the build uses GitHub's anonymous rate limit, and if GitHub cannot be
+reached it falls back to `content/github/snapshot.json`.
 
-```env
-# Required
-GITHUB_TOKEN=ghp_xxxxxxxxxxxx
-GITHUB_USERNAME=your-username
+| Command                      | What it does                                                                                  |
+| ---------------------------- | --------------------------------------------------------------------------------------------- |
+| `npm run dev`                | the dev server                                                                                |
+| `npm run build`, `npm start` | a production build, served on port 3000 (`-- -p 3100` for the tools below)                    |
+| `npm run ci`                 | type-check, lint, format check, unit tests, stills check: run before every push               |
+| `npm run test:e2e`           | Playwright against a built site on port 3100: a smoke test per route, navigation, the budgets |
+| `npm run check:compliance`   | the hard rules over the sources and the built pages                                           |
+| `npm run check:links`        | crawls the built site: every link answers, every outside link is https and allowed            |
+| `npm run build:pdf`          | prints `/resume/` to `public/resume.pdf` (`-- --check` in CI)                                 |
+| `npm run build:stills`       | cuts the footer's story-map stills from the engine (needs a QA build; `-- --check` in CI)     |
+| `npm run format`             | Prettier                                                                                      |
 
-# Optional
-NEXT_PUBLIC_GA_ID=G-XXXXXXXXXX
-SENTRY_DSN=https://xxxxx.ingest.sentry.io
+A **QA build** (`NEXT_PUBLIC_INK_QA=1 npm run build`) exposes the painting to the test tools as `window.__ink` and
+`window.__inkEngine`. Production builds leave both out, along with the engine's QA-only code.
+
+## How it is organised
+
+```
+content/                 every word: site.ts, resume.json, pages/*.ts, work/*.mdx, writing/*.mdx, github/
+src/app/                 thin routes: metadata, data loading, and one feature component each
+src/components/          shared building blocks
+  layout/                header, footer, the story map, "Still the landscape", the boot script, ink filters
+  page/                  PageMain (every page's <main>), Strip (its opening scene), Closing (its end scene)
+  ui/                    Seal, InkButton, MarginNote, Diagram
+src/features/            one folder per feature, each owning its components, logic and CSS Module
+  landscape/             the painting: places.ts (where each page stands), Landscape.tsx (the one persistent
+                         canvas), engine/ (the WebGL2 engine; types.ts is its contract)
+  navigation/            route changes as pans along the painting: exit, travel, arrival, focus, announce
+  chrome/                current page, the returning header, Still, the 404's lost mark
+  effects/               brush links, ink buttons, diagram draw-in, the seal, arrival
+  home/ work/ writing/ resume/ contact/ github/     the pages and their data
+src/lib/                 typography, inline markup, dates, SEO and JSON-LD, redirects, the compliance patterns,
+                         the MDX plugin (mdx/rehype-site.mjs)
+src/styles/              the design system: tokens, base, layout, effects, components (global, from the demo)
+tools/                   build-pdf, build-stills, compliance, linkcheck (TypeScript, run by Node 24 directly)
+tests/unit/              content schemas and counts, GitHub rules, the engine's pure parts (Vitest)
+tests/e2e/               smoke, navigation and the DESIGN §6 budgets (Playwright; support/measure.js is the
+                         demo's own probe)
+design-demo/             the approved static demo, its notes and its QA tools: reference only, never deployed
+legacy-v1/               the old site, kept until its removal is approved
 ```
 
-## Testing Strategy
+**A page** is a route in `src/app/` that renders a feature component inside `PageMain`. `PageMain` reads the page's
+place from `src/features/landscape/places.ts` (its stretch of the painting, how strongly the scene shows, whether
+it ends on a closing scene) and writes it onto `<main>`. The navigation reads the same table to prepare the next
+page's painting before it arrives, so the two never disagree.
 
-### Test Coverage
+**The painting** is one fixed canvas in the root layout, mounted once after the first paint. It survives route
+changes and is safe under Strict Mode. Everything else talks to it only through `mountLandscape()` and its handle
+(`types.ts`). It respects reduced motion and the footer's "Still the landscape" switch, which is remembered across
+visits. Without WebGL it paints in Canvas2D; without JavaScript it shows a static ridge.
+
+**After changing the engine, its figure sets, a palette, a place or a strip height**, regenerate the story-map
+stills (CI fails until you do). Use two terminals:
 
 ```bash
-# Unit tests
-npm run test:unit
-
-# Integration tests
-npm run test:integration
-
-# E2E tests
-npm run test:e2e
-
-# Coverage report
-npm run test:coverage
+NEXT_PUBLIC_INK_QA=1 npm run build && npm start -- -p 3100
 ```
-
-### Testing Stack
-
-- **Jest**: Test runner and assertions
-- **React Testing Library**: Component testing
-- **MSW**: API mocking
-- **Playwright**: E2E testing
-
-## Deployment
-
-### Production Deployment
 
 ```bash
-# Build optimization
-npm run build
-
-# Production preview
-npm run start
-
-# Deploy to Vercel
-vercel --prod
+npm run build:stills
 ```
 
-### Infrastructure Features
+## Checks
 
-- **Edge Functions**: API routes running at edge locations
-- **Image Optimization**: Automatic format conversion and resizing
-- **Analytics**: Real User Monitoring (RUM) and Core Web Vitals
-- **CDN**: Global content delivery network
-- **SSL/TLS**: Automatic HTTPS with certificate management
+CI (`.github/workflows/ci.yml`) runs on every push and pull request:
 
-## Contributing
+1. type-check, lint, format check, unit tests;
+2. the stills check and a runtime-dependency audit;
+3. a QA production build, then the built site's own checks: the résumé PDF matches the résumé and holds no phone
+   number, the hard rules (no phone, no street address, no project-management credential, no link to the old
+   résumé file, no CJK text but the seal), every link, and the Playwright suite (a smoke test per route, client
+   navigation, the DESIGN §6 budgets at 1440, 1280 and 390).
 
-### Development Workflow
+## Deploying
 
-1. **Fork & Clone**: Fork the repository and clone locally
-2. **Branch**: Create a feature branch (`feature/amazing-feature`)
-3. **Develop**: Make your changes following our code standards
-4. **Test**: Ensure all tests pass (`npm run test`)
-5. **Commit**: Use conventional commits (`feat:`, `fix:`, `docs:`)
-6. **Push**: Push to your fork
-7. **PR**: Open a Pull Request with detailed description
-
-### Code Standards
-
-- **TypeScript**: Strict mode enabled, no `any` types
-- **React**: Functional components with hooks
-- **CSS**: CSS Modules with BEM naming
-- **Testing**: Minimum 80% coverage for new features
-- **Documentation**: JSDoc for complex functions
-
-## Project Metrics
-
-![GitHub Stats](https://github-readme-stats.vercel.app/api?username=Freedom-Jack&show_icons=true&theme=dark)
-
-### Repository Statistics
-
-- **Lines of Code**: ~15,000
-- **Test Coverage**: 85%
-- **Bundle Size**: 142KB (gzipped)
-- **Dependencies**: 38 (18 dev)
-- **TypeScript Coverage**: 100%
-
-## Security
-
-- **Dependency Scanning**: Automated via Dependabot
-- **Secret Management**: Environment variables with validation
-- **CSP Headers**: Content Security Policy enforcement
-- **CORS**: Properly configured API endpoints
-- **Input Validation**: Zod schema validation
-
-## License
-
-MIT License - see [LICENSE](LICENSE) file for details
-
-## Acknowledgments
-
-- Next.js team for the amazing framework
-- Vercel for hosting and deployment
-- Open source community for invaluable tools
-- Contributors and maintainers
-
----
-
-<div align="center">
-
-**Developed by [Qijin Xu](https://github.com/Freedom-Jack)**
-
-</div>
+Vercel builds every pushed branch as a preview. **A push to `master` deploys production**, so only Jack pushes
+there. The old addresses (`/about/`, `/projects/`, `/blog/…`, the old résumé file) redirect with 301s
+(`src/lib/redirects.ts`). The launch gate is DESIGN.md §2 and the launch steps are §12. Each one waits for Jack's go.

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 20" preserveAspectRatio="none">
+  <!-- Second dry-brush underline (a slightly rising stroke with a different bristle pattern),
+       so neighbouring links never wear an identical mark. -->
+  <defs>
+    <linearGradient id="load" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#111416" stop-opacity="1"/>
+      <stop offset=".6" stop-color="#111416" stop-opacity=".92"/>
+      <stop offset="1" stop-color="#111416" stop-opacity=".5"/>
+    </linearGradient>
+    <filter id="dry" x="0" y="-60%" width="100%" height="220%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.011 0.6" numOctaves="2" seed="21" result="streak"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.08" numOctaves="2" seed="3" result="edge"/>
+      <feDisplacementMap in="SourceGraphic" in2="edge" scale="2.2" xChannelSelector="R" yChannelSelector="G" result="shape"/>
+      <feComposite in="shape" in2="streak" operator="arithmetic" k1="0" k2="4" k3="3" k4="-4.05" result="mask"/>
+      <feFlood flood-color="#111416"/>
+      <feComposite in2="mask" operator="in"/>
+    </filter>
+  </defs>
+  <path filter="url(#dry)" fill="url(#load)" d="M2.4 12.6C2.6 8.6 8 7 17 6.6 62 5.2 118 4.6 176 4c27-.3 48-.2 61.4 1.2-11 2.6-33 4.4-60 5.6-58 2.6-118 4.4-161 5.4-9 .2-14.2-.6-14-3.6z"/>
+</svg>

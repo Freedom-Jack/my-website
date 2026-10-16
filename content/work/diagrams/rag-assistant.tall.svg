@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="diagram__art diagram__art--tall" viewBox="0 0 400 710" role="img" aria-labelledby="dg-rag-t2 dg-rag-d2" data-draw="">
+<title id="dg-rag-t2">How the RAG assistant works</title>
+<desc id="dg-rag-d2">A customer’s question goes to retrieval, which finds passages in the insurer’s own knowledge base. An LLM, orchestrated with LangChain, answers from those passages, and the answer goes back to the customer.</desc>
+<defs><linearGradient id="dg-rag-m2g"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="0.06" stop-color="#fff"/><stop offset="0.94" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="dg-rag-m2"><rect x="0" y="618" width="400" height="92" fill="url(#dg-rag-m2g)"/></mask></defs>
+<g class="diagram__bands" mask="url(#dg-rag-m2)">
+<path class="diagram__band diagram__band--3" d="M0,637Q40,637 80,637Q120,637 160,637Q200,638 240,638Q280,638 320,637Q360,636 400,638L400,702Q360,702 320,704Q280,704 240,706Q200,706 160,705Q120,706 80,706Q40,703 0,702Z"/>
+</g>
+<g class="diagram__nodes">
+<path class="diagram__node" d="M287,57C290,64 291,70 286,75C282,81 271,85 262,89C254,93 245,96 235,98C224,100 219,102 198,102C178,102 133,101 111,100C89,98 79,94 68,93C56,91 50,92 43,89C35,87 26,82 22,77C17,71 17,65 16,57C16,49 18,36 20,30C22,23 21,22 28,18C34,15 47,11 61,9C76,7 95,9 116,8C136,8 165,7 185,8C206,8 224,11 236,13C249,16 254,18 260,21C266,24 269,27 274,33C278,39 285,50 287,57Z"/>
+<path class="diagram__node" d="M157,231C158,239 155,245 152,250C150,255 148,258 144,261C140,265 136,268 129,270C122,272 112,273 102,273C92,273 77,273 68,271C59,270 53,268 46,266C39,264 30,263 25,260C20,257 17,253 15,248C14,243 16,238 15,230C15,223 12,211 13,205C14,198 17,194 21,191C25,188 31,186 38,184C44,183 49,182 60,181C71,181 90,180 101,180C113,181 121,183 128,186C134,188 137,191 140,194C144,197 147,198 150,204C153,210 157,223 157,231Z"/>
+<path class="diagram__node" d="M392,223C391,232 388,246 386,253C384,260 384,261 379,265C374,268 367,272 358,275C350,277 340,278 327,279C313,280 292,282 279,282C265,281 255,280 247,277C239,275 235,271 231,267C227,263 225,261 223,253C221,246 218,230 218,221C218,212 221,204 224,198C227,193 233,191 238,188C242,185 244,183 252,180C260,177 272,172 285,171C298,169 318,169 331,170C344,172 354,175 363,178C371,180 377,181 381,185C386,188 390,193 391,199C393,206 392,214 392,223Z"/>
+<path class="diagram__node" d="M196,404C194,411 193,415 190,420C187,424 184,429 179,432C175,435 171,438 163,440C155,441 149,442 134,443C119,444 89,446 74,446C58,445 49,444 41,442C33,440 30,438 26,434C21,431 17,427 14,420C11,413 9,400 9,393C10,385 13,379 16,375C20,370 26,368 31,366C36,363 40,360 48,357C55,355 63,351 77,350C91,349 118,350 132,351C146,351 153,352 162,354C171,356 180,359 186,362C192,366 195,370 197,377C198,384 197,397 196,404Z"/>
+<path class="diagram__node" d="M233,573C231,581 232,587 229,592C226,597 223,601 216,604C209,606 197,608 187,609C178,611 176,613 159,614C142,615 105,617 87,617C68,617 59,615 49,613C40,611 35,608 29,604C24,601 19,597 16,590C12,584 10,572 10,564C11,557 15,552 19,547C23,542 30,540 35,536C40,533 43,529 51,526C59,524 68,522 85,521C102,520 134,520 153,520C172,521 186,522 198,524C211,526 221,530 227,533C234,537 234,539 235,545C236,552 234,565 233,573Z"/>
+</g>
+<g class="diagram__edges">
+<path class="diagram__edge" pathLength="1" data-order="1" d="M84,106C81,127 82,152 84,172M89,161L84,172L79,165"/>
+<path class="diagram__edge" pathLength="1" data-order="2" d="M160,212C177,209 196,210 212,212M204,206L212,212L205,215"/>
+<path class="diagram__edge" pathLength="1" data-order="3" d="M214,242C197,245 178,244 162,242M170,248L162,242L169,239"/>
+<path class="diagram__edge" pathLength="1" data-order="4" d="M84,278C81,299 82,324 84,344M89,333L84,344L79,337"/>
+<path class="diagram__edge" pathLength="1" data-order="5" d="M84,450C81,470 82,495 84,514M89,503L84,514L79,507"/>
+</g>
+<g class="diagram__labels">
+<text class="diagram__label" x="150" y="49" text-anchor="middle">Customer question</text>
+<text class="diagram__sub" x="150" y="73" text-anchor="middle">several languages</text>
+<text class="diagram__label" x="84" y="221" text-anchor="middle">Retrieval</text>
+<text class="diagram__sub" x="84" y="245" text-anchor="middle">RAG</text>
+<text class="diagram__label" x="306" y="221" text-anchor="middle">Insurer’s</text>
+<text class="diagram__label" x="306" y="245" text-anchor="middle">knowledge base</text>
+<text class="diagram__label" x="104" y="393" text-anchor="middle">LLM</text>
+<text class="diagram__sub" x="104" y="417" text-anchor="middle">LangChain</text>
+<text class="diagram__label" x="124" y="563" text-anchor="middle">Answer</text>
+<text class="diagram__sub" x="124" y="587" text-anchor="middle">around the clock</text>
+<text class="diagram__band-label" x="20" y="676">Runs across Azure, AWS and GCP</text>
+</g>
+</svg>

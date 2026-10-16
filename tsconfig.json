@@ -1,42 +1,47 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
+    "target": "ES2023",
+    "lib": ["dom", "dom.iterable", "es2023", "webworker.importscripts"],
     "module": "esnext",
     "moduleResolution": "bundler",
+    "moduleDetection": "force",
     "resolveJsonModule": true,
-    "isolatedModules": true,
+    "allowJs": true,
+    "checkJs": false,
     "jsx": "react-jsx",
+    "strict": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "exactOptionalPropertyTypes": false,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "skipLibCheck": true,
     "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "plugins": [{ "name": "next" }],
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
-    },
-    "forceConsistentCasingInFileNames": true
+      "@/*": ["./src/*"],
+      "@content/*": ["./content/*"]
+    }
   },
   "include": [
     "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.js",
+    "content/**/*.ts",
+    "tools/**/*.ts",
+    "tests/**/*.ts",
+    "*.ts",
+    "*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules", "legacy-v1", "design-demo", ".next/cache"]
 }

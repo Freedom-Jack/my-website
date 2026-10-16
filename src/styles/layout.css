@@ -1,0 +1,1052 @@
+/* ==========================================================================
+   layout.css — the frame, the header, the painted strip, sections, rows, the
+   closing scene and the footer (SPEC-R4A §3–§8).
+   A calm reading column on cool paper, with a painted strip at the top of every
+   page. No cards, no boxes, no frames: structure comes from type, space and
+   hairlines. Shared file: do not edit from a page.
+   ========================================================================== */
+
+/* ---------- the frame ----------
+   <main id="main" class="frame"> is the page frame (1200 px, centred); the header and the footer use an
+   inner .frame. A full-bleed child of the frame (.bleed: the strip art, the closing art) reaches both
+   screen edges; html and body clip sideways overflow, so nothing ever scrolls sideways. */
+:root {
+  --gutter-x: max(var(--gutter), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
+}
+.frame {
+  width: min(var(--frame), 100% - 2 * var(--gutter-x));
+  margin-inline: auto;
+}
+main {
+  display: block;
+}
+.bleed {
+  margin-inline: calc(50% - 50vw);
+}
+
+/* ==========================================================================
+   Header (components/layout/SiteHeader, the returning-header effect). One home link (the seal and "Qijin Xu"),
+   then Work · Résumé · Contact. In normal flow, on paper, directly above the strip.
+     <header class="site-header"><div class="site-header__inner frame">
+       <a class="home-link" href="/"><span class="seal" aria-hidden="true"><svg class="seal__mark">…</svg></span>
+         <span class="home-link__name">Qijin Xu</span><span class="visually-hidden">, home</span></a>
+       <nav class="site-nav" aria-label="Main"><ul class="site-nav__list" role="list">…</ul></nav>
+     </div></header>
+   One row at 360 px; below 340 the nav wraps under the home link. No menu button.
+   ========================================================================== */
+.site-header {
+  position: relative;
+  z-index: var(--z-header);
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.site-header__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  column-gap: var(--space-s);
+  min-height: var(--header-h);
+}
+.home-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--brand-gap);
+  min-height: 44px;
+  font-family: var(--font-body);
+  font-size: var(--fs-brand);
+  font-weight: var(--w-strong);
+  line-height: 1.2;
+  letter-spacing: -0.005em;
+  color: var(--ink-1);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.home-link:focus-visible {
+  outline-offset: 3px;
+}
+
+/* the seal: a carved cinnabar stone with the one character (the header's, and the signature's: components.css) */
+.seal {
+  display: block;
+  flex: none;
+  width: var(--seal-size);
+  aspect-ratio: 1;
+}
+.seal__mark {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.seal__stone {
+  fill: var(--cinnabar);
+}
+.seal__glyph {
+  fill: #000;
+} /* the glyph's outline (components/ui/Seal), cut out of the stone by its mask */
+
+.site-nav__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--nav-gap);
+  font-family: var(--font-body);
+  font-size: var(--fs-nav);
+  font-weight: var(--w-ui);
+  line-height: 1.3;
+  letter-spacing: 0.005em;
+}
+.site-nav__list a {
+  /* a 44 × 44 target with the word centred; the current page's brush mark sits just under the word
+     (--brush-y, effects.css), not at the bottom of the 44 px box */
+  --brush-y: calc(50% + 0.72em);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 44px;
+  min-inline-size: 44px;
+  padding-bottom: 0;
+  color: var(--ink-2);
+  text-decoration: none;
+  transition: color var(--dur-hover) var(--ease-out);
+}
+.site-nav__list a:hover,
+.site-nav__list a[aria-current] {
+  color: var(--ink-1);
+}
+/* the nav is exempt from the links' resting mark: its place says "navigation"; the current page keeps its brush */
+.site-nav__list a.brush {
+  text-decoration: none;
+}
+
+/* below 340 px: the nav takes a row of its own under the home link */
+@media (max-width: 21.1875rem) {
+  .site-header__inner {
+    padding-block: 0.25rem;
+  }
+  .site-nav {
+    flex-basis: 100%;
+  }
+  .site-nav__list {
+    margin-inline-start: -0.2rem;
+  }
+}
+
+/* ---------- the returning header (features/chrome/returning-header) ----------
+   Once the strip's art has scrolled away the header turns sticky (it never leaves the flow, so nothing
+   below it moves) and hides; scrolling up >= 8 px brings it back SOLID: paper and a 1 px mist rule, no
+   gradient, no shadow. Scrolling down >= 8 px slides it away. Back at the very top it is static again.
+   Never visibility:hidden or inert: focus inside pins it; html's scroll-padding-top keeps anchors and
+   focused elements clear of it (base.css). */
+.site-header.is-pinned,
+.site-header.is-unpinned {
+  position: sticky;
+  top: 0;
+  transition: translate var(--dur-header) var(--ease-out);
+}
+.site-header.is-unpinned {
+  translate: 0 calc(-100% - 2px);
+}
+.site-header.is-instant {
+  transition: none !important;
+}
+/* Focus inside the sticky header never scrolls the page. It moves with the viewport, so html's scroll-padding-top
+   (which keeps focused elements below the header) could never be met there: each focus threw the page up by about
+   half a screen and the header came along (a keyboard user Tabbing round from the footer lost their place 4-5 times).
+   Its controls' scroll area starts below that padding instead, even while the header is still sliding in from
+   .is-unpinned and on the two-row header under 340 px; the static header at the top keeps the default. */
+.site-header:is(.is-pinned, .is-unpinned) :is(a, button) {
+  scroll-margin-top: calc(-3 * var(--header-h) - 0.75rem - 4px);
+}
+/* the paper and its rule are a pseudo-element, so the solid state adds no height */
+.site-header.is-pinned::before,
+.site-header.is-unpinned::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--paper);
+  border-bottom: 1px solid var(--mist-2);
+}
+@media (prefers-reduced-motion: reduce) {
+  /* no slide: a 120 ms fade, the move happens while it is invisible */
+  .site-header.is-pinned {
+    transition:
+      opacity 120ms linear,
+      translate 0s;
+  }
+  .site-header.is-unpinned {
+    opacity: 0;
+    transition:
+      opacity 120ms linear,
+      translate 0s linear 120ms;
+  }
+}
+@media (forced-colors: active) {
+  .site-header.is-pinned::before,
+  .site-header.is-unpinned::before {
+    background: Canvas;
+    border-color: CanvasText;
+  }
+}
+/* Print is the page's text only, on every page: no header, and no row of actions (an ink button's label is
+   painted by background-clip, so it prints blank; "Résumé" alone is a dead link on paper). .ink-btn catches a
+   button outside .actions. The strip art, the closing and the footer are hidden by their own rules below. */
+@media print {
+  .site-header,
+  .actions,
+  .ink-btn {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   The painted strip (SPEC-R4A §6). Every page opens on a short, unframed,
+   full-bleed band of its own scene; the engine paints it into .strip__art's box.
+     <header class="strip strip--home|sub|doc" aria-labelledby="…">
+       <div class="strip__art bleed" data-landscape="strip" data-wake aria-hidden="true"></div>
+       <div class="strip__text" data-landscape="keepout" data-veil="0.85"> h1 + p.lead … </div>
+     </header>
+   .strip__art is an EMPTY box that reserves the strip's height: the text never depends on the painting
+   (layout is identical with JS off, WebGL off, or the engine still loading).
+     wide (>= 1200), home and sub: art and text share one grid cell; the title sits in the art's mist at
+       the frame's left edge (home: vertically centred; sub: low in the band, so the intro stays close to the
+       content it introduces); the scene's figures stand to its right (the engine keeps pigment and figures
+       out of the keep-out box).
+     below 1200, and doc at every width: the art first, then the text on paper below it.
+   ========================================================================== */
+.strip {
+  position: relative;
+}
+.strip--home {
+  --strip-h: var(--strip-home);
+}
+.strip--sub {
+  --strip-h: var(--strip-sub);
+}
+.strip--doc {
+  --strip-h: var(--strip-doc);
+}
+.strip__art {
+  min-height: var(--strip-h, var(--strip-sub));
+}
+.strip__text {
+  position: relative;
+  padding-top: var(--space-strip-text);
+}
+/* the title block's rhythm: the h1, then its lead, then the actions */
+.strip__text > * + * {
+  margin-block-start: var(--space-para);
+}
+.strip__text > :is(h1, .name, .page-title) + * {
+  margin-block-start: 0.875rem;
+}
+.strip__text > .lead + .lead {
+  margin-block-start: 0.75rem;
+}
+
+@media (min-width: 75rem) {
+  .strip--home,
+  .strip--sub {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .strip--home > .strip__art,
+  .strip--home > .strip__text,
+  .strip--sub > .strip__art,
+  .strip--sub > .strip__text {
+    grid-area: 1 / 1;
+  }
+  .strip--home > .strip__text,
+  .strip--sub > .strip__text {
+    z-index: 1;
+    align-self: center;
+    max-width: var(--strip-text-max);
+    padding-block: var(--space-l);
+  }
+  /* a subpage's short intro (Work, Writing, Contact, 404) sits low in the band: centred in 300–360 px it left
+     140–200 px of blank paper before the first section; low, the gap is the section's own (~90 px) */
+  .strip--sub > .strip__text {
+    align-self: end;
+    padding-block: var(--space-l) var(--space-m);
+  }
+}
+
+/* No JavaScript, or no landscape at all: a faint static ridge hint in the same box. */
+html:not(.js) .strip__art,
+html.no-landscape .strip__art,
+html:not(.js) .closing__art,
+html.no-landscape .closing__art {
+  background: url('./svg/ridge-hint.svg') right bottom / auto 70% no-repeat;
+}
+@media print {
+  .strip__art,
+  .closing__art {
+    display: none !important;
+  }
+  .strip__text {
+    padding-top: 0;
+  }
+}
+
+/* ==========================================================================
+   Sections, the reading column, rows (SPEC-R4A §3).
+     <section class="sec" aria-labelledby="x-title" data-veil>
+       <h2 class="sec__title" id="x-title">…</h2> <p>…</p> …
+     </section>
+   Children are capped at the reading column (680) unless .wide (960: tables, diagrams).
+   ========================================================================== */
+.sec {
+  margin-block-start: var(--space-section);
+}
+.sec > * {
+  max-width: var(--measure-read);
+}
+.sec > :is(.wide, .table-wrap, figure.diagram) {
+  max-width: var(--measure-wide);
+}
+.sec > * + * {
+  margin-block-start: var(--space-para);
+}
+.sec > .sec__title + * {
+  margin-block-start: var(--space-head);
+}
+.wide {
+  max-width: var(--measure-wide);
+}
+
+/* h2: the body face in bold (the heavy condensed face is for the name and page titles only) */
+.sec__title {
+  font-family: var(--font-body);
+  font-size: var(--fs-h2);
+  font-weight: var(--w-strong);
+  line-height: var(--lh-h2);
+  letter-spacing: -0.01em;
+  color: var(--ink-1);
+}
+.sec__title--item {
+  font-size: var(--fs-item);
+  line-height: var(--lh-item);
+  letter-spacing: 0;
+} /* e.g. Work's "Six projects, newest first" */
+/* a date inside a heading: "Now · October 2026" */
+.sec__date {
+  font-size: var(--fs-small);
+  font-weight: var(--w-body);
+  line-height: 1;
+  letter-spacing: 0;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+/* h3 inside a section ("Early work, 2019–2020", "Recent") */
+.sec__sub {
+  font-family: var(--font-body);
+  font-size: var(--fs-item);
+  font-weight: var(--w-strong);
+  line-height: var(--lh-item);
+  color: var(--ink-1);
+}
+.sec > .sec__sub {
+  margin-block-start: var(--space-item);
+}
+.sec > .sec__sub + * {
+  margin-block-start: var(--space-head);
+}
+
+/* page titles (h1): Sofia Sans Condensed 780, 32 → 40 */
+.page-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-title);
+  font-weight: 780;
+  line-height: var(--lh-title);
+  letter-spacing: -0.008em;
+  color: var(--ink-1);
+}
+/* the name (Home only): Sofia Sans Extra Condensed 900, one line at every width, readable at first paint
+   (data-arrive="name" only adds a <= 400 ms ink settle: effects.css, the arrival effect) */
+.name {
+  font-family: var(--font-name);
+  font-size: var(--fs-name);
+  font-weight: 900;
+  line-height: var(--lh-name);
+  letter-spacing: -0.005em;
+  color: var(--ink-1);
+  white-space: nowrap;
+  text-wrap: nowrap;
+  padding-block-end: 0.06em; /* the Q's tail and the j's descender clear the lead */
+}
+
+.lead {
+  font-size: var(--fs-lead);
+  line-height: var(--lh-lead);
+  max-width: 34em;
+  text-wrap: pretty; /* no lone last word */
+}
+.small {
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  font-variant-numeric: lining-nums tabular-nums;
+  color: var(--ink-3); /* 7.7:1 on paper, 6.3:1 on mist-2 */
+}
+.small--quiet {
+  color: var(--ink-4);
+} /* 5.1:1: plain paper only */
+
+/* ---------- tap targets (SPEC-R4A §1.4: every link and button >= 44 × 44) ----------
+   A standalone link shorter than 44 px (an action row's quiet link, a "… →" line) gets an invisible
+   hit area: a pseudo-element centred on it, max(44 px, its own height) tall. Nothing moves; the brush marks stay
+   where they are. Links inside sentences keep WCAG 2.5.8's inline exception (the footer repeats the key ones). */
+.actions > a.brush,
+.more > a {
+  position: relative;
+}
+.actions > a.brush::before,
+.more > a::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block: min(0px, 50% - 22px);
+}
+
+/* a row of actions: one .ink-btn at most, then quiet links (hero, 404, résumé) */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline; /* the button's label and the quiet link share a baseline */
+  gap: 0.75rem 1.75rem;
+}
+.strip__text > .actions,
+.sec > .actions {
+  margin-block-start: var(--space-m);
+}
+
+/* ---------- rows: ul/ol.rows[role=list] > li.row, separated by hairlines (typographic rules, never boxes) ----------
+     <li class="row ink-row">
+       <p class="row__meta small">Note · <time>…</time></p>          (optional, before the title)
+       <h3 class="row__title"><a class="brush brush--rest" href>…</a></h3>
+       <p class="row__line">…</p>
+     </li>
+   The title link covers the row (::after); other links in the row stay clickable above it. */
+.rows {
+  display: grid;
+}
+.rows > li {
+  position: relative;
+  border-top: 1px solid var(--rule);
+  padding-block: 0.875rem;
+}
+.rows--plain {
+  gap: 0.375rem;
+}
+.rows--plain > li {
+  border-top: 0;
+  padding-block: 0;
+}
+.row__title {
+  font-family: var(--font-body);
+  font-size: var(--fs-item);
+  font-weight: var(--w-strong);
+  line-height: var(--lh-item);
+  color: var(--ink-1);
+}
+.row__title a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+.row__meta {
+  margin-block-end: 0.125rem;
+}
+.row__line {
+  margin-block-start: 0.25rem;
+}
+.row__meta a,
+.row__line a {
+  position: relative;
+  z-index: 1;
+}
+.more {
+  margin-block-start: var(--space-s);
+}
+.sec > .more {
+  margin-block-start: var(--space-s);
+}
+
+/* ---------- the margin rail (wide only): .has-rail ----------
+   A two-column grid: the reading column (680) and the rail (300), 48 apart. Children sit in the reading
+   column; margin notes in the rail beside the paragraph they follow; .wide blocks span both (capped at 960).
+   Placement is in source order (sparse auto-flow, never `dense`, which would pile the notes at the top): a
+   note that follows a paragraph shares its row. Nested lists opt in by subgrid: a case's dl.case__body and
+   its dd elements (and any .rail-sub) carry the rail through, so a note inside a dd still reaches the rail. */
+@media (min-width: 75rem) {
+  .has-rail {
+    display: grid;
+    grid-template-columns: minmax(0, var(--measure-read)) minmax(0, var(--rail-w));
+    column-gap: var(--rail-gap);
+    align-items: start;
+  }
+  /* zero specificity, so a margin note's own rule (components.css) puts it in the rail */
+  :where(.has-rail > *, .has-rail .rail-sub > *, .has-rail > .case__body > *, .has-rail > .case__body > dd > *) {
+    grid-column: 1;
+    min-width: 0;
+    max-width: none;
+  }
+  .has-rail > .wide,
+  .has-rail > .table-wrap,
+  .has-rail > figure.diagram {
+    grid-column: 1 / -1;
+    max-width: var(--measure-wide);
+  }
+  .has-rail .rail-sub,
+  .has-rail > .case__body,
+  .has-rail > .case__body > dd {
+    display: grid;
+    grid-template-columns: subgrid;
+    grid-column: 1 / -1;
+    align-items: start;
+  }
+  /* A group of notes inside a dd (MarginNotes groups two or more) would stretch its own dd's row and leave a
+     hole under the paragraph; instead it is taken out of the row's height (absolute in its own grid area: the
+     rail beside the paragraph) and runs on down the rail beside the next terms (Outcome, Evidence, Stack).
+     The dd keeps display: grid (no display: contents), so its semantics are untouched. */
+  .has-rail > .case__body > dd {
+    position: relative;
+  }
+  .has-rail > .case__body > dd > .margin-notes {
+    position: absolute;
+    grid-column: 2;
+    grid-row: 1;
+    inset-block-start: 0;
+    inset-inline: 0;
+  }
+}
+
+/* ==========================================================================
+   The closing scene: the page's own place once more, the last child of <main> on
+   the long pages (Home, Work, a case, the Résumé, the Note). Art only: there is no
+   "Next: …" link (DESIGN §11.E answer 8); the footer's story map is the way on.
+   The short pages (Writing, Contact, the 404) have none and end on the story map.
+     <div class="closing"><div class="closing__art bleed" data-landscape="closing" data-wake aria-hidden="true"></div></div>
+   It feathers into the footer's paper.
+   ========================================================================== */
+.closing {
+  position: relative;
+  margin-block-start: var(--space-section);
+}
+.closing__art {
+  min-height: var(--closing-h);
+}
+@media print {
+  .closing {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   Footer (components/layout/SiteFooter, StoryMap, StillToggle). The story map: the whole painting as one
+   small handscroll, each place's own scene linking to its page; then the
+   links line and the "updated" line. On paper.
+   ========================================================================== */
+.site-footer {
+  margin-block-start: var(--space-section);
+  padding-block: var(--space-s) max(var(--space-l), env(safe-area-inset-bottom, 0px));
+  font-family: var(--font-body);
+  font-size: var(--fs-small);
+  font-weight: var(--w-body);
+  line-height: var(--lh-small);
+  color: var(--ink-3);
+  overflow-x: clip; /* the map's outer scenes feather out past the frame; never past the screen */
+}
+/* after a closing scene the art's feather is the gap */
+main:has(> .closing:last-child) + .site-footer {
+  margin-block-start: var(--space-2xs);
+}
+
+/* ---------- the story map ----------
+   One quiet handscroll: each place's own opening scene in miniature, in the order of the one painting, not of
+   the nav: Home (0) · Work (1) · the road (2: no page, a gap of mist) · Writing (3) · Résumé (4) · Contact (5).
+   The 404 (6) lies off the map. The scenes are build-time stills cut from the engine (tools/build-stills.ts →
+   public/scenes/, with its crop table), plain <img>s in the shared footer, so the map shows without JS too.
+   One grid holds the map: the art and the labels are subgrids of it, so a place's scene, its tick and its label
+   always share a column. Three layouts:
+   - from 640: the geography, six equal columns (the road's stays empty);
+   - phones: each place's column is its label's width and the free space falls evenly between the columns; the
+     road's empty column takes two shares, the wider gap between Work and Writing;
+   - phones whose labels do not fit one row (large text, WCAG 1.4.4; the footer frame is narrower than 20.3em of
+     its own text, the labels' width plus their .5rem gaps), and browsers without subgrid or container queries:
+     the art keeps the geography and the labels wrap in a flex row (Contact goes to a second line).
+   Each label's hit area also covers its column of the art (not in the wrapping row). Ticks mark every place;
+   "you are here" (the aria-current label, from the route) gets its
+   brush mark and a taller ink tick (by :has() below, and StoryMap's .is-here where :has() is missing). */
+.site-footer > .frame {
+  container: story-map / inline-size;
+} /* the map's width: its windows' unit, its labels' fit */
+.story-map {
+  --story-map-gap: 1.75rem; /* art → labels: the scenes' figures stay >= 40 px from the label text (DESIGN 4.6) */
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  column-gap: 0;
+  row-gap: var(--story-map-gap);
+  margin-block-end: var(--space-2xs);
+}
+.story-map__art,
+.story-map__list {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr)); /* no subgrid: the plain geography */
+  grid-template-columns: subgrid;
+}
+/* both lines, always: an absolutely placed item's missing end line would be the art's edge, not the next line */
+.story-map [data-stretch='0'] {
+  grid-column: 1 / 2;
+}
+.story-map [data-stretch='1'] {
+  grid-column: 2 / 3;
+}
+.story-map [data-stretch='2'] {
+  grid-column: 3 / 4;
+}
+.story-map [data-stretch='3'] {
+  grid-column: 4 / 5;
+}
+.story-map [data-stretch='4'] {
+  grid-column: 5 / 6;
+}
+.story-map [data-stretch='5'] {
+  grid-column: 6 / 7;
+}
+@media (max-width: 39.99rem) {
+  /* the wrapping row (large text, or no subgrid / container queries): never closer than .5rem, never clipped */
+  .story-map__list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    column-gap: 0.5rem;
+  }
+  .story-map .story-map__list a::before {
+    top: 0;
+  } /* its own box only: a second row must not cover the first */
+  /* the labels fit one row: they set the columns, and the art follows them */
+  @supports (grid-template-columns: subgrid) {
+    @container story-map (min-width: 20.3em) {
+      .story-map {
+        grid-template-columns: auto auto 0px auto auto auto;
+        justify-content: space-between;
+        column-gap: 0.5rem;
+      }
+      .story-map__list {
+        display: grid;
+        column-gap: normal;
+      } /* a subgrid's normal gap is the parent's: no shifted ends */
+      .story-map .story-map__list a::before {
+        top: calc(-1 * (var(--story-map-art) + var(--story-map-gap)));
+      }
+    }
+  }
+}
+
+/* The art. Not five thumbnails: no box, border, radius or shadow. Each still's paper is white and it is multiplied
+   into the page's paper (the live canvas and its grain show through, so the scenes are painted on the same sheet).
+   Each still is drawn whole at the art's height (its own width: the tiles differ), pinned by its focus (--focus:
+   the point of the still that stands for the place) over its column's centre, its tick and its label. What shows
+   of it is a soft window (.story-map__scene: --wl / --wr from the focus, --fl / --fr the feathers), so the row is
+   one painting and not five pictures:
+   - between neighbours the two windows feather over the SAME stretch with complementary ramps (they sum to one):
+     the places meet in mist, never in a hole of paper or a doubled band of ink. On wide screens that stretch is a
+     quarter of a column; on phones 20 px, or Home's own: its still ends at the near peaks (the hero's edge), so
+     Home → Work crossfades over those peaks (u .80-.95 across the middle row), Home dissolving them quickly while
+     Work's river and the town's misty left end come in;
+   - the road (2) has no page: Work's town dissolves over a long tail and Writing's left (the lake's far range and
+     its reflection, faint) reaches into it on a longer one, so about half a column reads as mist with the far
+     range threading through; on phones a 10-17 px breath of paper between the town and the peak;
+   - the row's ends feather out before the screen's edge;
+   - the feathers are slanted 20deg (--tl / --tr), so a place dissolves unevenly, the way mist takes a landscape:
+     76deg keeps a scene's foot longer on its right and its tops longer on its left, 104deg the reverse. The two
+     sides of a seam share one slant; at the road both keep their tops (the far ranges reach in).
+   A window must lie inside its still (with the slant's .182 x height); the per-scene notes give the limits, from
+   the crop table. --focus and --fade-b come from build-stills.ts's crop table (its --check compares them).
+   A touch quieter than the pages' own strips. */
+.story-map__art {
+  position: relative;
+  height: var(--story-map-art);
+  pointer-events: none;
+}
+.story-map__scene {
+  --h: var(--story-map-art);
+  --ww: calc(var(--wl) + var(--wr));
+  /* ramps: the alpha at 1/4, 1/2, 3/4 of a feather, from its outer end; the default is a smoothstep (a join) */
+  --la1: 0.156;
+  --la2: 0.5;
+  --la3: 0.844;
+  --ra1: 0.156;
+  --ra2: 0.5;
+  --ra3: 0.844;
+  /* a slanted (20deg) gradient's stop for a boundary at x across the window's middle row: x cos 20 + h sin 20 / 2 */
+  --mask:
+    linear-gradient(to bottom, transparent, #000 7%, #000 calc(100% - var(--fade-b)), transparent),
+    linear-gradient(
+      var(--tl),
+      transparent calc(var(--h) * 0.171),
+      rgb(0 0 0 / var(--la1)) calc(var(--fl) * 0.2349 + var(--h) * 0.171),
+      rgb(0 0 0 / var(--la2)) calc(var(--fl) * 0.4699 + var(--h) * 0.171),
+      rgb(0 0 0 / var(--la3)) calc(var(--fl) * 0.7048 + var(--h) * 0.171),
+      #000 calc(var(--fl) * 0.9397 + var(--h) * 0.171)
+    ),
+    linear-gradient(
+      var(--tr),
+      #000 calc((var(--ww) - var(--fr)) * 0.9397 + var(--h) * 0.171),
+      rgb(0 0 0 / var(--ra3)) calc((var(--ww) - var(--fr) * 0.75) * 0.9397 + var(--h) * 0.171),
+      rgb(0 0 0 / var(--ra2)) calc((var(--ww) - var(--fr) * 0.5) * 0.9397 + var(--h) * 0.171),
+      rgb(0 0 0 / var(--ra1)) calc((var(--ww) - var(--fr) * 0.25) * 0.9397 + var(--h) * 0.171),
+      transparent calc(var(--ww) * 0.9397 + var(--h) * 0.171)
+    );
+  /* without container units: a plain window of the art's height on each side */
+  --wl: calc(var(--h) * 1.2);
+  --wr: calc(var(--h) * 1.2);
+  --fl: calc(var(--h) * 0.6);
+  --fr: calc(var(--h) * 0.6);
+  --tl: 90deg;
+  --tr: 90deg;
+  position: absolute;
+  inset-block: 0;
+  left: calc(50% - var(--wl));
+  width: var(--ww);
+  mix-blend-mode: multiply;
+  opacity: 0.9;
+  -webkit-mask-image: var(--mask);
+  -webkit-mask-composite: source-in;
+  mask-image: var(--mask);
+  mask-composite: intersect;
+}
+.story-map__scene img {
+  position: absolute;
+  top: 0;
+  left: var(--wl);
+  width: auto;
+  max-width: none;
+  height: 100%;
+  translate: calc(-1 * var(--focus, 50%)) 0;
+}
+.story-map__scene[data-stretch='0'] {
+  --focus: 76%;
+  --fade-b: 10%;
+  --wr: calc(var(--h) * 0.68);
+} /* his mountain: hut, traveller */
+.story-map__scene[data-stretch='1'] {
+  --focus: 54%;
+  --fade-b: 12%;
+} /* the market at the bridge */
+.story-map__scene[data-stretch='3'] {
+  --focus: 71%;
+  --fade-b: 16%;
+} /* the lake and the pavilion */
+.story-map__scene[data-stretch='4'] {
+  --focus: 52%;
+  --fade-b: 22%;
+} /* the terraced hills */
+.story-map__scene[data-stretch='5'] {
+  --focus: 62%;
+  --fade-b: 14%;
+} /* the ferry, his mountain's echo */
+@supports (width: 1cqi) {
+  /* The geography (from 640, and the wrapping row): --col is a column. The art is at least .37 of a column tall
+     (tokens.css), so every window below lies inside its still. */
+  .story-map__scene {
+    --col: calc(100cqi / 6);
+  }
+  .story-map__scene[data-stretch='0'] {
+    /* Home: to the screen's edge (L <= 2.55h); Home → Work over the near peaks */
+    --tl: 76deg;
+    --wl: calc(var(--col) * 0.5 + var(--gutter-x));
+    --fl: calc(var(--col) * 0.45);
+    --la1: 0.08;
+    --la2: 0.26;
+    --la3: 0.6;
+    --tr: 76deg;
+    --wr: calc(var(--h) * 0.68);
+    --fr: calc(var(--h) * 0.53);
+    --ra1: 0.1;
+    --ra2: 0.28;
+    --ra3: 0.6; /* the near peaks go quickly; Work's ramp is its complement */
+  }
+  .story-map__scene[data-stretch='1'] {
+    /* Work: Home's seam (L <= 2.55h); the road (R <= 2.15h), the town dissolves */
+    --tl: 76deg;
+    --wl: calc(var(--col) - var(--h) * 0.15);
+    --fl: calc(var(--h) * 0.53);
+    --la1: 0.4;
+    --la2: 0.72;
+    --la3: 0.9;
+    --tr: 104deg;
+    --wr: min(var(--h) * 2.1, var(--col) * 0.8);
+    --fr: calc(var(--col) * 0.4);
+    --ra1: 0.12;
+    --ra2: 0.34;
+    --ra3: 0.66;
+  }
+  .story-map__scene[data-stretch='3'] {
+    /* Writing: the road on a long tail of far range (L <= 3.73h); Résumé's seam (R <= 1.42h) */
+    --tl: 76deg;
+    --wl: min(var(--h) * 3.72, var(--col) * 1.4);
+    --fl: calc(min(var(--h) * 3.72, var(--col) * 1.4) * 0.7);
+    --la1: 0.5;
+    --la2: 0.7;
+    --la3: 0.88;
+    --tr: 76deg;
+    --wr: min(var(--h) * 1.4, var(--col) * 0.625);
+    --fr: calc(var(--col) * 0.25);
+  }
+  .story-map__scene[data-stretch='4'] {
+    /* Résumé: Writing's seam (L <= 2.17h); Contact's (R <= 1.99h) */
+    --tl: 76deg;
+    --wl: calc(var(--col) * 1.25 - min(var(--h) * 1.4, var(--col) * 0.625));
+    --fl: calc(var(--col) * 0.25);
+    --tr: 104deg;
+    --wr: calc(var(--col) * 0.625);
+    --fr: calc(var(--col) * 0.25);
+  }
+  .story-map__scene[data-stretch='5'] {
+    /* Contact: Résumé's seam (L <= 2.05h); to the screen's edge (R <= 1.18h) */
+    --tl: 104deg;
+    --wl: calc(var(--col) * 0.625);
+    --fl: calc(var(--col) * 0.25);
+    --tr: 104deg;
+    --wr: min(var(--h) * 1.18, var(--col) * 0.5 + var(--gutter-x));
+    --fr: calc(min(var(--h) * 1.18, var(--col) * 0.5 + var(--gutter-x)) * 0.7);
+    --ra1: 0.08;
+    --ra2: 0.26;
+    --ra3: 0.6;
+  }
+  /* Phones whose labels fit one row: the columns are the labels, so the windows follow the distances between the
+     labels' centres. Those are linear in the frame's width (the free space is shared out in fifths, the road's
+     column taking two): --s-* below, from the five labels' widths (--w-*: each word's measured width in em of the
+     footer's text, plus its two sides, at least 44 px), so they follow the user's font size. The art is 44 px at a
+     16 px default. */
+  @media (max-width: 39.99rem) {
+    @supports (grid-template-columns: subgrid) {
+      @container story-map (min-width: 20.3em) {
+        .story-map__art {
+          --sides: 0.5rem; /* a label's two sides (.25rem each) */
+          --w-h: max(44px, 2.749em + var(--sides));
+          --w-w: max(44px, 2.491em + var(--sides));
+          --w-wr: calc(3.412em + var(--sides));
+          --w-r: calc(3.581em + var(--sides));
+          --w-c: calc(3.695em + var(--sides));
+          --w-sum: calc(var(--w-h) + var(--w-w) + var(--w-wr) + var(--w-r) + var(--w-c));
+          --s-hw: calc((var(--w-h) + var(--w-w)) / 2 - var(--w-sum) / 5 + 20cqi);
+          --s-road: calc((var(--w-w) + var(--w-wr)) / 2 - var(--w-sum) * 0.4 + 40cqi);
+          --s-wr: calc((var(--w-wr) + var(--w-r)) / 2 - var(--w-sum) / 5 + 20cqi);
+          --s-rc: calc((var(--w-r) + var(--w-c)) / 2 - var(--w-sum) / 5 + 20cqi);
+          --home-c: calc(var(--w-h) / 2);
+          --contact-c: calc(var(--w-c) / 2); /* from the frame's left / right */
+          --breath: 6px; /* the road: with the two feathers' faint ends, 10-17 px of paper */
+        }
+        .story-map__scene[data-stretch='0'] {
+          --wl: calc(var(--home-c) + var(--gutter-x));
+          --fl: 26px;
+        }
+        .story-map__scene[data-stretch='1'] {
+          --wl: calc(var(--s-hw) - var(--h) * 0.15);
+          --wr: calc(var(--s-road) / 2 - var(--breath) / 2);
+          --fr: 22px;
+        }
+        .story-map__scene[data-stretch='3'] {
+          --wl: calc(var(--s-road) / 2 - var(--breath) / 2);
+          --fl: 22px;
+          --la1: 0.156;
+          --la2: 0.5;
+          --la3: 0.844;
+          --wr: min(var(--h) * 1.4, var(--s-wr) / 2 + 10px);
+          --fr: 20px; /* wide phones: its still ends first */
+        }
+        .story-map__scene[data-stretch='4'] {
+          --wl: calc(var(--s-wr) + 20px - min(var(--h) * 1.4, var(--s-wr) / 2 + 10px));
+          --fl: 20px;
+          --wr: calc(var(--s-rc) / 2 + 10px);
+          --fr: 20px;
+        }
+        .story-map__scene[data-stretch='5'] {
+          --wl: calc(var(--s-rc) / 2 + 10px);
+          --fl: 20px;
+          --wr: min(var(--h) * 1.18, var(--contact-c) + var(--gutter-x));
+          --fr: 26px;
+        }
+      }
+    }
+  }
+  @media (max-width: 23.4375rem) {
+    /* the tight row (.0625rem sides) */
+    .story-map__art {
+      --sides: 0.125rem;
+      --breath: 8px; /* the shorter road keeps its 12 px of paper */
+    }
+  }
+}
+/* the ticks stand on the art's top edge, over the scenes' sky, never on the painting itself */
+.story-map__tick {
+  position: absolute;
+  bottom: calc(100% - 2px);
+  left: 50%;
+  width: 1px;
+  height: 6px;
+  margin-left: -0.5px;
+  background: var(--rule-rest);
+}
+.story-map__tick.is-here {
+  width: 2px;
+  height: 14px;
+  margin-left: -1px;
+  background: var(--ink-1);
+}
+.story-map:has(> .story-map__list > [data-stretch='0'] > a[aria-current]) .story-map__tick[data-stretch='0'],
+.story-map:has(> .story-map__list > [data-stretch='1'] > a[aria-current]) .story-map__tick[data-stretch='1'],
+.story-map:has(> .story-map__list > [data-stretch='3'] > a[aria-current]) .story-map__tick[data-stretch='3'],
+.story-map:has(> .story-map__list > [data-stretch='4'] > a[aria-current]) .story-map__tick[data-stretch='4'],
+.story-map:has(> .story-map__list > [data-stretch='5'] > a[aria-current]) .story-map__tick[data-stretch='5'] {
+  width: 2px;
+  height: 14px;
+  margin-left: -1px;
+  background: var(--ink-1);
+}
+
+/* the labels */
+.story-map__list {
+  color: var(--ink-2);
+}
+.story-map__list li {
+  position: relative;
+  grid-row: 1;
+  display: flex;
+  justify-content: center;
+}
+.story-map__list a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 44px;
+  min-inline-size: 44px;
+  white-space: nowrap;
+}
+/* the label's hit area: its own 44 px row and its column of the art above it */
+.story-map__list a::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  top: calc(-1 * (var(--story-map-art) + var(--story-map-gap)));
+}
+/* footer targets are 44 px boxes: the brush sits just under the word, and the same small side padding on
+   every link keeps the spacing between them even (a short word is centred in its 44 px) */
+.story-map__list a,
+.site-footer__links a,
+.still-toggle {
+  --brush-y: calc(50% + 0.78em);
+  padding-bottom: 0;
+  padding-inline: 0.25rem;
+}
+@media (max-width: 23.4375rem) {
+  /* tight phones: the five labels still share one row at 320 */
+  .story-map__list a {
+    padding-inline: 0.0625rem;
+  }
+}
+
+/* ---------- the links line and the "updated" line ----------
+   Wide: both on one row (© and links left, "Updated" right). Below: they stack; on phones the links
+   wrap under the © group. Separators are CSS (read as nothing), only where the links share one line, so
+   no line ever starts or ends with a stray dot. */
+.site-footer__base {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  column-gap: 2rem;
+}
+.site-footer__line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 0;
+}
+.site-footer__copy {
+  margin: 0;
+  flex-basis: 100%;
+}
+.site-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 1em;
+  color: var(--ink-2);
+}
+.site-footer__links a,
+.still-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 44px;
+  min-inline-size: 44px;
+}
+@media (min-width: 40rem) {
+  .site-footer__copy {
+    flex-basis: auto;
+  }
+  .site-footer__links {
+    column-gap: 0;
+  }
+  .site-footer__links::before,
+  .site-footer__links li + li::before {
+    content: '·' / '';
+    margin-inline: 0.2em;
+    color: var(--ink-3);
+  }
+}
+.site-footer time {
+  white-space: nowrap;
+}
+.site-footer__updated {
+  margin: 0;
+}
+.still-toggle {
+  font: inherit;
+  color: var(--ink-2);
+  vertical-align: middle;
+}
+html:not(.js) .still {
+  display: none;
+} /* it does nothing without JS */
+
+/* The 404 (SPEC-R4A §10.7): the far end of the handscroll (stretch 6). The page is short, so the footer (its story
+   map is the way onto every page) rests at the bottom of the screen instead of floating halfway up it. Global, not
+   in a CSS Module: the root not-found boundary sits in every page's tree, so its module would be preloaded on all. */
+body:has(> main[data-page='not-found']) {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+}
+body > main[data-page='not-found'] {
+  flex: 1 0 auto;
+}
+body:has(> main[data-page='not-found']) > .site-footer {
+  flex: none;
+}
+
+/* Print: the page's text only, so every printed page but the Résumé (which has its own letterhead) carries a
+   small name line (DESIGN §11.E answer 12). Never on screen. */
+.print-name {
+  display: none;
+}
+@media print {
+  .print-name {
+    display: block;
+    margin-block-end: 1.25rem;
+    font-size: var(--fs-small);
+    line-height: var(--lh-small);
+    color: var(--ink-3);
+  }
+}
+@media print {
+  .site-footer {
+    display: none;
+  }
+}

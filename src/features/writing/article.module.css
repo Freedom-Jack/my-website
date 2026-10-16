@@ -1,0 +1,301 @@
+/* A note's LAYOUT (SPEC-R4A §10.6): a document on paper. The lake's low doc strip (art only), then the title
+   (40; 32 on phones) and the byline, then the note in the shared reading column (680, body 18 / 17). Section headings
+   use the site's h2 (the body face in bold); the h3s are run-in headings in bold at body size, so a screen holds at
+   most four type sizes (40 · 26 · 18 · 14). The comparison is the shared .table. Plus two reading aids this page owns:
+     - the reading-progress stroke along the top edge (scroll-linked state, never a text animation);
+     - the author's seal at the end, stamped once as it comes into view (NoteEffects).
+   Nothing in the text moves. */
+
+@property --read {
+  /* how much of the note has been brought into view, 0% → 100% */
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
+}
+
+/* ---------- reading progress: a dry-brush stroke along the top edge (round 3, unchanged) ----------
+   Draws from the left as the note comes into view and reaches the stroke's dry tail when its last line
+   reaches the bottom of the screen. */
+.read-progress {
+  --stroke: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 12' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='i' x2='1'%3E%3Cstop offset='0'/%3E%3Cstop offset='.55' stop-opacity='.94'/%3E%3Cstop offset='1' stop-opacity='.6'/%3E%3C/linearGradient%3E%3Cmask id='m' maskUnits='userSpaceOnUse' x='0' y='0' width='1200' height='12'%3E%3Crect width='1200' height='12' fill='%23fff'/%3E%3Cg stroke='%23000' stroke-linecap='round' fill='none'%3E%3Cpath d='M560 4.4H1200' stroke-width='.6' stroke-dasharray='180 26 240 40 120 70'/%3E%3Cpath d='M650 7.4H1200' stroke-width='.9' stroke-dasharray='120 60 40 30 220 45'/%3E%3Cpath d='M830 5.9H1200' stroke-width='1.1' stroke-dasharray='70 25 30 50 140 20'/%3E%3C/g%3E%3C/mask%3E%3C/defs%3E%3Cpath mask='url(%23m)' fill='url(%23i)' d='M1 6.3C1.1 3.1 4 2.3 10 2.4 120 2.9 400 3.3 700 3.7 900 4 1080 4.2 1190 4.3Q1199 4.4 1199 5.8 1199 7.2 1190 7.3C1080 7.45 900 7.8 700 8.2 400 8.7 120 9.1 10 9.6 4 9.7 1 8.9 1 6.3Z'/%3E%3C/svg%3E");
+  --drawn: linear-gradient(90deg, #000 calc(var(--read) - 1.2%), transparent calc(var(--read) + 0.4%));
+  /* the loaded cap: the brush is still pressing at the front, so the last stretch before the front is
+     solid ink inside the stroke's own silhouette, however dry the stroke behind it has run */
+  --solid: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 12' preserveAspectRatio='none'%3E%3Cpath d='M1 6.3C1.1 3.1 4 2.3 10 2.4 120 2.9 400 3.3 700 3.7 900 4 1080 4.2 1190 4.3Q1199 4.4 1199 5.8 1199 7.2 1190 7.3C1080 7.45 900 7.8 700 8.2 400 8.7 120 9.1 10 9.6 4 9.7 1 8.9 1 6.3Z'/%3E%3C/svg%3E");
+  --cap: linear-gradient(
+    90deg,
+    transparent calc(var(--read) - 3%),
+    #000 calc(var(--read) - 1.5%) var(--read),
+    transparent calc(var(--read) + 0.4%)
+  );
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: calc(var(--z-header) + 2);
+  height: clamp(5px, 0.26rem + 0.12vw, 7px);
+  pointer-events: none;
+  background: linear-gradient(90deg, var(--ink-1), var(--ink-1) 50%, var(--ink-2));
+  -webkit-mask-image: var(--solid), var(--cap), var(--drawn), var(--stroke);
+  -webkit-mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-composite: source-in, source-over, source-in, source-over;
+  mask-image: var(--solid), var(--cap), var(--drawn), var(--stroke);
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+  mask-composite: intersect, add, intersect, add;
+  opacity: 0.86;
+}
+@supports (animation-timeline: view()) {
+  .page {
+    timeline-scope: --prose;
+  }
+  .prose {
+    view-timeline: --prose block;
+  }
+  .read-progress {
+    animation: readProgress linear both;
+    animation-timeline: --prose;
+    animation-range: cover 0% contain 100%;
+  }
+}
+@keyframes readProgress {
+  from {
+    --read: 0%;
+  }
+  to {
+    --read: 100%;
+  }
+}
+
+/* ---------- the head: the title and the byline, on paper below the doc strip ---------- */
+.note__head {
+  padding-top: var(--space-strip-text);
+}
+.note__head > :global(.page-title) {
+  max-width: var(--measure-read);
+}
+.note__byline {
+  margin-block-start: 0.625rem;
+  max-width: var(--measure-read);
+}
+/* phones: the typo-fix date takes a line of its own, so no line ends on a dangling dot or splits the phrase */
+@media (max-width: 39.99rem) {
+  .note__fixed {
+    display: block;
+  }
+  .note__sep {
+    display: none;
+  }
+}
+/* the name in the byline: a 44 px tall target that changes nothing in the line's layout */
+.note__byline :global(a),
+.prose :global(p) > :global(a.brush) {
+  --brush-y: calc(50% + 0.78em);
+  display: inline-block;
+  padding-block: 12px;
+  margin-block: -12px;
+}
+
+/* ---------- the note: the shared reading column ---------- */
+.prose {
+  max-width: var(--measure-read);
+  margin-block-start: var(--space-m);
+  hanging-punctuation: first;
+}
+.prose > * + * {
+  margin-block-start: var(--space-para);
+}
+
+/* h2: the site's section heading (the body face in bold, 22 → 26) */
+.prose :global(h2) {
+  font-family: var(--font-body);
+  font-size: var(--fs-h2);
+  font-weight: var(--w-strong);
+  line-height: var(--lh-h2);
+  letter-spacing: -0.01em;
+  color: var(--ink-1);
+}
+.prose > :global(h2) {
+  margin-block-start: var(--space-section);
+}
+.prose > :global(h2):first-child {
+  margin-block-start: 0;
+}
+/* h3: a heading in bold at body size, with room above it */
+.prose :global(h3) {
+  font-family: var(--font-body);
+  font-size: inherit;
+  font-weight: var(--w-strong);
+  line-height: var(--lh-item);
+  color: var(--ink-1);
+}
+.prose > :global(h3) {
+  margin-block-start: var(--space-m);
+}
+.prose > :global(h2) + :global(h3) {
+  margin-block-start: var(--space-head);
+}
+.prose > :global(h3) + * {
+  margin-block-start: 0.5em;
+}
+
+/* the quotation: no box and no italics; the words take Commissioner's brush flare, with a hanging
+   wash-coloured mark (Commissioner's own curly opening quote) in the margin on wide screens */
+.prose :global(blockquote) {
+  position: relative;
+  padding-inline-start: 1.35em;
+  font-variation-settings: 'FLAR' var(--flare-sign);
+  color: var(--ink-2);
+}
+.prose :global(blockquote)::before {
+  content: '“' / '';
+  position: absolute;
+  left: -0.04em;
+  top: 0.056em;
+  font-family: var(--font-body);
+  font-weight: var(--w-strong);
+  font-variation-settings: 'FLAR' 100;
+  font-size: 2.2em;
+  line-height: 1;
+  color: var(--wash);
+}
+@media (min-width: 75rem) {
+  .prose :global(blockquote) {
+    padding-inline-start: 0;
+  }
+  .prose :global(blockquote)::before {
+    left: auto;
+    right: calc(100% + 0.14em);
+  } /* hangs fully in the margin */
+}
+
+/* lists: short dry-brush dashes for markers, the labels bold at text size */
+.prose > :global(.note__list-title) + .note__list {
+  margin-block-start: 0.5em;
+}
+.note__list {
+  display: grid;
+  gap: 0.5em;
+}
+.note__list :global(li) {
+  position: relative;
+  padding-inline-start: 1.55em;
+}
+.note__list :global(li)::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.74em;
+  width: 0.95em;
+  height: 0.32em;
+  background: url('../../styles/svg/brush-2.svg') 0 0 / 100% 100% no-repeat;
+  opacity: 0.72;
+}
+
+/* the comparison: the shared table, given room */
+.prose > :global(.table-wrap) {
+  margin-block: var(--space-m) 0;
+}
+.prose :global(.table) :global(thead) :global(th):first-child {
+  width: 22%;
+}
+
+/* ---------- the end: the author's seal beside the author line, then the one ink button ---------- */
+.note__end {
+  margin-block-start: var(--space-section);
+  max-width: var(--measure-read);
+}
+.colophon {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-s);
+}
+.colophon__seal {
+  flex: none;
+  width: clamp(2.25rem, 2.05rem + 0.8vw, 2.75rem);
+  height: auto;
+  aspect-ratio: 1;
+  margin-block-start: 0.3em; /* its top on the line's cap height */
+  overflow: visible;
+  transform-origin: 50% 55%;
+}
+.colophon__line {
+  color: var(--ink-2);
+}
+.note__end > .note__actions {
+  margin-block-start: var(--space-m);
+  margin-inline-start: -2px; /* the swash's loaded start sits on the text edge */
+}
+
+/* the stamp (NoteEffects adds the classes; without JS the seal simply sits there) */
+:global(html.js) .colophon__seal.isPending {
+  opacity: 0;
+}
+.colophon__seal.isStamping {
+  animation: stamp 680ms var(--ease-stamp) 240ms both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .colophon__seal.isStamping {
+    animation: fadeIn 240ms ease both;
+  }
+}
+@keyframes stamp {
+  0% {
+    opacity: 0;
+    scale: 1.22;
+    rotate: -5deg;
+    filter: blur(1.2px);
+  }
+  45% {
+    opacity: 1;
+    scale: 0.95;
+    rotate: 0.6deg;
+    filter: blur(0);
+  }
+  70% {
+    scale: 1.015;
+  }
+  100% {
+    opacity: 1;
+    scale: 1;
+    rotate: 0deg;
+    filter: none;
+  }
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---------- forced colours: system colours, no ink layers ---------- */
+@media (forced-colors: active) {
+  .read-progress,
+  .note__list :global(li)::before,
+  .prose :global(blockquote)::before {
+    display: none;
+  }
+  html.js .colophon__seal.is-pending {
+    opacity: 1;
+  }
+}
+
+/* ---------- print: the text only ---------- */
+@media print {
+  .read-progress,
+  .note__actions {
+    display: none !important;
+  }
+  .note__head {
+    padding-top: 0;
+  }
+  .prose {
+    max-width: none;
+  }
+  .colophon__seal {
+    opacity: 1 !important;
+    animation: none !important;
+  } /* printed stamped, even if never scrolled to */
+}

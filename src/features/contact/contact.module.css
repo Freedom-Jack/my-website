@@ -1,0 +1,226 @@
+/* Contact's LAYOUT only (SPEC-R4A §10.4): placement and spacing with tokens. Type, ink and weights come from the
+   shared roles (the email takes the section-heading size and the UI weight, as specified). The crossing's strip,
+   then the address: "Email" in small print, the address with "Copy email" beside it, the other ways as a short
+   definition list on hairlines, and the time zone. It ends on the story map. No form. */
+
+/* ---------- the address: the focal point ---------- */
+.contact > .contact__label {
+  margin-block-end: 0;
+}
+.contact > .contact__mail {
+  margin-block-start: 0.125rem;
+}
+.contact__mail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--space-m);
+  row-gap: 0.25rem;
+}
+.contact__email {
+  font-size: var(--fs-h2); /* 22 → 26 (SPEC-R4A §10.4) */
+  font-weight: var(--w-ui);
+  line-height: var(--lh-h2);
+  letter-spacing: -0.005em;
+  font-variant-numeric: lining-nums;
+}
+.contact__email :global(a) {
+  /* a 44 px target around the address; the brush draws just under it */
+  --brush-y: calc(50% + 0.74em);
+  --brush-h: 0.26em;
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  padding-bottom: 0;
+  color: var(--ink-1);
+  white-space: nowrap; /* the address never breaks (it fits a 320 px screen at 22 px) */
+}
+.contact__email :global(a):focus-visible {
+  outline-offset: 2px;
+}
+/* Under 240 CSS px (a 390 px phone at 200 % zoom) the address cannot hold one line at 22 px: it breaks after the
+   "@" (the <wbr>), mid-word only as a last resort, its brush under the last line. */
+@media (max-width: 14.99rem) {
+  .contact__email :global(a) {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    --brush-y: 100%;
+  }
+  .contact__copy :global(.ink-btn) {
+    --ink-tail: 4px;
+  }
+}
+
+/* "Copy email": the one ink button, beside the address (below it when the line is too short) */
+.contact__copy {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  margin-inline-start: -2px; /* the swash's loaded start sits on the text edge when it wraps */
+}
+:global(html:not(.js)) .contact__copy {
+  display: none;
+} /* copying needs JS; the address is a mailto link */
+
+/* the stamp: "Copied", pressed in ink onto the button's dry tail, then lifting back into the mist. The live region
+   is always present (empty at rest), so screen readers hear the word on every copy. */
+.contact__stamp {
+  position: absolute;
+  left: calc(100% - 2.5rem);
+  top: 50%;
+  translate: 0 -50%;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: var(--fs-body);
+  font-weight: 780;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: var(--paper);
+  rotate: -5deg;
+  pointer-events: none;
+  opacity: 0;
+}
+.contact__stamp::before {
+  content: '';
+  position: absolute;
+  inset: -0.5em -0.7em -0.45em;
+  z-index: -1;
+  background: var(--wash-deep);
+  border-radius: 2px 3px 2px 4px / 3px 2px 4px 2px;
+  filter: url(#stamp-stone);
+}
+.contact__stamp:empty {
+  visibility: hidden;
+}
+.isStamped {
+  opacity: 1;
+  animation: stamp 560ms var(--ease-stamp) both;
+}
+.isLifting {
+  opacity: 0;
+  animation: lift 620ms var(--ease-out) both;
+}
+@keyframes stamp {
+  0% {
+    opacity: 0;
+    scale: 1.32;
+    rotate: -11deg;
+    filter: blur(1.4px);
+  }
+  42% {
+    opacity: 1;
+    scale: 0.95;
+    rotate: -4deg;
+    filter: blur(0);
+  }
+  70% {
+    scale: 1.015;
+  }
+  100% {
+    opacity: 1;
+    scale: 1;
+    rotate: -5deg;
+    filter: none;
+  }
+}
+@keyframes lift {
+  /* the ink does not leave the way it came: it soaks back into the mist */
+  from {
+    opacity: 1;
+    filter: blur(0);
+  }
+  to {
+    opacity: 0;
+    filter: blur(3px);
+  }
+}
+
+/* ---------- the other ways: label · link, one per line, on hairlines (typographic rules, never boxes) ---------- */
+.contact > .contact__list {
+  margin-block-start: var(--space-m);
+  max-width: 30rem;
+}
+.contact__way {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  column-gap: var(--space-s);
+  align-items: center;
+  border-top: 1px solid var(--rule);
+}
+.contact__way:last-child {
+  border-bottom: 1px solid var(--rule);
+}
+.contact__way :global(dt) {
+  font-weight: var(--w-ui);
+}
+.contact__way :global(dd) {
+  margin: 0;
+  min-width: 0;
+}
+.contact__way :global(a) {
+  --brush-y: calc(50% + 0.78em);
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  padding-bottom: 0;
+  color: var(--ink-1);
+}
+.contact > .contact__where {
+  margin-block-start: var(--space-s);
+}
+@media (max-width: 14.99rem) {
+  .contact__way {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .contact__way :global(a) {
+    overflow-wrap: anywhere;
+  }
+}
+
+/* ---------- reduced motion: the stamp simply appears, and fades ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .isStamped {
+    animation: fadeIn 200ms ease both;
+  }
+  .isLifting {
+    animation: fadeOut 240ms ease both;
+  }
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* ---------- forced colours: a system-coloured outline instead of the ink block ---------- */
+@media (forced-colors: active) {
+  .contact__stamp {
+    color: CanvasText;
+  }
+  .contact__stamp::before {
+    background: Canvas;
+    outline: 1px solid CanvasText;
+    filter: none;
+  }
+  .contact__way,
+  .contact__way:last-child {
+    border-color: CanvasText;
+  }
+}
+@media print {
+  .contact__copy {
+    display: none;
+  }
+}

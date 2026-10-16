@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="diagram__art diagram__art--tall" viewBox="0 0 400 732" role="img" aria-labelledby="dg-agent-t2 dg-agent-d2" data-draw="">
+<title id="dg-agent-t2">How the agent works</title>
+<desc id="dg-agent-d2">Legacy scripts in a proprietary language go into a LangGraph workflow, which coordinates vLLM-served models with retrieval. Guardrails keep personal information out and keep every output well-formed. Out come documentation, business rules and code prepared for migration.</desc>
+<g class="diagram__bands">
+<path class="diagram__band diagram__band--2" d="M2,163C19,141 70,158 104,158C139,158 187,154 210,164C232,174 232,201 238,218C244,235 233,258 246,267C260,275 292,270 318,271C343,273 385,263 399,278C413,292 402,332 401,358C401,385 414,422 397,438C380,454 338,451 300,452C262,454 212,448 170,447C129,447 80,456 51,451C23,446 8,444 0,417C-8,390 1,331 1,289C1,247 -15,185 2,163Z"/>
+</g>
+<g class="diagram__nodes">
+<path class="diagram__node" d="M273,56C272,65 266,70 263,75C259,80 257,82 250,84C243,87 233,90 221,91C208,93 194,94 174,95C153,96 116,98 98,98C79,98 71,98 61,96C50,95 41,92 33,88C25,85 19,80 14,76C9,71 2,66 2,59C1,51 3,37 9,30C15,24 29,21 38,18C47,16 51,15 61,13C71,11 78,8 97,7C117,6 158,6 177,7C196,7 201,8 213,9C225,11 239,12 249,15C259,18 266,19 270,26C274,33 275,48 273,56Z"/>
+<path class="diagram__node" d="M203,268C203,284 202,306 200,320C198,334 195,343 189,351C183,359 172,363 163,366C154,368 149,366 134,366C120,366 90,367 75,366C61,365 56,365 48,360C40,356 33,348 28,341C23,335 22,329 18,319C15,309 9,299 8,283C6,267 7,238 9,224C12,210 16,205 23,198C29,191 39,185 48,181C57,177 63,174 78,174C93,173 126,175 140,178C154,181 155,187 162,191C170,196 180,200 186,205C192,211 196,212 198,222C201,232 202,251 203,268Z"/>
+<path class="diagram__node" d="M399,213C398,219 396,227 394,231C391,236 389,237 386,240C383,242 379,245 374,247C369,248 364,247 355,247C345,248 327,248 317,248C307,248 301,249 295,247C289,246 283,243 280,240C276,238 275,237 274,232C272,227 270,216 269,210C269,204 269,198 271,195C274,191 281,189 285,187C289,185 291,184 296,183C301,182 306,180 315,180C323,179 340,178 349,179C358,179 363,181 370,183C376,184 381,186 386,188C390,190 395,193 397,197C399,201 399,208 399,213Z"/>
+<path class="diagram__node" d="M394,325C394,332 393,345 392,351C391,357 390,358 388,361C385,364 382,369 376,370C370,372 364,372 354,372C344,372 326,372 316,371C306,371 301,370 296,369C290,367 286,363 283,360C281,356 280,352 278,348C277,343 274,340 273,334C273,327 273,315 275,309C276,303 279,301 283,298C286,295 291,293 296,291C302,289 307,286 316,286C325,285 342,286 351,287C361,288 367,291 372,293C377,294 379,296 382,299C386,302 390,305 392,310C394,314 394,318 394,325Z"/>
+<path class="diagram__node" d="M325,502C323,507 316,512 312,516C308,520 306,523 300,525C294,528 287,530 277,531C266,533 253,533 237,534C222,535 200,535 184,535C167,535 149,536 137,535C125,534 118,532 112,530C106,527 106,525 103,519C101,514 98,503 97,497C97,491 98,487 101,484C104,480 109,478 116,476C123,473 133,472 142,470C152,468 156,467 173,466C189,465 224,463 241,463C258,463 265,465 275,466C286,468 295,469 303,472C311,474 319,477 323,482C326,487 326,496 325,502Z"/>
+<path class="diagram__node" d="M324,585C324,590 325,599 321,604C317,609 306,611 299,614C292,616 288,616 279,618C270,619 262,621 246,622C230,623 200,624 183,624C165,624 152,622 140,621C128,619 119,617 111,615C104,613 100,611 97,608C94,604 91,599 92,593C94,587 101,578 106,572C110,567 113,565 119,562C124,560 127,558 137,557C148,555 163,555 181,555C198,554 228,554 244,554C260,554 266,552 277,553C288,554 302,557 310,560C317,563 318,567 321,571C323,575 324,579 324,585Z"/>
+<path class="diagram__node" d="M350,678C350,684 348,688 344,692C341,696 336,699 330,702C324,705 320,708 309,710C297,712 281,712 260,713C239,713 201,712 182,711C162,711 154,711 143,709C133,707 124,705 119,702C113,700 113,698 111,693C109,689 107,679 106,674C105,668 104,665 105,661C107,657 109,654 115,651C122,648 134,645 146,644C159,642 169,641 190,640C211,639 252,637 272,638C292,638 299,641 308,643C318,645 322,648 328,651C334,654 339,654 343,659C346,663 350,673 350,678Z"/>
+</g>
+<g class="diagram__edges">
+<path class="diagram__edge" pathLength="1" data-order="1" d="M106,104C103,124 104,147 106,166M111,155L106,166L101,159"/>
+<path class="diagram__edge" pathLength="1" data-order="2" d="M208,202C227,199 249,200 266,202M258,196L266,202L259,205"/>
+<path class="diagram__edge" pathLength="1" data-order="3" d="M268,228C249,231 227,230 210,228M218,234L210,228L217,225"/>
+<path class="diagram__edge" pathLength="1" data-order="4" d="M208,318C227,315 249,316 266,318M258,312L266,318L259,321"/>
+<path class="diagram__edge" pathLength="1" data-order="5" d="M268,344C249,347 227,346 210,344M218,350L210,344L217,341"/>
+<path class="diagram__edge" pathLength="1" data-order="6" d="M50,376L50,488Q50,500 62,500L90,500M81,495L90,500L83,504"/>
+<path class="diagram__edge" pathLength="1" data-order="7" d="M50,376L50,576Q50,588 62,588L90,588M81,583L90,588L83,592"/>
+<path class="diagram__edge" pathLength="1" data-order="8" d="M50,376L50,664Q50,676 62,676L90,676M81,671L90,676L83,680"/>
+</g>
+<g class="diagram__labels">
+<text class="diagram__label" x="140" y="47" text-anchor="middle">Legacy scripts</text>
+<text class="diagram__sub" x="140" y="71" text-anchor="middle">proprietary language</text>
+<text class="diagram__label" x="106" y="255" text-anchor="middle">LangGraph</text>
+<text class="diagram__label" x="106" y="279" text-anchor="middle">workflow</text>
+<text class="diagram__sub" x="106" y="303" text-anchor="middle">dual-state, dynamic</text>
+<text class="diagram__label" x="334" y="221" text-anchor="middle">Retrieval</text>
+<text class="diagram__label" x="334" y="325" text-anchor="middle">Models</text>
+<text class="diagram__sub" x="334" y="349" text-anchor="middle">vLLM</text>
+<text class="diagram__label" x="210" y="507" text-anchor="middle">Documentation</text>
+<text class="diagram__label" x="210" y="595" text-anchor="middle">Business rules</text>
+<text class="diagram__label" x="226" y="683" text-anchor="middle">Migration readiness</text>
+<text class="diagram__band-label" x="392" y="404" text-anchor="end">Guardrails:</text>
+<text class="diagram__band-label" x="392" y="426" text-anchor="end">PII filtering · EBNF grammar</text>
+</g>
+</svg>

@@ -1,0 +1,7 @@
+/* Writing's LAYOUT only (SPEC-R4A §10.5). The page is built from shared parts: the lake's strip (title and intro in
+   its mist on wide screens), one dated list of shared rows. */
+
+/* the list follows the strip at the section rhythm; the row's hairline opens it */
+.list > :global(.rows) {
+  margin-block-start: 0;
+}

@@ -1,0 +1,10 @@
+.next
+node_modules
+legacy-v1
+design-demo
+public
+package-lock.json
+src/features/landscape/engine
+content/work/diagrams
+*.mdx
+tests/e2e/support/measure.js

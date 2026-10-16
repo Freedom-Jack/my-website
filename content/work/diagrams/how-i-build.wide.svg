@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="diagram__art diagram__art--wide" viewBox="0 0 1200 616" role="img" aria-labelledby="hib-w-t hib-w-d" data-draw="">
+<title id="hib-w-t">How I build</title>
+<desc id="hib-w-d">Three layers. At the bottom, data flows from many sources through pipelines into an index. In the middle, retrieval pulls context from that index. On top, an agent workflow takes a request, calls models with that context, passes guardrails and returns the answer.</desc>
+<defs><linearGradient id="hib-w-h"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".08" stop-color="#fff"/><stop offset=".9" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><linearGradient id="hib-w-v" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".2" stop-color="#fff"/><stop offset=".8" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="hib-w-mh"><rect width="1200" height="616" fill="url(#hib-w-h)"/></mask><mask id="hib-w-mv" maskContentUnits="objectBoundingBox"><rect width="1" height="1" fill="url(#hib-w-v)"/></mask></defs>
+<g class="diagram__bands" mask="url(#hib-w-mh)">
+<rect class="diagram__band diagram__band--1" x="0" y="0" width="1200" height="206" mask="url(#hib-w-mv)"/>
+<rect class="diagram__band diagram__band--2" x="0" y="206" width="1200" height="146" mask="url(#hib-w-mv)"/>
+<rect class="diagram__band diagram__band--3" x="0" y="352" width="1200" height="264" mask="url(#hib-w-mv)"/>
+</g>
+<g class="diagram__nodes">
+<path class="diagram__node" d="M133,120C133,126 125,132 118,136C112,140 106,142 94,143C82,145 59,145 45,143C31,142 17,139 9,135C1,130 -2,125 -3,119C-3,113 -3,102 5,98C13,93 32,94 46,93C60,92 76,92 89,94C102,96 116,99 123,103C131,107 134,115 133,120Z"/>
+<path class="diagram__node" d="M688,118C687,125 685,136 678,142C672,148 664,150 651,152C639,154 616,154 603,153C591,152 583,149 577,144C571,139 565,129 565,121C566,112 573,100 580,94C587,87 596,85 608,83C620,81 639,80 652,83C665,85 677,90 683,96C689,102 689,110 688,118Z"/>
+<path class="diagram__node" d="M698,292C699,298 692,304 685,308C678,312 671,315 658,317C645,318 620,319 606,318C592,317 583,315 576,311C568,306 562,299 561,292C560,286 566,275 572,271C579,266 587,267 601,267C615,266 641,267 655,268C668,270 677,271 685,275C692,279 698,287 698,292Z"/>
+<path class="diagram__node" d="M728,463C727,471 718,480 707,486C697,491 684,493 665,495C646,497 611,498 592,496C573,495 562,492 552,486C541,481 531,473 530,464C528,456 533,442 544,436C556,430 579,429 597,428C616,427 639,428 658,430C677,432 701,434 713,440C724,445 729,456 728,463Z"/>
+<path class="diagram__node" d="M127,463C128,469 127,478 120,482C114,486 104,487 90,488C76,488 49,489 36,487C23,486 19,485 13,480C7,475 1,463 0,457C-1,451 4,446 9,442C15,438 21,434 34,433C47,432 73,435 87,438C101,440 109,444 115,448C122,452 126,457 127,463Z"/>
+<path class="diagram__node" d="M965,124C965,131 964,135 955,140C945,145 928,152 908,155C888,157 856,156 834,153C813,151 790,147 779,141C768,135 769,128 770,120C771,111 776,98 787,92C797,85 810,83 831,82C853,80 896,80 916,82C936,85 944,91 952,98C960,105 964,116 965,124Z"/>
+<path class="diagram__node" d="M1174,121C1175,126 1172,132 1166,136C1160,139 1150,143 1137,144C1124,145 1101,145 1088,143C1074,142 1062,139 1056,135C1049,131 1049,126 1049,119C1048,113 1049,102 1055,97C1061,92 1072,90 1085,90C1097,89 1118,91 1130,93C1142,95 1150,99 1157,104C1165,109 1172,115 1174,121Z"/>
+<path class="diagram__node" d="M492,117C489,124 480,135 468,141C457,147 445,150 425,153C404,155 363,157 343,155C323,154 312,150 303,143C294,137 288,124 288,116C288,107 293,98 303,93C312,87 323,84 346,83C368,81 413,83 436,85C459,88 477,92 486,98C495,103 495,110 492,117Z"/>
+<path class="diagram__node" d="M453,291C452,296 447,305 441,309C435,314 429,316 416,318C402,319 373,322 360,320C346,319 341,315 336,310C330,306 326,298 325,292C325,286 328,278 334,273C340,269 347,266 361,265C375,263 403,265 417,267C431,269 442,272 448,275C454,279 454,285 453,291Z"/>
+<path class="diagram__node" d="M446,460C446,466 441,477 428,481C416,486 393,486 370,487C346,488 309,487 287,486C265,485 252,486 239,481C226,476 212,464 211,458C211,452 222,446 236,443C249,439 270,436 293,436C316,435 352,436 375,438C397,440 415,444 427,447C439,451 446,455 446,460Z"/>
+<path class="diagram__node" d="M419,577C419,584 413,593 403,599C393,605 378,610 360,612C343,614 315,612 299,609C283,607 271,604 262,598C253,591 249,579 247,570C246,562 245,552 254,547C262,542 281,541 298,541C316,540 341,541 358,544C375,547 391,551 401,557C411,563 418,570 419,577Z"/>
+</g>
+<g class="diagram__edges">
+<path class="diagram__edge" pathLength="1" data-order="1" d="M136,462C161,465 185,464 210,462M200,470L210,462L199,457"/>
+<path class="diagram__edge" pathLength="1" data-order="2" d="M452,462C477,459 501,460 526,462M515,468L526,462L515,455"/>
+<path class="diagram__edge" pathLength="1" data-order="3" d="M328,497C326,509 327,520 328,532M320,522L328,532L333,520"/>
+<path class="diagram__edge" pathLength="1" data-order="4" d="M138,118C184,123 231,121 278,118M267,126L278,118L266,113"/>
+<path class="diagram__edge" pathLength="1" data-order="5" d="M389,162C385,194 387,225 389,257M381,247L389,257L394,246"/>
+<path class="diagram__edge" pathLength="1" data-order="6" d="M463,297C511,330 550,373 586,418M574,414L586,418L584,406"/>
+<path class="diagram__edge" pathLength="1" data-order="7" d="M636,418C639,388 637,357 634,327M642,337L634,327L629,339"/>
+<path class="diagram__edge" pathLength="1" data-order="8" d="M634,257C630,225 631,194 633,162M640,173L633,162L627,173"/>
+<path class="diagram__edge" pathLength="1" data-order="9" d="M500,118C520,115 540,116 560,118M548,124L560,118L549,111"/>
+<path class="diagram__edge" pathLength="1" data-order="10" d="M698,118C718,121 738,120 758,118M748,126L758,118L747,113"/>
+<path class="diagram__edge" pathLength="1" data-order="11" d="M978,118C998,115 1018,116 1038,118M1027,124L1038,118L1028,111"/>
+</g>
+<g class="diagram__labels" text-anchor="middle">
+<text class="diagram__band-label" x="0" y="32" text-anchor="start">The agents and guardrails on top</text>
+<text class="diagram__band-label" x="0" y="240" text-anchor="start">The retrieval in the middle</text>
+<text class="diagram__band-label" x="0" y="386" text-anchor="start">The data underneath</text>
+<text class="diagram__label" x="65" y="125">Request</text>
+<text class="diagram__label" x="629" y="114">Models</text>
+<text class="diagram__sub" x="629" y="138">vLLM</text>
+<text class="diagram__label" x="629" y="299">Context</text>
+<text class="diagram__label" x="629" y="458">Index</text>
+<text class="diagram__sub" x="629" y="482">FAISS, Pinecone</text>
+<text class="diagram__label" x="64" y="469">Sources</text>
+<text class="diagram__label" x="868.5" y="114">Guardrails</text>
+<text class="diagram__sub" x="868.5" y="138">PII filtering, EBNF</text>
+<text class="diagram__label" x="1109" y="125">Answer</text>
+<text class="diagram__label" x="389" y="114">Agent workflow</text>
+<text class="diagram__sub" x="389" y="138">LangGraph</text>
+<text class="diagram__label" x="389" y="299">Retrieve</text>
+<text class="diagram__label" x="331" y="469">ETL/ELT pipelines</text>
+<text class="diagram__label" x="331" y="572">Lineage</text>
+<text class="diagram__sub" x="331" y="596">OpenLineage</text>
+</g>
+</svg>

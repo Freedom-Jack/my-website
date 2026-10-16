@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="diagram__art diagram__art--wide" viewBox="0 0 1200 394" role="img" aria-labelledby="dg-rag-t dg-rag-d" data-draw="">
+<title id="dg-rag-t">How the RAG assistant works</title>
+<desc id="dg-rag-d">A customer’s question goes to retrieval, which finds passages in the insurer’s own knowledge base. An LLM, orchestrated with LangChain, answers from those passages, and the answer goes back to the customer.</desc>
+<defs><linearGradient id="dg-rag-mg"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="0.11" stop-color="#fff"/><stop offset="0.89" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="dg-rag-m"><rect x="0" y="290" width="1200" height="104" fill="url(#dg-rag-mg)"/></mask></defs>
+<g class="diagram__bands" mask="url(#dg-rag-m)">
+<path class="diagram__band diagram__band--3" d="M0,311Q60,312 120,312Q180,312 240,311Q300,311 360,313Q420,311 480,313Q540,312 600,310Q660,310 720,310Q780,312 840,314Q900,313 960,311Q1020,311 1080,311Q1140,314 1200,314L1200,388Q1140,389 1080,390Q1020,390 960,388Q900,388 840,389Q780,389 720,386Q660,388 600,389Q540,388 480,390Q420,388 360,388Q300,388 240,389Q180,390 120,389Q60,387 0,386Z"/>
+</g>
+<g class="diagram__nodes">
+<path class="diagram__node" d="M282,66C279,74 273,85 269,91C265,98 264,101 257,105C249,108 236,111 225,112C213,114 209,114 189,115C169,115 126,117 105,117C85,117 80,119 68,116C56,114 41,108 33,103C26,99 27,94 24,89C21,84 16,79 16,71C16,63 18,49 23,42C28,35 39,33 47,30C55,26 62,24 74,21C85,18 97,15 117,14C136,13 173,14 192,15C212,16 222,18 234,20C245,22 255,22 264,26C273,30 283,37 286,43C289,50 284,58 282,66Z"/>
+<path class="diagram__node" d="M574,61C572,70 571,82 568,90C566,97 563,102 557,105C552,109 545,110 536,112C527,113 518,114 504,115C489,116 464,118 449,118C434,117 421,116 412,114C402,112 399,107 394,103C389,99 386,96 383,90C380,84 376,75 376,68C376,60 380,50 385,44C389,37 399,32 404,29C409,25 408,23 416,21C425,19 439,15 454,15C469,14 492,15 506,15C520,16 529,17 538,18C548,20 557,21 563,25C569,28 573,32 575,38C577,44 575,53 574,61Z"/>
+<path class="diagram__node" d="M901,72C900,80 900,85 897,90C895,96 894,102 888,105C882,109 873,110 864,112C855,113 847,113 832,114C817,115 789,117 774,116C759,116 750,114 741,112C733,110 729,108 723,104C717,100 708,97 704,89C699,82 696,69 697,60C697,52 700,44 704,38C709,33 718,31 725,28C731,24 736,21 745,19C754,17 762,15 776,15C790,15 815,16 829,17C843,18 850,20 860,21C869,23 877,22 884,26C892,29 900,34 903,42C905,49 901,64 901,72Z"/>
+<path class="diagram__node" d="M1187,72C1188,81 1191,85 1188,91C1186,97 1181,104 1173,107C1166,111 1156,112 1145,114C1133,115 1122,115 1106,115C1090,116 1064,118 1049,117C1033,116 1023,114 1013,112C1003,109 995,105 989,101C983,98 980,98 975,92C971,85 964,71 964,62C963,54 966,45 970,39C974,34 980,32 986,28C992,24 996,20 1005,18C1015,15 1026,13 1043,13C1060,13 1092,15 1109,17C1126,18 1136,20 1146,22C1155,24 1160,24 1167,27C1173,31 1180,35 1184,42C1187,50 1187,64 1187,72Z"/>
+<path class="diagram__node" d="M645,237C649,243 652,254 648,260C644,266 633,270 621,273C609,277 591,278 576,280C562,282 557,283 533,284C509,284 457,283 432,282C407,280 397,279 381,276C366,274 351,271 341,268C330,265 323,265 318,260C314,255 314,245 314,239C315,232 317,225 319,219C322,214 322,211 330,208C337,205 348,201 366,199C384,197 410,198 437,198C464,198 501,198 526,199C551,200 572,201 587,204C601,206 606,210 612,213C619,216 620,217 625,221C631,225 641,230 645,237Z"/>
+</g>
+<g class="diagram__edges">
+<path class="diagram__edge" pathLength="1" data-order="1" d="M288,64C315,59 347,60 372,64M362,57L372,64L364,67"/>
+<path class="diagram__edge" pathLength="1" data-order="2" d="M462,124C458,146 459,172 462,192M466,181L462,192L457,185"/>
+<path class="diagram__edge" pathLength="1" data-order="3" d="M496,192C500,170 499,144 496,124M492,135L496,124L501,131"/>
+<path class="diagram__edge" pathLength="1" data-order="4" d="M584,64C620,58 662,60 696,64M686,57L696,64L688,67"/>
+<path class="diagram__edge" pathLength="1" data-order="5" d="M908,64C925,60 944,61 960,64M951,56L960,64L951,67"/>
+</g>
+<g class="diagram__labels">
+<text class="diagram__label" x="150" y="60" text-anchor="middle">Customer question</text>
+<text class="diagram__sub" x="150" y="86" text-anchor="middle">several languages</text>
+<text class="diagram__label" x="478" y="60" text-anchor="middle">Retrieval</text>
+<text class="diagram__sub" x="478" y="86" text-anchor="middle">RAG</text>
+<text class="diagram__label" x="802" y="60" text-anchor="middle">LLM</text>
+<text class="diagram__sub" x="802" y="86" text-anchor="middle">LangChain</text>
+<text class="diagram__label" x="1078" y="60" text-anchor="middle">Answer</text>
+<text class="diagram__sub" x="1078" y="86" text-anchor="middle">around the clock</text>
+<text class="diagram__label" x="478" y="248" text-anchor="middle">Insurer’s knowledge base</text>
+<text class="diagram__band-label" x="40" y="357">Runs across Azure, AWS and GCP</text>
+</g>
+</svg>

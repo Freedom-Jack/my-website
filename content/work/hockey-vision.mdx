@@ -1,0 +1,38 @@
+---
+title: Computer vision for hockey broadcast video
+order: 6
+years: 2020 – 2021
+org: Elder Laboratory, York University
+role: Research assistant
+figure:
+  lead: mAP ≥
+  value: 70%
+  note: on event detection, across 18 hours of game video
+summary: Models that watch a hockey broadcast and work out what is happening.
+outcome: mAP ≥ 70% on event detection
+evidence:
+  - label: Vector Institute article
+    url: https://vectorinstitute.ai/amateur-hockey-given-professional-viewing-experience-courtesy-of-machine-vision-startup-co-founded-by-vector-researcher/
+---
+
+## Context
+
+AttentiveVision, a startup co-founded by York professor James Elder, set out to give amateur hockey a broadcast-style viewing experience by following the play automatically.
+
+## What I did
+
+I trained a CNN-LSTM stack for event detection on broadcast video, built real-time player tracking with a Kalman filter and OpenPose, and ran an active-learning annotation loop for goals, timeouts and penalties.
+
+## Outcome
+
+mAP **≥ 70%** on event detection across 18 hours of game video. Tracking under **100 ms** at 30 FPS. Labels reached Cohen’s kappa **≥ 0.92**.
+
+## Evidence
+
+- Vector Institute: [Amateur hockey given professional viewing experience courtesy of machine vision startup co-founded by Vector researcher](https://vectorinstitute.ai/amateur-hockey-given-professional-viewing-experience-courtesy-of-machine-vision-startup-co-founded-by-vector-researcher/) (<time dateTime="2022-03-07">March 7, 2022</time>)
+
+The article describes the project. It doesn’t name individual contributors.
+
+## Stack
+
+Python, PyTorch, TensorFlow, OpenCV, OpenPose, CNN-LSTM, Kalman filter

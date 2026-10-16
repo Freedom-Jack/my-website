@@ -1,0 +1,24 @@
+/* Home's LAYOUT only (SPEC-R4A §10.1): every block is a shared component (layout.css, components.css); this file
+   only places them, with tokens: no new colours, fonts, weights, shadows or motion.
+   1 the strip (name, his sentence, actions) · 2 About me (photo + words + signature) · 3 What I work on ·
+   4 Now · 5 Writing · 6 Say hello · 7 the closing scene */
+
+/* 1. The strip: his sentence sets without a lone last word. Wide screens, where it sits in the mist: balanced
+   lines (four even lines instead of ending on "underneath them."). Narrower: full-width lines, no orphans. */
+.page :global(.strip--home) :global(.lead) {
+  text-wrap: pretty;
+}
+@media (min-width: 75rem) {
+  .page :global(.strip--home) :global(.lead) {
+    text-wrap: balance;
+  }
+}
+
+/* 2. About me. Tablets (640–1199): the hero's text sits on paper right above this block, so "About me" would
+   follow the buttons by only the component's small gap (~28 px) and read as part of the hero: it gets the section
+   margin. Wide screens don't need it (the strip's mist feather separates them); on phones the photo comes first. */
+@media (min-width: 40rem) and (max-width: 74.99rem) {
+  .page :global(.strip--home) + :global(.hello) {
+    margin-block-start: var(--space-section);
+  }
+}
