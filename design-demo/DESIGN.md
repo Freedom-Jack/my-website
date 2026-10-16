@@ -535,7 +535,35 @@ like Wuthering Waves' Chinese ink style; (5) content after the macro work. Order
   (0.18–0.60) and one scale, each centred on its place, so the far range and the river run on from one still into the
   next (`tools/build-stills.ts`; 53 KB for ten files).
 - **Verified:** `npm run ci`, the e2e suite (35, the §6 budgets at 1440 / 1280 / 390), compliance, links, the PDF gate;
-  panoramas, hero sheets and closings on the real GPU (Metal) before and after.
+  panoramas, hero sheets and closings on the real GPU (Metal) before and after. Committed as `fce4c45` (Jack: "You may
+  commit for now").
+
+**Step 2b, the river town in the scroll** (2026-10-16; Jack: "Is the town ('Work' part) feel natural overall in the
+entire scroll?"). Three independent critiques (Song handscroll practice, one painting, a first-time viewer) found it
+**partly natural**: a crisp strip laid on the painting. It started and stopped at full density, there was a hole in the
+far range above it, there was no land under its near bank, its banks were ruler-straight over bare paper, nothing joined
+it to the mountain or the lake, and it was the darkest ink on the far bank. Jack approved the six fixes in that order.
+After a second, adversarial review (which caught a regression on Home, since put back), the result:
+- **The far range and a low ridge behind the town** (`shaders.ts`: over the town only, `TOWN` from the river's depth
+  profile, just the town's own hills keep misty feet; the far range and the guests run on as they do over the mountain
+  and the lake). The town's hills are broad and rounded (guests, not hosts), so no spire stands behind the roofs.
+- **Land under the near bank**: an earth wash toned with ink (never beige), a little misted green, a point and a bay in
+  the bank away from the bridge, its east end dissolving into mist and reeds. The willows stand in groups of different
+  sizes, quieter, rooted (the three larger ones sway).
+- **The town grows out of the countryside and goes back into it**: every slot draws its layout from the row's own stream
+  as before, so the houses near the bridge are unchanged; at the ends the back rows go first, the front row's houses
+  grow smaller and thatched and give way to village trees; a farmhouse grove at the west, a reed hut on posts at the
+  east; the stone quay only along the town proper, earth banks and reeds beyond it.
+- **A breath further back**: line and tile lighter away from the focus (the bridge, the landmark) and toward the ends;
+  the bridge's timber and the hulls cooled; the hulls lighter than the bridge, which stays the darkest ink.
+- **The seams are land**: the banks start under his mountain's foot; one broad low headland at the east instead of two
+  stray crags; the far bank bends up and back past the hut as the river opens into the lake.
+- **The river has a surface**: ripple lines gathered round the bridge and the big boat, torn reflections under the
+  hulls, a timber landing stage, water strokes carried on toward the lake.
+- **Kept:** the bridge (pinned: its banks do not move within 180 px of its crown), the rows by the bridge, the boats,
+  the crowd, the walker, the punt, the landmark; `RIVER_FRONT` and `STAGE_AT[1].arch` hold. Home's and Writing's heroes
+  are unchanged (pixel diff at most a few levels). Verified as above, plus contrast on Work, Home and Writing and the
+  reduced-motion / Still stops.
 
 
 ## 13. Running the demo and its tools

@@ -1,9 +1,9 @@
 {
  "about": "Footer story-map stills, made by tools/build-stills.ts from the engine; regenerate after any engine or scene change. inputs = sha256 over inputList.",
- "inputs": "2c0f3a1c99ab9165a1821ee51a194793aaf561cf24ba47501db3097e982e474f",
+ "inputs": "41319d6898298519d25ef3f3f4892b11eb9d72704e3c569954d318610728ab92",
  "inputList": {
   "src/features/landscape/engine/canvas2d.ts": "71503547776b380a748347b916852dfd452cfa168ba572312d170450cd7b4f30",
-  "src/features/landscape/engine/compose.ts": "bdfd8a472d47a03835b46d525da9e1184553246da8fa9aee0ea2c2fcb70ed5c3",
+  "src/features/landscape/engine/compose.ts": "7379a72f9c99c2e9ad484df53225260a2d2966f50aad63c977b6570343a8a13d",
   "src/features/landscape/engine/figure-source.ts": "2698ed8189c5a7f07b0f3f8cb31f58c95932e4833da55f52ba289181a4592ea7",
   "src/features/landscape/engine/figures.ts": "30a7a9d15233330893ea9e0ba313894332bdadee0c660cccc103e8076453a897",
   "src/features/landscape/engine/figures.worker.ts": "8f9c46033720b2f739f3f3e2d806ae1e09bd752d3347177b199b6836dbc073ab",
@@ -15,11 +15,11 @@
   "src/features/landscape/engine/sets/ferry.ts": "4819dd2a7c018c35aa7a861d52ec53bb8140e56692972781c896c64a75c50e83",
   "src/features/landscape/engine/sets/home.ts": "4b2b17df1e1d2521e775b1b7307b3d112db1c9392ddd49c7754a92a394fbff3f",
   "src/features/landscape/engine/sets/index.ts": "7035e2c222da4c05528de660342f01a0f2895d0734840d188cabbc08c1b02d5f",
-  "src/features/landscape/engine/sets/market.ts": "b7f67941f3bf378d8559357641c1128bfa7c44707a7f5756ba0a51702b155dc2",
+  "src/features/landscape/engine/sets/market.ts": "5978d62def9bc4b2a46010f557d3b3a7d78e4be3983863614898e3e8c2fc8ee4",
   "src/features/landscape/engine/sets/path.ts": "adcea97b3cebf6b07941cb9f2440d09a762c8d346e29f135e09ba012cd422f6f",
   "src/features/landscape/engine/sets/pavilion.ts": "2469035b2aaf7bfac994eb9c395992bf8b28553280ae38231ad76c5a893ef313",
   "src/features/landscape/engine/sets/terraces.ts": "eaafbdd883e1a9b80677ea7fb09e0bdad6c52d116a7b1011e9fe37105cf88357",
-  "src/features/landscape/engine/shaders.ts": "acfb4c82f63ef687a1670cb25d788113c07bf0c50b68d49289a817a1151ea827",
+  "src/features/landscape/engine/shaders.ts": "15c9672a499d05bb707ed63d3e85ec8b782ebd4eda2e7569684f1d627728cf1e",
   "src/features/landscape/engine/strip.ts": "ef3634c8666f5bde5dcbdca35c0640557ee9976ed0cc3350414420363ebf5384",
   "src/features/landscape/places.ts#contact": "5658cda693994fca179d62526f7241a8a433ece7d571b09e42e8719a26f18ea2",
   "src/features/landscape/places.ts#home": "08e3672733131327a202106f1e907e5a57894a3a7c67e8f9f8125a63629a5180",
@@ -69,16 +69,16 @@
    ]
   },
   "home@1x.webp": {
-   "bytes": 4040,
-   "sha256": "44935c2e9064392d8d3137fdb7b9ded15d2c437cb08724d10bbff1760cd2aa68",
+   "bytes": 4042,
+   "sha256": "3ecc926e184fcc178c059bf41625ac2535c5abcb5ca3aaf001f4d9f84b6192a4",
    "size": [
     334,
     70
    ]
   },
   "home@2x.webp": {
-   "bytes": 8264,
-   "sha256": "77f16eb14112074af102d805baee906db0410a45b4ffb43a1919fb5f52279671",
+   "bytes": 8928,
+   "sha256": "ae76734010f0c929b57057e40f4511dcc4726f6a7a76b31520cd68dc220d71bb",
    "size": [
     668,
     140
@@ -101,37 +101,37 @@
    ]
   },
   "work@1x.webp": {
-   "bytes": 4198,
-   "sha256": "815eb43cd057d2ddc0df66dd4551fcb03616c84d7398330f59129cd3c72b8679",
+   "bytes": 4294,
+   "sha256": "9ea43ef3e772d42757f6f608fc7d3110e5e5714f8ca7f1ac6f5fb43ae71eae05",
    "size": [
     334,
     70
    ]
   },
   "work@2x.webp": {
-   "bytes": 10188,
-   "sha256": "516073924d6bb55527970e1bf950c23c630769b199ea55e6a76df937da96ec5f",
+   "bytes": 10210,
+   "sha256": "0353e5c844e3e6c8dfdc5ba4654456ea4ca276dfd1a36c246b20644d17a51659",
    "size": [
     668,
     140
    ]
   },
   "writing@1x.webp": {
-   "bytes": 2620,
-   "sha256": "61af189166e070f8c4cf6c47325aa2bd69fdf47a167ddb1a5c994737b1daae34",
+   "bytes": 2618,
+   "sha256": "1d78cdb9e7fafa5fc7f69cb1e065e330d45536fdf5fe5bc5ddd20c0a16e3d060",
    "size": [
     334,
     70
    ]
   },
   "writing@2x.webp": {
-   "bytes": 6072,
-   "sha256": "2c065e4c63536d5144835392801972a949dedf63a08539efed9f9d0eeeb90695",
+   "bytes": 6064,
+   "sha256": "b6fc75c8b1a46e28a98c06e18a865758b11e47d1cf6a79b0971beeb307fad3f8",
    "size": [
     668,
     140
    ]
   }
  },
- "totalBytes": 52984
+ "totalBytes": 53758
 }

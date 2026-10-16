@@ -19,13 +19,15 @@
 
 import {
   REF_PX, VH_PX, SCENE_FIELDS, sceneField, streams, rng, vnoise, resample, mix, mix3, smooth, D, anchor, bounds, ownSprite,
+  stroke, wash, ellipse,
   type Ctx2D, type Env, type FigureMeta, type Inks, type Pt, type RGB, type Rng, type StrokeOptions,
 } from '../figures';
 
-// The rect: the river town from u 1.08 to 2.04 (both ends melt into mist over 13 %), and from scene height 0.14 (the
-// near bank's foot: no window looks lower; the phone strip's bottom is 0.163) up to 0.42 (above the back rows' roofs
-// and the masts; the town's highest point is about 0.38).
-export const meta: FigureMeta = { rect: [1.08, 2.04, 0.14, 0.42], plane: 2, phase: 1 };
+// The rect: the river and its town from u 1.0 to 2.12 (both ends melt into mist over 13 %: round 5, the town grows out
+// of the countryside under his mountain's foot and goes back into it before the lake), and from scene height 0.10 (the
+// near bank's land fades out above it) up to 0.42 (above the back rows' roofs and the masts; the town's highest point
+// is about 0.38).
+export const meta: FigureMeta = { rect: [1.0, 2.12, 0.10, 0.42], plane: 2, phase: 1 };
 
 const SEED = 11;
 
@@ -42,7 +44,7 @@ interface FolkOptions {
   load?: 'pole' | 'pack' | 'punt' | 'staff';
   rope?: Pt;
 }
-interface BuildingOptions { far?: number; wall?: number; thatch?: boolean }
+interface BuildingOptions { far?: number; wall?: number; thatch?: boolean; k?: number }
 interface HallOptions extends BuildingOptions {
   d?: number;
   rh?: number;
@@ -125,6 +127,55 @@ function noiseTable() {
 function nz(x: number) {
   const j = Math.floor(x), t = x - j, a = NT![j & 1023], b = NT![(j + 1) & 1023];
   return a + (b - a) * t * t * (3 - 2 * t);
+}
+
+/**
+ * A tree as the painters set one small in a far village (round 5; after the terraces' field tree): a short trunk,
+ * most of it hidden by a broad, domed crown of horizontal dots over a faint wash, darkest on its shaded lower right, so
+ * it reads as a tree at a few px. (x, y) the foot; s the scale (1 ~ 16 world px tall).
+ */
+function villageTree(env: Env, x: number, y: number, s: number, R: Rng, pale = false) {
+  const { ctx, ink } = env;
+  const { C, rgba } = ink;
+  // a short trunk under a domed crown that sits low on it (at a few px a long stem under a flat crown reads as a palm)
+  const H = 8 * s * (0.85 + R() * 0.3);
+  const lean = (R() - 0.5) * 1.6 * s;
+  const rx = (6 + R() * 2) * s, ry = (4.4 + R() * 1) * s;
+  const cx = x + lean, cy = y - H - ry * 0.25;
+  stroke(ctx, [[x, y + 0.4], [x + lean * 0.5 + (R() - 0.5) * 0.6 * s, y - H * 0.5], [cx, cy + ry * 0.3]], { w: 1.3 * s, col: rgba(C.ink, 0.75), tin: 0, tout: 0.4, wob: 0.5, seed: x });
+  const leaf = ink.strength > 0 ? mix3(C.ink, C.malD, pale ? 0.32 : 0.18) : (pale ? mix3(C.ink, C.white, 0.28) : C.ink);
+  const body = ink.strength > 0 ? mix3(C.ink2, C.malD, pale ? 0.42 : 0.3) : mix3(C.ink2, C.white, pale ? 0.5 : 0.3);
+  const j = () => (R() - 0.5) * 1.4 * s;
+  // the dome: two clusters low and wide, one high, one in front low
+  const B: [x: number, y: number, rx: number, ry: number][] = [
+    [cx - rx * 0.5 + j(), cy + ry * 0.2 + j(), rx * 0.62, ry * 0.7],
+    [cx + rx * 0.48 + j(), cy + ry * 0.25 + j(), rx * 0.6, ry * 0.68],
+    [cx + j(), cy - ry * 0.4 + j(), rx * 0.66, ry * 0.75],
+    [cx + rx * 0.05 + j(), cy + ry * 0.5, rx * 0.55, ry * 0.5],
+  ];
+  for (const [bx, by, bx2, by2] of B) wash(ctx, ellipse(bx, by, bx2, by2, 12), rgba(body, pale ? 0.3 : 0.4), { jit: 0.5 * s, seed: bx });
+  for (const [bx, by, brx, bry] of B) {
+    for (let i = 0, n = 12 + Math.floor(R() * 5); i < n; i++) {
+      const ang = R() * Math.PI * 2, rr = Math.sqrt(R());
+      const px = bx + Math.cos(ang) * brx * rr * 0.92, py = by + Math.sin(ang) * bry * rr * 0.92;
+      const shade = Math.min(1, Math.max(0, 0.45 + (py - by) / (bry * 2) + (px - bx) / (brx * 3)));
+      const L = (1.3 + R() * 0.8) * s;
+      stroke(ctx, [[px - L * 0.5, py + 0.15 * s], [px + L * 0.5, py - 0.15 * s]], { w: (1.0 + R() * 0.45) * s, col: rgba(leaf, (pale ? 0.3 : 0.4) + shade * 0.36), tin: 0.2, tout: 0.5, wob: 0.3, seed: i + bx });
+    }
+  }
+}
+
+/** A soft patch of wash (an ellipse fading out from its middle): grass, a field, a bank of mist. */
+function softPatch(ctx: Ctx2D, cx: number, cy: number, rx: number, ry: number, col: string) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(1, ry / rx);
+  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+  g.addColorStop(0, col);
+  g.addColorStop(1, col.replace(/[\d.]+\)$/, '0)'));
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(0, 0, rx, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
 }
 
 /** A brush ribbon into the batch: loaded start, thinning tail, breathing width, never on a ruler, dry breaks. */
@@ -269,13 +320,17 @@ function donkey(B: Ink, env: Env, x: number, y: number, s: number, R: Rng, o: { 
 // Song oblique projection (figures.ts D): fronts, tops and right-hand sides. Every house is its own batch; the town is
 // painted back row first and each row left to right, so a house covers the right side of the one before it.
 
-/** Paleness and the colours a house uses at depth `far` (0 front .. 1 back row). */
+/** Paleness and the colours a house uses at depth `far` (0 front .. 1 back row). o.k (round 5): the town's key there,
+ *  1 at the focus (the bridge, the landmark, the big boat), lighter away from it: the town stands on the far bank, so
+ *  away from the focus its line and tile step back a breath (the paper reserve stays whole). */
 function houseInk(env: Env, far: number, R: Rng, o: BuildingOptions) {
   const { C, rgba } = env.ink;
   const A = 1 - 0.45 * far;
+  const kk = o.k ?? 1;
   const wall = mix3(C.wall, C.ink2, (o.wall ?? 0) + 0.04 + R() * 0.12 + far * 0.08);
-  const tile = o.thatch ? mix3(mix3(C.timber, C.ink2, 0.5), C.white, 0.15 + far * 0.2) : mix3(C.tile, C.white, 0.06 + R() * 0.16 + far * 0.25);
-  return { C, rgba, A, wall, tile, side: mix3(wall, C.ink2, 0.26), line: (a: number) => rgba(C.ink, a * A) };
+  const tile0 = o.thatch ? mix3(mix3(C.timber, C.ink2, 0.5), C.white, 0.15 + far * 0.2) : mix3(C.tile, C.white, 0.06 + R() * 0.16 + far * 0.25);
+  const tile = mix3(tile0, C.paper, (1 - kk) * 0.8);
+  return { C, rgba, A, wall, tile, side: mix3(mix3(wall, C.ink2, 0.26), C.paper, (1 - kk) * 0.6), line: (a: number) => rgba(C.ink, a * A * kk) };
 }
 
 /**
@@ -600,8 +655,8 @@ function pollard(env: Env, x: number, y: number, s: number, R: Rng, o: { lean?: 
     const p1: Pt = [p0[0] + out * 0.55, p0[1] - up];
     const p2: Pt = [p0[0] + out * 1.05, p0[1] - up * 0.78];
     const len = (20 + R() * 24) * s * (0.6 + 0.4 * Math.abs(side));
-    const p3: Pt = [p2[0] + side * 1.5 * s + sway * 0.4, p2[1] + len * 0.55];
-    const p4: Pt = [p2[0] + side * 2.0 * s + sway, p2[1] + len];
+    const p3: Pt = [p2[0] + side * 1.5 * s + sway * 0.4, Math.min(y - 1.5 * s, p2[1] + len * 0.55)];
+    const p4: Pt = [p2[0] + side * 2.0 * s + sway, Math.min(y - 1 * s, p2[1] + len)];   // the strands stop at the ground
     const shoot = [p0, p1, p2, p3, p4];
     lines.push(shoot);
     const r = R();
@@ -610,18 +665,19 @@ function pollard(env: Env, x: number, y: number, s: number, R: Rng, o: { lean?: 
       const t = 0.25 + R() * 0.75;
       const a: Pt = [mix(p1[0], p2[0], t), mix(p1[1], p2[1], t)];
       const l2 = len * (0.35 + R() * 0.55);
-      const strand: Pt[] = [a, [a[0] + side * 0.6 * s, a[1] + l2 * 0.45], [a[0] + side * 0.9 * s + sway, a[1] + l2]];
+      const strand: Pt[] = [a, [a[0] + side * 0.6 * s, Math.min(y - 1.5 * s, a[1] + l2 * 0.45)], [a[0] + side * 0.9 * s + sway, Math.min(y - 1 * s, a[1] + l2)]];
       lines.push(strand);
       rib(B, tones[R() < 0.5 ? 0 : 1], strand, { w: 0.5 * s, tin: 0.04, tout: 0.85, wob: 0.3, min: 0.1, seed: k * 7 + j + x }, 1);
     }
   }
-  rib(B, rgba(C.ink, 0.78), trunk, { w: 3.8 * s, tin: 0.01, tout: 0.25, wob: 0.45, seed: x }, 2);
-  B.fill(rgba(C.ink, 0.72), oval(knob[0], knob[1] + 0.5 * s, 2.4 * s, 1.6 * s, 7), 2);   // the knob where it was cut back
+  rib(B, rgba(mix3(C.ink, C.ink2, 0.4), 0.6), trunk, { w: 3.2 * s, tin: 0.01, tout: 0.25, wob: 0.6, dry: 0.12, seed: x }, 2);
+  B.fill(rgba(C.ink, 0.55), oval(knob[0], knob[1] + 0.5 * s, 2.2 * s, 1.5 * s, 7), 2);   // the knob where it was cut back
   for (let b = 0; b < 2; b++) {   // the bark's flying white
     const off = (b - 0.5) * 1.8 * s;
     B.line(rgba(mix3(C.ink, C.white, 0.45), 0.5), 0.5 * s, trunk.slice(0, 6).filter((_p, i) => nz(i * 1.9 + b * 5 + x) > 0.3).map(([px, py]): Pt => [px + off + 0.5 * s, py]), 3);
   }
-  B.line(rgba(C.ink, 0.35), 1.3 * s, [[x - 5 * s, y + 0.8], [x + 6 * s, y + 0.3]], 0);
+  // rooted, not stood on a plate: a few short ticks of grass at its foot
+  for (let i = 0; i < 5; i++) { const gx = x + (i - 2) * 2.2 * s + (R() - 0.5) * s; B.line(rgba(C.ink, 0.28), 0.5 * s, [[gx, y + 0.6], [gx + (R() - 0.4) * 1.5 * s, y - (1.5 + R() * 2) * s]], 0); }
   B.flush();
   return { box: bounds(lines, 1.5 * s) };
 }
@@ -702,7 +758,8 @@ function craft(env: Env, x: number, y: number, L: number, R: Rng, o: CraftOption
     const yy = 1.4 + k * 1.5 * s;
     rib(B, rgba(C.ink2, 0.15 - k * 0.022), [[xa + L * (0.06 + R() * 0.08), y + yy], [xa + L * (0.5 + R() * 0.1), y + yy + 0.3], [xa + L * (0.86 + R() * 0.1), y + yy]], { w: (1.6 - k * 0.2) * s, tin: 0.25, tout: 0.5, wob: 0.7, dry: 0.3, seed: k + x }, 0);
   }
-  const hullC = mix3(C.timber, C.ink2, 0.45);   // timber, greyed: never a large warm area
+  const hullC = mix3(mix3(C.timber, C.ink2, 0.45), C.indigoP, 0.28);   // timber, greyed and cooled: never a large warm area,
+  // and lighter than the bridge (round 5: the bridge is the town's darkest ink)
   wsh(B, rgba(mix3(C.timberM, C.white, 0.35), 0.95), [...gN, ...gF.slice().reverse()], 0.2, x, 1);
   const side = [...gN];
   for (let i = N; i >= 0; i--) { const t = i / N; side.push(P(L * (0.06 + 0.88 * t), 0, 0)); }
@@ -790,7 +847,8 @@ function rainbow(env: Env, A: Pt, span: number, Hb: number, R: Rng, o: RainbowOp
   const deckAt = (t: number, w = 0): Pt => { const b = base(t); return [b[0] + w * bw, b[1] - deckLift(t)]; };
   const ts: number[] = [];
   for (let i = 0; i <= N; i++) ts.push(-ramp + (1 + 2 * ramp) * i / N);
-  const beamC = mix3(C.timber, C.ink, 0.55), timberG = mix3(C.timberM, C.ink2, 0.35);
+  // (round 5: cooled toward the river's grey-blue; the bridge stays the focus by its form and its crowd, not its warmth)
+  const beamC = mix3(mix3(C.timber, C.ink, 0.55), C.indigo, 0.18), timberG = mix3(mix3(C.timberM, C.ink2, 0.35), C.indigoP, 0.2);
   // 1. on the water: the arch's shadow and broken reflection; the far face glimpsed under the deck
   const B = new Ink(ctx);
   for (let k = 0; k < 8; k++) {
@@ -894,28 +952,59 @@ export function* draw(env: Env) {
   const X = (u: number) => u * REF_PX, Y = (y: number) => (1 - y) * VH_PX, Ux = (x: number) => x / REF_PX;
   const f = new Float32Array(SCENE_FIELDS);
   const banks = (x: number) => { sceneField(Ux(x), P, f); return [Y(f[1]), Y(f[7])]; };   // [far bank, near bank], world px
-  const farB = (x: number) => banks(x)[0] + (vnoise(x / 60, 0.2, 5) - 0.5) * 2.5;
-  const nearB = (x: number) => banks(x)[1] + (vnoise(x / 55, 0.8, 6) - 0.5) * 3;
+  // (round 5) the far bank is the scroll's horizon: level, in stone, along the town proper (the quay); beyond it, earth
+  // banks in short stretches at their own heights, and past the reed hut it bends up and back as the river opens into
+  // the lake. The near bank has its points and bays, but stands where it always has within 180 px of the bridge's
+  // crown, so the bridge, its crowd and the road keep their places.
+  const quay = (x: number) => smooth(X(1.22), X(1.3), x) * (1 - smooth(X(1.84), X(1.9), x));
+  const gauss = (x: number, u: number, w: number) => Math.exp(-(((x - X(u)) / w) ** 2));
+  const farB = (x: number) => banks(x)[0] + (vnoise(x / 60, 0.2, 5) - 0.5) * 2.5
+    + (1 - quay(x)) * ((vnoise(x / 64, 3.3, 12) - 0.5) * 9 + (vnoise(x / 21, 1.1, 13) - 0.5) * 3)
+    - 16 * smooth(X(1.95), X(2.08), x);
+  const pin = (x: number) => smooth(180, 330, Math.abs(x - X(1.565)));
+  const nearB = (x: number) => banks(x)[1] + (vnoise(x / 55, 0.8, 6) - 0.5) * 3
+    + pin(x) * ((vnoise(x / 260, 2.7, 9) - 0.5) * 12 - 20 * gauss(x, 1.27, 46) + 18 * gauss(x, 1.79, 58) - 12 * gauss(x, 1.13, 40));
   const x0 = X(1.12), x1 = X(2.0);
+  // (round 5, the town in the scroll) the river's banks run on past the town: from under his mountain's foot (u 1.03) to
+  // where the river opens into the lake (u 2.06); the layer's ends melt them into the mist
+  const xb0 = X(1.03), xb1 = X(2.06);
+  // the town proper, and how much of it stands at x: the town grows out of the countryside and goes back into it (the
+  // Qingming manner), full between the landing and the east moorings, thinning to fields, groves and a farmhouse at
+  // the west end, to reeds and a fisherman's hut at the east
+  const core0 = X(1.27), core1 = X(1.87);
+  const taper = (x: number) => smooth(X(1.12), X(1.4), x) * (1 - smooth(X(1.78), X(2.0), x));
 
-  // ---- the far bank: the street's paper, a stone embankment along the water, stairs down to the boats
+  // ---- the far bank: the street's paper, a stone embankment along the water (the town proper only; earth banks and
+  // reeds beyond it), stairs down to the boats
   const top: Pt[] = [], bot: Pt[] = [];
-  for (let x = x0; x <= x1; x += 6) { top.push([x, farB(x)]); bot.push([x, nearB(x)]); }
+  for (let x = xb0; x <= xb1; x += 6) { top.push([x, farB(x)]); bot.push([x, nearB(x)]); }
   const G = new Ink(ctx);
-  G.fill(rgba(C.paper, 0.85), [...top.map(([x, y]): Pt => [x, y - 13]), ...top.slice().reverse()], 0);
-  const emb = top.filter((p) => p[0] > x0 + 60 && p[0] < x1 - 40);
+  // the street's paper: the town's own ground, thinning with the town (it never runs as a band past the houses)
+  const street = top.filter((p) => p[0] > x0 && p[0] < x1);
+  G.fill(rgba(C.paper, 0.6), [...street.map(([x, y]): Pt => [x, y - 3 - 10 * taper(x) - 2 * nz(x * 0.05)]), ...street.slice().reverse()], 0);
+  const emb = top.filter((p) => p[0] > core0 && p[0] < core1);
   const Remb = own('embankment');
   for (let k = 0; k < 3; k++) G.fill(rgba(mix3(C.ink2, C.white, 0.55), 0.2), [...emb.map(([x, y]): Pt => [x + (k - 1) * 0.5, y - 0.5 + (k - 1) * 0.4]), ...emb.slice().reverse().map(([x, y]): Pt => [x + (k - 1) * 0.5, y + 3.2 + (k - 1) * 0.4])], 0);
   for (const seg of brokenRuns(emb, Remb, 90, 260, 14)) rib(G, rgba(C.ink, 0.5), seg, { w: 1.1, tin: 0.15, tout: 0.2, wob: 0.6, dry: 0.15, seed: seg[0][0] }, 1);
   for (const seg of brokenRuns(emb, Remb, 40, 140, 30)) rib(G, rgba(C.ink, 0.26), seg.map(([x, y]) => [x, y + 3.4]), { w: 0.8, tin: 0.2, tout: 0.3, wob: 0.6, dry: 0.3, seed: seg[0][0] + 1 }, 1);
-  for (const u of [1.24, 1.83]) {   // stone stairs down to the moorings
+  // beyond the embankment, earth banks: a broken, softer line, and reeds where the land meets the water
+  const Rearth = own('far earth bank');
+  for (const side of [top.filter((p) => p[0] < core0 + 20), top.filter((p) => p[0] > core1 - 20)]) {
+    for (const seg of brokenRuns(side, Rearth, 40, 150, 18)) rib(G, rgba(C.ink, 0.3), seg.map(([x, y]) => [x, y + 0.6]), { w: 0.9, tin: 0.3, tout: 0.4, wob: 0.8, dry: 0.35, seed: seg[0][0] + 3 }, 1);
+    for (let i = 0; i < side.length; i += 2) {
+      if (Rearth() < 0.55) continue;
+      const [rx, ry] = side[i], hgt = 3 + Rearth() * 5;
+      G.line(rgba(C.ink, 0.32), 0.45, [[rx, ry + 1], [rx + (Rearth() - 0.4) * 2.4, ry + 1 - hgt]], 2);
+    }
+  }
+  for (const u of [1.3, 1.83]) {   // stone stairs down to the moorings
     const sx = X(u), sy = farB(sx);
     G.fill(rgba(mix3(C.ink2, C.white, 0.5), 0.55), [[sx - 6, sy - 0.5], [sx + 6, sy - 0.5], [sx + 4.5, sy + 4], [sx - 4.5, sy + 4]], 1);
     for (let i = 1; i < 4; i++) G.line(rgba(C.ink, 0.35), 0.4, [[sx - 6 + i * 0.4, sy + i * 1.1], [sx + 6 - i * 0.4, sy + i * 1.1]], 2);
   }
   // mooring posts along the embankment
   const Rp = own('mooring posts');
-  for (let i = 0; i < 9; i++) { const px = x0 + 90 + Rp() * (x1 - x0 - 180), py = farB(px); G.line(rgba(C.ink, 0.65), 0.7, [[px, py + 2.5], [px + 0.2, py - 3.5]], 2); }
+  for (let i = 0; i < 9; i++) { const px = x0 + 90 + Rp() * (x1 - x0 - 180), py = farB(px); if (px > core0 && px < core1) G.line(rgba(C.ink, 0.65), 0.7, [[px, py + 2.5], [px + 0.2, py - 3.5]], 2); }
   G.flush();
   // life: the open river between the two banks shimmers (the far bank's line is its top)
   anchor(env, 'shimmer', bounds([top, bot]), { waterline: top.filter((_p, i) => i % 7 === 0) });
@@ -931,10 +1020,25 @@ export function* draw(env: Env) {
   // ---- the town. Rows back to front, each left to right (a house covers the right side of the one before it).
   // Row 1 faces the water; rows 2 and 3 stand behind it up the bank (the shader dissolves them into the mist).
   // Houses of many kinds and sizes; lanes run back into the town between groups; one landmark by the bridge.
+  // (Round 5: toward both ends the town thins. Every slot draws its layout from the row's stream exactly as before, so
+  // the town near the bridge is unchanged; whether a slot is built, and how, at the thinning ends comes from its own
+  // stream: the back rows go first, the front row's houses grow smaller and thatched and give way to clumps of trees.)
   const streetY = (x: number) => farB(x) - 13;
   const LM = { x: X(1.786), w: 62 };   // the landmark's place (in the wide strip and the phone's closing)
+  // the town's key (round 5): full at its focus (the bridge's crown and the big boat, the landmark), a breath lighter
+  // away from it, as far-bank ink should be
+  const keyAt = (x: number) => (0.8 + 0.2 * Math.max(Math.exp(-(((x - bc) / (0.17 * REF_PX)) ** 2)), Math.exp(-(((x - LM.x - LM.w * 0.5) / (0.07 * REF_PX)) ** 2)))) * (0.6 + 0.4 * taper(x));
   const phone = (x: number) => x > X(1.44) && x < X(1.745);   // the phone strip's view: keep the front row low there
-  const folkPlaces: [a: number, b: number, y: number][] = [];
+  const folkPlaces: [a: number, b: number, y: number, d: number][] = [];
+  /** A clump of trees in a slot the town has given up (the thinning ends): a willow or two, a leafy tree. */
+  const clump = (cx: number, cy: number, w: number, sc: number, Tt: Rng) => {
+    // leafy village trees of two or three sizes, broad crowns on short trunks (a thin stalk with a tuft read as a palm)
+    const nT = 1 + Math.floor(Tt() * 2.4);
+    for (let i = 0; i < nT; i++) {
+      const tx = cx + (i - (nT - 1) / 2) * w * 0.32 + (Tt() - 0.5) * 6, ty = cy + 2 + Tt() * 2;
+      villageTree(env, tx, ty, (0.75 + Tt() * 0.45) * sc, Tt, Tt() < 0.35);
+    }
+  };
   let n = 0, lmDone = false;
   for (const [row, depth, sc, far] of [[3, 62, 0.8, 0.82], [2, 31, 0.9, 0.42], [1, 0, 1, 0]]) {
     const R = own('row', row);
@@ -946,23 +1050,29 @@ export function* draw(env: Env) {
       const y = streetY(x) + D[1] * depth + (R() - 0.5) * (row === 1 ? 2.5 : 6) + (row === 1 && R() < 0.18 ? -3 : 0);
       if (row === 1 && !lmDone && xx + 26 > LM.x - 8) {   // the landmark, with a lane each side
         landmark(env, LM.x, streetY(LM.x) + 0.5, LM.w, own('landmark'));
-        folkPlaces.push([LM.x - 4, LM.x + LM.w + 4, streetY(LM.x)]);
+        folkPlaces.push([LM.x - 4, LM.x + LM.w + 4, streetY(LM.x), 1]);
         lmDone = true;
         x = LM.x + LM.w + 10;
         continue;
       }
       if (row === 1 && xx + 30 > bB[0] - 28 && xx < bB[0] + 44) { x += 12; continue; }   // the bridge lands here
       if (row === 2 && Math.abs(xx - LM.x - 20) < 46) { x += 14; continue; }   // behind the landmark: its own roof
+      // the town's thinning: how much of it stands here (1 in the town proper), and this slot's own say
+      const tp = taper(xx);
+      const Tt = own('taper', row, k);
+      const built = Tt() < (row === 3 ? tp * tp : row === 2 ? tp : 0.35 + 0.65 * tp);
       // a lane running back into the town between groups of houses
       if (++group > groupLen) {
         group = 0; groupLen = 2 + Math.floor(R() * 4);
         const lw = (6 + R() * 7) * s;
         if (row === 1) {
           const lx = xx + lw * 0.5;
-          const Bl = new Ink(ctx);
-          Bl.fill(rgba(mix3(C.paper, C.ink2, 0.06), 0.9), [[xx - 1, y + 1], [xx + lw + 1, y + 1], [xx + lw + 1 + D[0] * 40, y + 1 + D[1] * 40], [xx - 1 + D[0] * 40, y + 1 + D[1] * 40]], 0);
-          Bl.flush();
-          if (R() < 0.6) folkPlaces.push([lx - 2, lx + 2, y - 4]);
+          if (built) {
+            const Bl = new Ink(ctx);
+            Bl.fill(rgba(mix3(C.paper, C.ink2, 0.06), 0.9), [[xx - 1, y + 1], [xx + lw + 1, y + 1], [xx + lw + 1 + D[0] * 40, y + 1 + D[1] * 40], [xx - 1 + D[0] * 40, y + 1 + D[1] * 40]], 0);
+            Bl.flush();
+          }
+          if (R() < 0.6) folkPlaces.push([lx - 2, lx + 2, y - 4, tp]);
         }
         x += lw;
         continue;
@@ -974,60 +1084,102 @@ export function* draw(env: Env) {
         if (row <= 2 && R() < 0.75) {
           const tx = xx + w * 0.5, ty = y + 2;
           const T = own('gap tree', row, k);
-          if (T() < 0.55) willowT(env, tx, ty, 0.55 * s, T, { form: T() < 0.5 ? 'tall' : 'wide' }); else dotTreeT(env, tx, ty, 0.62 * s, T, { green: true });
+          // (where the town thins, village trees: a small willow standing alone up the bank reads as a palm)
+          if (tp < 0.95) villageTree(env, tx, ty, (0.8 + T() * 0.35) * s, T, T() < 0.4);
+          else if (T() < 0.55) willowT(env, tx, ty, 0.55 * s, T, { form: T() < 0.5 ? 'tall' : 'wide' }); else dotTreeT(env, tx, ty, 0.62 * s, T, { green: true });
         }
         x += w + (2 + R() * 6) * s;
         continue;
       }
       const lowRow = row === 1 && phone(xx);
       const T = own('house', row, k);
+      // at the thinning ends a front-row house is smaller and thatched: a village, not a street
+      const small = row === 1 ? 1 - 0.35 * (1 - tp) : 1, rustic = row === 1 && Tt() < (1 - tp) * 0.85;
       let w: number;
       if (r < 0.3) {   // gable end to the street
         w = (14 + R() * 10) * s;
         const h = (8.5 + R() * 3.5) * s;
-        gableEnd(env, xx, y, w, h, T, { far, d: w * (1.1 + R() * 0.7), rh: w * (lowRow ? 0.32 + R() * 0.08 : 0.36 + R() * 0.22) });
+        const o: GableEndOptions = { far, d: w * (1.1 + R() * 0.7), rh: w * (lowRow ? 0.32 + R() * 0.08 : 0.36 + R() * 0.22) };
+        if (built) gableEnd(env, xx, y, w * small, h * small, T, { ...o, thatch: rustic, k: keyAt(xx) });
       } else if (r < 0.37 && row < 3) {   // a courtyard wall and its gate
         w = (18 + R() * 16) * s;
-        wallGate(env, xx, y, w, (7 + R() * 2) * s, T, { far });
+        const h = (7 + R() * 2) * s;
+        if (built) wallGate(env, xx, y, w * small, h, T, { far, k: keyAt(xx) });
       } else {   // a house facing the street
         w = (22 + R() * 30) * s;
         const thatch = R() < 0.08;
         const storey = row === 1 && !lowRow && !thatch && R() < 0.16 && Math.abs(xx - LM.x - LM.w * 0.5) > 130;   // the landmark stays the tallest near it
         const h = (storey ? 1.55 : 1) * (lowRow ? 8.5 + R() * 2.5 : 9 + R() * 4.5) * s;
-        hall(env, xx, y, w, h, T, {
+        const o: HallOptions = {
           far, thatch, storey, roof: thatch || R() < 0.62 ? 'hip' : 'gable', awning: row === 1 && !storey && R() < 0.22,
           wideShop: R() < 0.4, front: row === 1 ? (R() < 0.78 ? 'shop' : 'door') : R() < 0.4 ? 'window' : 'blank',
           rh: h * (lowRow ? 0.45 + R() * 0.12 : 0.48 + R() * 0.4), d: w * (0.36 + R() * 0.3),
-        });
+        };
+        const tall = storey && tp > 0.85;   // (a two-storey house only in the town proper)
+        if (built) hall(env, xx, y, w * small, (storey && !tall ? h / 1.55 : h) * small, T, { ...(rustic ? { ...o, thatch: true, storey: false, awning: false, front: 'door' as const, roof: 'hip' as const } : { ...o, storey: tall }), k: keyAt(xx) });
       }
-      if (row === 1) folkPlaces.push([xx + 1, xx + w - 1, y]);
-      if (row > 1 && R() < (row === 3 ? 0.15 : 0.22)) { const tx = xx + w * (0.2 + R() * 0.6), ty = y + 2, Tt = own('tree', row, k); if (Tt() < 0.5) willowT(env, tx, ty, 0.5, Tt, { form: 'tall' }); else dotTreeT(env, tx, ty, 0.55, Tt, { green: true }); }
+      if (!built && row === 1) clump(xx + w * 0.5, y, w, s, Tt);   // the town gives way to trees
+      if (row === 1) folkPlaces.push([xx + 1, xx + w - 1, y, built ? tp : 0]);
+      if (row > 1 && R() < (row === 3 ? 0.15 : 0.22)) {
+        const tx = xx + w * (0.2 + R() * 0.6), ty = y + 2, Tt2 = own('tree', row, k);
+        if (tp < 0.95) villageTree(env, tx, ty, 0.75 + Tt2() * 0.3, Tt2, Tt2() < 0.4);
+        else if (Tt2() < 0.5) willowT(env, tx, ty, 0.5, Tt2, { form: 'tall' }); else dotTreeT(env, tx, ty, 0.55, Tt2, { green: true });
+      }
       x += w + (row === 1 ? 1.5 + R() * 6 : 2 + R() * 10) * s;
       if (++n % 6 === 0) yield;
     }
     if (row === 3) {   // old trees among the houses, behind the second row: their crowns break the roofline
       ([[1.34, 1.3, 'willow'], [1.71, 1.25, 'willow'], [1.93, 1.3, 'dots']] as const).forEach(([u, sz, kind], i) => {
         const tx = X(u), ty = streetY(tx) + D[1] * 46, T = own('old tree', i);
-        if (kind === 'willow') willowT(env, tx, ty, sz * 0.8, T, { form: 'tall' }); else dotTreeT(env, tx, ty, sz, T, { green: true, clusters: 6 });
+        if (kind === 'willow') willowT(env, tx, ty, sz * 0.8, T, { form: 'tall' }); else villageTree(env, tx, ty, sz * 1.1, T);   // (round 5: the east end's tree, a village tree)
       });
     }
     yield;
   }
+
+  // ---- the countryside at the town's ends (round 5): at the west, under his mountain's foot, a farmhouse in a grove
+  // on the far bank, its fields falling to the water; at the east, before the river opens into the lake, a fisherman's
+  // hut on posts among the reeds
+  {
+    const Rc = own('countryside');
+    const fx = X(1.145), fy = streetY(fx) + 2;
+    willowT(env, fx - 26, fy + 1, 0.85, own('grove', 1), { form: 'wide' });
+    dotTreeT(env, fx + 30, fy, 0.8, own('grove', 2), { green: true, clusters: 6 });
+    hall(env, fx - 12, fy, 26, 9.5, own('farmhouse'), { far: 0.15, thatch: true, roof: 'hip', front: 'door', d: 11, k: 0.7 });
+    willowT(env, fx + 52, fy + 2, 0.6, own('grove', 3), { form: 'tall' });
+    const Bf = new Ink(ctx);   // the fields below it: a few level lines down to the water
+    for (let i = 0; i < 3; i++) {
+      const y0 = fy + 4 + i * 3.2, xa = fx - 40 + Rc() * 10, xb = fx + 70 - Rc() * 14;
+      rib(Bf, rgba(C.ink, 0.22), [[xa, y0], [mix(xa, xb, 0.5), y0 + 0.4], [xb, y0 + 0.2]], { w: 0.6, tin: 0.2, tout: 0.3, dry: 0.4, seed: 70 + i }, 1);
+    }
+    const hx = X(1.958), hy = farB(hx) - 2;
+    for (let i = 0; i < 4; i++) Bf.line(rgba(C.ink, 0.55), 0.6, [[hx - 2 + i * 6, hy + 4], [hx - 2 + i * 6 + 0.3, hy - 1]], 2);   // its posts
+    Bf.flush();
+    hall(env, hx - 4, hy - 1, 22, 7.5, own('reed hut'), { far: 0.2, thatch: true, roof: 'hip', front: 'door', d: 8, k: 0.6 });
+    const Br = new Ink(ctx);
+    for (let i = 0; i < 26; i++) {   // the reeds round it
+      const rx = hx - 50 + Rc() * 110, ry = farB(rx) + 1 + Rc() * 2, hgt = 4 + Rc() * 7;
+      Br.line(rgba(C.ink, 0.3 + Rc() * 0.15), 0.45, [[rx, ry], [rx + (Rc() - 0.3) * 2.6, ry - hgt]], 2);
+    }
+    Br.flush();
+  }
+  yield;
 
   // ---- street life in front of the front row: people standing, talking, carrying; stalls; nobody walks
   {
     const Bs = new Ink(ctx);
     const Rs = own('street places');
     const stalls: Pt[] = [];
-    for (const [a, b, y] of folkPlaces) {
+    for (const [a, b, y, d] of folkPlaces) {
       const nF = Math.max(0, Math.round((b - a) / 16 + Rs() * 1.6 - 0.5));
       for (let i = 0; i < nF; i++) {
         const fx = mix(a, b, Rs()), fy = y + 4 + Rs() * 7.5;
+        if (own('street keep', Math.round(fx), i)() > d) continue;   // (round 5) fewer people where the town thins
         const T = own('street', Math.round(fx), i);
         const r = T();
         folk(Bs, env, fx, fy, 0.95 + T() * 0.12, T, { pose: r < 0.1 ? 'bend' : r < 0.14 ? 'sit' : 'stand', load: r > 0.86 ? 'pole' : r > 0.8 ? 'pack' : undefined, arm: r > 0.7 && r < 0.78 ? 'up' : undefined, hat: r > 0.8 ? 'cone' : undefined, flip: T() < 0.5 });
       }
-      if (b - a > 24 && Rs() < 0.22) stalls.push([mix(a, b, 0.3 + Rs() * 0.4), y + 10]);
+      if (b - a > 24 && Rs() < 0.22) { const sp: Pt = [mix(a, b, 0.3 + Rs() * 0.4), y + 10]; if (d > 0.8) stalls.push(sp); }
     }
     for (const [sx, sy] of stalls) { const T = own('stall', Math.round(sx)); if (T() < 0.5) parasolT(Bs, env, sx, sy, 0.9, T); else shade(Bs, env, sx, sy, 0.9, T); }
     Bs.flush();
@@ -1038,6 +1190,7 @@ export function* draw(env: Env) {
   // A-frame mast being let down toward the stern: the crew at the bow haul on slack ropes, one on the cabin roof
   // calls up, the people on the bridge lean over to watch
   const fb = (u: number) => farB(X(u));
+  const hulls: { x: number; y: number; w: number; h: number }[] = [];
   for (const b of [
     { key: 'moored 1', x: X(1.205), y: fb(1.22) + 12, L: 74, o: { s: 0.9, mast: 'up', crew: [[0.9, 0.4, { flip: true, hat: 'cone' }]] } },
     { key: 'moored 2', x: X(1.33), y: fb(1.35) + 15, L: 90, o: { s: 0.95, mast: 'up', c0: 0.22, c1: 0.62, dir: -1 } },
@@ -1045,12 +1198,14 @@ export function* draw(env: Env) {
     { key: 'moored 4', x: X(1.885), y: fb(1.9) + 13, L: 70, o: { s: 0.86, mast: 'up', c0: 0.3, c1: 0.66 } },
   ] satisfies MooredBoat[]) {
     const r = craft(env, b.x, b.y, b.L, own('boat', b.key), b.o);
+    hulls.push(r.box);
     if (b.o.crew) { const Bc = new Ink(ctx); b.o.crew.forEach(([u, w, opt], i) => { const p = r.P(b.L * u, r.sheer(u), r.beam * w); folk(Bc, env, p[0], p[1], b.o.s * 0.92, own('crew', b.key, i), { ...opt, shadow: false }); }); Bc.flush(); }
   }
   yield;
   {
     const L = 136, bx = X(1.645) + L, by = mix(fb(1.69), nearB(X(1.69)), 0.6);
     const r = craft(env, bx, by, L, own('boat', 'lowering'), { s: 1.1, dir: -1, mast: 'aframe', mastAngle: 38, mastLen: 0.4, c0: 0.2, c1: 0.5 });
+    hulls.push(r.box);
     const Bc = new Ink(ctx);
     const at = (u: number, w: number) => r.P(L * u, r.sheer(u), r.beam * w);
     // ropes from the apex forward to the haulers at the bow, sagging
@@ -1070,6 +1225,49 @@ export function* draw(env: Env) {
     const rp = [roof[0], roof[1] - 6.6];
     folk(Bc, env, rp[0], rp[1], 1.0, own('crew', 'lowering', 'roof'), { arm: 'up', flip: true, shadow: false, lean: -0.1 });
     Bc.flush();
+  }
+  yield;
+
+  // ---- the river's surface (round 5: blank paper between two lines read as a canal): fine ripple lines gathered round
+  // the bridge and the big boat, fading away from them; under each hull a faint, torn reflection; a timber landing
+  // stage on the far bank
+  {
+    const Bw = new Ink(ctx);
+    const Rr = own('ripples');
+    for (let i = 0; i < 110; i++) {
+      // drawn round the focus (the bridge's crown), thinning out with distance along the river
+      const fx = bc + (Rr() - 0.5) * 2 * (60 + Rr() * Rr() * 520);
+      if (fx < x0 || fx > x1) continue;
+      const yA = farB(fx) + 4, yB = nearB(fx) - 3;
+      if (yB - yA < 8) continue;
+      const fy = mix(yA, yB, 0.15 + Rr() * 0.75), len = 8 + Rr() * 20;
+      const a = (0.2 + Rr() * 0.16) * Math.exp(-(((fx - bc) / (0.32 * REF_PX)) ** 2) * 0.8);
+      if (a < 0.03) continue;
+      Bw.line(rgba(C.ink2, a), 0.7, [[fx - len * 0.5, fy], [fx, fy + (Rr() - 0.5) * 0.6], [fx + len * 0.5, fy + (Rr() - 0.5) * 0.4]], 0);
+    }
+    const reflC = mix3(C.ink2, C.indigoP, 0.35);
+    for (const h of hulls) {   // the reflections: broken dabs under the waterline, about a third of the hull's tone, fading down
+      const wl = h.y + h.h * 0.94;
+      for (let j = 0; j < 3; j++) {
+        const y = wl + 1.6 + j * 2.4, k = 1 - j / 3;
+        for (let x = h.x + 3; x < h.x + h.w - 3;) {
+          const len = 4 + Rr() * 9;
+          if (Rr() < 0.72) Bw.line(rgba(reflC, 0.3 * k), 1.4, [[x, y], [Math.min(h.x + h.w - 3, x + len), y + (Rr() - 0.5) * 0.5]], 0);
+          x += len + 2 + Rr() * 4;
+        }
+      }
+    }
+    // the river carried on past the hut toward the lake: a few long, faint strokes, longer and lighter as it opens
+    for (let i = 0; i < 6; i++) {
+      const sx = X(1.93 + i * 0.028 + Rr() * 0.01), sy = mix(farB(sx), nearB(sx), 0.3 + Rr() * 0.5), len = 18 + i * 6 + Rr() * 10;
+      Bw.line(rgba(C.ink2, 0.2 - i * 0.025), 0.7, [[sx, sy], [sx + len * 0.5, sy + (Rr() - 0.5) * 0.6], [sx + len, sy + (Rr() - 0.5) * 0.5]], 0);
+    }
+    // the landing stage: a platform of planks on posts, run out from the far bank between the moorings and the bridge
+    const lx = X(1.43), ly = farB(lx);
+    Bw.fill(rgba(mix3(C.timberM, C.ink2, 0.4), 0.7), [[lx, ly + 0.5], [lx + 30, ly + 0.5], [lx + 33, ly + 4.5], [lx + 3, ly + 4.5]], 1);
+    for (const px of [lx + 4, lx + 16, lx + 29]) Bw.line(rgba(C.ink, 0.55), 0.6, [[px, ly + 4.5], [px + 0.2, ly + 9]], 1);
+    Bw.line(rgba(C.ink, 0.5), 0.7, [[lx, ly + 0.5], [lx + 30, ly + 0.5], [lx + 33, ly + 4.5]], 2);
+    Bw.flush();
   }
   yield;
 
@@ -1119,17 +1317,41 @@ export function* draw(env: Env) {
   {
     const Bn = new Ink(ctx);
     const nbY = banks(X(1.5))[1];   // the near bank's waterline (level along the river)
-    const g = ctx.createLinearGradient(0, nbY - 2, 0, nbY + 30);
-    g.addColorStop(0, rgba(C.earth, 0.11));
-    g.addColorStop(0.4, rgba(C.earth, 0.05));
-    g.addColorStop(1, rgba(C.earth, 0));
-    const edge = bot.map(([x, y]) => [x, y + 1]);
-    const foot = bot.slice().reverse().map(([x, y], i) => [x, y + 30 + 16 * nz(i * 0.21 + 40)]);
+    // (round 5, the town in the scroll) the near bank is land, not a line over paper: a body of earth, toned with ink
+    // (never beige), deepest at the water's edge and torn unevenly into the paper below, so the willows, the crowd and
+    // the donkey stand on ground, as Home's near hills and the Résumé's near terraces do
+    const earthC = mix3(C.earth, C.ink2, 0.35);
+    const g = ctx.createLinearGradient(0, nbY - 2, 0, nbY + 80);
+    g.addColorStop(0, rgba(earthC, 0.27));
+    g.addColorStop(0.22, rgba(earthC, 0.15));
+    g.addColorStop(0.55, rgba(earthC, 0.06));
+    g.addColorStop(1, rgba(earthC, 0));
+    // (its foot rises to the bank toward the east, where the river opens out, so the land ends blunt, not in a wedge)
+    const land = bot.filter((p) => p[0] < X(1.97));
+    const edge = land.map(([x, y]) => [x, y + 1]);
+    const foot = land.slice().reverse().map(([x, y], i) => [x, y + (46 + 24 * nz(i * 0.13 + 40) + 9 * nz(i * 0.57 + 7)) * (1 - smooth(X(1.82), X(1.97), x))]);
     ctx.beginPath(); ctx.moveTo(edge[0][0], edge[0][1]);
     for (const p of edge) ctx.lineTo(p[0], p[1]);
     for (const p of foot) ctx.lineTo(p[0], p[1]);
     ctx.closePath(); ctx.fillStyle = g; ctx.fill();
-    const nb = bot.filter((p) => p[0] > x0 + 80 && p[0] < x1 - 60);
+    // the crowd at the bridge's foot keeps its ground pale round it (the figures read against paper)
+    softPatch(ctx, bA[0] - 30, nbY + 14, 110, 16, rgba(C.paper, 0.5));
+    // the land's east end dissolves into the mist where the river opens
+    softPatch(ctx, X(1.95), nbY + 26, 120, 40, rgba(C.paper, 0.55));
+    // a little misted green in it: grass and young fields along the bank, in soft patches (none in ink)
+    if (ink.strength > 0) {
+      const Rpa = own('bank green');
+      for (let k = 0; k < 9; k++) {
+        const px = mix(x0 + 50, x1 - 50, (k + 0.2 + Rpa() * 0.6) / 9), py = nearB(px) + 12 + Rpa() * 14;
+        softPatch(ctx, px, py, 40 + Rpa() * 50, 6 + Rpa() * 5, rgba(mix3(C.mal, C.white, 0.3), 0.07 + Rpa() * 0.05));
+      }
+    }
+    const nb = bot.filter((p) => p[0] > xb0 + 40 && p[0] < X(1.93));
+    const Rrd = own('near reeds');
+    for (let i = 0; i < 22; i++) {   // reeds where the near bank goes into the mist
+      const rx = X(1.9) + Rrd() * X(0.07), ry = nearB(rx) + 1 + Rrd() * 4, hgt = 4 + Rrd() * 7;
+      Bn.line(rgba(C.ink, 0.28 + Rrd() * 0.14), 0.45, [[rx, ry], [rx + (Rrd() - 0.3) * 2.6, ry - hgt]], 2);
+    }
     const Rnb = own('near bank');
     for (let k = 0; k < 3; k++) Bn.fill(rgba(C.ink2, 0.055), [...nb.map(([x, y]): Pt => [x, y + k * 0.6]), ...nb.slice().reverse().map(([x, y]): Pt => [x, y + 4.4 + k * 0.6])], 0);
     for (const seg of brokenRuns(nb, Rnb, 70, 240, 22)) rib(Bn, rgba(C.ink, 0.38 + Rnb() * 0.14), seg, { w: 1.2 + Rnb() * 0.8, tin: 0.2, tout: 0.35, wob: 0.7, dry: 0.12, seed: seg[0][0] }, 1);
@@ -1176,10 +1398,13 @@ export function* draw(env: Env) {
     F.flush();
   }
   yield;
-  [[1.235, 1.15], [1.37, 1.35], [1.875, 1.0]].forEach(([u, s], i) => {
+  // the near bank's willows, in groups of different sizes (round 5: three equal pollards evenly spaced read as markers):
+  // a pair at the west end, a big old one leaning over the road west of the bridge's foot, and by the punt's lane one
+  // with a younger one beside it. The three larger ones sway (life: the layer's life budget holds three willows).
+  ([[1.215, 1.4, 1, -0.32], [1.243, 0.9, 0, 0.22], [1.345, 1.9, 1, 0.38], [1.875, 1.15, 1, -0.2], [1.902, 0.75, 0, 0.3]] as const).forEach(([u, s, sway, lean], i) => {
     const x = X(u), y = nearB(x) + 14;
-    const t = pollard(env, x, y, s, own('willow', i), { sway: 1.3 });
-    anchor(env, 'willow', t.box, { foot: [x, y], s, sway: 1.3 });   // life: sway
+    const t = pollard(env, x, y, s, own('willow', i), { sway: 1.3, lean });
+    if (sway) anchor(env, 'willow', t.box, { foot: [x, y], s, sway: 1.3 });   // life: sway
   });
   yield;
   // (the town's mist, its back rows dissolving and the banks drifting across it, and the melting of both ends of the

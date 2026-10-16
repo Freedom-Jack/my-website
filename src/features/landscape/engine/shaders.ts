@@ -252,6 +252,8 @@ float figSpan(vec4 R, vec2 w) {
 // 4b: the river town's depth (compose.ts RIVER_FRONT): how high above the far bank the nearest things in a column reach
 // (the front row and its trees, the landmark, the masts, the bridge and the crowd on its crown); the mist lies behind
 const float FRONT[${RIVER_FRONT.hb.length}] = float[${RIVER_FRONT.hb.length}](${RIVER_FRONT.hb.map((v) => v.toFixed(3)).join(', ')});
+// the town's span along the river (world stretches): where its own hills keep misty feet and the far range runs on
+const vec2 TOWN = vec2(${RIVER_FRONT.u0.toFixed(4)}, ${(RIVER_FRONT.u0 + RIVER_FRONT.du * (RIVER_FRONT.hb.length - 1)).toFixed(4)});
 float frontAt(float u) {
   float x = (u - ${RIVER_FRONT.u0.toFixed(4)}) / ${RIVER_FRONT.du.toFixed(4)};
   if (x <= 0.0 || x >= ${(RIVER_FRONT.hb.length - 1).toFixed(1)}) return ${RIVER_FRONT.def.toFixed(3)};
@@ -391,7 +393,14 @@ void main() {
       fade = mix(fade, mix(0.07, 0.045, openW), sf);
     }
     else if (wO > 0.0 && i >= 3) footY += 0.1 * wO;   // a near plane over open water: only its headlands show, melting into it
-    if (riverW > 0.0) { footY = mix(footY, max(footY, wY + 0.06), riverW); fade = mix(fade, max(fade, 0.085), riverW); }
+    // (round 5) over the town (TOWN, from the river's depth profile) only its own hills (plane 2) keep their feet in mist
+    // above it, and less high; the guests behind stand on the river's horizon, and the far range runs on over the town as
+    // it does over the mountain and the lake (lifting all three left a hole in the one far range above the town). Where
+    // the river comes out past his mountain the old lift holds, so his mountain's edge is painted as it always was.
+    // Canvas2D lifts none.
+    float tk = smoothstep(TOWN.x - 0.04, TOWN.x + 0.06, wu.x) * (1.0 - smoothstep(TOWN.y - 0.04, TOWN.y + 0.06, wu.x));
+    float rl = mix(0.06, i == 2 ? 0.035 : i == 1 ? 0.0 : -1.0, tk);
+    if (riverW > 0.0) { footY = mix(footY, max(footY, wY + rl), riverW); fade = mix(fade, max(fade, 0.085), riverW); }
     // over open water nothing stands before the far shore: its wash is fuller and flatter; a near plane
     // standing in open water is only a pale headland, so its crest never draws a line across the water
     float inkK = Lp.z * inkT * mix(1.0, uHz[i].z, uHzK) * (1.0 + 0.5 * openW) * (i >= 3 ? 1.0 - 0.55 * wO : 1.0);

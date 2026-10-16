@@ -48,15 +48,19 @@ const STRETCHES: Massif[][] = [
   // each seam (the near crags), the far range running on above.
   // 1 · river: the market town at the rainbow bridge on the river's far bank (sets/market.ts), the hills behind it out
   // of the mist, lower than the home peak (4b: the hill behind the east end of the town is a broad, rounded hill, u .77;
-  // as a narrow cone it read as a spire, a pagoda's, beside the reading column: DESIGN §4.6). At its east end a spur
-  // (the near crag, u 1.03) where the river turns and opens into the lake.
+  // as a narrow cone it read as a spire, a pagoda's, beside the reading column: DESIGN §4.6). At its east end a low
+  // headland where the river turns and opens into the lake.
   [
     [0, 0.30, 0.26, 0.30, 'far'], [0, 0.80, 0.24, 0.36, 'far'],
-    [1, 0.42, 0.10, 0.48, 'guest'], [1, 0.97, 0.09, 0.52, 'guest'],
-    [2, 0.47, 0.066, 0.36, 'host'], [2, 0.585, 0.06, 0.46, 'host'], [2, 0.675, 0.055, 0.56, 'host'],
-    [2, 0.775, 0.127, 0.38, 'host'], [2, 0.875, 0.055, 0.40, 'host'],
-    [3, 1.03, 0.07, 0.5, 'near'],
-    [4, 1.06, 0.06, 0.4, 'fg'],
+    [1, 0.42, 0.10, 0.48, 'guest'], [1, 0.70, 0.14, 0.36, 'guest'], [1, 0.97, 0.09, 0.52, 'guest'],
+    // (round 5, the town in the scroll: one low ridge behind the town, its hills broad and rounded (guests: no host's
+    // sharp summit), none narrower than about three times its visible height: the one at u .675 stood alone as a spire)
+    [2, 0.47, 0.066, 0.36, 'guest'], [2, 0.585, 0.10, 0.36, 'guest'], [2, 0.68, 0.12, 0.38, 'guest'],
+    [2, 0.775, 0.16, 0.3, 'guest'], [2, 0.875, 0.08, 0.36, 'guest'],
+    // (round 5) at the east one broad, low headland where the river turns and opens into the lake (u 1.04; two narrow
+    // crags there read as stray triangles in the mist). (No massif at the west seam: anything there adds to his
+    // mountain's near crag at u 1.02; the near bank's land is the town's own, sets/market.ts.)
+    [3, 1.04, 0.12, 0.3, 'near'],
   ],
   // 2 · lake: a still lake. A low far shore (the lake's peak on the right, long pale ranges behind) stands on the
   // waterline; the near and middle distance are open water. Work's spur is the headland at its left; the terraces'
@@ -254,7 +258,7 @@ export const SCENES: Scene[] = [
   // them: 0.289 and 0.209, as 'deep' at 0.8 drew 0.32 and 0.235). The town stands on its far bank and the hills keep
   // their own misty feet above it (shore 0).
   { name: 'river', page: WORLD, tech: { at: [0.06, 0.98], bone: 1.0, ink: 1.5 },
-    water: { at: [0.02, 1.0], y: 0.289, near: 0.209, strokes: 0.8, refl: 0.2, banks: 0, shore: 0,
+    water: { at: [0.02, 1.0], y: 0.289, near: 0.209, strokes: 1.2, refl: 0.4, banks: 0, shore: 0,
       // 4b: the town's depth for its mist (shaders.ts figMist, canvas2d.ts figure()). The river's mist lies among the
       // back rows, behind the nearest things in each column: `front` is how high those reach above the far bank (scene
       // heights), every `step` stretches from u `at` (stretch-local): the front row's roofs and its trees, the landmark,
