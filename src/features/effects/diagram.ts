@@ -7,6 +7,8 @@
  * Drawn at rest: reduced motion, Still, no JS, print, forced colours. Labels, nodes and bands never move.
  * Print: every "Read as steps" list prints, open or closed (components.css + printSteps below).
  */
+import { cssTime } from '@/lib/css-time';
+
 const TRIGGER = 0.9;
 const SETTLE = 0.4;
 const bound = new WeakSet<Element>();
@@ -14,8 +16,8 @@ const bound = new WeakSet<Element>();
 const reached = (el: Element) => el.getBoundingClientRect().top < innerHeight;
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const still = () => document.documentElement.classList.contains('is-still');
-const token = (name: string, fallback: number) =>
-  parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name)) || fallback;
+// (lib/css-time: a minified ".52s" is 520 ms, not 0.52)
+const token = (name: string, fallback: number) => cssTime(name, fallback) || fallback;
 
 function groups(el: Element): Element[][] {
   const by = new Map<number, Element[]>();

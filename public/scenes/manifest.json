@@ -1,6 +1,6 @@
 {
  "about": "Footer story-map stills, made by tools/build-stills.ts from the engine; regenerate after any engine or scene change. inputs = sha256 over inputList.",
- "inputs": "41319d6898298519d25ef3f3f4892b11eb9d72704e3c569954d318610728ab92",
+ "inputs": "eb602471644b3fb7ddfd55f47edb1c1d1da0cf6c3881b3f1bb2e9ff935a34eab",
  "inputList": {
   "src/features/landscape/engine/canvas2d.ts": "71503547776b380a748347b916852dfd452cfa168ba572312d170450cd7b4f30",
   "src/features/landscape/engine/compose.ts": "7379a72f9c99c2e9ad484df53225260a2d2966f50aad63c977b6570343a8a13d",
@@ -19,7 +19,7 @@
   "src/features/landscape/engine/sets/path.ts": "adcea97b3cebf6b07941cb9f2440d09a762c8d346e29f135e09ba012cd422f6f",
   "src/features/landscape/engine/sets/pavilion.ts": "2469035b2aaf7bfac994eb9c395992bf8b28553280ae38231ad76c5a893ef313",
   "src/features/landscape/engine/sets/terraces.ts": "eaafbdd883e1a9b80677ea7fb09e0bdad6c52d116a7b1011e9fe37105cf88357",
-  "src/features/landscape/engine/shaders.ts": "15c9672a499d05bb707ed63d3e85ec8b782ebd4eda2e7569684f1d627728cf1e",
+  "src/features/landscape/engine/shaders.ts": "9bdde11f3bbf79963f2ee7ca9d4676427ea5029f5d49de359ebb9adee5599191",
   "src/features/landscape/engine/strip.ts": "ef3634c8666f5bde5dcbdca35c0640557ee9976ed0cc3350414420363ebf5384",
   "src/features/landscape/places.ts#contact": "5658cda693994fca179d62526f7241a8a433ece7d571b09e42e8719a26f18ea2",
   "src/features/landscape/places.ts#home": "08e3672733131327a202106f1e907e5a57894a3a7c67e8f9f8125a63629a5180",

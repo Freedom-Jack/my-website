@@ -1,6 +1,7 @@
 import type { Place } from '@/features/landscape/places';
 import type { LandscapeHandle } from '@/features/landscape/types';
 import { quiet } from '@/features/chrome/still';
+import { cssTime } from '@/lib/css-time';
 
 /**
  * How one page gives way to the next inside the one painting (SPEC-R4A §13.4). There is no cover and no
@@ -18,8 +19,9 @@ import { quiet } from '@/features/chrome/still';
  */
 
 const root = () => document.documentElement;
-const token = (name: string, fallback: number) =>
-  parseFloat(getComputedStyle(root()).getPropertyValue(name)) || fallback;
+// (the CSS pipeline minifies "600ms" to ".6s": lib/css-time reads seconds as seconds. Before, every route duration was
+// read as under 1 ms, so the pan, the sweep and the text's exit and entry never really ran)
+const token = (name: string, fallback: number) => cssTime(name, fallback, root()) || fallback;
 const EASE_EXIT = 'cubic-bezier(.5, 0, .75, 0)';
 const EASE_INK = 'cubic-bezier(.2, .7, .1, 1)';
 

@@ -1164,7 +1164,12 @@ void main() {
       float l2 = dot(ab, ab);
       float f = l2 > 1e-8 ? clamp(dot(q - a, ab) / l2, 0.0, 1.0) : 0.0;
       vec2 dq = q - a - ab * f;
-      float g = mix(A.z, B.z, f) * exp(-dot(dq, dq) / r2);
+      // (and each point's own disc at its own strength. The capsule alone interpolates the strength along the
+      // segment, so when the pointer rests just after moving, the newest point (1.0) and the one pushed before it (by
+      // then ~0.1, a few px behind) meet on a straight line through the pointer, square to the motion: the mist was
+      // parted on one side of the cursor and not the other)
+      vec2 da = q - a;
+      float g = max(mix(A.z, B.z, f) * exp(-dot(dq, dq) / r2), A.z * exp(-dot(da, da) / r2));
       wk = max(wk, g);
       gs += g;
       push += g * dq;                                          // away from the path

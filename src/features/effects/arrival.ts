@@ -5,6 +5,8 @@
  * --dur-settle (400 ms); then html.is-arrived drops the filter. Reduced motion: no edge at all. After a route
  * change (html.is-routed) CSS drops it. If this never runs, the boot script adds .is-arrived after 3 s.
  */
+import { cssTime } from '@/lib/css-time';
+
 const FEATHER_MAX = 8;
 const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
 
@@ -12,7 +14,7 @@ export function initArrival(): () => void {
   const html = document.documentElement;
   const name = document.querySelector('[data-arrive="name"]');
   const map = document.querySelector('#ink-arrive feDisplacementMap');
-  const dur = parseFloat(getComputedStyle(html).getPropertyValue('--dur-settle')) || 400;
+  const dur = cssTime('--dur-settle', 400, html) || 400; // (lib/css-time: a minified ".4s" is 400 ms)
   let raf = 0;
   let last = -1;
   let t0 = 0;
