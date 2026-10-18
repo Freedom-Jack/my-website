@@ -28,13 +28,35 @@ const EASE_INK = 'cubic-bezier(.2, .7, .1, 1)';
 /** The h1 the transition leads with, and every block around it (its siblings at each level up to main). */
 function parts(main: HTMLElement) {
   const h1 = main.querySelector('h1');
-  if (!h1) return { h1: null, rest: [...main.children] };
+  if (!h1) return { h1: null, rest: layers(main, [...main.children]) };
   const rest: Element[] = [];
   for (let node: Element = h1; node && node !== main; node = node.parentElement as Element) {
     for (const sib of node.parentElement?.children ?? []) if (sib !== node) rest.push(sib);
   }
-  return { h1, rest };
+  return { h1, rest: layers(main, rest) };
 }
+
+/**
+ * What actually fades: `els` themselves, except a block that holds an element blended into the paper (Home's photo,
+ * `mix-blend-mode: multiply`). Opacity below 1 or a transform on any of its ancestors makes that ancestor a group
+ * of its own, the multiply stops at the group, and the photo's white wall shows as a hard white box. So such a block
+ * fades by its children instead, down to the blended element, which fades by its own opacity (multiply at any
+ * opacity still turns its white into the paper). Every other block fades as one, as before.
+ */
+function layers(main: HTMLElement, els: Element[]): Element[] {
+  const blended = [...main.querySelectorAll('*')].filter((el) => getComputedStyle(el).mixBlendMode !== 'normal');
+  if (!blended.length) return els;
+  const split = (list: Iterable<Element>): Element[] =>
+    [...list].flatMap((el) => {
+      if (blended.some((b) => b !== el && el.contains(b))) return split(el.children);
+      return getComputedStyle(el).display === 'none' ? [] : [el]; // (<main>'s JSON-LD and print-only lines)
+    });
+  return split(els);
+}
+
+/** The old page's blocks as they fade out (or come back): <main> itself, unless it holds a blended element. */
+const blocks = (main: HTMLElement) => layers(main, [main]);
+const opacityOf = (els: Element[]) => Math.max(0, ...els.map((el) => Number(getComputedStyle(el).opacity) || 0));
 
 /** Resolves after `ms` on the clock, not on the animation's last frame (a busy GPU delivers `finished` late). */
 function after(ms: number, signal?: AbortSignal) {
@@ -58,24 +80,27 @@ function cancelRoute(main: HTMLElement) {
 /** The old text sinks into the mist. Resolves when it has gone (or at once when aborted). */
 export function exit(main: HTMLElement | null, { dir = 0, signal }: { dir?: number; signal?: AbortSignal } = {}) {
   if (!main) return Promise.resolve();
-  const from = Number(getComputedStyle(main).opacity) || 0;
+  const els = blocks(main);
+  const from = opacityOf(els);
   cancelRoute(main);
   main.style.pointerEvents = 'none';
   main.inert = true;
   if (quiet()) {
     const d = 60 * from;
-    main.animate([{ opacity: from }, { opacity: 0 }], { id: 'route', duration: d, easing: 'linear', fill: 'forwards' });
+    for (const el of els)
+      el.animate([{ opacity: from }, { opacity: 0 }], { id: 'route', duration: d, easing: 'linear', fill: 'forwards' });
     return after(d, signal);
   }
   const dur = token('--dur-route-exit', 160);
   const shift = -Math.sign(dir) * token('--route-shift', 16);
-  main.animate(
-    [
-      { opacity: from, translate: '0 0' },
-      { opacity: 0, translate: `${shift}px 0` },
-    ],
-    { id: 'route', duration: dur * from, easing: EASE_EXIT, fill: 'forwards' },
-  );
+  for (const el of els)
+    el.animate(
+      [
+        { opacity: from, translate: '0 0' },
+        { opacity: 0, translate: `${shift}px 0` },
+      ],
+      { id: 'route', duration: dur * from, easing: EASE_EXIT, fill: 'forwards' },
+    );
   main.querySelector('h1')?.animate([{ filter: 'blur(0px)' }, { filter: `blur(${token('--route-blur', 3)}px)` }], {
     id: 'route',
     duration: dur * from,
@@ -88,12 +113,14 @@ export function exit(main: HTMLElement | null, { dir = 0, signal }: { dir?: numb
 /** A navigation was called off before its swap: the text that was sinking comes back (120 ms). */
 export function restore(main: HTMLElement | null) {
   if (!main) return;
-  const from = Number(getComputedStyle(main).opacity);
+  const els = blocks(main);
+  const from = opacityOf(els);
   cancelRoute(main);
   main.inert = false;
   main.style.pointerEvents = '';
   if (from < 1 && !quiet())
-    main.animate([{ opacity: from }, { opacity: 1 }], { id: 'route', duration: 120, easing: EASE_INK });
+    for (const el of els)
+      el.animate([{ opacity: from }, { opacity: 1 }], { id: 'route', duration: 120, easing: EASE_INK });
 }
 
 /** The new text condenses in: the h1 first, every other block together 50 ms later. */
@@ -102,14 +129,15 @@ export function enter(main: HTMLElement | null, { dir = 0, signal }: { dir?: num
   const { h1, rest } = parts(main);
   const anims: Animation[] = [];
   if (quiet()) {
-    anims.push(
-      main.animate([{ opacity: 0 }, { opacity: 1 }], {
-        id: 'route',
-        duration: 90,
-        easing: 'linear',
-        fill: 'backwards',
-      }),
-    );
+    for (const el of blocks(main))
+      anims.push(
+        el.animate([{ opacity: 0 }, { opacity: 1 }], {
+          id: 'route',
+          duration: 90,
+          easing: 'linear',
+          fill: 'backwards',
+        }),
+      );
   } else {
     const dur = token('--dur-route-enter', 260);
     const step = token('--route-step', 50);
