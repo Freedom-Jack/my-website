@@ -46,6 +46,10 @@ export async function settle(page: Page, timeout = 30_000) {
       if (!s || s.mode === 'static') return true;
       if (s.arriving || s.pending || s.sweeping || s.deferred) return false;
       if (Object.values(s.figures || {}).includes('pending')) return false;
+      // (step 3b: below 1200 px a page is settled once its windows into the painting are painted, at idle after load)
+      const gl = s.glimpses;
+      if (gl && gl.on && (gl.list || []).some((g: any) => Number.isFinite(g.doc) && g.doc > 0 && !g.painted))
+        return false;
       const w = s.windows || {};
       const anyVis = (w.strip && w.strip.visible) || (w.closing && w.closing.visible) || s.hzK > 0;
       if (anyVis && (!(s.fullAt > 0) || s.draftAt > s.fullAt || performance.now() - s.draftAt < 400)) return false;

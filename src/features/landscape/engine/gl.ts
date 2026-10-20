@@ -34,6 +34,8 @@ const NO_CROP = new Float32Array([0, 1, 0, 0]);                 // an ordinary v
 const ZERO12 = new Float32Array(12);
 const ZERO12A = new Float32Array(12);   // (M step 3 air: no petals)
 const FULL_RECTS = new Float32Array([0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1]);
+const NONE16 = new Float32Array([2, 2, -1, -1, 2, 2, -1, -1, 2, 2, -1, -1, 2, 2, -1, -1]);   // (N1: no glimpse)
+const ZERO8 = new Float32Array(8);
 
 /** What the engine does when the context is lost (a restore is asked for), restored, or cannot be rebuilt. */
 export interface GLHooks {
@@ -361,6 +363,30 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
     },
     dropView(id) { const v = views.get(id); if (v) { freeView(v); views.delete(id); } },
     hasView(id) { return !!views.get(id)?.tex; },
+    /** M step 3b (N3's readback): a small copy of view `id`'s painting (pw x ph, RGBA8, bottom row first), read back once
+     *  after it is painted, at idle (never while a page scrolls), so the windows into the painting can find where the
+     *  place stands in it (index.ts glimpseProfile). The draw and read framebuffers and the texture binding are put back. */
+    readSmall(id, pw, ph) {
+      const v = views.get(id);
+      if (!v || !v.tex || !v.fb || gl.isContextLost()) return null;
+      const sw = v.sw || v.w, sh = v.sh || v.h;
+      const prevTex = gl.getParameter(gl.TEXTURE_BINDING_2D) as WebGLTexture | null;
+      const prevFb = gl.getParameter(gl.FRAMEBUFFER_BINDING) as WebGLFramebuffer | null;
+      const t = tex(pw, ph, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, gl.CLAMP_TO_EDGE);
+      const fb = gl.createFramebuffer();
+      gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, fb);
+      gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t, 0);
+      gl.bindFramebuffer(gl.READ_FRAMEBUFFER, v.fb);
+      gl.blitFramebuffer(0, 0, sw, sh, 0, 0, pw, ph, gl.COLOR_BUFFER_BIT, gl.LINEAR);
+      gl.bindFramebuffer(gl.READ_FRAMEBUFFER, fb);
+      const px = new Uint8Array(pw * ph * 4);
+      try { gl.readPixels(0, 0, pw, ph, gl.RGBA, gl.UNSIGNED_BYTE, px); } catch { /* ignore */ }
+      gl.bindFramebuffer(gl.FRAMEBUFFER, prevFb);
+      gl.deleteFramebuffer(fb);
+      gl.deleteTexture(t);
+      gl.bindTexture(gl.TEXTURE_2D, prevTex);
+      return px;
+    },
     /** QA: bytes held per view (its scene buffer, RGBA8, and its ridge rows, RGBA16F) and by the figure layers. */
     memory() {
       const out: RendererMemory = { total: 0, views: {}, figures: 0 };   // (figure layers: with their mip levels, x 4/3)
@@ -429,11 +455,13 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       if (!R || !v || !v.ridges || !v.tex) return;
       const P = R.sceneP;
       const ds = U.draft ? Math.min(1, Math.max(0.25, U.draftScale || 1)) : 1;
-      v.sw = Math.max(2, Math.round(v.w * ds));
-      v.sh = Math.max(2, Math.round(v.h * ds));
+      const half = U.half === 0 || U.half === 1 ? U.half : -1;   // (M step 3b: a window's two layers, one buffer)
+      v.sw = half >= 0 ? v.w : Math.max(2, Math.round(v.w * ds));
+      v.sh = half >= 0 ? v.h : Math.max(2, Math.round(v.h * ds));
       gl.bindVertexArray(R.vao);
       gl.bindFramebuffer(gl.FRAMEBUFFER, v.fb);
-      gl.viewport(0, 0, v.sw, v.sh);
+      if (half >= 0) gl.viewport(0, half * Math.floor(v.h / 2), v.w, Math.floor(v.h / 2));
+      else gl.viewport(0, 0, v.sw, v.sh);
       gl.useProgram(P.p);
       bindTex(P, 0, 'uRidges', v.ridges);
       bindTex(P, 1, 'uNoise', R.noise);
@@ -548,6 +576,26 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       gl.uniform4fv(P.u('uStK'), stOn && st.rule ? st.rule : ZERO4);   // (s3fix 10: the row rules' end)
       gl.uniform4fv(P.u('uLive'), U.live || ZERO4);
       gl.uniform4fv(P.u('uLive2'), U.live2 || ZERO4);
+      // M step 3b (elements.ts glimpses): the windows into the painting (units 13, 14: each window's own view, its back
+      // in the lower half and its front in the upper)
+      const G = U.glimpse;
+      const gv = [0, 1].map((i) => (G && G.ids[i] ? views.get(G.ids[i]) : null));
+      const gOn = !!G && !!gv[0]?.tex;
+      const gs = new Float32Array(8);
+      for (let i = 0; i < 2; i++) { const v = gv[i]; if (gOn && v && v.tex) gs.set([1 / v.w, 1 / v.h, 0, 0], i * 4); }
+      bindTex(P, 13, 'uGl0', gOn ? gv[0]!.tex : null);
+      bindTex(P, 14, 'uGl1', gOn && gv[1]?.tex ? gv[1]!.tex : null);
+      const gr = new Float32Array(NONE16.subarray(0, 8));
+      if (gOn) { gr.set(G!.rects); if (!gv[1]?.tex) gr.set(NONE4, 4); }
+      gl.uniform4fv(P.u('uGlS'), gs);
+      gl.uniform4f(P.u('uGlK'), gOn ? 1 : 0, U.paperOut ? 1 : 0, 0, 0);
+      gl.uniform4fv(P.u('uGlR'), gr);
+      gl.uniform4fv(P.u('uGlA'), gOn ? G!.a : ZERO8);
+      gl.uniform4fv(P.u('uGlB2'), gOn ? G!.b : ZERO8);
+      gl.uniform4fv(P.u('uGlF2'), gOn ? G!.f : ZERO8);
+      gl.uniform4fv(P.u('uGlC'), gOn ? G!.c : ZERO8);
+      gl.uniform4fv(P.u('uGlD'), gOn ? G!.d : ZERO8);
+      gl.uniform4fv(P.u('uGlM'), gOn ? G!.m : ZERO8);
       // M step 3 (elements.ts air): the scroll's air
       const A = U.air;
       gl.uniform4fv(P.u('uAir'), A ? A.a : ZERO4);

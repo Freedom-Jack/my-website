@@ -2,6 +2,7 @@ import Image from 'next/image';
 import { home } from '@content/pages/home';
 import { site } from '@content/site';
 import { PageMain } from '@/components/page/PageMain';
+import { Glimpse } from '@/components/page/Glimpse';
 import { Strip } from '@/components/page/Strip';
 import { InkButton } from '@/components/ui/InkButton';
 import { Seal } from '@/components/ui/Seal';
@@ -65,6 +66,7 @@ export async function HomePage() {
         </div>
       </section>
 
+      <Glimpse still="home-0" />
       <section className="sec" aria-labelledby="work-on-title" data-veil="">
         <h2 className="sec__title" id="work-on-title">
           {workOn.title}
@@ -87,45 +89,50 @@ export async function HomePage() {
       </section>
 
       {now.lines.length ? (
-        <section className="sec now" aria-labelledby="now-title" data-veil="">
-          <h2 className="sec__title" id="now-title">
-            {now.title}{' '}
-            <span className="sec__date small">
-              · <time dateTime={now.month}>{monthYear(now.month)}</time>
-            </span>
-          </h2>
-          <ul className="rows rows--plain" role="list">
-            {now.lines.map((line) => (
-              <li key={line.label}>
-                <b>{line.label}:</b> <Inline text={line.text} />
-              </li>
-            ))}
-          </ul>
-        </section>
+        <>
+          <section className="sec now" aria-labelledby="now-title" data-veil="">
+            <h2 className="sec__title" id="now-title">
+              {now.title}{' '}
+              <span className="sec__date small">
+                · <time dateTime={now.month}>{monthYear(now.month)}</time>
+              </span>
+            </h2>
+            <ul className="rows rows--plain" role="list">
+              {now.lines.map((line) => (
+                <li key={line.label}>
+                  <b>{line.label}:</b> <Inline text={line.text} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        </>
       ) : null}
 
       {notes.length ? (
-        <section className="sec" aria-labelledby="writing-title" data-veil="">
-          <h2 className="sec__title" id="writing-title">
-            {writing.title}
-          </h2>
-          <ul className="rows" role="list">
-            {notes.slice(0, 3).map((n) => (
-              <li className="row ink-row" key={n.slug}>
-                <p className="row__meta small">
-                  {n.kind} · <time dateTime={n.published}>{longDate(n.published)}</time>
-                </p>
-                <h3 className="row__title">
-                  <InlineLink href={n.href}>{n.title}</InlineLink>
-                </h3>
-                <p className="row__line">{n.description}</p>
-              </li>
-            ))}
-          </ul>
-          <p className="more">
-            <InlineLink href={writing.more.href}>{writing.more.label}</InlineLink>
-          </p>
-        </section>
+        <>
+          <Glimpse phone still="home-1" />
+          <section className="sec" aria-labelledby="writing-title" data-veil="">
+            <h2 className="sec__title" id="writing-title">
+              {writing.title}
+            </h2>
+            <ul className="rows" role="list">
+              {notes.slice(0, 3).map((n) => (
+                <li className="row ink-row" key={n.slug}>
+                  <p className="row__meta small">
+                    {n.kind} · <time dateTime={n.published}>{longDate(n.published)}</time>
+                  </p>
+                  <h3 className="row__title">
+                    <InlineLink href={n.href}>{n.title}</InlineLink>
+                  </h3>
+                  <p className="row__line">{n.description}</p>
+                </li>
+              ))}
+            </ul>
+            <p className="more">
+              <InlineLink href={writing.more.href}>{writing.more.label}</InlineLink>
+            </p>
+          </section>
+        </>
       ) : null}
 
       <section className="sec" aria-labelledby="say-hello-title" data-veil="">

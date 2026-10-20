@@ -1460,6 +1460,8 @@ export function* draw(env: Env) {
   // ---- A r2: a willow tip out of the top edge (young.ts willowTip: brown-ink bough, spring yellow-green strands, their
   // tips above the roofline), and a pair of swallows low over the river (no sprite repeated from Home)
   if (!env.still) {
+    // (M step 3b, last fixes round 2: in the windows too: the first shows its tip as the tuft by the swallow, as approved;
+    // the second window is framed west of it, on the town's lower bank, so it never floats there like a sticker)
     willowTip(env, [[2672, 340], [2635, 409], [2575, 454], [2515, 479], [2458, 489]], [[2635, 411], [2685, 439], [2728, 449]], 1.1, 574, own('d5 willow'));
     yield;
     const sx = 2300, sy = 505, path: Pt[] = [];   // (q1, BRIEF3 #3: in the open sky over the town, clear of the boat's mast and the willow)

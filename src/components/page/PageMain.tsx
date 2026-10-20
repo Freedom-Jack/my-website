@@ -17,6 +17,7 @@ export function PageMain({
   className,
   ld = [],
   printName = true,
+  glimpseEnd = false,
 }: {
   page: PageId;
   children: ReactNode;
@@ -25,6 +26,8 @@ export function PageMain({
   /** the page's JSON-LD blocks (Person is in the root layout) */
   ld?: unknown[];
   printName?: boolean;
+  /** step 3b (elements.ts glimpses): a short page ends on the place settled, near and large (Closing `end`) */
+  glimpseEnd?: boolean;
 }) {
   const place = PLACES[page];
   return (
@@ -48,7 +51,7 @@ export function PageMain({
         </p>
       ) : null}
       {children}
-      {place.closing ? <Closing /> : null}
+      {place.closing ? <Closing end={glimpseEnd} /> : null}
     </main>
   );
 }

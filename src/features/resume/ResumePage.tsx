@@ -2,6 +2,7 @@ import { Fragment } from 'react';
 import { resumePage } from '@content/pages/resume';
 import { site } from '@content/site';
 import { PageMain } from '@/components/page/PageMain';
+import { Glimpse } from '@/components/page/Glimpse';
 import { Strip } from '@/components/page/Strip';
 import { InkButton } from '@/components/ui/InkButton';
 import { shortMonthYear } from '@/lib/dates';
@@ -118,6 +119,7 @@ export function ResumePage() {
           </p>
         </section>
 
+        <Glimpse still="resume-0" />
         <section className={`sec ${styles['cv-sec']}`} aria-labelledby="cv-exp-title" data-veil="">
           <h2 className="sec__title" id="cv-exp-title">
             {t.sections.experience}
@@ -162,6 +164,7 @@ export function ResumePage() {
           </ol>
         </section>
 
+        <Glimpse still="resume-1" />
         <section className={`sec ${styles['cv-sec']}`} aria-labelledby="cv-skills-title" data-veil="">
           <h2 className="sec__title" id="cv-skills-title">
             {t.sections.skills}

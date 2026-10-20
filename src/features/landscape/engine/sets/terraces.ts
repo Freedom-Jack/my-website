@@ -319,7 +319,9 @@ export function* draw(env: Env) {
   if (!env.still) {
     const sx = X(K + 0.6), sy = Y(0.445), path: Pt[] = [], sb = 40 * Math.pow(big, 0.5);
     for (let k = 0; k <= 30; k++) { const u = k / 30; path.push([sx - 120 + 260 * u, sy + 18 - 40 * u + 10 * Math.sin(u * 3.4)]); }
-    ownSprite(env, 'walker', { x: sx - sb * 0.85, y: sy - sb * 0.72, w: sb * 1.7, h: sb * 1.45 }, { path, home: [sx, sy], speed: 11, bird: true }, (e) => swallowInk(e, sx, sy, sb, 0.28, own('q3 swallow'), { bank: -0.5, lift: 0.4 }));
+    // (a window into the painting, inlay, leaves the strip's swallow out: painted still into every window of the page it
+    // would be one bird stamped twice)
+    if (!env.inlay) ownSprite(env, 'walker', { x: sx - sb * 0.85, y: sy - sb * 0.72, w: sb * 1.7, h: sb * 1.45 }, { path, home: [sx, sy], speed: 11, bird: true }, (e) => swallowInk(e, sx, sy, sb, 0.28, own('q3 swallow'), { bank: -0.5, lift: 0.4 }));
   }
   yield;
 }

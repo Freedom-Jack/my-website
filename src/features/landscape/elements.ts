@@ -43,6 +43,13 @@ export const ELEMENTS = {
    *  stopping. The light swells a little as the camera rises and as you read on (near the light only). A jump (a route
    *  swap, an anchor) is not a speed. Off under reduced motion, Still, Canvas2D; half strength and no petals on phones. */
   air: true,
+  /** Windows into the painting (N1, step 3b), below 1200 px only: at the page's major section breaks a short, full-bleed
+   *  window of the page's own place opens in the gap (<Glimpse>, [data-landscape="glimpse"]), and the camera has
+   *  travelled further into the place each time (the near crags, then higher in the mist, then above the sea of cloud;
+   *  the closing brings it back down). Each window's depth layers part as it passes through the viewport and mist
+   *  feathers it into the paper. Present-only: it shows the strip's own painted layers (no new scene, no new texture).
+   *  Reduced motion and Still: each window at its rest pose. At 1200 px and up the windows are not laid out at all. */
+  glimpses: true,
   // ---- the page change
   /** The page change as a mist dissolve (340 ms): mist gathers and clears across the hero window only, right of the
    *  words; a long jump cross-dissolves the old place into the new one (the words cross-fade under paper). */
@@ -99,7 +106,11 @@ export const el = elementOn;
 
 /** The switches the present shader reads, as GLSL #defines (an element that is off is not compiled in). */
 export function elementDefines(): string {
-  return [elementOn('silkVeil') ? '#define EL_SILK_VEIL 1' : '', elementOn('air') ? '#define EL_AIR 1' : '']
+  return [
+    elementOn('silkVeil') ? '#define EL_SILK_VEIL 1' : '',
+    elementOn('air') ? '#define EL_AIR 1' : '',
+    elementOn('glimpses') ? '#define EL_GLIMPSE 1' : '',
+  ]
     .filter(Boolean)
     .join('\n');
 }

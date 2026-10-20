@@ -14,7 +14,7 @@ import styles from './writing.module.css';
 export async function WritingIndex() {
   const notes = await allNotes();
   return (
-    <PageMain page="writing" className={styles.page}>
+    <PageMain page="writing" className={styles.page} glimpseEnd>
       <Strip variant="sub" labelledBy="writing-title">
         <h1 className="page-title" id="writing-title">
           {writing.title}

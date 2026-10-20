@@ -1140,6 +1140,25 @@ uniform sampler2D uWinN0;
 uniform sampler2D uWinN1;
 uniform vec4  uWinNS[2];     // the front layer's painted region in its texture (as uWinS)
 uniform vec4  uWinP[2];      // x on, y the back's sink, z the mist between the layers, w the front's drift
+#ifdef EL_GLIMPSE
+// M step 3b, windows into the painting (elements.ts glimpses; index.ts GLIMPSE, glimpseU): below 1200 px, at a page's
+// major breaks, short boxes onto the page's own place. Each window has its own view, painted for its own framing at idle
+// (two depth layers: the back in the lower half of its buffer, the front in the upper); here they are only slid: as a
+// window passes up the screen the front drops below the back, both pan east (the near more), the sea of cloud climbs.
+// Box-anchored (they scroll 1:1 with the page); the rest pose under reduced motion and Still.
+#define GLN 2
+uniform sampler2D uGl0;      // the first window's view
+uniform sampler2D uGl1;      // the second's
+uniform vec4  uGlS[GLN];     // 1 / the view's buffer size (px)
+uniform vec4  uGlK;          // x on, y the paper-only early-out (below 1200 px with the windows on: laptops keep the approved pass)
+uniform vec4  uGlR[GLN];     // each window's box, canvas uv (x0, y0, x1, y1), y up; x0 > x1 = none
+uniform vec4  uGlA[GLN];     // the back's and the front's drop (view uv y), their pans (view uv x)
+uniform vec4  uGlB2[GLN];    // the view's uv for the box's: x0, sx, y0, sy
+uniform vec4  uGlF2[GLN];    // x the box's height (CSS px), y the words' margin (CSS px: paper and mist only), z the box's width (CSS px), w seed (< 0: an end)
+uniform vec4  uGlC[GLN];     // x the camera's height (0..1), y the light's bloom kept, z the front's ink deepened, w the fade-in
+uniform vec4  uGlD[GLN];     // x the sea of cloud's surface (box uv, up; < -0.5 none), y the mist between the layers (< -0.5 none), z a slim window (1), else minus the left side's melt in CSS px (0: the usual), w an end: Contact's soft end (endS, 1), else the bottom ramp's extra CSS px
+uniform vec4  uGlM[GLN];     // each view's world mapping (as uWinM)
+#endif
 uniform float uHzK;          // the horizon band, 0..1 (desktop only)
 uniform vec4  uHzS;          // its scene's painted region
 uniform vec4  uHzM;          // its world mapping
@@ -1349,6 +1368,35 @@ vec3 partMist(vec3 c, vec2 l, float wx, float m) {
   }
   return c;
 }
+
+#ifdef EL_GLIMPSE
+// N1: the hero window's inner-place grade (the window loop's, M m4/n1/q3, with no keep-out), so a glimpse of Writing,
+// the Résumé or Contact keeps its strip's spring morning; ly = the strip's own box uv y at this point
+// M step 3b (N2's morning in a window): the ice-blue sky above a window's skyline, deepest high in the box (ly, box uv)
+// and fading to the mist lower down; paper round the light (sunK), so the light reads as the paper's own white
+vec3 glSky(float ly, float nb, float nc, float sunK) {
+  float hiK = smoothstep(0.0, 0.72, ly + 0.04 * nb + 0.02 * nc);
+  return mix(mix(MIST2, SKY_T * vec3(1.02, 1.01, 1.0), 0.4 + 0.6 * hiK), PAPER, sunK);
+}
+vec3 glGrade(vec3 c, vec2 wp, float ly) {
+  float inK = smoothstep(1.9, 2.15, wp.x / HSW);
+  if (inK <= 0.0) return c;
+  float lumS = dot(c, vec3(0.299, 0.587, 0.114));
+  float hillK = inK * (1.0 - smoothstep(0.86, 0.93, lumS)) * smoothstep(0.35, 0.6, lumS);
+  c = mix(c, clamp(mix(vec3(lumS), c, 1.35) - (0.9 - lumS) * 0.22, 0.0, 1.0), hillK);
+  // (the nearest of the three lights round the point: one place's light alone steps where the world crosses into the
+  // next stretch, a straight seam in a window that looks across it)
+  float nearL = lightNear(wp, 0.9);
+  float br = (textureLod(uNoise, wp * vec2(0.12, 0.3) + vec2(0.37, 0.71), 3.0).r - 0.5) / 0.13 * 0.05;
+  float upK = clamp(smoothstep(0.35, 0.85, ly) * (1.0 + br), 0.0, 1.0) * (1.0 - nearL);
+  vec3 iceI = mix(SKY_T, vec3(0.812, 0.890, 0.933), 0.6);
+  vec3 airT = mix(SKY, iceI, upK);
+  airT = mix(airT, LIGHT, nearL * 0.6);
+  float airW = smoothstep(0.66, 0.84, lumS) * smoothstep(0.4, 0.55, ly);
+  airW *= 1.0 - smoothstep(0.0, 0.05, max(c.g - c.b, c.r - c.b) + 0.012);
+  return mix(c, airT, inK * airW * 0.85);
+}
+#endif
 
 // ---- 4b small life ----
 // what lifePrep leaves for lifeLay: the willows' shift of the view's tap (canvas uv x), the shimmer's light gaps and
@@ -1822,10 +1870,33 @@ void main() {
   const int lv = -1;   // (the program without life: gl.ts uses it while none is on screen)
 #endif
 
+  // M step 3b (the reviewer: the present ran over the whole screen on almost every scroll frame): a pixel outside every
+  // painted region (the two windows, the windows into the painting; no stage, horizon band or page change on screen) is
+  // the paper and its grain, written at once and the rest of the pass skipped: in effect a scissor round what is painted
+  // (a true scissor would need a preserved drawing buffer, a full-frame copy on a phone's GPU)
+#ifdef EL_GLIMPSE
+  if (uGlK.y > 0.5 && uSt.x <= 0.0 && uHzK <= 0.0 && uSweep.z <= 0.0 && uHold <= 0.0) {
+    bool any = false;
+    for (int i = 0; i < 2; i++) { vec4 R = uWinR[i]; if (R.x <= R.z && uv.x >= R.x && uv.x <= R.z && uv.y >= R.y && uv.y <= R.w) any = true; }
+    for (int i = 0; i < GLN; i++) { vec4 R = uGlR[i]; if (uGlK.x > 0.5 && R.x <= R.z && uv.x >= R.x && uv.x <= R.z && uv.y >= R.y && uv.y <= R.w) any = true; }
+    if (!any) {
+      vec2 gp0 = (gl_FragCoord.xy * uPx + vec2(uPanPx, 0.0)) / (${NOISE_SIZE}.0 * uGrainPx);
+      float bpt0 = uPx / uGrainPx;
+      float gk0 = 1.0 + 0.2 * smoothstep(0.8, 1.35, bpt0) - 0.35 * smoothstep(1.6, 2.4, bpt0);
+      vec3 c0 = PAPER * (1.0 + (texture(uNoise, gp0).b - 0.5) * 0.55 * uGrain * gk0 + (texture(uNoise, gp0 * 0.09).r - 0.5) * 0.010);
+      outColor = vec4(c0 + (hash12(gl_FragCoord.xy) - 0.5) / 255.0, 1.0);
+      return;
+    }
+  }
+#endif
+
   // 1. what lies under this pixel: paper, the horizon band, a window on top (box-anchored, so it moves 1:1 with
   // the page). p = the world point (for the mist), tm = its mist clock, adm = how much drifting mist may lie here.
   vec3 col = PAPER;
   float adm = 0.0, inWin = 0.0, wakeOK = 0.0, keep = 0.0, tm = REST_T, wsc = 1.0, heroW = 0.0;
+  float glCut = 0.0;   // M step 3b: a window's painting (its veil-free part: >= 40 px from any line)
+  float glSun = 1.0;   // ...and how much of the light's bloom it keeps (only the highest window shows the light)
+  float glA = 0.0;     // ...and how much of this pixel is a window's (nothing there is lighter than the paper)
   float seaBody = 0.0;   // 4b: the grey wash of the sea's rolling banks (laid on after the veils' clearing)
   float dyB = 0.0;       // S1: a parted window's back, how far it stands above its front here (scene units): the light's bloom and Home's ribbon ride the back
   vec2 p = vec2(uHzM.x + uv.x * uHzM.w, uv.y);
@@ -2092,6 +2163,212 @@ void main() {
     vec4 K = uWinK[wi];
     keep = K.y * (1.0 - smoothstep(K.x - K.z, K.x + K.z, l.x));
   }
+#ifdef EL_GLIMPSE
+  for (int gi = 0; gi < GLN; gi++) {
+    vec4 R = uGlR[gi];
+    if (uGlK.x < 0.5 || R.x > R.z || uv.x < R.x || uv.x > R.z || uv.y < R.y || uv.y > R.w) continue;
+    vec2 l = (uv - R.xy) / (R.zw - R.xy);           // box uv, y up
+    vec4 A = uGlA[gi], Bq = uGlB2[gi], Fq = uGlF2[gi], Cq = uGlC[gi], Dq = uGlD[gi], M = uGlM[gi];
+    bool endW = Fq.w < 0.0;                         // a short page's end: the closing's own box
+    // (last fixes, round 2: Contact's end only (GLIMPSE.at[].soft): its water feathers softly into the mist, the comb is
+    // off and its pale washes melt slowly at the sides; Writing's end, approved, keeps the phone-final edges exactly)
+    bool endS = endW && Dq.w > 0.5;
+    float seed = abs(Fq.w);
+    float bxv = uv.x * aspect;                      // screen x (viewport heights): the mist's lobes keep their size
+    float pxW = Fq.z;                               // the box's width, CSS px
+    bool bleedW = R.x < 0.004 && R.z > 0.996;       // (r6: a phone's window, the screen's full width)
+    // (each layer's view uv, inside its half of the buffer, half a texel off the seam)
+    vec2 vb = vec2(Bq.x + l.x * Bq.y + A.z, Bq.z + l.y * Bq.w + A.x);
+    vec2 vf = vec2(Bq.x + l.x * Bq.y + A.w, Bq.z + l.y * Bq.w + A.y);
+    vec2 ts = uGlS[gi].xy;
+    vec2 tb = vec2(clamp(vb.x, ts.x, 1.0 - ts.x), clamp(vb.y * 0.5, ts.y, 0.5 - ts.y));
+    vec2 tf = vec2(clamp(vf.x, ts.x, 1.0 - ts.x), clamp(0.5 + vf.y * 0.5, 0.5 + ts.y, 1.0 - ts.y));
+    vec4 S = gi == 0 ? texture(uGl0, tb) : texture(uGl1, tb);
+    vec4 Fn = gi == 0 ? texture(uGl0, tf) : texture(uGl1, tf);
+    float airB = smoothstep(0.8, 0.88, dot(S.rgb, vec3(0.299, 0.587, 0.114)));   // (r5: the back's pale air, before any tint)
+    vec2 wp = vec2(M.x + vb.x * M.w, M.y - (1.0 - vb.y) * M.z);
+    float nb = clamp((textureLod(uNoise, vec2(bxv * 0.75 + seed + uTime * 0.0015, 0.41), 3.5).r - 0.5) / 0.13, -2.0, 2.0);
+    float nc = clamp((textureLod(uNoise, vec2(bxv * 2.0 - uTime * 0.0022 + seed * 1.7, 0.77), 2.5).g - 0.5) / 0.13, -2.0, 2.0);
+    // (the light veiled where the window does not keep it: a sun in every window would be a stamp)
+    { float lumL = dot(S.rgb, vec3(0.299, 0.587, 0.114));
+      float sunV = lightNear(wp, 0.7) * smoothstep(0.84, 0.95, lumL) * (1.0 - Cq.y);
+      S.rgb = mix(S.rgb, mix(MIST, SKY, 0.45), sunV * 0.85); }
+    // (N2's morning: the pale air above the skyline takes the ice-blue sky, deepest high in the window and fading to the
+    // mist lower down, so each window is a piece of the same morning as the strip; ink and the light keep theirs)
+    // (r6: N2's morning as a band of sky across the page, never a box. A phone's window is the screen's width: the wash
+    // runs off both sides at full strength, so it has no side edge to read as a box (N2's breaks); a column-wide window
+    // (tablets) lets it run out over the outer fifth of each side in lobes. Upward it reaches its full blue ~20 px below
+    // the painting's top and fades into the paper across the 40 px margin in broad lobes (never a level line); lower down
+    // glSky pales it into the horizon's mist)
+    float washK, keepK = 0.0;   // (keepK: the light, the mist bank and the sea, which keep their own white)
+    { float nw = clamp((textureLod(uNoise, vec2(bxv * 1.6 + seed * 1.3, 0.11), 2.5).r - 0.5) / 0.13, -2.0, 2.0);
+      float nw2 = clamp((textureLod(uNoise, vec2(bxv * 4.2 - seed * 0.6, 0.83), 1.5).g - 0.5) / 0.13, -2.0, 2.0);
+      float eTp = (1.0 - l.y) * Fq.x;
+      float lobT = 16.0 * clamp(0.5 + 0.35 * nw + 0.2 * nw2, 0.0, 1.0);
+      float vW = smoothstep(2.0 + lobT, Fq.y + 18.0 + lobT, eTp);
+      float eS = min(l.x, 1.0 - l.x) * pxW;
+      // (a column-wide window: the sides run out over ~0.2 of its width in tall lobes; the lobes vary down the side, never
+      // across it: a ramp whose width changed along x folded into straight vertical stripes in the sky)
+      float nsW = clamp((textureLod(uNoise, vec2(seed * 0.7 + 0.13, l.y * Fq.x * 0.011 + 0.61), 1.5).g - 0.5) / 0.13, -2.0, 2.0);
+      float hW = bleedW ? 1.0 : smoothstep(10.0, 10.0 + pxW * 0.2 + 30.0 * clamp(0.5 + 0.4 * nsW, 0.0, 1.0), eS);
+      washK = vW * hW; }
+    { float lumA = dot(S.rgb, vec3(0.299, 0.587, 0.114));
+      float airK = smoothstep(0.86, 0.93, lumA) * (1.0 - smoothstep(0.02, 0.08, max(S.g - S.b, S.r - S.b)));
+      S.rgb = mix(S.rgb, mix(mix(MIST2, PAPER, 0.75), glSky(l.y, nb, nc, 0.0), washK), airK * (0.75 + 0.25 * smoothstep(0.1, 0.75, l.y + 0.04 * nb + 0.02 * nc)));
+
+      // (the light itself, where the window keeps it: a disc of the paper's own white, ~15 CSS px across its radius, in a
+      // warm-paper halo; the peaks of the back stand in front of it, the front and the sea pass over it)
+      if (Cq.y > 0.0) {
+        float ku = wp.x / HSW;
+        vec4 Ls = lightK(floor(ku));
+        float pxU = Fq.x / max(M.z * Bq.w, 1e-5);              // CSS px per scene unit in this window
+        float dpx = length(vec2((ku - Ls.x) * HSW, wp.y - Ls.y)) * pxU;
+        float disc = (1.0 - smoothstep(12.0, 14.5, dpx)) * Cq.y * smoothstep(0.75, 0.88, lumA);
+        float halo = exp(-max(dpx - 14.0, 0.0) / 20.0) * Cq.y * airK;
+        S.rgb = mix(S.rgb, mix(S.rgb, PAPER * vec3(1.0, 0.99, 0.965), 0.6), halo * 0.6);
+        S.rgb = mix(S.rgb, PAPER, disc);
+        keepK = max(keepK, max(disc, halo));
+      } }
+    // the mist between the layers (over the back, behind the front): the camera is in the cloud
+    if (Dq.y > -0.5) {
+      float top = Dq.y + 0.07 * nb + 0.025 * nc;
+      float bank = 1.0 - smoothstep(top - 0.22, top + 0.06, l.y);
+      S.rgb = mix(S.rgb, mix(MIST, PAPER, 0.3 + 0.4 * smoothstep(top - 0.55, top - 0.1, l.y)), bank * 0.8);
+      S.a = mix(S.a, 0.85, bank);
+      keepK = max(keepK, bank);
+    }
+    // (low in the window a plane's foot dissolves in fine vertical streaks (a comb under the crags): there its half-
+    // covered ink is smoothed across over 5 taps, ~12 CSS px; opaque ink and figures keep their edge)
+    // (last fixes: never in Contact's end, where the place's figures stand low: it smeared the ferryman sideways)
+    if (!endS && Fn.a > 0.01 && l.y < 0.6) {
+      float kd = (1.0 - smoothstep(0.35, 0.6, l.y)) * (1.0 - smoothstep(0.85, 0.98, Fn.a));
+      if (kd > 0.0) {
+        vec4 Fs = vec4(0.0);
+        for (int t = -2; t <= 2; t++) {
+          vec2 tt = vec2(clamp(tf.x + float(t) * 3.0 / max(Fq.z + 96.0, 1.0), ts.x, 1.0 - ts.x), tf.y);
+          Fs += gi == 0 ? texture(uGl0, tt) : texture(uGl1, tt);
+        }
+        Fn = mix(Fn, Fs / 5.0, kd);
+      }
+    }
+    // the front: the place itself; near, its ink deepens a little and loses some of its haze (N3)
+    if (Fn.a > 0.0) {
+      if (Cq.z > 0.0) {
+        vec3 fc = Fn.rgb / max(Fn.a, 1e-3);
+        float inkF = smoothstep(0.92, 0.55, dot(fc, vec3(0.299, 0.587, 0.114)));
+        Fn.rgb = mix(Fn.rgb, clamp(fc * 0.86 - 0.02, 0.0, 1.0) * Fn.a, Cq.z * inkF * 0.55);
+      }
+      S = vec4(S.rgb * (1.0 - Fn.a) + Fn.rgb, mix(S.a, stAdm(Fn), Fn.a));
+    }
+    // the sea of cloud below its surface: billows in two rows, each with a faint cool wash along its lit top, a bright
+    // rim and a soft shade under it; the body pale toward paper deeper down
+    if (Dq.x > -0.5) {
+      // (r5: billows of ~60-120 px ride on its swell, so its surface is a cloud's, never a level line)
+      float nbl = clamp((textureLod(uNoise, vec2(bxv * 4.5 + seed * 0.4 - uTime * 0.001, 0.47), 1.5).g - 0.5) / 0.13, -2.0, 2.0);
+      float sy = Dq.x + 0.09 * nb + 0.035 * nc + 0.035 * nbl;
+      float nd = clamp((textureLod(uNoise, vec2(bxv * 1.3 + seed * 0.7 - uTime * 0.0012, 0.29), 3.0).r - 0.5) / 0.13, -2.0, 2.0);
+      float s2 = sy - 0.16 + 0.05 * nd;
+      float cn = texture(uNoise, vec2(bxv * 0.42 - uTime * 0.0022, l.y * 0.9 + seed)).r;
+      float tw = 0.0;
+      for (int j = 0; j < 2; j++) {
+        float t = l.y - (j == 0 ? sy : s2);
+        tw = max(tw, smoothstep(-0.006, 0.02, t) * (1.0 - smoothstep(0.02, 0.13, t)) * (j == 0 ? 0.8 : 1.0));
+      }
+      float sea = 1.0 - smoothstep(sy - 0.16, sy + 0.03, l.y);
+      float sea2 = 1.0 - smoothstep(s2 - 0.12, s2 + 0.02, l.y);
+      vec3 body = mix(mix(MIST, SKY, 0.4 + 0.3 * cn), mix(PAPER, MIST2, 0.6), smoothstep(0.04, 0.45, sy - l.y));
+      float rim = 0.0, shd = 0.0;
+      for (int j = 0; j < 2; j++) {
+        float t = (j == 0 ? sy : s2) - l.y;
+        rim = max(rim, smoothstep(-0.004, 0.01, t) * (1.0 - smoothstep(0.012, 0.05, t)));
+        shd = max(shd, smoothstep(0.03, 0.08, t) * (1.0 - smoothstep(0.08, 0.2, t)) * (j == 0 ? 0.6 : 1.0));
+      }
+      float litS = lightNear(wp, 0.35) * Cq.y;
+      body = mix(body, vec3(0.70, 0.79, 0.86), shd * 0.5 * (1.0 - 0.4 * litS));
+      body = mix(body, mix(PAPER, PAPER * vec3(1.0, 0.99, 0.965), litS), rim * (0.7 + 0.3 * litS));
+      S.rgb = mix(S.rgb, vec3(0.78, 0.86, 0.90), tw * 0.42);
+      S.rgb = mix(S.rgb, body, max(sea, sea2) * 0.97);
+      S.a = mix(S.a, 0.8, max(sea, sea2));
+      keepK = max(keepK, max(sea, sea2));
+    }
+    S.rgb = glGrade(S.rgb, wp, vb.y);
+    // (r6: the inner places' grade turns their pale air to the strip's horizon white, which inside a window read as a
+    // pale rectangle in the sky band: there the air takes the window's own sky again; ink, figures, the light, the mist
+    // bank and the sea keep theirs)
+    { float lumG = dot(S.rgb, vec3(0.299, 0.587, 0.114));
+      float airG = smoothstep(0.86, 0.93, lumG) * (1.0 - smoothstep(0.03, 0.09, max(S.g - S.b, S.r - S.b))) * (1.0 - clamp(Fn.a * 1.5, 0.0, 1.0));
+      S.rgb = mix(S.rgb, glSky(l.y, nb, nc, 0.0), airG * washK * (1.0 - keepK) * 0.85); }
+    // (r5: the air runs out into the paper upward and at the sides, wherever the wash does not reach: the scene's own sky
+    // and the inner places' grade had made a band of blue with a level top where the painting began, a stripe across the
+    // screen; ink, the front, the light and the sea keep theirs)
+    S.rgb = mix(S.rgb, mix(MIST2, PAPER, 0.8), airB * (1.0 - washK) * (1.0 - clamp(Fn.a * 1.5, 0.0, 1.0)) * 0.9);
+    // (higher up the air is a little cooler and paler: aerial depth)
+    { float lumC = dot(S.rgb, vec3(0.299, 0.587, 0.114));
+      vec3 cool = mix(vec3(lumC), S.rgb, 0.8) * vec3(0.98, 0.995, 1.02);
+      S.rgb = mix(S.rgb, cool, smoothstep(0.5, 1.0, Cq.x) * 0.3); }
+    // the feathers, in CSS px from the box's edges: at the top and bottom (the words stand just beyond them) paper at the
+    // edge, then mist in broad lobes, and the painting only from Fq.y (40 px) in, plus its lobes (inward only, so no
+    // figure ever comes nearer the words); at the sides no painting within 24 px of the screen's edge, the place going
+    // into the mist in tall lobes over the next ~40 px, so nothing is ever cut by the edge
+    float nf = clamp((textureLod(uNoise, vec2(bxv * 3.2 + seed * 2.3, 0.63), 2.0).r - 0.5) / 0.13, -2.0, 2.0);
+    float nf2 = clamp((textureLod(uNoise, vec2(bxv * 6.5 - seed, 0.19), 1.5).g - 0.5) / 0.13, -2.0, 2.0);
+    float eT = (1.0 - l.y) * Fq.x, eB = l.y * Fq.x;
+    float nf3 = clamp((textureLod(uNoise, vec2(bxv * 12.0 + seed * 0.3 - uTime * 0.0015, 0.53), 1.0).r - 0.5) / 0.13, -2.0, 2.0);
+    float slim = max(Dq.z, 0.0);
+    float mlW = max(-Dq.z, 0.0);   // (round 2: a wider left melt, where a near hill comes in from the left edge)
+    // (the painting may come to 42 px of the box's edge, and its lobes only reach further in: 0-10 px, then a 10 px ramp)
+    float lT = mix(10.0, 4.0, slim) * clamp(0.5 + 0.3 * nf + 0.15 * nf2 + 0.1 * nf3, 0.0, 1.0);
+    float lB = mix(10.0, 4.0, slim) * clamp(0.5 + 0.35 * nf2 + 0.15 * nf, 0.0, 1.0);
+    float rmp = mix(10.0, 6.0, slim);
+    float sideK = 1.0;
+    float mK = smoothstep(2.0, Fq.y * 0.6, eT - lT * 0.5) * smoothstep(2.0, Fq.y * 0.6, eB - lB * 0.5);   // mist and the sky's air
+    // (last fixes: a mid-page window's bottom ramp is 24 px, not 10, so a place's foot never ends in a hard comb of
+    // vertical streaks; round 2: per place, uGlD.w, Work's approved first window keeps 10; a short page's end keeps its
+    // approved 10 px, Contact's has its own feather below)
+    float pK = smoothstep(Fq.y + 2.0 + lT, Fq.y + 2.0 + lT + rmp, eT) * smoothstep(Fq.y + 2.0 + lB, Fq.y + 2.0 + lB + rmp + (endW ? 0.0 : Dq.w * (1.0 - 0.7 * slim)), eB);   // the painting
+    // (last fixes: Contact's end, the place's water at its foot, goes into the mist over ~60 px in broad soft lobes, never
+    // cut by the fine 10 px ramp: that read as a hard, ragged streak line under the water)
+    if (endS) {
+      float nE = clamp((textureLod(uNoise, vec2(bxv * 0.9 + seed * 0.37, 0.71), 3.0).r - 0.5) / 0.13, -2.0, 2.0);
+      float nE2 = clamp((textureLod(uNoise, vec2(bxv * 2.1 - seed * 0.21, 0.35), 2.5).g - 0.5) / 0.13, -2.0, 2.0);
+      float lE = 30.0 * clamp(0.5 + 0.4 * nE + 0.15 * nE2, 0.0, 1.0);
+      float bE = smoothstep(Fq.y + 2.0 + 0.3 * lE, Fq.y + 2.0 + 40.0 + lE, eB);
+      pK = smoothstep(Fq.y + 2.0 + lT, Fq.y + 2.0 + lT + rmp, eT) * bE * bE * (3.0 - 2.0 * bE);
+    }
+    { float ns = clamp((textureLod(uNoise, vec2(seed * 0.9, l.y * Fq.x * 0.012 + 0.27), 1.5).r - 0.5) / 0.13, -2.0, 2.0);
+      float lS = 22.0 * clamp(0.5 + 0.4 * ns, 0.0, 1.0);
+      float eL = l.x * pxW, eR = (1.0 - l.x) * pxW;
+      // (r6: in a full-bleed window only ink and figures go into the side mist; the air, the sky's blue, runs on off the
+      // screen's edge, so the band has no side edge (an inner rectangle in the sky); nothing inky is ever within 24 px)
+      float lumP = dot(S.rgb, vec3(0.299, 0.587, 0.114));
+      float sR = bleedW ? 44.0 : 84.0;   // (a column-wide window's sides are paper beyond it: its place melts away over longer)
+      // (last fixes: in Contact's end its pale washes, the water above all, melt into the side mist slowly, never a
+      // lozenge of water; its dark ink (the boat, the ferryman) keeps the shorter melt, so nothing near a side is lost)
+      if (endS) sR = mix(sR, bleedW ? 104.0 : 124.0, smoothstep(0.5, 0.72, lumP));
+      float pS = smoothstep(24.0, max(sR, mlW) + lS, eL) * smoothstep(24.0, sR + lS, eR);
+      float satP = max(S.r, max(S.g, S.b)) - min(S.r, min(S.g, S.b));
+      float airP = bleedW ? smoothstep(0.79, 0.86, lumP) * (1.0 - smoothstep(0.24, 0.32, satP)) * (1.0 - clamp(Fn.a * 2.5, 0.0, 1.0)) : 0.0;   // (the front's own pale rims stay in the mist)
+      pK *= mix(pS, 1.0, airP);
+      sideK = smoothstep(0.0, 40.0 + lS, eL) * smoothstep(0.0, 40.0 + lS, eR); }
+    // (the sky's top: the ice-blue wash fades out into the mist and the paper in lobes, as the handscroll's sky is its
+    // paper; the blue keeps to the window's upper middle)
+    // (the margins hold no figure, only the air: above, the same ice-blue sky running out into the paper at the box's
+    // edge; below, the paper of the sea of cloud)
+    vec3 mC = mix(MIST2, PAPER, 0.65 + 0.2 * nc);   // (r5: paper with a breath of mist: the window has no box)
+    mC = mix(mC, glSky(l.y, nb, nc, 0.0), (bleedW ? smoothstep(0.3, 0.56, l.y + 0.04 * nb + 0.02 * nc) : smoothstep(0.5, 0.75, l.y) * sideK) * 0.85 * (1.0 - 0.6 * slim) * washK);   // (r6: a full-bleed window's sides carry the same sky as its middle, down to the sea: no inner rectangle)
+    vec3 G = mix(mC, S.rgb, pK);
+    float fa = mK * Cq.w;
+    // (a short page's end lies over the closing's own painting: it covers it whole, paper at its edges)
+    if (endW) { G = mix(PAPER, G, mK); fa = Cq.w; }
+    col = mix(col, G, fa);
+    adm = mix(adm, mix(0.6, S.a, pK), fa);
+    p = wp; tm = uTime; inWin = fa; wakeOK = 0.0; heroW = 0.0; keep = 0.0;
+    wsc = M.z / max(R.w - R.y, 1e-4);
+    glCut = max(glCut, fa * pK);
+    glSun = mix(glSun, Cq.y, fa);
+    glA = max(glA, fa);
+  }
+#endif
   float t = tm;
 
   // drifting mist: two decks at different speeds, domain-warped (anchored to the world: it scrolls with its window)
@@ -2183,6 +2460,10 @@ void main() {
     veil = max(veil, s * (1.0 - smoothstep(v0, R + v0, vd + (m1 - 0.5) * 0.06 * fr * tear)));
   }
 
+  // (M step 3b: a window inside a section (the Résumé's year break) is not under its section's veil: its painting keeps
+  // 40 px and more off every line, and the paper margins round it stay)
+  veil = min(veil, 1.0 - glCut);
+  clearK = min(clearK, 1.0 - glCut);   // (...nor under the clearing round the words: its paper margins are its own)
   // A r2: the header sits on paper, never on the painted sky: a paper band under it, anchored to the page (it scrolls
   // away with the header), solid to the header's foot and melting out over ~64 px (desktops; ~26 px on phones), its
   // edge torn by the drift so it is mist, not a ruled line. The painting rises out of the paper below it.
@@ -2268,11 +2549,11 @@ void main() {
     col = mix(col, PAPER, clearK * smoothstep(0.86, 0.925, lumC) * 0.9);
   }
   // (A: the drift is light: it lifts what is darker than it and never dims the light itself)
-  { vec3 dm = mix(col, MIST, clamp(mist * adm * 0.56 * (1.0 - clearK), 0.0, 0.75)); col = inWin > 0.0 ? max(col, dm) : dm; }
+  { vec3 dm = mix(col, MIST, clamp(mist * adm * 0.56 * (1.0 - clearK) * (1.0 - 0.95 * glA), 0.0, 0.75)); col = inWin > 0.0 ? max(col, dm) : dm; }
   // M n1 (the critic: "motion too thin: the mist barely drifts"): over the ice-blue air of a window the drift is a
   // visible white wisp (the max() above can only lift ink, so in the high-key sky it never showed); never near text
   { float lumW = dot(col, vec3(0.299, 0.587, 0.114));
-    float iceW = inWin * smoothstep(0.03, 0.09, col.b - col.r) * smoothstep(0.7, 0.8, lumW) * (1.0 - smoothstep(0.02, 0.3, veil)) * (1.0 - clearK);
+    float iceW = inWin * smoothstep(0.03, 0.09, col.b - col.r) * smoothstep(0.7, 0.8, lumW) * (1.0 - smoothstep(0.02, 0.3, veil)) * (1.0 - clearK) * (1.0 - 0.6 * glA);
     col = mix(col, vec3(0.972, 0.986, 0.992), clamp(smoothstep(0.25, 0.85, mist) * iceW * 0.34, 0.0, 0.34)); }
   if (seaBody > 0.0) col = mix(col, MIST2, smoothstep(0.08, 0.7, mist) * seaBody * 0.9 * (1.0 - 0.85 * clearK));
   if (uLive.w > 0.0) {
@@ -2366,6 +2647,7 @@ void main() {
   // (M: the light is nearly clean of grain, so it reads luminous, not as a noise filter: B 2b)
   float gq = mix(1.0, 0.4, smoothstep(0.93, 0.98, dot(col, vec3(0.299, 0.587, 0.114))) * inWin * (1.0 - veil));
   col *= 1.0 + (tooth * 0.55 + longF * 0.6) * uGrain * gk * gq + mott * 0.010 * gq;   // d5: a finer, quieter sheet under flat colour
+  vec3 paperG = PAPER * (1.0 + tooth * 0.55 * uGrain * gk + mott * 0.010);   // (M step 3b: the paper here, with its grain)
   // M n1: ONE graphic gesture of the Chinese chapters (qingxiao 2m08 / 1m08), at Home's light only: a translucent silk
   // mist-ribbon, one long S from behind the host peak through the light. Its body a ~12 % cyan-white veil with soft
   // edges that twists (its width swells and pinches), a brighter 1-2 px core along it, broken by the mist and
@@ -2471,8 +2753,9 @@ void main() {
   // M "Spring ink" (B's bloom): the light's bloom, added after the grain, inside the painting only and never under the
   // text: a tight halo and a wide soft glow round each place's light (Home's the strongest), breathing slowly; it wraps
   // what stands in front of the light (thinner over dark ink), so the sun reads as a source, not a haze
+  vec3 cB = col;
   if (inWin > 0.0) {
-    float bk = inWin * (1.0 - smoothstep(0.02, 0.3, veil)) * (1.0 - 0.7 * clearK);
+    float bk = inWin * (1.0 - smoothstep(0.02, 0.3, veil)) * (1.0 - 0.7 * clearK) * glSun;
     float u = p.x / HSW, kk = floor(u), add = 0.0, wa = 0.0;
     for (int j = -1; j <= 1; j++) {
       vec4 Lj = lightK(kk + float(j));
@@ -2498,6 +2781,13 @@ void main() {
 #endif
   }
 
+  // M step 3b (the reviewer: a bleached hole): inside a window into the painting nothing is lighter than the paper round
+  // it, channel by channel; the light's bloom there is warm paper, never added white
+  if (glA > 0.0) {
+    float bl = clamp(dot(max(col - cB, 0.0), vec3(0.333)) * 7.0, 0.0, 1.0);
+    vec3 cw = mix(cB, paperG * vec3(1.0, 0.992, 0.968), bl);
+    col = mix(col, min(cw, paperG), glA);
+  }
   // dither to kill banding in the long mist gradients
   col += (hash12(gl_FragCoord.xy) - 0.5) / 255.0;
 #ifdef EL_SILK_VEIL

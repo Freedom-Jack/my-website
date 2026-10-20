@@ -34,7 +34,7 @@ import { SETS } from './sets';
 import { framingAt, pageSpec, layerScaleAt } from './compose';
 import type { Distance, Framing, Resolved, Spec, WidthClass, WindowKind } from './compose';
 import type { FigureMeta, LifeKind, LifeOut, Pt } from './figures';
-import type { FigureImage, FigureSlot, LifeTable, PresentU, PresentWindow, Renderer, SceneBase, StageU } from './renderer';
+import type { FigureImage, FigureSlot, LifeTable, PresentGlimpse, PresentU, PresentWindow, Renderer, SceneBase, StageU } from './renderer';
 import { elementOn } from '../elements';
 import type { LandscapeHandle, LandscapeStats, LandscapeTargets, Mode, MountOptions, PanOptions } from '../types';
 
@@ -371,6 +371,107 @@ const PART = {
                                         // Contact: the ferry crosses the water)
 };
 
+// M step 3b (reworked after the adversarial review, r1..): windows into the painting (elements.ts glimpses), below 1200
+// px. At a page's major breaks (<Glimpse>, [data-landscape="glimpse"]) a short box opens onto the page's own place. Each
+// window is PAINTED for itself (its own framing of the one world, at the screen's resolution: never the strip's layers
+// magnified), once per layout, at scroll idle, into one view holding two depth layers (the back: sky, light and far
+// ranges; the front: the place and its figures), so a scroll only slides them in the present (no scene is painted while
+// the page scrolls). A page's windows are one handscroll unrolled: the same scale in every window, each one further along
+// the place (x), each a moment of one climb (the camera's height y, the sea of cloud). While a window passes up the
+// screen the camera rises: the front drops away below the back (GLIMPSE.splitF/B px over the passage), the sea of cloud
+// climbs from the window's foot over ~30 % of it, the layers pan sideways (the near more than the far) and the near ink
+// deepens toward mid-screen. Reduced motion, Still and a QA pose: each window at its rest (the passage's middle).
+interface GlWin {
+  /** World x of the window's centre (stretch-local: k + x) and y of its view's centre (scene heights, 0 = the foot). */
+  x: number;
+  y: number;
+  /** The sea of cloud's surface at the passage's start (box uv of the painted band, up; < -0.3 none). */
+  sea: number;
+  /** The mist between the layers (box uv, up; < -0.5 none). */
+  mist: number;
+  /** The light's bloom kept (1) or veiled (0). */
+  sun: number;
+  /** How far the front drops over this window's passage, of its place's (last fixes: < 1 where the subject is a far
+   *  peak, which must still read as the window leaves at the top of the screen). */
+  dk: number;
+  /** Last fixes, round 2: the left side's melt into the mist, CSS px (0: the usual ~44-66), where a near hill comes in
+   *  from the left edge: it dissolves into the mist instead of standing cut at the edge. */
+  ml: number;
+}
+interface GlClass {
+  /** The world width a window shows (stretches; the same in every window of the page: one scale). */
+  w: number;
+  win: GlWin[];
+  /** A short page's end (the closing's own box). */
+  end?: GlWin;
+}
+interface GlPlace {
+  phone: GlClass;
+  tablet?: GlClass;
+  /** The first plane of the front layer. */
+  split: number;
+  /** How far the front drops over a passage, of GLIMPSE.splitF (the place itself is the front on the inner pages). */
+  drop: number;
+  /** Last fixes, round 2: the end's water feathers softly into the mist (shaders.ts endS): Contact's only. */
+  soft?: boolean;
+  /** Last fixes, round 2: false where the set paints no sprite of its own (Writing): its windows share the strip's layer. */
+  inlay?: boolean;
+  /** Last fixes, round 2: CSS px added to a mid-page window's 10 px bottom ramp (default 14, shaders.ts uGlD.w; Work's
+   *  approved first window keeps its crisp 10 px foot: 0). */
+  ramp?: number;
+}
+const GW = (x: number, y: number, sea: number, mist = -1, sun = 0, dk = 1, ml = 0): GlWin => ({ x, y, sea, mist, sun, dk, ml });
+const GLIMPSE = {
+  max: 2,                       // windows on screen at once (shaders.ts GLN; they are >= 1.1 viewports apart)
+  clear: 40,                    // CSS px at the box's top and bottom where only paper and mist lie (the words are beyond)
+  clearShort: 14,               // ...a sideways phone's slim window: its box keeps 26 px of margin outside it (layout.css)
+  mx: 26, my: 26,               // the view's margins round the box (CSS px): room for the pans and the back's drift (the
+                                // front only ever samples above the box as it drops, where its own sky is clear)
+  splitF: 115, splitB: 14,      // how far the front and the back drop over a passage (CSS px): the camera rises
+  panF: 34, panB: 10,           // how far they pan sideways over a passage (CSS px): the near more than the far
+  seaRise: 0.3,                 // the sea climbs this share of the window over a passage
+  cap: 1.5,                     // view px per CSS px at most (the painting is soft; DPR <= 2 x 0.75)
+  ahead: 99,                    // paint every window of the page at idle, nearest first (so a reader who scrolls on
+  keep: 99,                     // without a pause never meets one being painted), and keep them while the page is shown
+  fade: 300,                    // ms: the place's still cross-fades to the painted window
+  at: [
+    // Home, the host peak: the hut side close (the near crags, the fall, the hut), then above the sea of cloud, only the
+    // host's summit and the light (one pan west along the place, one climb)
+    { split: 3, drop: 1,
+      phone: { w: 0.58, win: [GW(0.9, 0.39, 0.2, -1, 0), GW(0.72, 0.47, -0.05, -1, 1)] },
+      tablet: { w: 0.75, win: [GW(0.9, 0.39, 0.2, -1, 0), GW(0.7, 0.47, -0.05, -1, 1)] } },
+    // Work, the river town: close by the arched bridge and the roofs, the willow's tip by the swallow; then, lower and
+    // west of the bridge, the open river: two boats moored with their reflections and the near bank with its willows
+    // standing on it (last fixes, round 2: the willow tip that hangs from the strip's top edge floated alone in the
+    // second window like a sticker, and the town's east end repeated the first window's roofs: this is a subject of its
+    // own, rooted to the ground, and no window but the first sees the willow tip)
+    { split: 2, drop: 0.55, ramp: 0,
+      phone: { w: 0.36, win: [GW(0.57, 0.33, 0.0, -1, 0), GW(0.27, 0.245, 0.15, 0.45, 0, 0.35)] },
+      tablet: { w: 0.5, win: [GW(0.57, 0.34, 0.0, -1, 0), GW(0.285, 0.25, 0.15, 0.45, 0, 0.35)] } },
+    // Writing, the lake (a short page: its end only): the islet's pine and pavilion close on the lit lake, the mountain's
+    // reflection beside them
+    { split: 2, drop: 0.55, inlay: false,
+      phone: { w: 0.297, win: [], end: GW(0.9, 0.3, -0.05, -1, 1) },
+      tablet: { w: 0.45, win: [], end: GW(0.66, 0.33, -0.05, -1, 1) } },   // (the mountain and its reflection: the strip above shows the pavilion)
+    // The Résumé, the terraces (closer: its own figure layer): before Experience, the plum on its terraced hill, close;
+    // before Skills (r6: never the same striped cone twice), further east, the next hill's shoulder and its plum going
+    // into the cloud, the far blue peak large beyond it, the light in the sky (last fixes: no window inside the timeline,
+    // which it broke; and no far tip alone above the sea, too small to read at 390 and 320)
+    { split: 2, drop: 0.55,
+      // (round 2: before Experience, the plum hill itself, large (~45-50 % of the window), its blossom and terraces whole,
+      // the tip near the band's middle; its front never drops (dk 0), so it reads at every scroll position and only its
+      // foot goes into the climbing cloud. Before Skills: 0.07 further west (the view is held inside the stretch from
+      // 0.847 on), and the near hill coming in from the left melts into the mist over ~85 px instead of standing cut)
+      phone: { w: 0.27, win: [GW(0.43, 0.382, 0.0, -1, 0, 0), GW(0.83, 0.385, 0.0, 0.45, 1, 0.5, 85)] },
+      tablet: { w: 0.5, win: [GW(0.45, 0.33, 0.05, -1, 0), GW(0.9, 0.38, 0.2, 0.55, 1)] } },   // (last fixes: a little lower, the far peak larger)
+    // Contact, the crossing (a short page: its end only): the ferry at the jetty and its reeds, the far shore
+    { split: 2, drop: 0.55, soft: true,
+      phone: { w: 0.297, win: [], end: GW(0.69, 0.24, -0.05, -1, 1) },   // (r8: the ferry whole, clear of the left feather; last fixes: lower, so the boat and the ferryman stand whole above the water and the water runs on below them into the mist)
+      tablet: { w: 0.45, win: [], end: GW(0.74, 0.275, -0.05, -1, 1) } },   // (last fixes: lower, the hull whole above its water)
+  ] as GlPlace[],
+};
+
+const NONE16 = new Float32Array([2, 2, -1, -1, 2, 2, -1, -1, 2, 2, -1, -1, 2, 2, -1, -1]);
 const live = new WeakMap<HTMLCanvasElement, EngineHandle>(); // canvas -> controller: one live landscape per canvas
 // QA builds only (the probes' judging hooks: setState, qa, and stats().veils / memory). The bundler inlines the flag,
 // so a production build carries none of them (design-demo/README "Port to Next.js": never ported to production).
@@ -414,6 +515,13 @@ const QA = typeof process !== 'undefined' && process.env.NEXT_PUBLIC_INK_QA === 
  *                                         `veilStrength`; an empty value keeps the default. A veil of 0.9 or more
  *                                         is a paper reserve for small print: solid paper behind the element's own
  *                                         text lines (the union of their boxes), with half the feather.
+ * @param {Iterable<Element>} [opts.glimpse] N1 (elements.ts glimpses) [data-landscape="glimpse"] boxes between a page's
+ *                                         major sections, each with data-depth 0..1: below 1200 px (where the stage is
+ *                                         not painted, WebGL only) each shows the strip's own painted layers framed
+ *                                         further into the place (GLIMPSE), parting a little as it passes through the
+ *                                         viewport (its rest pose under reduced motion and Still); 40 px of paper and
+ *                                         mist at its top and bottom, never a figure there. Present-only: no scene, no
+ *                                         texture. Re-read by rebind({ glimpse }).
  * @param {Iterable<Element>} [opts.wake]  [data-wake] regions: the pointer's wake is allowed only while the pointer
  *                                         is inside one (and inside a window), times (1 - keep-out) and (1 - veil).
  * @param {'bloom'|'none'} [opts.arrival='bloom']  'bloom' paints the strip in on load (the wet front, ~1.2 s).
@@ -542,7 +650,7 @@ interface Offsets {
 /** A window's framing (framingOf): its own (compose.ts framingBlend), or the first viewport's in full mode. */
 type ViewFraming = (Framing & { full?: false }) | (Framing & { full: true; hs: number; wvis: number });
 /** The figure layers drawn for the strip (and the stage), or for the closing (at its own scale). */
-type Variant = 'strip' | 'closing';
+type Variant = 'strip' | 'closing' | 'glimpse';
 /** A window (mkWin): a box on the page, painted at its own framing into its own view. */
 interface Win {
   kind: WindowKind;
@@ -1058,6 +1166,30 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     nid: `${kind}~n`, nkey: '', npainted: false, npending: false, split: 0, parted: false,
   });
   const wins = [mkWin('strip', elOr(opts.strip, opts.head)), mkWin('closing', elOr(opts.closing, opts.descend))];
+  // M step 3b (GLIMPSE): the windows into the painting at the page's breaks, in page order; `end` = a short page's end,
+  // which is the closing's own box (data-glimpse="end"). Each one has its own view (`id`: two depth layers, back below
+  // and front above, painted for its own framing at idle), its place on the page (doc: its middle; NaN: not laid out),
+  // its index among the page's laid-out windows (j: its pose), and the time its painting first showed (the still's fade).
+  interface Glim {
+    el: Element; box: Rect | null; vis: boolean; near: boolean; i: number; j: number; end: boolean; short: boolean;
+    doc: number; id: string; key: string; painted: boolean; buf: Float32Array | null; vw: number; vh: number;
+    view: Float32Array; shownAt: number; live: boolean; waitAt: number;
+  }
+  const mkGlims = (els: Element[]): Glim[] => els.map((e, i) => ({
+    el: e, box: null, vis: false, near: true, i, j: i, end: (e as HTMLElement).dataset?.glimpse === 'end', short: false,
+    doc: NaN, id: `glimpse~${i}`, key: '', painted: false, buf: null, vw: 0, vh: 0, view: new Float32Array(4), shownAt: 0, live: false, waitAt: 0,
+  }));
+  let glims = mkGlims(toList(opts.glimpse));
+  const glimU = {
+    rects: new Float32Array(8), a: new Float32Array(8), b: new Float32Array(8), f: new Float32Array(8), c: new Float32Array(8),
+    d: new Float32Array(8), m: new Float32Array(8),
+  };
+  // the page's layout for the windows (glimpseLayout): its key, scroll range and viewport
+  const glimRun = { key: '', max: 1, bw: 0 };
+  /** A window's place on the page is within ~a viewport of the screen (its box is measured then, whatever the
+   *  intersection observer last said: its callback comes a frame or more after a jump). */
+  const glimClose = (g: Glim) => Number.isFinite(g.doc) && Math.abs(g.doc - ((window.scrollY || 0) + (innerHeight || 1) / 2)) < (innerHeight || 1) * 1.2;
+  let glimLive = false;   // html.glimpse-live: the engine paints the windows (else CSS shows the places' stills in them)
   const hzv: HorizonView = { id: 'horizon', key: '', buf: null, samples: 0, draft: false, painted: false, pending: false, want: false, view: new Float32Array(4) };
   // the living ground's stage: three depth layers, one framing (the strip's, extended to the viewport)
   // Each layer is painted into its own view: the far one (opaque: sky, far ranges, the keep-out's mist) over the whole
@@ -1086,6 +1218,11 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
    *  once the governor has given it up (stageVeto: too slow at the lowest quality), a living page keeps 4a's strip and
    *  closing, which those paths paint well.) */
   const stageOn = () => living() && cls === 'wide' && !fullMode && mode === 'webgl' && !software && !stageVeto && !!wins[0].el;
+  /** N1 (elements.ts glimpses): the windows into the painting show (below 1200 px, where the stage is not painted; WebGL
+   *  only: Canvas2D keeps their paper and the static fallback its ridge hint). */
+  // (QA only: window.__glimSoft lets tools/build-stills.ts cut each window's still under SwiftShader, as it cuts the map's)
+  const glimSoft = () => QA && (globalThis as { __glimSoft?: boolean }).__glimSoft === true;
+  const glimpseOn = () => glims.length > 0 && elementOn('glimpses') && !stageOn() && !fullMode && mode === 'webgl' && (!software || glimSoft()) && !stageVeto && !!wins[0].el;
   /** The stage is on screen (it covers the whole viewport once painted). */
   const stageShown = () => stageOn() && st.ok;
   /** The sea's sink: it keeps to the deepest layer's (so nothing that stood above it in the opening goes under). */
@@ -1142,6 +1279,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     draftAt: 0, fullAt: 0,                            // performance.now() of the last draft / full-quality scene
     figureMs: 0,                                      // the last figure layer's drawing time (worker or idle chunks)
     stageScenes: 0,                                   // 4b: depth-layer paints (each one a scene pass)
+    glimPaints: 0,                                    // M step 3b: windows painted (each two scene passes)
   };
 
   // ---------------------------------------------------------------- figure layers
@@ -1170,15 +1308,31 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     const m = fr.scale / s0;
     return m >= LAYER_SHARE[0] && m <= LAYER_SHARE[1] ? s0 : Math.max(40, Math.round(fr.nominal / 40) * 40);
   }
-  const scaleOf = (k: number, v: Variant) => (v === 'closing' ? closingScale(k) : layerScale(k));
+  /** M step 3b: the windows' layer scale: the strip's own while it is within 1.33 of it (its layer is drawn at 2 x 0.75
+   *  device px per CSS px against the windows' 1.5: never magnified past a texel), else the windows' own (to 40 px). */
+  function glimScale(k: number) {
+    const s0 = layerScale(k), C = glimClass();
+    if (!C || !glimRun.bw) return s0;
+    const sc = glimRun.bw / C.w;
+    return sc / s0 <= 1.33 ? s0 : Math.max(40, Math.round(sc / 40) * 40);
+  }
+  const scaleOf = (k: number, v: Variant) => (v === 'closing' ? closingScale(k) : v === 'glimpse' ? glimScale(k) : layerScale(k));
   /** The composition a layer is drawn for: the preset (a blend's dominant one) and the presence to 0.01. */
   const figSpec = (s: Spec) => ({ distance: specName(s), presence: Math.round(s.presence * 100) / 100 });
   /** A stretch's own page composition, as a spec (what the router's destination and the "Next" pan will use). */
   const ownSpec = (k: number) => { const p = pageSpec(k); return spec(p.distance, p.presence); };
   const layerDpr = () => Math.min(2, Math.max(1, Math.round(bufS * 1.34 * 4) / 4));
+  /** M step 3b: a window's own figure layer (never the strip's: last fixes, its sprites are painted in) is drawn at the
+   *  windows' resolution (GLIMPSE.cap): one texel per view pixel, no more (at the strip's scale too, so the layer it
+   *  no longer shares costs ~0.56 of the strip's). */
+  // (round 2: a place whose set has no sprite of its own, Writing's lake, needs no inlay layer: its end shares the strip's
+  // layer at the strip's resolution, as approved in phone-final)
+  const inlayOf = (k: number, v: Variant) => v === 'glimpse' && GLIMPSE.at[k]?.inlay !== false;
+  const dprOf = (k: number, v: Variant) => (inlayOf(k, v) || (v === 'glimpse' && glimScale(k) !== layerScale(k)) ? Math.min(layerDpr(), Math.max(1, Math.round(Math.min(bufS, GLIMPSE.cap) * 4) / 4)) : layerDpr());
   const layerKey = (k: number, v: Variant = 'strip', s: Spec = curSpec) => {
     const f = figSpec(s);
-    return `${k}|${f.distance}:${f.presence}|${scaleOf(k, v)}|${palette}|${layerDpr()}|${mode}|${cls}`;
+    // (M step 3b: a window's layer is its own, even at the strip's scale: its sprites are painted in, inlay)
+    return `${k}|${f.distance}:${f.presence}|${scaleOf(k, v)}|${palette}|${dprOf(k, v)}|${mode}|${cls}${inlayOf(k, v) ? '|in' : ''}`;
   };
   const ready = (L: Layer | null | undefined): L is ReadyLayer => !!L && L.status === 'ready' && L.uploaded;
   /** Stretch k's layer for a window variant ('strip': the strip and the stage; 'closing') and a composition. */
@@ -1194,7 +1348,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     L = { key, stretch: k, scale, meta, status: 'pending', img: null, readyAt: 0, uploaded: false, waiters: [], used: performance.now(), shownSince: 0 };
     layers.set(key, L);
     figSource().request({
-      stretch: k, scale, dpr: layerDpr(), palette, distance: f.distance, presence: f.presence, cls, still: !!qaFrame,
+      stretch: k, scale, dpr: dprOf(k, v), palette, distance: f.distance, presence: f.presence, cls, still: !!qaFrame, inlay: inlayOf(k, v),
       out: mode === 'webgl' ? (renderer.bitmaps ? 'gpu' : 'bytes') : 'bitmap',
     }).then((res) => {
       if (destroyed || layers.get(key) !== L) return;
@@ -1220,7 +1374,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
   function standIn(k: number, scale: number) {
     let best: Layer | null = null;
     for (const L of layers.values()) {
-      if (L.stretch !== k || !ready(L)) continue;
+      if (L.stretch !== k || !ready(L) || L.key.endsWith('|in')) continue;   // (never a window's layer: its sprites are in it)
       if (scale && (scale / L.scale < LAYER_STANDIN[0] || scale / L.scale > LAYER_STANDIN[1])) continue;
       if (!best || L.readyAt > best.readyAt) best = L;
     }
@@ -1248,7 +1402,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
   function trimLayers(fresh: string) {
     if (layers.size <= FIG_KEEP) return;
     const k = Math.round(stretch);
-    const keep = new Set([fresh, layerKey(k), layerKey(k, 'closing'), layerKey(k + 1, 'strip', ownSpec(k + 1)), layerKey(k - 1, 'strip', ownSpec(k - 1))]);
+    const keep = new Set([fresh, layerKey(k), layerKey(k, 'closing'), layerKey(k, 'glimpse'), layerKey(k + 1, 'strip', ownSpec(k + 1)), layerKey(k - 1, 'strip', ownSpec(k - 1))]);
     for (const s of lastSlots) { keep.add(s.L.key); if (s.want) keep.add(s.want); }
     if (tween) keep.add(layerKey(Math.round(tween.to), 'strip', tween.toSpec));
     const old = [...layers.values()].filter((L) => !keep.has(L.key)).sort((a, b) => a.used - b.used);
@@ -1439,6 +1593,20 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       const b = w.box;
       w.vis = !!b && b.top < cssH && b.top + b.height > 0 && b.left < cssW && b.left + b.width > 0;
       if (w.vis) anyVisible = true;
+    }
+    // M step 3b: the windows into the painting (their boxes only while one is near: a phone reading on paper measures
+    // nothing; the page's run once per layout)
+    const gOn = glimpseOn();
+    if (gOn) glimpseLayout();
+    for (const g of glims) {
+      // (a painted window is measured while its place on the page is within a viewport of the screen, whatever the
+      // intersection observer last said: its callback comes a frame or more after a jump)
+      if (!gOn || !(g.near || glimClose(g)) || !g.el.isConnected) { g.box = null; g.vis = false; continue; }
+      const r = g.el.getBoundingClientRect();
+      g.box = r.width > 0 && r.height > 0 ? { left: r.left - rect.left, top: r.top - rect.top, width: r.width, height: r.height } : null;
+      const b = g.box;
+      g.vis = !!b && b.top < cssH && b.top + b.height > 0;
+      if (g.vis && g.painted) anyVisible = true;
     }
     // the horizon handover (desktop only): it fades in as the strip's bottom edge rises from 35% of the viewport to
     // the top, and out again as the closing's top rises from the bottom of the viewport to 70%
@@ -2025,7 +2193,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     wakeRects = null;
     wake.dirty = true;
     lastInput = lastScroll;
-    if (!hzOn && !fullMode && !wasVisible && !wins.some((w) => w.near) && !stageOn()) return;
+    if (!hzOn && !fullMode && !wasVisible && !wins.some((w) => w.near) && !stageOn() && !(glimpseOn() && glims.some((g) => g.near || glimClose(g) || (!g.painted && Number.isFinite(g.doc))))) return;
     if (driftT < 1 && drifting()) pace(S_PRESENT, 0);
     request(S_SCROLL);
   };
@@ -2079,7 +2247,10 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
   // is a window near the viewport? (a scroll far from both on a phone needs no frame at all)
   const winIO = typeof IntersectionObserver === 'function'
     ? new IntersectionObserver((entries) => {
-      for (const e of entries) for (const w of wins) if (w.el === e.target) w.near = e.isIntersecting;
+      for (const e of entries) {
+        for (const w of wins) if (w.el === e.target) w.near = e.isIntersecting;
+        for (const g of glims) if (g.el === e.target) g.near = e.isIntersecting;
+      }
       request(S_SCROLL);
     }, { rootMargin: '30% 0px 30% 0px' })
     : null;
@@ -2092,6 +2263,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       if (!w.el) { w.near = false; continue; }
       if (on) { ro?.observe(w.el); winIO?.observe(w.el); w.near = true; } else { ro?.unobserve(w.el); winIO?.unobserve(w.el); }
     }
+    for (const g of glims) { if (on) { winIO?.observe(g.el); g.near = true; } else winIO?.unobserve(g.el); }
     for (const el of veilEls) if (el !== surface && ro) { if (on) ro.observe(el); else ro.unobserve(el); }
   }
 
@@ -2099,7 +2271,10 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
   const running = () => !destroyed && !deferred && !userPaused && !hidden && onscreen && !!renderer && renderer.ready;
   const awake = () => performance.now() - lastInput < IDLE_MS;
   // the mist drifts inside the windows only (never in the horizon band, behind the reading)
-  const drifting = () => ambientWanted && !quantized() && mode === 'webgl' && (anyVisible || stageShown() || wake.s > 0.01);
+  const drifting = () => ambientWanted && !quantized() && mode === 'webgl' && (anyVisible || stageShown() || wake.s > 0.01) && !glimRests();
+  /** M step 3b: with only windows into the painting on screen (no strip, closing or stage), their mist comes to rest
+   *  3 s after the last scroll, so a phone reading beside one lets its GPU sleep. */
+  const glimRests = () => !stageShown() && !wins.some((w) => w.vis && w.painted) && glims.some((g) => g.vis) && performance.now() - lastScroll > 3000;
   const ambientOn = () => drifting() && (awake() || driftT > 0);
 
   /** Paint on the next animation frame (scroll, resize, pans, arrival). */
@@ -2703,7 +2878,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
   function draw(now: number) {
     const dt = clockLast ? Math.max(0, Math.min(250, now - clockLast)) : 0;
     clockLast = now;
-    let animating = false, due = Infinity, heavy = false;
+    let animating = false, due = Infinity, heavy = false, paintedNow = false;
 
     // Veils are viewport rects (they follow their text as the page scrolls), so a scroll re-measures them too; a
     // window's keep-out and note are box-relative and only change on measure frames.
@@ -2803,6 +2978,10 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     const scrollIdle = performance.now() - lastScroll > 100;
     const settleDue = !moving && performance.now() - counts.draftAt >= FULL_MS - 8;
     const staged = stageOn() && W > 0;
+    // (M step 3b: the engine paints the windows (each window's still gives way to its painting: data-live, a 300 ms
+    // cross-fade); off, the still stays)
+    { const lv = glimpseOn();
+      if (lv !== glimLive) { glimLive = lv; document.documentElement.classList.toggle('glimpse-live', lv); if (!lv) dropGlims(glims); } }
     for (const w of wins) {
       // (s3fix 6: the closing is painted ahead, off screen, at idle or once it is within two viewports, and only when
       // what it will show is ready, so scrolling it into view never paints a scene)
@@ -2819,8 +2998,22 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
         heavy = heavy || moving;
         need |= S_PRESENT;
         w.want = false;
+        paintedNow = true;
       }
       if (w.pending) animating = true;
+    }
+    // (M step 3b: the windows into the painting, each painted for itself, one per frame, at scroll idle only (never
+    // while the page scrolls, never in a frame that painted another scene, never during a pan or the arrival): a frame
+    // comes back for the next one 120 ms later)
+    if (glimpseOn() && !staged) {
+      const idle = scrollIdle && !moving && !paintedNow && !arriving && performance.now() - lastScroll > 250;
+      const r = glimpseWork(U0, idle);
+      if (r === 'painted') {
+        need |= S_PRESENT; paintedNow = true; due = Math.min(due, now + 120);
+        if (glims.some((g) => g.vis && g.painted)) anyVisible = true;   // (a window painted on screen shows at once)
+      }
+      else if (r === 'later') due = Math.min(due, now + 120);
+      if (glimFading()) { animating = true; need |= S_PRESENT; }
     }
     if (staged) {
       // entering the living ground: 4a's views (the strip, the closing, the horizon band) are freed
@@ -3212,6 +3405,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       });
     }
     const stage = stageOn() && st.ok ? stageU() : null;
+    const glimpse = glimpseU();
     return {
       aspect,
       stillL: stillLight(),
@@ -3229,6 +3423,8 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       hold: xfT >= 0 ? 1 - sstep(0, xfMs(), xfT) : 0,
       sweepKeep: wins[0].keepR !== null && wins[0].keepR > 0 && wins[0].box ? (wins[0].keepR + wins[0].box.left) / (cssW || 1) : 0,
       stage,
+      glimpse,
+      paperOut: glimpseOn(),
       air: airOn() && W ? { a: airU, b: airU2, c: airU3, petals: airP, petalsB: airQ } : null,
       live: liveU,
       live2: liveU2,
@@ -3238,6 +3434,204 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       grainPx: Math.min(1, 2 / Math.max(1, devicePixelRatio || 1)),   // a grain texel: 1 CSS px, at most 2 device px
     };
   }
+
+  /** M step 3b: where each window stands on the page and which pose it takes (its index among the page's laid-out
+   *  windows: a tablet lays out one fewer), once per layout (the page's height or the viewport changed). */
+  function glimpseLayout() {
+    const de = document.documentElement;
+    const key = `${de.scrollHeight}|${cssW}|${cssH}|${glims.length}`;
+    if (key === glimRun.key) return;
+    glimRun.key = key;
+    const y = window.scrollY || 0, vh = innerHeight || cssH || 1;
+    glimRun.max = Math.max(0, de.scrollHeight - vh);
+    glimRun.bw = 0;
+    let j = 0;
+    for (const g of glims) {
+      const r = g.el.isConnected ? g.el.getBoundingClientRect() : null;
+      g.doc = r && r.height > 0 ? r.top + y + r.height / 2 : NaN;
+      g.short = cls === 'short';
+      if (!g.end && Number.isFinite(g.doc)) { g.j = j++; if (!glimRun.bw && r) glimRun.bw = r.width; }
+    }
+  }
+  /** The place's windows for this width class. */
+  function glimClass(): GlClass | null {
+    const P = GLIMPSE.at[Math.round(stretch)];
+    if (!P) return null;
+    return (cls === 'tablet' ? P.tablet : null) ?? P.phone;   // (a phone held sideways lays out no window: layout.css)
+  }
+  /** A window's pose (QA: window.__glimQA = { w, win: [{ x, y, sea, mist, sun }], end } overrides the table). */
+  function glimPose(g: Glim): { C: GlClass; W: GlWin } | null {
+    let C = glimClass();
+    if (!C) return null;
+    if (QA) {
+      const q = (globalThis as { __glimQA?: Partial<GlClass> & { win?: Partial<GlWin>[]; end?: Partial<GlWin> } }).__glimQA;
+      if (q) C = { w: q.w ?? C.w, win: C.win.map((w, i) => ({ ...w, ...(q.win?.[i] ?? {}) })), end: C.end ? { ...C.end, ...(q.end ?? {}) } : C.end };
+    }
+    const W = g.end ? C.end : C.win[Math.min(g.j, C.win.length - 1)];
+    return W ? { C, W } : null;
+  }
+  /** The framing a window's view is painted at: its box plus the travel margins, centred on its pose. */
+  function glimFraming(g: Glim, C: GlClass, Wn: GlWin) {
+    const b = g.box!;
+    const vw = b.width + 2 * GLIMPSE.mx, vh = b.height + 2 * GLIMPSE.my;
+    const scale = b.width / C.w;                        // CSS px per stretch (one scale for the page's windows)
+    const k = Math.round(stretch);
+    const unit = HS / scale;                            // scene units per CSS px
+    // (an inner place's window stays inside its own stretch: across the next place's edge its water and air change
+    // under a straight line, the pale rectangle the reviewer found on the Résumé)
+    let left = k + Wn.x - (vw / scale) / 2;
+    if (k >= 2) left = Math.max(k - 0.02, Math.min(k + 1.0 - vw / scale, left));
+    return { vw, vh, fr: { worldLeft: left, worldTop: Wn.y + (vh * unit) / 2, scale, focus: [0, 0] as [number, number] } };
+  }
+  /** Paint a window's view (back below, front above), once per layout and composition; at idle only. True: painted. */
+  function paintGlim(g: Glim, U0: SceneBase): boolean {
+    if (!g.box || !renderer) return false;
+    const pz = glimPose(g);
+    if (!pz) return false;
+    const { vw, vh, fr } = glimFraming(g, pz.C, pz.W);
+    const s = Math.min(bufS, GLIMPSE.cap);
+    const bw = Math.max(2, Math.round(vw * s)), bh = Math.max(2, Math.round(vh * s));
+    const k = Math.round(stretch);
+    const split = GLIMPSE.at[k]?.split ?? 2;
+    // its figures: the place's layer drawn at this scale (the strip's own when it is close enough: no soft magnified one)
+    const L = layerFor(k, true, 'glimpse');
+    const now = performance.now();
+    if (L && !ready(L) && L.status !== 'failed') {
+      if (!g.waitAt) g.waitAt = now;
+      if (now - g.waitAt < 6000) return false;          // (at most 6 s: a layer that never comes is not waited for)
+    }
+    const u1 = fr.worldLeft + vw / fr.scale;
+    const fa = L && ready(L) && u1 > L.meta.rect[0] && fr.worldLeft < L.meta.rect[1] ? figU({ L, v: 'glimpse', k: 1 }) : null;
+    const key = [fr.worldLeft.toFixed(5), fr.worldTop.toFixed(5), fr.scale.toFixed(2), bw, bh, palette, specKey(), fa ? fa.id : '-', split, mode].join('|');
+    const remade = renderer.view(g.id, bw, bh * 2);
+    if (!remade && key === g.key && g.painted) return false;
+    const P = resolve(curSpec, 1.6);
+    const upx = fr.scale / HS;                           // CSS px per scene unit
+    const asp = vw / upx;
+    const samples = mode === 'webgl' ? Math.min(1536, Math.max(96, Math.round(bw / 1.25))) : 120;
+    g.buf = buildRidges(samples, { left: fr.worldLeft, wvis: vw / fr.scale, aspect: asp, palette, pigment: 1 }, P, g.buf);
+    renderer.ridges(g.id, g.buf, samples);
+    g.view.set([fr.worldLeft * HS, fr.worldTop, vh / upx, asp]);
+    const box = { left: 0, top: 0, width: vw, height: vh };
+    const U = {
+      ...U0, draft: false, view: g.view, hs: HS, feet: layerFeet(P), keep: new Float32Array(4), note: null, figA: fa, figB: null,
+      arrive: 9, morn: 9, hz: hzZero, hzK: 0, lift: 0, P, box, fr,
+    };
+    renderer.scene(g.id, { ...U, planes: new Float32Array([0, split - 1, 0, 0]), half: 0 });
+    renderer.scene(g.id, { ...U, planes: new Float32Array([split, LAYERS - 1, 1, 0]), half: 1 });
+    counts.scenes += 2;
+    counts.glimPaints++;
+    g.key = key; g.vw = vw; g.vh = vh; g.waitAt = 0;
+    if (!g.painted) { g.painted = true; g.shownAt = 0; }
+    // (r5: painted off screen, it is live at once: its still gives way while no one sees it, and it needs no fade when it
+    // scrolls in; only a window painted while on screen cross-fades from its still. Under reduced motion and Still the
+    // CSS swap has no transition either: a jump between two rest states, never an animation after a scroll)
+    if (!g.vis) { g.shownAt = -1; setLive(g, true); }
+    return true;
+  }
+  function dropGlims(list: Glim[]) {
+    for (const g of list) { renderer?.dropView?.(g.id); g.key = ''; g.painted = false; g.buf = null; g.shownAt = 0; setLive(g, false); }
+  }
+  function setLive(g: Glim, on: boolean) {
+    if (g.live === on) return;
+    g.live = on;
+    try { if (on) (g.el as HTMLElement).dataset.live = ''; else delete (g.el as HTMLElement).dataset.live; } catch { /* ignore */ }
+  }
+  /** The windows to paint now (at idle: the nearest unpainted or stale one within GLIMPSE.ahead viewports) and those to
+   *  free (beyond GLIMPSE.keep). */
+  function glimpseWork(U0: SceneBase, idle: boolean): 'painted' | 'later' | null {
+    const vh = innerHeight || cssH || 1, y = window.scrollY || 0;
+    let todo: Glim | null = null, dBest = Infinity;
+    for (const g of glims) {
+      if (!Number.isFinite(g.doc)) { if (g.painted) dropGlims([g]); continue; }
+      const d = Math.abs(g.doc - (y + vh / 2)) / vh;
+      if (d > GLIMPSE.keep) { if (g.painted) dropGlims([g]); continue; }
+      if (d > GLIMPSE.ahead) continue;
+      if (!g.box) {
+        // (off screen: its box from the layout, so it can be painted ahead)
+        const r = g.el.getBoundingClientRect();
+        if (!(r.width > 0 && r.height > 0)) continue;
+        g.box = { left: r.left - rect.left, top: r.top - rect.top, width: r.width, height: r.height };
+      }
+      const pz = glimPose(g);
+      if (!pz) continue;
+      const stale = !g.painted || g.key.split('|').slice(0, 5).join('|') !== glimKey0(g, pz);
+      if (stale && d < dBest) { dBest = d; todo = g; }
+    }
+    if (!todo) return null;
+    if (!idle) return 'later';
+    return paintGlim(todo, U0) ? 'painted' : 'later';
+  }
+  function glimKey0(g: Glim, pz: { C: GlClass; W: GlWin }) {
+    const { vw, vh, fr } = glimFraming(g, pz.C, pz.W);
+    const s = Math.min(bufS, GLIMPSE.cap);
+    return [fr.worldLeft.toFixed(5), fr.worldTop.toFixed(5), fr.scale.toFixed(2), Math.max(2, Math.round(vw * s)), Math.max(2, Math.round(vh * s))].join('|');
+  }
+  /** M step 3b: the windows into the painting on screen (GLIMPSE): each its own painted view, slid in the present. */
+  function glimpseU(): PresentGlimpse | null {
+    if (!glimpseOn()) return null;
+    const on = glims.filter((g) => g.vis && g.box && g.painted && g.vw > 0 && (!g.end || g.box.height >= 180));
+    if (!on.length) return null;
+    const rest = quantized() || forced !== null;
+    const vh = cssH || innerHeight || 1, y = window.scrollY || 0;
+    const qa = QA ? (globalThis as { __glimQA?: { q?: number } }).__glimQA : undefined;
+    const { rects, a, b, f, c, d, m } = glimU;
+    rects.set(NONE16.subarray(0, 8)); a.fill(0); b.fill(0); f.fill(0); c.fill(0); d.fill(0); m.fill(0);
+    const ids: string[] = [];
+    const now = performance.now();
+    on.slice(0, GLIMPSE.max).forEach((g, j) => {
+      const r = g.box!;
+      const pz = glimPose(g);
+      if (!pz) return;
+      // where it stands: q = its middle in the viewport (-0.5 top .. 0.5 bottom); u = the passage, 0 coming in at the
+      // foot of the screen, 1 leaving at its top (a short page's end: the page's own scroll, see below); rest: 0.5
+      let q = qa?.q ?? (r.top + r.height / 2) / vh - 0.5;
+      let u = clamp01((0.5 + r.height / (2 * vh) - q) / (1 + r.height / vh));
+      // (a short page's end is driven by the page's own scroll (0 at its top, 1 at its end), never by where its box stands:
+      // it comes out of the cloud as the reader reaches the end, its rest pose there; a page that scrolls less than 0.6
+      // of a screen shows it at its rest pose, uncovered, from the start)
+      let cover = 0;
+      if (g.end) {
+        const run = glimRun.max, pr = clamp01(y / Math.max(1, run));
+        const short = run < 0.6 * vh;
+        u = short ? 0.5 : 0.3 + 0.2 * sstep(0, 1, pr);
+        cover = short ? 0 : 0.9 * (1 - sstep(0.15, 0.95, pr));
+      }
+      if (rest) { u = 0.5; q = 0; cover = 0; }
+      if (qa?.q !== undefined) u = clamp01(0.5 - qa.q);
+      const e = u - 0.5;
+      // (the view's uv for the box's uv: offset and scale, and how far each layer travels, in view uv)
+      const ox = GLIMPSE.mx / g.vw, sx = r.width / g.vw, oy = GLIMPSE.my / g.vh, sy = r.height / g.vh;
+      // the camera rises: the front drops below the back (down = -y in uv: from its pose as the window comes in, so
+      // nothing ever rises into the top feather), both pan east, the near more
+      const dropK = GLIMPSE.at[Math.round(stretch)]?.drop ?? 1;
+      const dyB = (GLIMPSE.splitB * e) / g.vh;
+      const dyF = (g.end ? GLIMPSE.splitF * 0.35 * (0.5 - u) : GLIMPSE.splitF * dropK * (pz.W.dk ?? 1) * sstep(0.2, 1, u)) / g.vh;
+      const dxB = (GLIMPSE.panB * e) / g.vw, dxF = (GLIMPSE.panF * e) / g.vw;
+      rects.set([r.left / cssW, 1 - (r.top + r.height) / cssH, (r.left + r.width) / cssW, 1 - r.top / cssH], j * 4);
+      a.set([dyB, dyF, dxB, dxF], j * 4);
+      b.set([ox, sx, oy, sy], j * 4);
+      const clear = g.short ? GLIMPSE.clearShort : GLIMPSE.clear;
+      f.set([r.height, clear, r.width, (0.37 + g.i * 1.618) * (g.end ? -1 : 1)], j * 4);   // (a negative seed: an end)
+      // the sea of cloud climbs over the passage; the near ink deepens toward mid-screen
+      const Wn = pz.W;
+      // (the pose's sea and mist are in the painted band's uv, 0 its foot, 1 its top: here in the box's)
+      const band = (v: number) => (clear + v * Math.max(1, r.height - 2 * clear)) / r.height;
+      const sea = Wn.sea < -0.3 && !g.end ? -1 : band(g.end ? Wn.sea + cover : Wn.sea + GLIMPSE.seaRise * u);
+      const ink = rest ? 0.5 : 1 - sstep(0, 0.42, Math.abs(q));
+      if (!g.shownAt) g.shownAt = now;
+      const fade = rest || g.end ? 1 : clamp01((now - g.shownAt) / GLIMPSE.fade);
+      c.set([0.5 + 0.5 * (g.j / Math.max(1, pz.C.win.length - 1)) * (g.end ? 0 : 1), Wn.sun, ink, fade], j * 4);
+      d.set([sea, Wn.mist < -0.5 ? -1 : band(Wn.mist + 0.12 * u), g.short ? 1 : -(Wn.ml ?? 0), g.end ? (GLIMPSE.at[Math.round(stretch)]?.soft ? 1 : 0) : (GLIMPSE.at[Math.round(stretch)]?.ramp ?? 14)], j * 4);
+      m.set(g.view, j * 4);
+      ids.push(g.id);
+      setLive(g, true);
+    });
+    if (!ids.length) return null;
+    return { ids, rects, a, b, f, c, d, m };
+  }
+  /** A window's cross-fade from the place's still is still running (the loop keeps presenting). */
+  function glimFading() { return glims.some((g) => g.vis && g.painted && g.shownAt > 0 && performance.now() - g.shownAt < GLIMPSE.fade + 50); }
 
   // ---------------------------------------------------------------- pans
   function finishPan() {
@@ -3406,6 +3800,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       if (has('wake')) { wakeEls = toList(o.wake); wakeRects = null; wake.dirty = true; }
       if (has('horizon')) { horizonP = clamp01(num(o.horizon, 0.6)); hzv.key = ''; }
       if (has('veil')) veilEls = toList(o.veil);
+      if (has('glimpse')) { dropGlims(glims); glims = mkGlims(toList(o.glimpse)); glimRun.key = ''; }
       if (has('ground')) ground = o.ground === 'living' ? 'living' : '';
       airReset();
       for (const L of st.layers) L.key = '';
@@ -3519,6 +3914,15 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
         if ('veils' in o) qaNoVeil = o.veils === false;
         request(S_SCROLL | S_MEASURE | S_PRESENT);
       },
+      /** QA only (step 3b): a copy of the strip's back (0) or front (1) layer, base64 RGBA8, bottom row first. */
+      qaStripLayer(k: number, pw: number, ph: number) {
+        const w = wins[0];
+        const px = renderer?.readSmall?.(k ? w.nid : w.id, pw, ph);
+        if (!px) return '';
+        let bin = '';
+        for (let i = 0; i < px.length; i += 8192) bin += String.fromCharCode(...px.subarray(i, i + 8192));
+        return btoa(bin);
+      },
     } : {}),
     stats() {
       // (M step 3: a parted window's state: its layers' sinks, the mist in it (the strip's bank, the closing's parting))
@@ -3544,6 +3948,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
         palette,
         widthClass: cls,
         windows: { strip: winStat(wins[0]), closing: winStat(wins[1]) },
+        glimpses: { on: glimpseOn(), live: glimLive, paints: counts.glimPaints, run: { max: Math.round(glimRun.max) }, list: glims.map((g) => ({ end: g.end, j: g.j, near: g.near, vis: g.vis, painted: g.painted, live: g.live, doc: Math.round(g.doc), top: g.box ? Math.round(g.box.top) : null, h: g.box ? Math.round(g.box.height) : null, view: g.vw ? [Math.round(g.vw), Math.round(g.vh)] : null })) },
         framing: { strip: frStat(wins[0]), closing: frStat(wins[1]) },
         hzK: r3(hzK),
         horizonOn: hzOn,

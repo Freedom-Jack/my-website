@@ -19,7 +19,7 @@ export function ContactPage() {
     .replace('{country}', site.countryName)
     .replace('{timeZone}', site.timeZone);
   return (
-    <PageMain page="contact">
+    <PageMain page="contact" glimpseEnd>
       <Strip variant="sub" labelledBy="contact-title">
         <h1 className="page-title" id="contact-title">
           {contact.title}

@@ -157,6 +157,9 @@ export interface LayerParams {
   /** 'gpu': an ImageBitmap with its sprites cut apart (WebGL, 4b); 'bytes': premultiplied RGBA (WebGL, 4a);
    *  'bitmap': the layer as drawn (Canvas2D). */
   out?: 'gpu' | 'bytes' | 'bitmap';
+  /** M step 3b: drawn for a window into the painting (index.ts GLIMPSE), a still view: its sprites are painted in, never
+   *  cut apart (the window's present has no life pass), and the sets leave out what hangs from the strip's top edge. */
+  inlay?: boolean;
 }
 
 /** The palette's inks (inks()): its colours, rgba() and its strength. */
@@ -184,6 +187,8 @@ export interface Env {
   cls: WidthClass | null;
   /** A r2: drawn for a story-map still: no near framing elements, no moving life (LayerParams.still). */
   still: boolean;
+  /** M step 3b: drawn for a window into the painting (LayerParams.inlay): no element that hangs from the strip's edge. */
+  inlay: boolean;
   /** The set's own sprites (ownSprite), when the worker paints them apart; null: painted into the layer. */
   sprites: { a: LifeAnchor; paint: (env: Env) => void; box: Box }[] | null;
 }
@@ -343,7 +348,7 @@ export function* paintSteps(ctx: Ctx2D, p: LayerParams, own: OwnSprite[] | null 
   const env: Env = {
     ctx, P, ink: inks(p.palette), k, scale: p.scale, dpr: p.dpr, palette: paletteName(p.palette), stretch: set.stretch,
     rect: m.rect.slice() as FigureMeta['rect'], plane: m.plane, phase: m.phase, life: [], softOK: false, cls: p.cls || null,
-    sprites: own ? [] : null, still: !!p.still,
+    sprites: own ? [] : null, still: !!p.still, inlay: !!p.inlay,
   };
   // (a set with a meta always has a draw: sets() turns one without into a stub)
   const run = set.draw!(env);

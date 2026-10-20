@@ -194,7 +194,9 @@ export function* draw(env: Env) {
   // (n1, phones: the bough is smaller and tucked into the strip's top-right corner, so the host peak and its light stay clear)
   const phoneK = big > 1.5;
   const bs = phoneK ? bs0 * 0.6 : bs0;
-  if (!env.still) {   // (a story-map still leaves the near framing out: one continuous strip)
+  // (a story-map still leaves the near framing out: one continuous strip; so does a window into the painting, inlay,
+  // where the bough would hang from no edge, a sticker in the sky)
+  if (!env.still && !env.inlay) {
     // (n1: drawn as its own sprite so it can swing about its root, ~0.5 deg at ~0.08 Hz, in the present pass; a
     // still painting (no sprites) paints it into the layer as before)
     const ex = 1478 + (big - 1) * 14, ey = phoneK ? 150 : Math.max(196, 286 - (big - 1) * 30), Rb = own('d5 bough');
@@ -208,7 +210,8 @@ export function* draw(env: Env) {
     // one swallow in the open sky left of the peak (never over the light), gliding on a curving line; two tiny far ones
     const sx = big > 1.5 ? 730 : 812, sy = big > 1.5 ? 470 : 470, path: Pt[] = [];   // (n1: on phones too, left of the peak inside the tighter frame)
     for (let k = 0; k <= 30; k++) { const u = k / 30; path.push([sx + 150 - 330 * u, sy + 40 - 70 * u - 46 * Math.sin(u * Math.PI)]); }
-    ownSprite(env, 'walker', { x: sx - 48 * bs0 / 1.28, y: sy - 42 * bs0 / 1.28, w: 96 * bs0 / 1.28, h: 84 * bs0 / 1.28 }, { path, home: [sx, sy], speed: 10, bird: true }, (e) => swallowInk(e, sx, sy, 62 * bs0, -0.3, own('d5 swallow', 0), { bank: 0.7, lift: 0.35 }));
+    // (a window into the painting, inlay, keeps only the far birds: the strip's large swallow, magnified there, crowded it)
+    if (!env.inlay) ownSprite(env, 'walker', { x: sx - 48 * bs0 / 1.28, y: sy - 42 * bs0 / 1.28, w: 96 * bs0 / 1.28, h: 84 * bs0 / 1.28 }, { path, home: [sx, sy], speed: 10, bird: true }, (e) => swallowInk(e, sx, sy, 62 * bs0, -0.3, own('d5 swallow', 0), { bank: 0.7, lift: 0.35 }));
     // (n1: the far birds are tiny thick-thin open V glides, hazed by the mist, never grey crescents)
     farBird(env, 1184, 552, 9, -0.12, own('d5 swallow', 1), 0.5);
     farBird(env, 1203, 540, 6.5, 0.18, own('d5 swallow', 2), 0.6);

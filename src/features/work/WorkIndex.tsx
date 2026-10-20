@@ -1,6 +1,7 @@
 import { Fragment } from 'react';
 import { work } from '@content/pages/work';
 import { PageMain } from '@/components/page/PageMain';
+import { Glimpse } from '@/components/page/Glimpse';
 import { Strip } from '@/components/page/Strip';
 import { Diagram } from '@/components/ui/Diagram';
 import { InTheOpen } from '@/features/github/InTheOpen';
@@ -92,6 +93,7 @@ export async function WorkIndex() {
         </div>
       </section>
 
+      <Glimpse still="work-0" />
       <section className="sec" aria-labelledby="build-title" data-veil="">
         <h2 className="sec__title" id="build-title">
           {build.title}
@@ -105,6 +107,7 @@ export async function WorkIndex() {
         <Diagram name={build.diagram.name} caption={build.diagram.caption} steps={build.diagram.steps} />
       </section>
 
+      <Glimpse still="work-1" />
       <section className={`sec ${styles.open}`} id="open" aria-labelledby="open-title" data-veil="0.9">
         <h2 className="sec__title" id="open-title">
           {open.title}

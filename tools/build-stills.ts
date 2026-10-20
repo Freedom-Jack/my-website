@@ -121,6 +121,48 @@ const CHROME_ARGS = [
 const OUT_DIR = path.join(ROOT, 'public', 'scenes');
 const MANIFEST = path.join(OUT_DIR, 'manifest.json');
 
+// ------------------------------------------------------------------------------------------------ the windows' stills
+// Step 3b (elements.ts glimpses): each window into the painting has its own still, its rest pose ("Still the
+// landscape" on), cut from the page at 390 x 844 (DPR 2) with the words hidden: public/scenes/glimpse/<id>@1x|2x.webp.
+// The window shows it until the engine paints it (and wherever it cannot), then cross-fades to the painting (layout.css
+// .glimpse[data-live]). Recorded in the manifest's `glimpses` (inputs: the same as the map's).
+const GLIMPSE_PAGES = [
+  { page: 'home', route: '/', n: 2 },
+  { page: 'work', route: '/work/', n: 2 },
+  { page: 'resume', route: '/resume/', n: 2 }, // (last fixes: before Experience and before Skills; never in the timeline)
+] as const;
+const GLIMPSE_VP = { width: 390, height: 844, dpr: 2 };
+const GLIMPSE_DIR = path.join(OUT_DIR, 'glimpse');
+const GLIMPSE_Q = 0.8;
+const CAP_GLIMPSE = 40 * 1024; // bytes, any one window's still
+const CAP_GLIMPSE_TOTAL = 260 * 1024; // all of them (12 files)
+const glimpseName = (page: string, j: number, d: number) => `${page}-${j}@${d}x.webp`;
+// (the box holds no words: only the header, which may return over it, is hidden)
+const GLIMPSE_HIDE = `.site-header, .skip-link, .seal { visibility: hidden !important; }`; // (r9: the seal above Home's first window had left a red row on its still)
+// every window of the page painted, at rest, and the loop quiet
+// (window j of the page's laid-out ones painted and shown, at rest, and the loop quiet)
+const GLIMPSE_SETTLE_JS = `(async ([n, j]) => {
+  await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  const h = window.__ink; if (!h) return false;
+  const s = h.stats();
+  if (s.arriving || s.pending || s.sweeping || s.deferred || !s.still) return false;
+  const l = (s.glimpses && s.glimpses.list || []).filter((g) => !g.end && Number.isFinite(g.doc) && g.doc > 0);
+  return l.length === n && l[j] && l[j].painted && l[j].live ? 'settled' : false;
+})`;
+const GLIMPSE_ENCODE_JS = `(async ([b64, sizes, quality]) => {
+  const img = new Image(); img.src = 'data:image/png;base64,' + b64; await img.decode();
+  const out = {};
+  for (const [d, w, h] of sizes) {
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const x = c.getContext('2d'); x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
+    x.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, 0, 0, w, h);
+    const url = c.toDataURL('image/webp', quality);
+    if (!url.startsWith('data:image/webp;base64,')) return { error: 'this Chrome cannot encode WebP' };
+    out[d] = url.slice('data:image/webp;base64,'.length);
+  }
+  return out;
+})`;
+
 // ------------------------------------------------------------------------------------------------ in the page
 const HIDE_CSS = `
 main { visibility: hidden !important; }
@@ -249,7 +291,7 @@ function inputs(): [string, string][] {
   const lines: string[] = [];
   for (const l of readFileSync(path.join(ROOT, 'src', 'styles', 'tokens.css'), 'utf8').split('\n')) {
     if (l.includes('@media')) media = l.trim();
-    else if (/^\s*--(strip|closing)-/.test(l)) lines.push(`${media} | ${l.trim()}`);
+    else if (/^\s*--(strip|closing|glimpse)-/.test(l)) lines.push(`${media} | ${l.trim()}`);
   }
   items.push(['src/styles/tokens.css#strip-heights', sha(lines.join('\n'))]);
   const settings = {
@@ -265,6 +307,7 @@ function inputs(): [string, string][] {
     scale: STILL_SCALE,
     chrome: CHROME_ARGS,
     js: [HIDE_CSS, REMOUNT_JS, SETTLE_JS, PROCESS_JS],
+    glimpses: [GLIMPSE_PAGES, GLIMPSE_VP, GLIMPSE_Q, GLIMPSE_HIDE, GLIMPSE_SETTLE_JS, GLIMPSE_ENCODE_JS],
   };
   items.push(['tools/build-stills.ts#settings', sha(JSON.stringify(settings))]);
   return items.sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
@@ -309,6 +352,7 @@ interface Manifest {
   suns?: Record<string, [number, number]>;
   files?: Record<string, { bytes: number; sha256: string; size: [number, number] }>;
   totalBytes?: number;
+  glimpses?: Record<string, { bytes: number; sha256: string; size: [number, number] }>;
 }
 function readManifest(): Manifest | null {
   try {
@@ -386,6 +430,24 @@ function check(): number {
       }
   }
   if (total > CAP_TOTAL) problems.push(`the stills weigh ${total} bytes together (cap ${CAP_TOTAL})`);
+  let gTotal = 0;
+  for (const g of GLIMPSE_PAGES)
+    for (let j = 0; j < g.n; j++)
+      for (const d of DENSITIES) {
+        const f = glimpseName(g.page, j, d);
+        const p = path.join(GLIMPSE_DIR, f);
+        if (!existsSync(p)) {
+          problems.push(`missing: ${rel(p)}`);
+          continue;
+        }
+        const data = readFileSync(p);
+        gTotal += data.length;
+        if (man.glimpses?.[f]?.sha256 !== sha(data))
+          problems.push(`${rel(p)} differs from the manifest (edited by hand?)`);
+        if (data.length > CAP_GLIMPSE) problems.push(`${rel(p)} is ${data.length} bytes (cap ${CAP_GLIMPSE})`);
+      }
+  if (gTotal > CAP_GLIMPSE_TOTAL)
+    problems.push(`the windows' stills weigh ${gTotal} bytes together (cap ${CAP_GLIMPSE_TOTAL})`);
   problems.push(...consistency());
   if (problems.length) {
     for (const p of problems) console.log('STALE:', p);
@@ -452,6 +514,7 @@ async function build(): Promise<number> {
   await mkdir(OUT_DIR, { recursive: true });
   const man = readManifest() ?? {};
   const files = { ...man.files };
+  const glimpseFiles = { ...man.glimpses };
   const report: Record<string, unknown>[] = [];
 
   const browser = await chromium.launch({ ...(process.env.CI ? {} : { channel: 'chrome' }), args: CHROME_ARGS });
@@ -547,6 +610,84 @@ async function build(): Promise<number> {
         });
         await page.close();
       }
+    // the windows' stills (step 3b): each window's rest pose, at a phone's width
+    if (!only || flag('--glimpses')) {
+      await mkdir(GLIMPSE_DIR, { recursive: true });
+      const gctx = await browser.newContext({
+        viewport: { width: GLIMPSE_VP.width, height: GLIMPSE_VP.height },
+        deviceScaleFactor: GLIMPSE_VP.dpr,
+        isMobile: true,
+        hasTouch: true,
+      });
+      await gctx.addInitScript(() => {
+        try {
+          localStorage.setItem('ink:still', '1');
+          sessionStorage.setItem('ink:morning', '1');
+          sessionStorage.setItem('ink:swash', '1');
+        } catch {
+          /* private mode */
+        }
+        Object.assign(window, { __glimSoft: true });
+      });
+      for (const g of GLIMPSE_PAGES) {
+        const t0 = Date.now();
+        const page = await gctx.newPage();
+        const res = await page.goto(new URL(g.route, base).toString(), { waitUntil: 'load' });
+        if (!res?.ok()) throw new Error(`${g.route}: HTTP ${res?.status()}`);
+        await page.evaluate(() => document.fonts.ready);
+        await page.addStyleTag({ content: GLIMPSE_HIDE });
+        const boxes = (await page.evaluate(
+          `[...document.querySelectorAll('[data-landscape="glimpse"]')].map((e) => { const b = e.getBoundingClientRect(); return [b.top + scrollY, b.height, b.left, b.width]; }).filter((b) => b[1] > 0)`,
+        )) as number[][];
+        if (boxes.length !== g.n)
+          throw new Error(`${g.page}: ${boxes.length} windows laid out at 390, the table says ${g.n}`);
+        for (const [j, [top, h, left, width]] of boxes.entries()) {
+          await page.evaluate(
+            (y) => window.scrollTo({ top: y, behavior: 'instant' as ScrollBehavior }),
+            Math.max(0, top! + h! / 2 - GLIMPSE_VP.height / 2),
+          );
+          await waitFor(page, GLIMPSE_SETTLE_JS, [g.n, j], `${g.page} window ${j}`, timeout);
+          const y = (await page.evaluate('scrollY')) as number;
+          const shot = () =>
+            page.screenshot({
+              clip: { x: left!, y: top! - y, width: width!, height: h! },
+              scale: 'device',
+              animations: 'allow',
+              caret: 'initial',
+            });
+          let png = await shot();
+          for (let tries = 0; ; tries++) {
+            await page.waitForTimeout(STABLE_MS);
+            const again = await shot();
+            if (again.equals(png)) break;
+            if (tries >= 3)
+              throw new Error(`${g.page} window ${j}: the painting kept changing between captures; nothing written`);
+            png = again;
+          }
+          if (preview) await writeFile(path.join(preview, `glimpse-${g.page}-${j}-crop.png`), png);
+          const sizes = DENSITIES.map((d) => [d, Math.round(width! * d), Math.round(h! * d)]);
+          const out = (await page.evaluate(
+            `${GLIMPSE_ENCODE_JS}(${JSON.stringify([png.toString('base64'), sizes, GLIMPSE_Q])})`,
+          )) as Record<string, string> & { error?: string };
+          if (out.error) throw new Error(`${g.page} window ${j}: ${out.error}`);
+          for (const [d, w2, h2] of sizes) {
+            const data = plainWebp(Buffer.from(String(out[String(d)]), 'base64'));
+            const f = glimpseName(g.page, j, d!);
+            await writeFile(path.join(GLIMPSE_DIR, f), data);
+            glimpseFiles[f] = { bytes: data.length, sha256: sha(data), size: [w2!, h2!] };
+          }
+          report.push({
+            place: `window ${g.page}-${j}`,
+            'capture px': `${Math.round(width! * 2)}x${Math.round(h! * 2)}`,
+            '1x bytes': glimpseFiles[glimpseName(g.page, j, 1)]!.bytes,
+            '2x bytes': glimpseFiles[glimpseName(g.page, j, 2)]!.bytes,
+            s: Math.round((Date.now() - t0) / 100) / 10,
+          });
+        }
+        await page.close();
+      }
+      await gctx.close();
+    }
   } finally {
     await browser.close();
   }
@@ -570,6 +711,16 @@ async function build(): Promise<number> {
     suns: sunsOf(),
     files: Object.fromEntries(Object.entries(files).sort(([a], [b]) => (a < b ? -1 : 1))),
     totalBytes: total,
+    // (only the windows the table lays out: a window removed from a page leaves no entry behind)
+    glimpses: Object.fromEntries(
+      Object.entries(glimpseFiles)
+        .filter(([f]) =>
+          GLIMPSE_PAGES.some((g) =>
+            Array.from({ length: g.n }, (_, j) => DENSITIES.some((d) => glimpseName(g.page, j, d) === f)).some(Boolean),
+          ),
+        )
+        .sort(([a], [b]) => (a < b ? -1 : 1)),
+    ),
   };
   await writeFile(MANIFEST, `${JSON.stringify(next, null, 1)}\n`);
   console.table(report);

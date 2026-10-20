@@ -550,6 +550,89 @@ html.no-landscape .closing__art {
 }
 
 /* ==========================================================================
+   Step 3b, windows into the painting (components/page/Glimpse; elements.ts glimpses): below 1200 px, at a page's
+   major breaks, a short box the engine paints with the page's own place, each one further along the place and higher
+   in one climb through it (a handscroll unrolled down the page). It takes the section's gap (the section after it sits
+   directly under it), so a break costs the reader about one window's height; its top and bottom 40 px are mist and
+   paper (the painting keeps 40 px off the words on either side). Phones: a full-bleed 180 px box; tablets: the column's
+   width (at most 40 rem) with paper on either side; a phone held sideways: none (its 390 px tall screen keeps the
+   approved strip and closing; the 110 px sliver windows tried there added little). Until the engine paints a window, and wherever it cannot (no
+   JavaScript, no WebGL, a software rasteriser, the governor's veto), the window's own still stands in it (--glimpse-
+   still, cut by build:stills at its rest pose), cross-fading to the painting over 300 ms ([data-live]): never an
+   empty hole. The short pages (Writing, Contact) have none: their closing ends on the place, near and large.
+     <div class="glimpse bleed" data-landscape="glimpse" aria-hidden="true" style="--glimpse-still: …"></div>
+   ========================================================================== */
+.glimpse {
+  display: none;
+}
+@media (max-width: 74.99rem) {
+  html.el-glimpses .glimpse {
+    display: block;
+    position: relative;
+    height: var(--glimpse-h);
+    pointer-events: none; /* art only: never over a link's hit area (the brush links' 44 px reach into the gap) */
+  }
+  html.el-glimpses .glimpse + :is(.sec, section) {
+    margin-block-start: 0;
+  }
+  /* (the still: the window's own rest pose, between the 40 px margins, melting into the paper) */
+  html.el-glimpses .glimpse::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--glimpse-still, none) center / cover no-repeat;
+    opacity: 1;
+    transition: opacity 0.3s linear;
+  }
+  html.el-glimpses .glimpse[data-live]::before {
+    opacity: 0;
+  }
+  html.is-still.el-glimpses .glimpse::before {
+    transition: none;
+  }
+  /* a short page's closing: a little taller, the place settled in it, near and large */
+  html.el-glimpses .closing__art[data-glimpse='end'] {
+    min-height: var(--glimpse-h-end);
+  }
+}
+/* tablets: the window is the column's width, with paper on either side (a 768 px band of mist read as a stripe) */
+@media (min-width: 40rem) and (max-width: 74.99rem) {
+  html.el-glimpses .glimpse {
+    width: min(100%, 40rem);
+    margin-inline: auto;
+  }
+  /* (a tablet's column is shorter: one window fewer, the Résumé's in its timeline) */
+  html.el-glimpses .glimpse--phone {
+    display: none;
+  }
+  html.el-glimpses .glimpse--phone + :is(.sec, section) {
+    margin-block-start: var(--space-section);
+  }
+}
+/* a phone held sideways (a 390 px tall screen): no window mid-page; the strip and the closing as approved */
+@media (max-height: 31.25rem) and (max-width: 74.99rem) {
+  html.el-glimpses .glimpse {
+    display: none;
+  }
+  html.el-glimpses .glimpse + :is(.sec, section) {
+    margin-block-start: var(--space-section);
+  }
+  html.el-glimpses .closing__art[data-glimpse='end'] {
+    min-height: var(--closing-h);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html.el-glimpses .glimpse::before {
+    transition: none;
+  }
+}
+@media print {
+  .glimpse {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
    Footer (components/layout/SiteFooter, StoryMap, StillToggle). The story map: the whole painting as one
    small handscroll, each place's own scene linking to its page; then the
    links line and the "updated" line. On paper.

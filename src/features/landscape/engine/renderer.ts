@@ -83,6 +83,8 @@ export interface SceneU extends SceneBase {
   /** 4b depth layers: [first plane, last plane, 1 = over transparent paper, 0], and the crop [x0, width] (view uv). */
   planes?: Float32Array;
   crop?: Float32Array;
+  /** M step 3b: paint into the lower (0) or upper (1) half of the view's buffer (a window's two depth layers). */
+  half?: number;
 }
 
 /** A window as present() lays it: its view at its live box. */
@@ -101,6 +103,26 @@ export interface PresentWindow {
   near?: string | null;
   /** S1: [on, the back's sink, the mist between the layers (box fraction), the front's sideways drift (box widths)]. */
   part?: Float32Array | null;
+}
+/** M step 3b (elements.ts glimpses): the windows into the painting on screen, below 1200 px (index.ts glimpseU), at most
+ *  two (shaders.ts GLN). Each has its own view: two depth layers painted for its own framing, the back in the lower half
+ *  of the view's buffer and the front (premultiplied, over transparent paper) in the upper half. */
+export interface PresentGlimpse {
+  /** Each window's view. */
+  ids: string[];
+  /** Per window (GLN x vec4): its box (canvas uv, y up); [the back's and the front's drop, their pans] (view uv); [the
+   *  view's uv offset and scale for the box's uv: x0, sx, y0, sy]; [the box's height (CSS px), the words' margin (CSS
+   *  px), the box's width (CSS px), seed (negative: a short page's end)]. */
+  rects: Float32Array;
+  a: Float32Array;
+  b: Float32Array;
+  f: Float32Array;
+  /** [the camera's height 0..1 (cooler, paler air), the light's bloom kept 0..1, the front's ink deepened 0..1, the
+   *  painting's fade-in 0..1]; [the sea of cloud's surface (box uv, < -0.5 none), the mist between the layers (box uv,
+   *  < -0.5 none), a sideways phone's slim window 0/1, 0]; the view's world mapping (as a window's view). */
+  c: Float32Array;
+  d: Float32Array;
+  m: Float32Array;
 }
 /** 4b: the living ground's three depth layers and the mist between them (index.ts stageU). */
 export interface StageU {
@@ -175,6 +197,10 @@ export interface PresentU {
   /** Final round: how much of the grabbed frame still shows over this one (a long jump after its splice), 1 -> 0. */
   hold?: number;
   stage: StageU | null;
+  /** N1: the windows into the painting on screen (null: none). */
+  glimpse?: PresentGlimpse | null;
+  /** M step 3b: a pixel outside every painted rect is written as paper at once (below 1200 px with the windows on). */
+  paperOut?: boolean;
   /** 4b living veils (shaders.ts PRESENT: uLive, uLive2). */
   live: Float32Array;
   live2: Float32Array;
@@ -212,6 +238,8 @@ export interface Renderer {
   dropView(id: string): void;
   /** (optional: a painter without it holds every view) */
   hasView?(id: string): boolean;
+  /** M step 3b: a small RGBA8 copy of a painted view (bottom row first), read at idle; null when it has none. */
+  readSmall?(id: string, pw: number, ph: number): Uint8Array | null;
   memory(): RendererMemory;
   /** Upload view `id`'s ridge rows (ridges.ts buildRidges, `samples` columns). */
   ridges(id: string, data: Float32Array, samples: number): void;

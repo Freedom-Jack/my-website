@@ -246,6 +246,8 @@
   --strip-sub: clamp(110px, 20svh, 170px); /* 169 @ 844 */
   --strip-doc: clamp(88px, 12svh, 110px);
   --closing-h: 160px;
+  --glimpse-h: 180px; /* step 3b: a window into the painting at a section break: 40 px of paper and mist next to the words above and below, the painting ~100 px between */
+  --glimpse-h-end: 250px; /* ...and a short page's closing, where the windows end on the place, near and large (Writing, Contact) */
   --story-map-art: 2.75rem; /* the footer's map of the painting (its scene stills): 44; from 640 .37 of a map column
                                  (56-74), so each scene's window lies inside its still (layout.css) */
 
@@ -289,6 +291,8 @@
     --strip-sub: 220px;
     --strip-doc: 160px;
     --closing-h: 200px;
+    --glimpse-h: 232px;
+    --glimpse-h-end: 290px;
     --story-map-art: clamp(3.5rem, (100vw - 4rem) * 0.0617, 4.625rem); /* .37 x (frame / 6): 56 @ 640-970, 59 @ 1024 */
   }
 }

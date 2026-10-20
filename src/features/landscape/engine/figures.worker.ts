@@ -105,10 +105,12 @@ self.onmessage = (e) => {
     // read back on its first draw, a multi-second raster flush on load in the fallback (final review r1, item 7)
     const ctx = canvas.getContext('2d', { willReadFrequently: p.out !== 'gpu' });
     if (!ctx) throw new Error('no 2d context in the worker');
-    const own: OwnSprite[] | null = p.out === 'gpu' ? [] : null;   // the set's own sprites: painted apart (buildSprites), not into the layer
+    // the set's own sprites: painted apart (buildSprites), not into the layer (M step 3b: a window's layer, inlay, keeps
+    // them all in it, still: its present slides the layer and has no life pass)
+    const own: OwnSprite[] | null = p.out === 'gpu' && !p.inlay ? [] : null;
     const life = drawFigures(ctx, p, own);
     if (p.out === 'gpu') {
-      const sprites = buildSprites(canvas, ctx, life, width, height, own!);
+      const sprites = own ? buildSprites(canvas, ctx, life, width, height, own) : [];
       const bitmap = canvas.transferToImageBitmap();
       self.postMessage({ id: p.id, width, height, bitmap, sprites, ms: performance.now() - t0, life }, [bitmap, ...sprites.map((s) => s.bitmap)]);
     } else if (p.out === 'bitmap') {
