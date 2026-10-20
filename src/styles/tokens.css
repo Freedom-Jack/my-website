@@ -1,262 +1,307 @@
-/**
- * Design Tokens - Single Source of Truth
- *
- * This file defines all visual design values as CSS custom properties (variables).
- * Changing these values will update the entire application's appearance.
- *
- * Benefits:
- * - Easy theme switching (just override these variables)
- * - Consistent design system across all components
- * - No hardcoded values in components
- * - Theme changes require ZERO component modifications
- */
+/* ==========================================================================
+   tokens.css — the design system's single source of values.
+   Every colour, size, space, duration and easing on the site comes from here.
+   Shared file: page builders read these tokens, they never redefine them.
+   Load order (src/app/layout.tsx): tokens → base → layout → effects → components; each feature's own
+   CSS Module comes after (layout only, with these tokens).
 
-:root {
-  /* ============================================
-     COLOR TOKENS
-     ============================================ */
+   Reading first, then the art (DESIGN.md §6, SPEC-R4A §2): a calm reading column on cool paper, with a
+   painted strip at the top of every page.
+   The landscape's pigments (azurite, malachite, timber brown) are ENGINE-ONLY (features/landscape/engine/palette):
+   they never become tokens, text or UI colours. Text never sits on colour.
+   ========================================================================== */
 
-  /* Primary Colors - Main brand colors */
-  --color-primary: 221.2 83.2% 53.3%;
-  --color-primary-hover: 221.2 83.2% 45%;
-  --color-primary-foreground: 210 40% 98%;
+/* --------------------------------------------------------------------------
+   Fonts: the web faces are self-hosted by next/font (src/app/fonts.ts sets --font-*-face); these are their
+   metric-matched local fallbacks, so the swap to the web font does not reflow the page. Values were
+   measured in Chrome against the real faces; Chrome scales the *-override values by size-adjust, so they
+   are pre-divided.
+   -------------------------------------------------------------------------- */
 
-  /* Secondary Colors - Accent colors */
-  --color-secondary: 210 40% 96.1%;
-  --color-secondary-hover: 210 40% 90%;
-  --color-secondary-foreground: 222.2 47.4% 11.2%;
-
-  /* Background Colors */
-  --color-background: 0 0% 100%;
-  --color-background-alt: 0 0% 98%;
-
-  /* Foreground Colors - Text */
-  --color-foreground: 222.2 84% 4.9%;
-  --color-foreground-muted: 215.4 16.3% 46.9%;
-
-  /* UI Element Colors */
-  --color-muted: 210 40% 96.1%;
-  --color-muted-foreground: 215.4 16.3% 46.9%;
-  --color-accent: 210 40% 96.1%;
-  --color-accent-foreground: 222.2 47.4% 11.2%;
-
-  /* Border Colors */
-  --color-border: 214.3 31.8% 91.4%;
-  --color-border-hover: 214.3 31.8% 80%;
-
-  /* Semantic Colors */
-  --color-destructive: 0 84.2% 60.2%;
-  --color-destructive-foreground: 210 40% 98%;
-  --color-success: 142 71% 45%;
-  --color-success-foreground: 210 40% 98%;
-  --color-warning: 38 92% 50%;
-  --color-warning-foreground: 222.2 47.4% 11.2%;
-
-  /* Header Navigation Colors (for specific use cases) */
-  --color-header-nav-bg: 210 40% 96.1%;
-  --color-header-nav-hover: 210 40% 90%;
-  --color-header-nav-text: 222.2 47.4% 11.2%;
-
-  /* ============================================
-     SPACING TOKENS
-     Based on 4px base unit for consistency
-     ============================================ */
-
-  --spacing-unit: 4px;
-  --spacing-0: 0;
-  --spacing-1: calc(var(--spacing-unit) * 1);    /* 4px */
-  --spacing-2: calc(var(--spacing-unit) * 2);    /* 8px */
-  --spacing-3: calc(var(--spacing-unit) * 3);    /* 12px */
-  --spacing-4: calc(var(--spacing-unit) * 4);    /* 16px */
-  --spacing-5: calc(var(--spacing-unit) * 5);    /* 20px */
-  --spacing-6: calc(var(--spacing-unit) * 6);    /* 24px */
-  --spacing-8: calc(var(--spacing-unit) * 8);    /* 32px */
-  --spacing-10: calc(var(--spacing-unit) * 10);  /* 40px */
-  --spacing-12: calc(var(--spacing-unit) * 12);  /* 48px */
-  --spacing-16: calc(var(--spacing-unit) * 16);  /* 64px */
-  --spacing-20: calc(var(--spacing-unit) * 20);  /* 80px */
-  --spacing-24: calc(var(--spacing-unit) * 24);  /* 96px */
-  --spacing-32: calc(var(--spacing-unit) * 32);  /* 128px */
-
-  /* Semantic Spacing Names (easier to remember) */
-  --spacing-xs: var(--spacing-2);    /* 8px */
-  --spacing-sm: var(--spacing-4);    /* 16px */
-  --spacing-md: var(--spacing-6);    /* 24px */
-  --spacing-lg: var(--spacing-8);    /* 32px */
-  --spacing-xl: var(--spacing-12);   /* 48px */
-  --spacing-2xl: var(--spacing-16);  /* 64px */
-  --spacing-3xl: var(--spacing-20);  /* 80px */
-  --spacing-4xl: var(--spacing-24);  /* 96px */
-
-  /* ============================================
-     TYPOGRAPHY TOKENS
-     ============================================ */
-
-  /* Font Families */
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-
-  /* Font Sizes */
-  --font-size-xs: 0.75rem;      /* 12px */
-  --font-size-sm: 0.875rem;     /* 14px */
-  --font-size-base: 1rem;       /* 16px */
-  --font-size-lg: 1.125rem;     /* 18px */
-  --font-size-xl: 1.25rem;      /* 20px */
-  --font-size-2xl: 1.5rem;      /* 24px */
-  --font-size-3xl: 1.875rem;    /* 30px */
-  --font-size-4xl: 2.25rem;     /* 36px */
-  --font-size-5xl: 3rem;        /* 48px */
-  --font-size-6xl: 3.75rem;     /* 60px */
-  --font-size-7xl: 4.5rem;      /* 72px */
-
-  /* Font Weights */
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
-  --font-weight-extrabold: 800;
-
-  /* Line Heights */
-  --line-height-tight: 1.25;
-  --line-height-snug: 1.375;
-  --line-height-normal: 1.5;
-  --line-height-relaxed: 1.625;
-  --line-height-loose: 2;
-
-  /* Letter Spacing */
-  --letter-spacing-tighter: -0.05em;
-  --letter-spacing-tight: -0.025em;
-  --letter-spacing-normal: 0em;
-  --letter-spacing-wide: 0.025em;
-  --letter-spacing-wider: 0.05em;
-  --letter-spacing-widest: 0.1em;
-
-  /* ============================================
-     LAYOUT TOKENS
-     ============================================ */
-
-  /* Container Max Widths */
-  --container-sm: 640px;
-  --container-md: 768px;
-  --container-lg: 1024px;
-  --container-xl: 1280px;
-  --container-2xl: 1536px;
-  --container-max: var(--container-xl);
-
-  /* Section Spacing */
-  --section-padding-y: var(--spacing-16);  /* 64px */
-  --section-padding-x: var(--spacing-6);   /* 24px */
-  --section-gap: var(--spacing-16);        /* 64px */
-
-  /* Hero Section Specific */
-  --hero-height: 100vh;
-  --hero-min-height: 600px;
-  --hero-padding-y: 0;
-  --hero-justify: center;
-  --hero-align: center;
-  --hero-text-align: center;
-
-  /* ============================================
-     BORDER TOKENS
-     ============================================ */
-
-  /* Border Radius */
-  --radius-none: 0;
-  --radius-sm: 0.125rem;    /* 2px */
-  --radius-base: 0.25rem;   /* 4px */
-  --radius-md: 0.375rem;    /* 6px */
-  --radius-lg: 0.5rem;      /* 8px */
-  --radius-xl: 0.75rem;     /* 12px */
-  --radius-2xl: 1rem;       /* 16px */
-  --radius-3xl: 1.5rem;     /* 24px */
-  --radius-full: 9999px;
-  --radius: var(--radius-lg); /* Default radius */
-
-  /* Border Widths */
-  --border-width: 1px;
-  --border-width-2: 2px;
-  --border-width-4: 4px;
-  --border-width-8: 8px;
-
-  /* ============================================
-     SHADOW TOKENS
-     ============================================ */
-
-  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-base: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-  --shadow-2xl: 0 30px 60px -15px rgb(0 0 0 / 0.3);
-  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
-
-  /* ============================================
-     ANIMATION TOKENS
-     ============================================ */
-
-  /* Animation Durations */
-  --duration-instant: 0ms;
-  --duration-fast: 150ms;
-  --duration-normal: 300ms;
-  --duration-slow: 500ms;
-  --duration-slower: 750ms;
-  --duration-slowest: 1000ms;
-
-  /* Animation Timing Functions */
-  --ease-linear: linear;
-  --ease-in: cubic-bezier(0.4, 0, 1, 1);
-  --ease-out: cubic-bezier(0, 0, 0.2, 1);
-  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
-
-  /* ============================================
-     Z-INDEX TOKENS
-     Centralized z-index management
-     ============================================ */
-
-  --z-index-base: 0;
-  --z-index-dropdown: 1000;
-  --z-index-sticky: 1020;
-  --z-index-fixed: 1030;
-  --z-index-modal-backdrop: 1040;
-  --z-index-modal: 1050;
-  --z-index-popover: 1060;
-  --z-index-tooltip: 1070;
+/* Sofia Sans Extra Condensed 900 (the name, figures) ← Impact (Windows, macOS), scaled to Sofia's cap height */
+@font-face {
+  font-family: 'Name Fallback';
+  src: local('Impact');
+  font-weight: 900;
+  size-adjust: 83.9%;
+  ascent-override: 107.3%;
+  descent-override: 35.8%;
+  line-gap-override: 0%;
+}
+/* … ← Helvetica Neue Condensed Black (iOS, which has no Impact), scaled to Sofia's cap height */
+@font-face {
+  font-family: 'Name Fallback Apple';
+  src: local('HelveticaNeue-CondensedBlack'), local('Helvetica Neue Condensed Black');
+  font-weight: 900;
+  size-adjust: 91.7%;
+  ascent-override: 98.1%;
+  descent-override: 32.7%;
+  line-gap-override: 0%;
+}
+/* Sofia Sans Condensed 600-800 (page titles) ← Arial Narrow / Helvetica Neue Condensed / Arial */
+@font-face {
+  font-family: 'Display Fallback';
+  src: local('Arial Narrow Bold'), local('ArialNarrow-Bold');
+  font-weight: 600 800;
+  size-adjust: 87.3%;
+  ascent-override: 103.1%;
+  descent-override: 34.4%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Display Fallback 2';
+  src: local('Helvetica Neue Condensed Bold'), local('HelveticaNeue-CondensedBold');
+  font-weight: 600 800;
+  size-adjust: 86.4%;
+  ascent-override: 104.2%;
+  descent-override: 34.7%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Display Fallback 3';
+  src: local('Arial Bold'), local('Arial-BoldMT');
+  font-weight: 600 800;
+  size-adjust: 71.6%;
+  ascent-override: 125.7%;
+  descent-override: 41.9%;
+  line-gap-override: 0%;
+}
+/* Commissioner (body, UI) ← Helvetica Neue / Arial */
+@font-face {
+  font-family: 'Body Fallback';
+  src: local('Helvetica Neue'), local('HelveticaNeue'), local('Arial'), local('ArialMT');
+  size-adjust: 100%;
+  ascent-override: 102%;
+  descent-override: 21%;
+  line-gap-override: 0%;
 }
 
-/* ============================================
-   DARK THEME
-   Override tokens for dark mode
-   ============================================ */
+/* --------------------------------------------------------------------------
+   Registered custom properties (animatable, typed)
+   -------------------------------------------------------------------------- */
+@property --ink-r {
+  /* radius of an ink bloom (buttons, rows) */
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 0px;
+}
 
-.dark {
-  /* Colors */
-  --color-primary: 217.2 91.2% 59.8%;
-  --color-primary-hover: 217.2 91.2% 50%;
-  --color-secondary: 217.2 32.6% 17.5%;
-  --color-secondary-hover: 217.2 32.6% 25%;
+:root {
+  color-scheme: light;
 
-  --color-background: 222.2 84% 4.9%;
-  --color-background-alt: 217.2 32.6% 8%;
-  --color-foreground: 210 40% 98%;
-  --color-foreground-muted: 215 20.2% 65.1%;
+  /* ---- Paper and mist: cool rice paper with a faint grey-green. Never cream, yellow, gold or beige. ---- */
+  --paper: #eff1ee;
+  --paper-rgb: 239 241 238;
+  --mist-1: #e3e8e5;
+  --mist-2: #d5dcd9;
 
-  --color-muted: 217.2 32.6% 17.5%;
-  --color-muted-foreground: 215 20.2% 65.1%;
-  --color-accent: 217.2 32.6% 17.5%;
-  --color-accent-foreground: 210 40% 98%;
+  /* ---- The five inks (burnt, thick, heavy, light, clear). Every grey comes from here.
+          Contrast on paper: 16.3 / 11.8 / 7.7 / 5.1 / 1.6 : 1 ---- */
+  --ink-1: #111416; /* burnt: the name, headings, body text */
+  --ink-2: #2a3034; /* thick: nav, the signature, figures */
+  --ink-3: #434c50; /* heavy: small print (7.7:1 on paper, 6.3:1 on mist-2) */
+  --ink-4: #5e676b; /* light: small print on plain paper only (5.1:1) */
+  --ink-5: #b9c2c4; /* clear: hairlines; never text */
 
-  --color-border: 217.2 32.6% 17.5%;
-  --color-border-hover: 217.2 32.6% 25%;
+  /* ---- UI pigments (the landscape's own pigments live in the engine, never here) ---- */
+  --wash: #3e5664; /* indigo wash: the button's resting stroke, annotation ink, diagram washes */
+  --wash-deep: #22303a; /* a fully loaded indigo-ink wash: the row wash's tide line */
+  --cinnabar: #b1362b; /* THE SEAL ONLY (the header's and the signature's). Nothing else is red. */
 
-  --color-header-nav-bg: 217.2 32.6% 17.5%;
-  --color-header-nav-hover: 217.2 32.6% 25%;
-  --color-header-nav-text: 210 40% 98%;
+  /* ---- Semantic aliases ---- */
+  --text: var(--ink-1);
+  --text-2: var(--ink-3);
+  --text-3: var(--ink-4);
+  --rule: var(--ink-5); /* hairlines between rows */
+  --rule-rest: #7b8385; /* every link's resting mark (3.4:1 on paper) */
+  --ink-annot: var(--wash); /* margin notes, diagram strokes, band labels (6.8:1 paper) */
+  --focus: var(--ink-1);
 
-  /* Shadows (lighter for dark mode) */
-  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.3);
-  --shadow-base: 0 4px 6px -1px rgb(0 0 0 / 0.4);
-  --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.4);
-  --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.5);
+  /* ---- Families ---- */
+  --font-name:
+    var(--font-name-face, 'Sofia Sans Extra Condensed'), 'Name Fallback', 'Name Fallback Apple', 'Arial Narrow',
+    sans-serif;
+  --font-display:
+    var(--font-display-face, 'Sofia Sans Condensed'), 'Display Fallback', 'Display Fallback 2', 'Display Fallback 3',
+    'Arial Narrow', sans-serif;
+  --font-body: var(--font-body-face, 'Commissioner'), 'Body Fallback', ui-sans-serif, system-ui, sans-serif;
+  --font-code:
+    ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace; /* system faces only */
+  --flare-body: 18; /* Commissioner FLAR axis: a hint of brush in the terminals */
+  --flare-sign: 60; /* the About-me signature "— Jack" */
+
+  /* Commissioner: three weights only */
+  --w-body: 400; /* body, small print */
+  --w-ui: 560; /* labels, nav, table heads, buttons, "Next:" */
+  --w-strong: 700; /* b, strong, h2, h3, the brand */
+
+  /* ---- Motion: resonance, a fast attack and a long decay ---- */
+  --ease-ink: cubic-bezier(0.2, 0.7, 0.1, 1);
+  --ease-out: cubic-bezier(0.3, 0.6, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.6, 0, 0.3, 1);
+  --ease-bloom: cubic-bezier(0.32, 0.42, 0.22, 1); /* ink spreading: visible front, soft landing */
+  --ease-stamp: cubic-bezier(0.3, 1.4, 0.5, 1);
+  --dur-press: 120ms;
+  --dur-hover: 200ms;
+  --dur-brush: 520ms; /* underline draw (the brush-link effect scales it to the link's length) */
+  --dur-bloom: 640ms; /* ink bloom in buttons and rows */
+  --dur-settle: 400ms; /* the name's ink settle (the arrival effect): readable at first paint, crisp by 400 ms */
+  --dur-draw: 520ms; /* one diagram stroke drawing in (the diagram draw-in) */
+  --draw-step: 90ms; /* stagger between strokes, in flow order */
+
+  /* Route changes (features/navigation): the painting's pan with a pale mist sweep */
+  --dur-route-exit: 160ms; /* old text sinks into the mist */
+  --dur-route-enter: 260ms; /* new text condenses in */
+  --route-step: 50ms; /* the rest of the page follows its h1 by this much */
+  --route-shift: 16px; /* how far text drifts with the travel */
+  --route-blur: 3px; /* the h1 only */
+  --dur-route-pan: 600ms;
+  --dur-route-sweep: 420ms;
+  --dur-route-back-pan: 400ms; /* back/forward: content is instant, the painting follows */
+  --dur-route-reduced: 150ms; /* reduced motion or "Still": a plain cross-fade */
+  --dur-header: 220ms; /* the returning header's slide */
+
+  /* ---- Layers ---- */
+  --z-landscape: -3;
+  --z-paper: -1;
+  --z-header: 10;
+  --z-skip: 50;
+}
+
+/* --------------------------------------------------------------------------
+   Round 4a: the type scale (SPEC-R4A §2.1).
+   Fluid between 390 and 640 px, constant above 640 (phone → tablet/wide values), except the name,
+   which scales continuously to 1440. At most four type sizes per screen (chrome excluded); figures
+   inside sentences are bold at text size, never enlarged.
+   -------------------------------------------------------------------------- */
+:root {
+  --fs-small: 0.875rem; /* 14: meta, dates, captions, table heads, footer */
+  --fs-body: clamp(1.0625rem, 0.965rem + 0.4vw, 1.125rem); /* 17 → 18 */
+  --fs-lead: clamp(1.125rem, 0.93rem + 0.8vw, 1.25rem); /* 18 → 20: hero lead, page intros, statements */
+  --fs-item: clamp(1.125rem, 0.93rem + 0.8vw, 1.25rem); /* 18 → 20: h3, row titles */
+  --fs-h2: clamp(1.375rem, 0.985rem + 1.6vw, 1.625rem); /* 22 → 26: section headings, "Next: …", the email */
+  --fs-title: clamp(2rem, 1.22rem + 3.2vw, 2.5rem); /* 32 → 40: page titles (h1) */
+  --fs-name: clamp(2.75rem, 2.1875rem + 2.6vw, 4.5rem); /* 44 @ ≤ 346 · 45 @ 390 · 68 @ 1280 · 72 @ ≥ 1423 */
+  --fs-figure: clamp(
+    1.375rem,
+    1.0825rem + 1.2vw,
+    1.625rem
+  ); /* 22 → 26 (= --fs-h2, so a figure adds no type size to its
+                                                            screen; the condensed 900 face still marks it): a case's
+                                                            summary figure, timeline years */
+  --fs-nav: 0.9375rem; /* 15; 16 from 640; 14 at ≤ 416 */
+  --fs-brand: 1.0625rem; /* 17: "Qijin Xu" in the header; 16 at ≤ 416 */
+
+  --lh-body: 1.6;
+  --lh-lead: 1.55;
+  --lh-item: 1.3;
+  --lh-h2: 1.25;
+  --lh-title: 1.1;
+  --lh-name: 1.02;
+  --lh-small: 1.45;
+
+  --measure-read: 42.5rem; /* 680: the reading column (about 60–72 characters of body) */
+  --measure-wide: 60rem; /* 960: tables, diagrams, the About-me block */
+  --strip-text-max: 36.25rem; /* 580: the title block inside a wide strip */
+  --frame: 75rem; /* 1200: the page frame, centred */
+  --rail-gap: 3rem; /* 48: reading column → margin rail */
+  --rail-w: 18.75rem; /* 300: the margin rail (wide only) */
+}
+
+/* --------------------------------------------------------------------------
+   Round 4a: space, the frame and the chrome (SPEC-R4A §2.2–§2.4, §6.2).
+   Breakpoints: phone < 40rem (640) · tablet 40–74.99rem · wide ≥ 75rem (1200) ·
+   short: max-height 31.25rem (500) and below 75rem wide · tight header ≤ 23.4375rem (375) ·
+   narrow gutter ≤ 22.5rem (360) · header wrap < 21.1875rem (340).
+   -------------------------------------------------------------------------- */
+:root {
+  /* the margin between sections: 42 @ ≤ 390 → 52 @ 640; 58 from 1200. This is the MARGIN; the visible gap
+     the budget measures (last text line → next heading; 40–56 phone, 56–72 at 1280, 56–80 at 1440) adds the
+     leading, and a row's padding when a section ends in rows. Measured on the specimen: a section ending in a
+     text line ≈ 41 / 56 / 56, one ending in rows ≈ 55 / 72 / 72. (SPEC-R4A's 36 / 52 / 56 came from a
+     wireframe whose sections all ended in padded rows; ending in a line, they read 35 / 54.) */
+  --space-section: clamp(2.625rem, 1.65rem + 4vw, 3.25rem);
+  --space-head: 0.75rem; /* h2 → its first line: 12; 14 from 640 */
+  --space-item: clamp(1.5rem, 0.72rem + 3.2vw, 2rem); /* rows and list items: 24 → 32 */
+  --space-para: 0.9em; /* between paragraphs */
+  --space-strip-text: clamp(1.25rem, 0.9rem + 1.4vw, 1.75rem); /* strip → title below it: 20 → 28 */
+
+  --gutter: 1.25rem; /* 20 phone; 16 at ≤ 360; 32 from 640; 40 from 1200 */
+  --header-h: 3.5rem; /* 56 phone; 64 from 640; 48 on short screens */
+  --seal-size: 28px; /* the header seal; 24 at ≤ 416 */
+  --brand-gap: 10px; /* seal → "Qijin Xu"; 8 at ≤ 416 */
+  --nav-gap: 14px; /* between the nav links; 28 from 640; 10 at ≤ 416; 8 at ≤ 360 */
+
+  /* the painted strips and the closing scene (art boxes; the engine paints inside them) */
+  --strip-home: clamp(96px, 14svh, 120px); /* 118 @ 390 × 844 */
+  --strip-sub: clamp(110px, 20svh, 170px); /* 169 @ 844 */
+  --strip-doc: clamp(88px, 12svh, 110px);
+  --closing-h: 160px;
+  --story-map-art: 2.75rem; /* the footer's map of the painting (its scene stills): 44; from 640 .37 of a map column
+                                 (56-74), so each scene's window lies inside its still (layout.css) */
+
+  /* Fluid small spaces for paddings and gaps inside components (unchanged from round 3) */
+  --space-3xs: clamp(0.25rem, 0.23rem + 0.1vw, 0.3125rem);
+  --space-2xs: clamp(0.5rem, 0.47rem + 0.14vw, 0.625rem);
+  --space-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.9375rem);
+  --space-s: clamp(1rem, 0.93rem + 0.36vw, 1.25rem);
+  --space-m: clamp(1.5rem, 1.39rem + 0.54vw, 1.875rem);
+  --space-l: clamp(2rem, 1.79rem + 1.07vw, 2.75rem);
+  --space-xl: clamp(3rem, 2.64rem + 1.79vw, 4.25rem);
+  --space-2xl: clamp(4rem, 3.29rem + 3.57vw, 6.5rem);
+  --space-3xl: clamp(6rem, 4.86rem + 5.71vw, 10rem);
+}
+@media (max-width: 26rem) {
+  /* tight header (≤ 416): the home link and the four nav links share one row down to 360 */
+  :root {
+    --fs-nav: 0.875rem;
+    --fs-brand: 1rem;
+    --nav-gap: 10px;
+    --seal-size: 24px;
+    --brand-gap: 8px;
+  }
+}
+@media (max-width: 22.5rem) {
+  /* narrow gutter (≤ 360), and 2 px less between the nav links so the header keeps one row */
+  :root {
+    --gutter: 1rem;
+    --nav-gap: 8px;
+  }
+}
+@media (min-width: 40rem) {
+  /* tablet and up */
+  :root {
+    --fs-nav: 1rem;
+    --nav-gap: 28px;
+    --space-head: 0.875rem;
+    --gutter: 2rem;
+    --header-h: 4rem;
+    --strip-home: 220px;
+    --strip-sub: 220px;
+    --strip-doc: 160px;
+    --closing-h: 200px;
+    --story-map-art: clamp(3.5rem, (100vw - 4rem) * 0.0617, 4.625rem); /* .37 x (frame / 6): 56 @ 640-970, 59 @ 1024 */
+  }
+}
+@media (min-width: 75rem) {
+  /* wide */
+  :root {
+    --space-section: 3.625rem;
+    --gutter: 2.5rem;
+    --strip-home: clamp(440px, 58svh, 540px); /* 522 @ 900 */
+    --strip-sub: clamp(300px, 40svh, 360px); /* 360 @ 900 */
+    --strip-doc: 180px; /* the low end of SPEC-R4A's 180–220: documents open on their text */
+    --closing-h: 240px;
+    --story-map-art: clamp(3.5rem, (100vw - 5rem) * 0.0617, 4.625rem); /* 69 @ 1200, 74 from 1280 */
+  }
+}
+@media (max-height: 31.25rem) and (max-width: 74.99rem) {
+  /* short: sideways phones */
+  :root {
+    --header-h: 3rem;
+    --strip-home: 80px;
+    --strip-sub: 80px;
+    --strip-doc: 64px;
+    --closing-h: 96px;
+  }
 }

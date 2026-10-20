@@ -1,0 +1,69 @@
+{
+ "page": "home",
+ "vp": "1024",
+ "screens": 3.26,
+ "s0_words": 95,
+ "s0_sizes": [
+  18,
+  20,
+  26,
+  62
+ ],
+ "s0_disp_over_read": 0.13,
+ "page_disp_over_read": 0.07,
+ "max_sizes_per_screen": 4,
+ "gaps_median": 36,
+ "gap_largest": [
+  255,
+  70,
+  70
+ ],
+ "vw": 1024,
+ "vh": 768,
+ "docH": 2501,
+ "hScroll": false,
+ "wordsAboveFold": {
+  "real": 61,
+  "placeholder": 34
+ },
+ "jackY": 387,
+ "header": {
+  "h": 64,
+  "linksFit": true
+ },
+ "strip": {
+  "top": 64,
+  "h": 220,
+  "x0": 0,
+  "x1": 1024
+ },
+ "h1": {
+  "top": 308,
+  "fs": "61.624px",
+  "x0": 32,
+  "x1": 712
+ },
+ "lede": {
+  "top": 384,
+  "bottom": 477,
+  "x0": 32,
+  "x1": 712,
+  "fs": "20px"
+ },
+ "photo": {
+  "top": 651,
+  "w": 240,
+  "h": 300,
+  "visiblePx": 117.375
+ },
+ "rowsInView": 0,
+ "firstRowTop": null,
+ "paint": {
+  "home": {
+   "scale": 1,
+   "travellerPx": 16,
+   "W": 1024,
+   "H": 220
+  }
+ }
+}

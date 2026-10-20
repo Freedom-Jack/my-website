@@ -1,0 +1,67 @@
+# CI on every push and pull request: the site must type-check, lint, pass its unit tests, build, keep the hard rules
+# (no phone, address, project-management credential, old résumé PDF or CJK), keep its links, keep the PDF in step with
+# the résumé, pass a smoke test per route and the DESIGN §6 budgets. Nothing here deploys (Vercel does, from master).
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+      # the QA build: the painting's read-only debug handle for the browser tests (never in the Vercel build)
+      NEXT_PUBLIC_INK_QA: '1'
+      # "In the open" reads GitHub at build time; the job's own token raises the rate limit (it falls back to the snapshot)
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Type-check
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Format
+        run: npm run format:check
+      - name: Unit tests (content schemas, rules, the engine's pure parts)
+        run: npm test
+      - name: The story map's stills are current (cut from this engine; npm run build:stills)
+        run: npm run build:stills -- --check
+      - name: Audit (runtime dependencies)
+        run: npm audit --omit=dev --audit-level=high
+      - name: Build
+        run: npm run build
+      - name: Playwright's Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Serve the build
+        run: |
+          node node_modules/next/dist/bin/next start -p 3100 &
+          for i in $(seq 1 60); do curl -sf -o /dev/null http://127.0.0.1:3100/ && exit 0; sleep 1; done; exit 1
+      - name: The résumé PDF matches the résumé, with no phone number
+        run: npm run build:pdf -- --check
+      - name: Hard rules
+        run: npm run check:compliance
+      - name: Links
+        run: npm run check:links
+      - name: Browser tests (a smoke test per route, navigation, the §6 budgets)
+        run: npm run test:e2e
+      - if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 7

@@ -1,0 +1,57 @@
+---
+# A Work case: /work/rag-assistant/ (the file name is its address). How to add one: CONTENT.md.
+title: Enterprise RAG assistant for insurance support
+# Newest first: the order of the "Six projects" table on /work/.
+order: 2
+years: 2023 – 2024
+org: CGI
+role: Architect
+figure:
+  value: About 90%
+  note: of questions resolved without a person
+summary: An LLM-powered assistant that answers routine insurance questions on its own.
+# The row in the "Six projects" table: its outcome, and its evidence (none: "Client work, no public page").
+outcome: ~90% of questions resolved without a person; 50,000+ users; 525% ROI in 12 months
+evidence:
+  - label: CGI product page
+    url: https://www.cgi.com/canada/en-ca/insurance-chatbot
+  - label: CGI article
+    url: https://www.cgi.com/canada/en-ca/article/insurance/ai-chatbots-insurance-are-transforming-customer-service
+# The brush diagram: content/work/diagrams/rag-assistant.wide.svg and .tall.svg, its caption and its steps.
+diagram:
+  name: rag-assistant
+  caption: The generic shape of the assistant, simplified. No client detail.
+  steps:
+    - A customer asks a routine question about a policy or a claim, in one of several languages.
+    - Retrieval finds the relevant passages in the insurer’s own knowledge base.
+    - An LLM, orchestrated with LangChain, answers from those passages.
+    - The answer goes back to the customer, around the clock. About 90% of questions are resolved without a person.
+    - The system runs across Azure, AWS and GCP.
+---
+
+## Context
+
+Insurance support teams spend much of their day on routine questions about policies and claims. The goal was an assistant that answers them from the insurer’s own knowledge base, in several languages, around the clock.
+
+## What I did
+
+I architected and shipped the system: retrieval-augmented generation over insurance knowledge bases, built with LangChain across Azure, AWS and GCP.
+
+<Note term="RAG">Retrieval-augmented generation. The model answers from passages retrieved from a knowledge base, not from its training alone.</Note>
+
+<Note term="LangChain">An open-source framework for building applications on language models.</Note>
+
+## Outcome
+
+About **90%** of questions resolved without a person, across a user base of **50,000+**. **525%** return on investment within 12 months. CGI Impact Award 2024.
+
+## Evidence
+
+- CGI product page: [Multi-language AI-driven chatbot for insurance](https://www.cgi.com/canada/en-ca/insurance-chatbot)
+- CGI article: [AI chatbots for insurance are transforming customer service](https://www.cgi.com/canada/en-ca/article/insurance/ai-chatbots-insurance-are-transforming-customer-service)
+
+Both pages describe the product. They don’t name contributors or publish these figures.
+
+## Stack
+
+Python, LangChain, LLMs, RAG, Azure, AWS, GCP

@@ -1,0 +1,64 @@
+{
+ "page": "work",
+ "vp": "768",
+ "screens": 1.51,
+ "s0_words": 169,
+ "s0_sizes": [
+  15,
+  20,
+  26,
+  40
+ ],
+ "s0_disp_over_read": 0.03,
+ "page_disp_over_read": 0.04,
+ "max_sizes_per_screen": 4,
+ "gaps_median": 64,
+ "gap_largest": [
+  255,
+  64,
+  33
+ ],
+ "vw": 768,
+ "vh": 1024,
+ "docH": 1551,
+ "hScroll": false,
+ "wordsAboveFold": {
+  "real": 169,
+  "placeholder": 0
+ },
+ "jackY": null,
+ "header": {
+  "h": 64,
+  "linksFit": true
+ },
+ "strip": {
+  "top": 64,
+  "h": 220,
+  "x0": 0,
+  "x1": 768
+ },
+ "h1": {
+  "top": 308,
+  "fs": "40px",
+  "x0": 32,
+  "x1": 712
+ },
+ "lede": {
+  "top": 366,
+  "bottom": 459,
+  "x0": 32,
+  "x1": 592,
+  "fs": "20px"
+ },
+ "photo": null,
+ "rowsInView": 6,
+ "firstRowTop": 562,
+ "paint": {
+  "workView": {
+   "x0": 429,
+   "y0": 328,
+   "W": 768,
+   "H": 220
+  }
+ }
+}

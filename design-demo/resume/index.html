@@ -1,0 +1,493 @@
+<!doctype html>
+<!-- /resume/ — built from _template.html. Page content lives in <main>; shared blocks are synced by tools/sync-shared.py. -->
+<html lang="en-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+  <!-- ===================== PAGE HEAD (per page; values from COPY.md 8.1) ===================== -->
+  <title>Qijin (Jack) Xu · Résumé</title>
+  <meta name="description" content="Résumé of Qijin (Jack) Xu, Lead AI/ML Architect in Toronto: LLM agents, RAG, data engineering and cloud. On the web, as a PDF and as JSON.">
+  <link rel="canonical" href="https://my-website-freedomjack.vercel.app/resume/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Qijin Xu">
+  <meta property="og:locale" content="en_CA">
+  <meta property="og:title" content="Qijin (Jack) Xu · Résumé">
+  <meta property="og:description" content="Résumé of Qijin (Jack) Xu, Lead AI/ML Architect in Toronto: LLM agents, RAG, data engineering and cloud. On the web, as a PDF and as JSON.">
+  <meta property="og:url" content="https://my-website-freedomjack.vercel.app/resume/">
+  <!-- The same résumé in two other forms: printed from this page (tools/build-pdf.py) and machine-readable
+       (JSON Resume v1.0.0, COPY.md 8.7). -->
+  <link rel="alternate" type="application/pdf" href="/resume.pdf" title="Résumé (PDF)">
+  <link rel="alternate" type="application/json" href="/resume.json" title="JSON Resume">
+
+  <!-- @shared:head -->
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#EFF1EE">
+  <!-- Ink boot: runs before first paint. It reads no styles, so it sits above the stylesheets and never
+       waits for them. Keep it tiny.
+       html.js               JS is on
+       html.is-sealed        this session has already seen the seal stamped (seal.js)
+       html.is-still         "Still the landscape" is on for this session (still.js; sessionStorage 'ink:still')
+       html.is-arrived       the name's ink settle is done (arrival.js; also forced after 3 s, whatever happens)
+       html.is-routed        added later by the demo router at its first in-page swap (router.js)
+       DEMO ONLY (SPEC-R4A §9.10; ?compare=1|0, ?palette=ink|misted|rich, ?name=56|72|96, remembered in
+       sessionStorage 'ink:compare' / 'ink:palette' / 'ink:name'):
+       html.is-compare       the compare panel is on (compare.js injects it)
+       html[data-palette]    the painting's colour (default misted)
+       html[data-name-size]  the home name's size (default 72)
+       It also clears round 3's retired ?transition= choice ('ink:transition'). -->
+  <script>
+    (function (d, w) {
+      var h = d.documentElement, s = null, q = null;
+      h.classList.add('js');
+      try { s = w.sessionStorage; } catch (e) {}
+      try { q = new URLSearchParams(w.location.search); } catch (e) {}
+      function get(k) { try { return s ? s.getItem(k) : null; } catch (e) { return null; } }
+      function put(k, v) { try { if (s) { if (v === null) s.removeItem(k); else s.setItem(k, v); } } catch (e) {} }
+      function pick(name, re, key) {
+        var v = q && q.get(name);
+        if (v && re.test(v)) { put(key, v); return v; }
+        v = get(key);
+        return v && re.test(v) ? v : null;
+      }
+      if (get('ink:sealed')) h.classList.add('is-sealed');
+      if (get('ink:still') === '1') h.classList.add('is-still');
+      put('ink:transition', null);
+      var c = q && q.get('compare');
+      if (c === '1') put('ink:compare', '1'); else if (c === '0') put('ink:compare', null);
+      if (c === '1' || (c !== '0' && get('ink:compare') === '1')) h.classList.add('is-compare');
+      h.setAttribute('data-palette', pick('palette', /^(ink|misted|rich)$/, 'ink:palette') || 'misted');
+      h.setAttribute('data-name-size', pick('name', /^(56|72|96)$/, 'ink:name') || '72');
+      w.setTimeout(function () {
+        if (!w.__inkFrozen) h.classList.add('is-arrived');
+      }, 3000);
+    })(document, window);
+  </script>
+  <!-- Full-document navigations (a typed URL, a reload, the router's fallback) get the browser's default
+       260 ms cross-fade. The opt-in must be known before the parser reaches <body>, so it is inline. -->
+  <style>@view-transition { navigation: auto; }</style>
+  <link rel="icon" href="/assets/svg/seal.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Every module the page boots with, fetched at once (not after the font CSS or after main.js parses):
+       main.js, its static imports, and the landscape (loaded by main.js with a dynamic import). -->
+  <link rel="modulepreload" href="/assets/js/main.js">
+  <link rel="modulepreload" href="/assets/js/arrival.js">
+  <link rel="modulepreload" href="/assets/js/seal.js">
+  <link rel="modulepreload" href="/assets/js/nav.js">
+  <link rel="modulepreload" href="/assets/js/header.js">
+  <link rel="modulepreload" href="/assets/js/story-map.js">
+  <link rel="modulepreload" href="/assets/js/still.js">
+  <link rel="modulepreload" href="/assets/js/compare.js">
+  <link rel="modulepreload" href="/assets/js/brush-link.js">
+  <link rel="modulepreload" href="/assets/js/ink-button.js">
+  <link rel="modulepreload" href="/assets/js/disclosure.js">
+  <link rel="modulepreload" href="/assets/js/diagram.js">
+  <link rel="modulepreload" href="/assets/js/margin-note.js">
+  <link rel="modulepreload" href="/assets/js/router.js">
+  <link rel="modulepreload" href="/assets/js/transition.js">
+  <link rel="modulepreload" href="/assets/js/landscape/index.js">
+  <link rel="modulepreload" href="/assets/js/landscape/compose.js">
+  <link rel="modulepreload" href="/assets/js/landscape/ridges.js">
+  <link rel="modulepreload" href="/assets/js/landscape/shaders.js">
+  <link rel="modulepreload" href="/assets/js/landscape/gl.js">
+  <link rel="modulepreload" href="/assets/js/landscape/canvas2d.js">
+  <link rel="modulepreload" href="/assets/js/landscape/strip.js">
+  <link rel="modulepreload" href="/assets/js/landscape/palette.js">
+  <link rel="modulepreload" href="/assets/js/landscape/figures.js">
+  <!-- Sofia Sans Extra Condensed 900: the name and figures. Sofia Sans Condensed: page titles.
+       Commissioner (variable, FLAR flare axis): body, headings and UI. -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Commissioner:wght,FLAR@300..700,0..100&amp;family=Sofia+Sans+Condensed:wght@600..800&amp;family=Sofia+Sans+Extra+Condensed:wght@900&amp;display=swap">
+  <!-- Noto Serif SC 900, subset to the seal's single glyph (the text= parameter is that glyph, URL-encoded). -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@900&amp;text=%E5%BE%90&amp;display=block">
+  <link rel="stylesheet" href="/assets/css/tokens.css">
+  <link rel="stylesheet" href="/assets/css/base.css">
+  <link rel="stylesheet" href="/assets/css/layout.css">
+  <link rel="stylesheet" href="/assets/css/effects.css">
+  <link rel="stylesheet" href="/assets/css/components.css">
+  <link rel="expect" href="#main" blocking="render">
+  <script type="module" src="/assets/js/main.js"></script>
+  <script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script>
+  <!-- Person (COPY.md 8.2): on every page. Visible text and this data say the same things.
+       data-shared: the demo router never swaps it. -->
+  <script type="application/ld+json" data-shared>
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "@id": "https://my-website-freedomjack.vercel.app/#person",
+    "name": "Qijin Xu",
+    "givenName": "Qijin",
+    "familyName": "Xu",
+    "alternateName": ["Jack Xu", "Qijin (Jack) Xu"],
+    "description": "Lead AI/ML Architect at CGI's AI Center of Excellence in Toronto. Designs and ships production AI for banks and insurers: LLM agents, retrieval-augmented generation (RAG) systems and the data platforms beneath them.",
+    "url": "https://my-website-freedomjack.vercel.app/",
+    "email": "mailto:qxjack@gmail.com",
+    "image": "https://my-website-freedomjack.vercel.app/assets/img/qijin-xu-colour.jpg",
+    "jobTitle": "Lead AI/ML Architect",
+    "worksFor": {
+      "@type": "Organization",
+      "name": "CGI",
+      "legalName": "CGI Inc.",
+      "url": "https://www.cgi.com/",
+      "sameAs": "https://en.wikipedia.org/wiki/CGI_Inc."
+    },
+    "hasOccupation": {
+      "@type": "Occupation",
+      "name": "Lead AI/ML Architect",
+      "occupationLocation": { "@type": "City", "name": "Toronto" },
+      "skills": "LLM agents, LangGraph, retrieval-augmented generation, vLLM, data engineering, Apache Spark, Kafka, Azure, AWS, GCP"
+    },
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Toronto",
+      "addressRegion": "ON",
+      "addressCountry": "CA"
+    },
+    "alumniOf": {
+      "@type": "CollegeOrUniversity",
+      "name": "York University",
+      "url": "https://www.yorku.ca/",
+      "sameAs": "https://en.wikipedia.org/wiki/York_University"
+    },
+    "hasCredential": [
+      {
+        "@type": "EducationalOccupationalCredential",
+        "name": "Bachelor of Science in Computer Science, Specialized Honours",
+        "credentialCategory": "degree",
+        "dateCreated": "2021",
+        "recognizedBy": { "@type": "CollegeOrUniversity", "name": "York University", "url": "https://www.yorku.ca/" }
+      },
+      {
+        "@type": "EducationalOccupationalCredential",
+        "name": "Microsoft Certified: Azure Solutions Architect Expert",
+        "credentialCategory": "certification",
+        "dateCreated": "2022",
+        "recognizedBy": { "@type": "Organization", "name": "Microsoft", "url": "https://www.microsoft.com/" }
+      },
+      {
+        "@type": "EducationalOccupationalCredential",
+        "name": "Google Cloud Professional Cloud Developer",
+        "credentialCategory": "certification",
+        "dateCreated": "2023",
+        "recognizedBy": { "@type": "Organization", "name": "Google Cloud", "url": "https://cloud.google.com/" }
+      }
+    ],
+    "award": ["CGI Impact Award 2024", "CGI Impact Award 2026"],
+    "knowsAbout": [
+      "Artificial intelligence",
+      "Machine learning",
+      "Large language models",
+      "AI agents",
+      "LangGraph",
+      "Retrieval-augmented generation",
+      "Model Context Protocol",
+      "vLLM",
+      "Computer vision",
+      "Data engineering",
+      "Data lineage",
+      "Apache Spark",
+      "Apache Kafka",
+      "Microsoft Azure",
+      "Amazon Web Services",
+      "Google Cloud Platform",
+      "Python"
+    ],
+    "sameAs": [
+      "https://github.com/Freedom-Jack",
+      "https://www.linkedin.com/in/qijin-x-4899671a9/"
+    ]
+  }
+  </script>
+  <!-- /@shared:head -->
+
+  <!-- ===================== PAGE ASSETS (per page, optional) =====================
+       data-page-style: the router swaps this sheet (as one adopted sheet) on a route change.
+       data-page-module: the page's behaviour (no side effects at import; main.js calls init/destroy). -->
+  <link rel="stylesheet" href="/assets/css/pages/resume.css" data-page-style>
+  <script type="module" src="/assets/js/pages/resume.js" data-page-module></script>
+</head>
+
+<!-- Page config, read by main.js (and copied onto <body> by the router on a route change); SPEC-R4A §10.0:
+     data-page      page id (matches the page CSS/JS file names)
+     data-stretch   this page's place along the one painting: Home 0, Work 1, the road 2 (no page), Writing
+                    and the Note 3, Résumé 4 (the shore; its terraced fields arrive in 4b), Contact 5, 404 6.
+                    The landscape pans between places.
+     data-distance  'level' (wide, low ridges) | 'high' (one tall mass) | 'deep' (many overlapping ridges)
+     data-presence  0..1, how strongly the scene shows in the strip and the closing
+     data-horizon   0..1, the faint ink horizon's presence on desktops once the strip has gone -->
+<body data-page="resume" data-stretch="4" data-distance="level" data-presence=".5" data-horizon=".35">
+  <!-- @shared:top -->
+  <a class="skip-link" href="#main">Skip to content</a>
+  <!-- The landscape: one fixed canvas behind everything; mountLandscape() paints the page's scene into its
+       windows (the strip, the closing) and, on desktops, a faint ink horizon between them. Decorative. -->
+  <canvas class="landscape" aria-hidden="true"></canvas>
+  <!-- Shared ink filters (referenced from effects.css and the seals). -->
+  <svg class="ink-defs" aria-hidden="true" focusable="false">
+    <!-- capillary edge for ink blooms: buttons, rows -->
+    <filter id="ink-feather" x="-12%" y="-40%" width="124%" height="180%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.045 0.07" numOctaves="4" seed="11" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="16" xChannelSelector="R" yChannelSelector="G" result="d"/>
+      <feGaussianBlur in="d" stdDeviation=".6" result="b"/>
+      <feComponentTransfer in="b"><feFuncA type="table" tableValues="0 .05 .7 1 1"/></feComponentTransfer>
+    </filter>
+    <!-- the wet front of a button's bloom: wider, wicking lobes -->
+    <filter id="ink-bloom" x="-20%" y="-70%" width="140%" height="240%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.026 0.075" numOctaves="4" seed="4" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="30" xChannelSelector="R" yChannelSelector="G" result="d"/>
+      <feGaussianBlur in="d" stdDeviation=".7" result="b"/>
+      <feComponentTransfer in="b"><feFuncA type="table" tableValues="0 .08 .75 1 1"/></feComponentTransfer>
+    </filter>
+    <!-- the name's ink settle on a full load (arrival.js relaxes the scale from 8 to 0 in <= 400 ms) -->
+    <filter id="ink-arrive" x="-3%" y="-15%" width="106%" height="130%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018 0.042" numOctaves="3" seed="7" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="8" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <!-- carved-stone seal: chipped edges, specks where the paste did not transfer -->
+    <filter id="seal-stone" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.11" numOctaves="3" seed="11" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G" result="d"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.32" numOctaves="2" seed="3" result="g"/>
+      <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -11 7.7" result="speck"/>
+      <feComposite in="d" in2="speck" operator="in"/>
+    </filter>
+  </svg>
+  <!-- The header: one home link (the seal and the words "Qijin Xu"; accessible name "Qijin Xu, home"), then
+       Work · Résumé · Contact. It returns, solid, on scroll up once the strip has gone (header.js). -->
+  <header class="site-header">
+    <div class="site-header__inner frame">
+      <a class="home-link" href="/">
+        <span class="seal" aria-hidden="true">
+          <svg class="seal__mark" viewBox="0 0 64 64" focusable="false">
+            <defs>
+              <mask id="seal-carve" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
+                <rect width="64" height="64" fill="#fff"/>
+                <text class="seal__glyph" x="32.3" y="48.2" text-anchor="middle">徐</text>
+              </mask>
+            </defs>
+            <g filter="url(#seal-stone)">
+              <path class="seal__stone" mask="url(#seal-carve)" d="M5.2 4.6 58.9 3.8q1.5.1 1.4 1.8l-.7 53.1q-.1 1.6-1.7 1.5L5.6 59.4q-1.5-.1-1.4-1.8L3.9 6.1q0-1.4 1.3-1.5Z"/>
+            </g>
+          </svg>
+        </span>
+        <span class="home-link__name">Qijin Xu</span><span class="visually-hidden">, home</span>
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <ul class="site-nav__list" role="list">
+          <li><a class="brush" href="/work/">Work</a></li>
+          <li><a class="brush" href="/resume/" aria-current="page">Résumé</a></li>
+          <li><a class="brush" href="/contact/">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <!-- /@shared:top -->
+
+  <main id="main" tabindex="-1" class="frame">
+    <!-- The résumé (COPY.md 5; SPEC-R4A §10.3). It opens on a low "doc" strip of its own place along the
+         painting (the shore, in pale malachite; the terraced fields arrive in 4b): art only, no words in it.
+         Then the document, set as a hanging indent: the headings and the timeline's years stand in the
+         margin, and every line of text shares one edge. Nothing moves; the years and their brush strokes are
+         drawn still.
+         This page IS the source of the résumé PDF: its @media print rules (pages/resume.css) print it as a
+         two-page ink document, and tools/build-pdf.py renders it, so the page and the PDF never disagree. -->
+    <header class="strip strip--doc">
+      <div class="strip__art bleed" data-landscape="strip" data-wake aria-hidden="true"></div>
+      <p class="strip__note small">Draft art</p>
+    </header>
+
+    <article class="cv" aria-labelledby="cv-name">
+
+      <!-- The letterhead: the name, the title, the contact line, then the PDF and JSON (screen only). -->
+      <header class="cv-head" data-veil="0.9">
+        <h1 class="page-title" id="cv-name">Qijin Xu</h1>
+        <p class="cv-head__role lead">Lead AI/ML Architect</p>
+        <p class="cv-head__contact small">
+          <!-- No phone number: Jack decided it stays off the public résumé and its PDF. -->
+          <span>Goes by Jack</span>
+          <span>Toronto, ON, Canada</span>
+          <span><a class="brush brush--rest" href="mailto:qxjack@gmail.com">qxjack@gmail.com</a></span>
+          <span><a class="brush brush--rest" href="https://github.com/Freedom-Jack">github.com/Freedom-Jack</a></span>
+          <span><a class="brush brush--rest" href="https://www.linkedin.com/in/qijin-x-4899671a9/">linkedin.com/in/qijin-x-4899671a9</a></span>
+          <!-- On screen the site link stays inside the demo; while printing (the PDF) pages/resume.js points
+               it at the public address in data-print-href. -->
+          <span><a class="brush brush--rest" href="/" data-print-href="https://my-website-freedomjack.vercel.app/">my-website-freedomjack.vercel.app</a></span>
+        </p>
+        <!-- Screen only (hidden in print). The PDF opens in the browser's own viewer, in a new tab, where it
+             can be downloaded; the router never intercepts it. Never `download`. -->
+        <p class="cv-head__actions actions">
+          <a class="ink-btn" href="/resume.pdf" target="_blank" rel="noopener" type="application/pdf"><span class="ink-btn__ink" aria-hidden="true"></span><span class="ink-btn__label">View résumé (PDF)<span class="visually-hidden">, opens in a new tab</span></span></a>
+          <a class="brush brush--rest" href="/resume.json" type="application/json">JSON Resume</a>
+        </p>
+        <p class="cv-head__note small">This page is the current résumé. The PDF is made from this page, and a machine-readable copy is available as JSON Resume.</p>
+      </header>
+
+      <section class="sec cv-sec" aria-labelledby="cv-summary-title" data-veil>
+        <h2 class="sec__title" id="cv-summary-title">Summary</h2>
+        <p>Lead AI/ML Architect with 5+ years building production AI and the data systems beneath it. Architected an LLM-powered RAG assistant that resolved about 90% of questions on its own for 50,000+ users and returned 525% ROI within 12 months (CGI Impact Award 2024). Now leading a LangGraph agent for a proprietary programming language, projected to cut manual work by 50%. Earlier, built a fraud loss-ratio model with a 321% lift over a top-five bank benchmark.</p>
+      </section>
+
+      <!-- Experience: the vertical brush timeline (moved from the old About page), newest first, drawn still.
+           Each entry: its start year in the margin (a visual index only, aria-hidden: the full dates are read
+           once, from the text), then the role, then organisation · place · dates, then the bullets. One brush
+           stroke runs from each year down to the next, loaded at its year and running dry (decorative). -->
+      <section class="sec cv-sec" aria-labelledby="cv-exp-title" data-veil>
+        <h2 class="sec__title" id="cv-exp-title">Experience</h2>
+        <ol class="timeline" role="list">
+          <li class="timeline__entry">
+            <span class="timeline__year fig" aria-hidden="true">2025</span>
+            <svg class="timeline__stroke" viewBox="0 0 12 100" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path class="timeline__ink" d="M6.3 0C7.7.6 7.9 3 7.6 9 7.3 26 7.1 47 6.9 65 6.7 81 6.6 92 6.2 100 5.9 92 5.6 81 5.4 65 5.1 47 4.7 26 4.5 9 4.4 3 4.8.5 6.3 0Z"/><path class="timeline__dry" pathLength="100" d="M7.5 28C7.4 47 7.2 66 6.8 97"/></svg>
+            <div class="timeline__body">
+              <h3 class="sec__sub timeline__role">Lead AI/ML Architect, AI Center of Excellence</h3>
+              <p class="timeline__meta small">CGI Inc. · Toronto, ON · <span class="nowrap"><time datetime="2025-01">Jan 2025</time> – Present</span></p>
+              <ul class="timeline__points" role="list">
+                <li>Lead an AI agent for a proprietary programming language: LangGraph dual-state dynamic workflow, vLLM-served LLMs with RAG, EBNF structured outputs and PII filtering. It writes documentation, extracts business rules, maintains legacy scripts and prepares for migration. Projected 50% labour reduction.</li>
+              </ul>
+            </div>
+          </li>
+          <li class="timeline__entry">
+            <span class="timeline__year fig" aria-hidden="true">2023</span>
+            <svg class="timeline__stroke" viewBox="0 0 12 100" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path class="timeline__ink" d="M5.8 0C7.2.7 7.6 3.4 7.4 10 7.1 27 6.6 45 6.6 63 6.6 80 6.9 91 6.4 100 6.1 91 5.7 80 5.3 63 5.1 45 4.4 27 4.3 10 4.2 3.2 4.5.6 5.8 0Z"/><path class="timeline__dry" pathLength="100" d="M7.3 33C7.1 51 7.3 70 6.9 96"/></svg>
+            <div class="timeline__body">
+              <h3 class="sec__sub timeline__role">Data Architect &amp; Engineering Lead, Senior Consultant</h3>
+              <p class="timeline__meta small">CGI Inc. · Toronto, ON · <span class="nowrap"><time datetime="2023-08">Aug 2023</time> – <time datetime="2024-12">Dec 2024</time></span></p>
+              <ul class="timeline__points" role="list">
+                <li>CGI Impact Award 2024: architected and shipped an LLM-powered enterprise RAG chatbot (LangChain; Azure, AWS, GCP). About 90% autonomous resolution for a 50,000+ user base; 525% ROI within 12&nbsp;months. Product page: <a class="brush brush--rest timeline__url" href="https://www.cgi.com/canada/en-ca/insurance-chatbot">cgi.com/canada/en-ca/insurance-chatbot</a></li>
+                <li>Built an OpenLineage-based lineage tool that auto-documents multi-source data flows, with LLM-assisted root-cause suggestions. Reduced investigation time across about 3 incidents per month.</li>
+                <li>Automated AxiomSL rule updates at RBC with an LLM: 80% less manual updating, governance controls preserved.</li>
+              </ul>
+            </div>
+          </li>
+          <li class="timeline__entry">
+            <span class="timeline__year fig" aria-hidden="true">2021</span>
+            <svg class="timeline__stroke" viewBox="0 0 12 100" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path class="timeline__ink" d="M6.1 0C7.5.5 7.8 2.8 7.5 8.6 7.2 25 7.4 44 7 62 6.6 80 6.3 91 6 100 5.7 91 5.5 80 5.5 62 5.5 44 4.7 25 4.4 8.6 4.3 2.9 4.7.5 6.1 0Z"/><path class="timeline__dry" pathLength="100" d="M7.6 30C7.5 49 7.2 67 6.7 95"/></svg>
+            <div class="timeline__body">
+              <h3 class="sec__sub timeline__role">Data Engineer, Consultant</h3>
+              <p class="timeline__meta small">CGI Inc. · Toronto, ON · <span class="nowrap"><time datetime="2021-08">Aug 2021</time> – <time datetime="2023-07">Jul 2023</time></span></p>
+              <ul class="timeline__points" role="list">
+                <li>Managed Canada’s largest automobile-insurance policy-history database (2&nbsp;TB, SQL Server): 99.9% uptime, median queries under 200&nbsp;ms.</li>
+                <li>Built production ETL/ELT pipelines for 22+ micro data marts (under 6 tables each, monthly SLAs) for finance, analytics and delivery teams. Report runtime cut from 30 to 5&nbsp;minutes.</li>
+                <li>Shipped a gradient-boosting and logistic-regression loss-ratio model, batch-scored in a Python/T-SQL pipeline: 321% lift in recovered fraud losses versus a top-five bank benchmark.</li>
+              </ul>
+            </div>
+          </li>
+          <li class="timeline__entry">
+            <span class="timeline__year fig" aria-hidden="true">2020</span>
+            <svg class="timeline__stroke" viewBox="0 0 12 100" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path class="timeline__ink" d="M6 0C7.4.6 7.7 3.1 7.5 9.4 7.2 26 6.8 46 6.8 64 6.8 81 6.6 92 6.3 100 6 92 5.6 81 5.4 64 5.3 46 4.6 26 4.4 9.4 4.3 3.1 4.6.6 6 0Z"/><path class="timeline__dry" pathLength="100" d="M7.4 31C7.4 50 7.1 68 6.8 96"/></svg>
+            <div class="timeline__body">
+              <h3 class="sec__sub timeline__role">Research Assistant, Computer Vision (part-time)</h3>
+              <p class="timeline__meta small">Elder Laboratory, York University · Toronto, ON · <span class="nowrap"><time datetime="2020-05">May 2020</time> – <time datetime="2021-08">Aug 2021</time></span></p>
+              <ul class="timeline__points" role="list">
+                <li>Worked on AttentiveVision’s computer-vision pipeline for hockey broadcast video (PyTorch, TensorFlow, OpenCV). Trained a CNN-LSTM stack reaching mAP ≥&nbsp;70% on event detection across 18 hours of game video.</li>
+                <li>Built real-time player tracking with a Kalman filter and OpenPose: under 100&nbsp;ms latency at 30&nbsp;FPS, for live speed and heat-map analytics.</li>
+                <li>Built an event-detection annotation loop (goals, timeouts, penalties) with active learning, raising label reliability to Cohen’s kappa ≥&nbsp;0.92.</li>
+              </ul>
+            </div>
+          </li>
+          <li class="timeline__entry">
+            <span class="timeline__year fig" aria-hidden="true">2019</span>
+            <div class="timeline__body">
+              <h3 class="sec__sub timeline__role">Full-Stack Developer Intern</h3>
+              <p class="timeline__meta small">Nascent Digital · <span class="nowrap"><time datetime="2019-05">May 2019</time> – <time datetime="2019-08">Aug 2019</time></span></p>
+              <ul class="timeline__points" role="list">
+                <li>Built features in React, TypeScript and Node.js, including major parts of the company homepage rewrite.</li>
+                <li>Shipped TELUS product pages with UX, QA and DevOps, design to deploy in 7&nbsp;days.</li>
+                <li>Introduced visual-regression testing (Nightwatch.js, Puppeteer), removing about 90% of manual QA checks.</li>
+              </ul>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <section class="sec cv-sec" aria-labelledby="cv-skills-title" data-veil>
+        <h2 class="sec__title" id="cv-skills-title">Skills</h2>
+        <dl class="cv-skills">
+          <div><dt>Languages</dt><dd>Python, Java, Go, SQL (T-SQL, PostgreSQL), TypeScript/JavaScript, C++</dd></div>
+          <div><dt>AI/ML</dt><dd>PyTorch, JAX, LangGraph, RAG, agent workflows, Model Context Protocol (MCP), LLMs, vLLM, OpenAI API, FAISS, Pinecone</dd></div>
+          <div><dt>Data and streaming</dt><dd>Apache Spark, Kafka, Airflow, OpenLineage, Redis</dd></div>
+          <div><dt>Cloud and systems</dt><dd>Azure, GCP, AWS, Docker, Kubernetes, Terraform, microservices, gRPC, CI/CD</dd></div>
+        </dl>
+      </section>
+
+      <!-- Education: the honour's wording is still pending (COPY.md 10.1): nothing beyond these two items. -->
+      <section class="sec cv-sec" aria-labelledby="cv-edu-title" data-veil>
+        <h2 class="sec__title" id="cv-edu-title">Education</h2>
+        <p class="cv-edu"><b>York University</b>, Toronto, ON. B.Sc. Computer Science, Specialized Honours, <span class="nowrap"><time datetime="2017">2017</time> – <time datetime="2021">2021</time></span>.</p>
+        <p class="cv-edu__detail">GPA 3.9/4.0 · Dean’s List</p>
+      </section>
+
+      <!-- The 2026 award is listed with its year only (COPY.md 5, 10.17): never attributed to a project. -->
+      <section class="sec cv-sec" aria-labelledby="cv-certs-title" data-veil>
+        <h2 class="sec__title" id="cv-certs-title">Certifications and awards</h2>
+        <ul class="rows rows--plain cv-certs" role="list">
+          <li>Microsoft Certified: Azure Solutions Architect Expert (2022)</li>
+          <li>Google Cloud Professional Cloud Developer (2023)</li>
+          <li>CGI Impact Award (2024), for the enterprise RAG assistant</li>
+          <li>CGI Impact Award (2026)</li>
+        </ul>
+      </section>
+
+      <!-- Print only: closes the printed résumé. -->
+      <footer class="cv-print-foot">
+        <p>Qijin Xu · qxjack@gmail.com · my-website-freedomjack.vercel.app/resume/</p>
+      </footer>
+    </article>
+
+    <!-- The closing scene (screen only): the shore stepping down toward the crossing, and the way on. -->
+    <nav class="closing" aria-label="Next page">
+      <p class="closing__next" data-landscape="keepout">
+        <a class="next" href="/contact/"><span class="next__label">Next:</span> <span class="next__to">Contact</span><span class="next__arrow" aria-hidden="true"> →</span></a>
+      </p>
+      <div class="closing__art bleed" data-landscape="closing" data-wake aria-hidden="true"></div>
+    </nav>
+  </main>
+
+  <!-- @shared:bottom -->
+  <!-- The footer, on paper. The story map: the whole painting as one small handscroll of the journey, each place
+       its own opening scene in miniature (build-time stills from the engine: tools/build-stills.py writes
+       assets/img/scenes/; decorative, so alt="" in an aria-hidden art, and shown with or without JS), each in a
+       soft window (the span) that meets its neighbours in mist, one label per place, laid out by geography
+       (data-stretch: the road, 2, has no page; the 404, 6, lies off the map), a tick over each place;
+       aria-current marks "you are here". Then the links line and the "updated" line. -->
+  <footer class="site-footer">
+    <div class="frame">
+      <nav class="story-map" aria-label="All pages">
+        <div class="story-map__art" aria-hidden="true">
+          <span class="story-map__scene" data-stretch="0"><img src="/assets/img/scenes/home@1x.webp" srcset="/assets/img/scenes/home@1x.webp 1x, /assets/img/scenes/home@2x.webp 2x" width="252" height="70" alt="" loading="lazy" decoding="async"></span>
+          <span class="story-map__scene" data-stretch="1"><img src="/assets/img/scenes/work@1x.webp" srcset="/assets/img/scenes/work@1x.webp 1x, /assets/img/scenes/work@2x.webp 2x" width="355" height="70" alt="" loading="lazy" decoding="async"></span>
+          <span class="story-map__scene" data-stretch="3"><img src="/assets/img/scenes/writing@1x.webp" srcset="/assets/img/scenes/writing@1x.webp 1x, /assets/img/scenes/writing@2x.webp 2x" width="386" height="70" alt="" loading="lazy" decoding="async"></span>
+          <span class="story-map__scene" data-stretch="4"><img src="/assets/img/scenes/resume@1x.webp" srcset="/assets/img/scenes/resume@1x.webp 1x, /assets/img/scenes/resume@2x.webp 2x" width="317" height="70" alt="" loading="lazy" decoding="async"></span>
+          <span class="story-map__scene" data-stretch="5"><img src="/assets/img/scenes/contact@1x.webp" srcset="/assets/img/scenes/contact@1x.webp 1x, /assets/img/scenes/contact@2x.webp 2x" width="252" height="70" alt="" loading="lazy" decoding="async"></span>
+          <span class="story-map__tick" data-stretch="0"></span>
+          <span class="story-map__tick" data-stretch="1"></span>
+          <span class="story-map__tick" data-stretch="3"></span>
+          <span class="story-map__tick" data-stretch="4"></span>
+          <span class="story-map__tick" data-stretch="5"></span>
+        </div>
+        <ol class="story-map__list" role="list">
+          <li data-stretch="0"><a class="brush" href="/">Home</a></li>
+          <li data-stretch="1"><a class="brush" href="/work/">Work</a></li>
+          <li data-stretch="3"><a class="brush" href="/writing/">Writing</a></li>
+          <li data-stretch="4"><a class="brush" href="/resume/" aria-current="page">Résumé</a></li>
+          <li data-stretch="5"><a class="brush" href="/contact/">Contact</a></li>
+        </ol>
+      </nav>
+      <div class="site-footer__base">
+        <div class="site-footer__line">
+          <p class="site-footer__copy"><span class="nowrap">© 2026 Qijin Xu · Toronto</span></p>
+          <ul class="site-footer__links" role="list">
+            <li><a class="brush" href="mailto:qxjack@gmail.com">Email</a></li>
+            <li><a class="brush" href="https://www.linkedin.com/in/qijin-x-4899671a9/">LinkedIn</a></li>
+            <li><a class="brush" href="https://github.com/Freedom-Jack">GitHub</a></li>
+            <li><a class="brush" href="/resume.pdf" target="_blank" rel="noopener" type="application/pdf">View résumé (PDF)<span class="visually-hidden">, opens in a new tab</span></a></li>
+          </ul>
+        </div>
+        <!-- "Still the landscape" stops all ambient motion for the session (still.js); hidden without JS. -->
+        <p class="site-footer__updated">Updated <time datetime="2026-10">October 2026</time><span class="still"> · <button class="still-toggle brush" type="button" aria-pressed="false">Still the landscape</button></span></p>
+      </div>
+      <!-- After an in-site page change the router announces the new page's title here. -->
+      <p class="visually-hidden" id="route-announcer" aria-live="polite" aria-atomic="true"></p>
+    </div>
+  </footer>
+  <!-- /@shared:bottom -->
+</body>
+</html>

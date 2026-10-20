@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Landscape bench</title>
+  <meta name="robots" content="noindex"><!-- engine lab: GPU cost of each pass (developer tool, not part of the site) -->
+  <link rel="icon" href="/assets/svg/seal.svg" type="image/svg+xml">
+  <meta name="color-scheme" content="light">
+  <style>
+    html { background: #EFF1EE; color: #111416; font: 400 14px/1.5 ui-monospace, monospace; }
+    body { margin: 0; }
+    .land { position: fixed; inset: 0; width: 100%; height: 100lvh; display: block; z-index: -1; pointer-events: none; }
+    pre { position: fixed; left: 8px; bottom: 8px; margin: 0; background: #EFF1EE; }
+  </style>
+</head>
+<body>
+  <canvas class="land" aria-hidden="true"></canvas>
+  <pre id="out"></pre>
+  <script type="module">
+    // Times every GL draw (a 1-px readback after it forces the GPU to finish), so the cost of the
+    // noise, scene and present passes can be read per frame. ?from=0&stretch=1&distance=deep&presence=0.8
+    // runs the arrival pan. The readback itself slows the page: read the per-draw numbers, not the fps.
+    const qs = new URLSearchParams(location.search);
+    const log = (window.__draws = []);
+    const getContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (type, o) {
+      const gl = getContext.call(this, type, o);
+      if (!gl || type !== 'webgl2' || gl.__timed) return gl;
+      gl.__timed = true;
+      const draw = gl.drawArrays.bind(gl);
+      const px = new Uint8Array(4);
+      gl.drawArrays = (...a) => {
+        const vp = gl.getParameter(gl.VIEWPORT);
+        const fb = gl.getParameter(gl.FRAMEBUFFER_BINDING);
+        const t = performance.now();
+        draw(...a);
+        gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+        log.push({ at: Math.round(t), ms: Math.round((performance.now() - t) * 10) / 10, w: vp[2], h: vp[3], fbo: !!fb });
+      };
+      return gl;
+    };
+    const { mountLandscape } = await import('/assets/js/landscape/index.js');
+    const t0 = performance.now();
+    window.land = mountLandscape(document.querySelector('.land'), {
+      stretch: Number(qs.get('stretch') ?? 0),
+      distance: qs.get('distance') ?? 'level',
+      presence: Number(qs.get('presence') ?? 1),
+      fromStretch: qs.has('from') ? Number(qs.get('from')) : undefined,
+      arrival: qs.get('arrival') ?? 'none',
+    });
+    window.__mountMs = Math.round(performance.now() - t0);
+    document.getElementById('out').textContent = `mount ${window.__mountMs} ms`;
+  </script>
+</body>
+</html>

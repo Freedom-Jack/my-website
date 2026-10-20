@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Landscape minimal</title>
+  <meta name="robots" content="noindex"><!-- engine integration test: only the public contract -->
+  <link rel="icon" href="/assets/svg/seal.svg" type="image/svg+xml">
+  <meta name="color-scheme" content="light">
+  <style>
+    html { background: #EFF1EE; color: #111416; font: 400 18px/1.6 system-ui, sans-serif; }
+    body { margin: 0; }
+    .land { position: fixed; inset: 0; width: 100%; height: 100lvh; display: block; z-index: -1; pointer-events: none; }
+    main { padding: 18vh 6vw 0; max-width: 40ch; }
+    h1 { font-size: clamp(56px, 9vw, 120px); line-height: 0.9; margin: 0 0 16px; }
+  </style>
+</head>
+<body>
+  <canvas class="land" aria-hidden="true"></canvas>
+  <main data-veil>
+    <h1>Qijin (Jack) Xu</h1>
+    <p>I design and ship production AI: LLM agents, retrieval systems, and the data platforms underneath them.</p>
+  </main>
+  <script type="module">
+    // Exactly what a page does: mount with its stretch and distance, nothing else.
+    import { mountLandscape } from '/assets/js/landscape/index.js';
+    const qs = new URLSearchParams(location.search);
+    window.land = mountLandscape(document.querySelector('.land'), {
+      stretch: Number(qs.get('stretch') ?? 0),
+      distance: qs.get('distance') ?? 'level',
+      presence: Number(qs.get('presence') ?? 1),
+      fromStretch: qs.has('from') ? Number(qs.get('from')) : undefined,
+      veil: document.querySelectorAll('[data-veil]'),
+    });
+  </script>
+</body>
+</html>

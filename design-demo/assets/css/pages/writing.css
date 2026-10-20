@@ -1,0 +1,10 @@
+/* ==========================================================================
+   pages/writing.css — /writing/, the index (owner: misc; SPEC-R4A §10.5).
+   Layout only. The page is built from shared parts: the lake's strip (title and
+   intro in its mist on wide screens), one dated list of shared rows (.rows: kind
+   and date in small print, the title as the row's link, its description), and the
+   closing scene, "Next: Résumé". No page module; nothing here moves.
+   ========================================================================== */
+
+/* the list follows the strip at the section rhythm; the row's hairline opens it */
+.writing-list > .rows { margin-block-start: 0; }

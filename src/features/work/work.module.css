@@ -1,0 +1,136 @@
+/* Work's LAYOUT only (SPEC-R4A §10.2): the index (/work/) and the case pages (/work/<slug>/). The shared files
+   (layout.css, components.css) carry type, ink and motion; this places Work's blocks and tunes their spacing with
+   tokens. No new colours, fonts, weights, sizes, shadows or motion.
+     index: strip (h1 "Work" + intro) · "Six projects, newest first" · How I build · In the open · closing
+     case:  strip (h1 the case + its meta) · the figure and summary · the diagram · the labelled body · closing */
+
+/* ---------- the index table ----------
+   From 48rem the columns are proportioned so the project and its outcome read as the two long lines, and the years
+   never wrap (components.css). Below 48rem every row restacks (components.css). */
+@media (min-width: 48rem) {
+  .index :global(thead) :global(th):nth-child(1) {
+    width: 13%;
+  }
+  .index :global(thead) :global(th):nth-child(2) {
+    width: 33.5%;
+  }
+  .index :global(thead) :global(th):nth-child(3) {
+    width: 33.5%;
+  }
+  .index :global(thead) :global(th):nth-child(4) {
+    width: 20%;
+  }
+  /* 20 px between columns (24 in the shared table), so at 960 every project name and the short outcomes stay on
+     one line */
+  .index :is(th, td):not(:last-child) {
+    padding-inline-end: 1.25rem;
+  }
+  /* a one-line row is at least 44 px tall: the whole row is one tap target (below) */
+  .index :global(tbody) :is(th, td) {
+    padding-block: 0.75rem;
+  }
+}
+/* two even lines rather than a stranded last word */
+.index :global(tbody) :global(th) {
+  text-wrap: balance;
+}
+.index :global(tbody) :global(td) {
+  text-wrap: pretty;
+}
+/* the two evidence links of one row stack, one per line (the cell holds ONE wrapper: on phones a cell is a
+   two-column grid of its label and its value) */
+.cellLinks {
+  display: grid;
+  justify-items: start;
+  row-gap: 1.5rem;
+} /* stacked: 44 px targets that never overlap */
+.cellLinksSep {
+  display: none;
+}
+/* where the line fits, the two share it, "CGI product page · CGI article", so each keeps a full 44 px tap target:
+   restacked (phones, from 340 px) and from 64rem (the table at 960); they stack between 48 and 64rem and below
+   340 px */
+@media (max-width: 47.99rem) and (min-width: 21.25rem), (min-width: 64rem) {
+  .cellLinks {
+    display: block;
+    white-space: nowrap;
+  }
+  .cellLinksSep {
+    display: inline;
+  }
+}
+/* restacked, the last row's own padding would add to the section gap below it */
+@media (max-width: 47.99rem) {
+  .index :global(tbody) :global(tr):last-child {
+    padding-block-end: 0;
+  }
+}
+
+/* "In the open": a repository's name is one word; it never breaks inside */
+.open :global(.table) :global(tbody) :global(th) {
+  white-space: nowrap;
+}
+
+/* ---------- tap targets (>= 44 px), without moving a pixel ----------
+   In both tables a row is one target: its first link (the project's case, the repository) covers the row, and the
+   other links in the row sit above it. Stand-alone links (evidence, "All repositories") get an invisible hit area
+   that reaches 44 px; nothing reflows and the brush stays where it is. */
+.index :global(tbody) :global(tr),
+.open :global(tbody) :global(tr) {
+  position: relative;
+}
+.index :global(tbody) :global(th) :global(a)::before,
+.open :global(tbody) :global(th) :global(a)::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+.index :global(td) :global(a),
+.open :global(.more) :global(a) {
+  position: relative;
+  z-index: 1;
+}
+.index :global(td) :global(a)::before,
+.open :global(.more) :global(a)::before {
+  content: '';
+  position: absolute;
+  inset: -0.8em -0.25em;
+}
+
+/* ---------- a case page ---------- */
+/* the strip: the case's title, then its meta line (organisation · years · role) in small print */
+.page :global(.strip__text) > :global(.case__meta) {
+  margin-block-start: 0.5rem;
+}
+/* on phones a long organisation takes a line of its own, so no line starts or ends with a stray "·" */
+@media (max-width: 39.99rem) {
+  .metaStack :global(.case__org) {
+    display: block;
+  }
+  .metaStack :global(.case__sep) {
+    display: none;
+  }
+}
+/* the case opens with its figure and its summary, then the drawing, then the labelled body */
+.case > :global(.case__fig) {
+  margin-block-start: 0;
+}
+/* evidence: plain lines in small print, flush with the column (no bullets, no indent); a line's link may wrap, so
+   its hit area is the whole line */
+.case :global(ul.case__evidence) {
+  padding-inline-start: 0;
+}
+.case :global(.case__evidence) :global(li) {
+  position: relative;
+}
+.case :global(.case__evidence) :global(a)::before {
+  content: '';
+  position: absolute;
+  inset: -0.85em -0.25em;
+}
+.case :global(.case__evidence) :global(li) + :global(li) {
+  margin-block-start: 1.5rem;
+} /* hit areas never overlap */
+.case > :global(.more) {
+  margin-block-start: var(--space-m);
+}

@@ -1,0 +1,26 @@
+/* ==========================================================================
+   pages/home.css — Home's LAYOUT only (SPEC-R4A §10.1). Reading first, then the art.
+   1 the strip (name, his sentence, actions) · 2 About me (photo + words + signature) · 3 What I work on ·
+   4 Now · 5 Writing · 6 Say hello · 7 the closing "Next: Work"
+   Every block is a shared component (layout.css, components.css); this file only places them, with tokens:
+   no new colours, fonts, weights, shadows or motion.
+   ========================================================================== */
+
+/* ---------- 1. The strip: his sentence sets without a lone last word ----------
+   Wide screens, where it sits in the mist: balanced lines (four even lines instead of ending on "underneath
+   them."), a calmer block with more mist between it and the peaks. Narrower: full-width lines, no orphans. */
+.strip--home .lead { text-wrap: pretty; }
+@media (min-width: 75rem) {
+  .strip--home .lead { text-wrap: balance; }
+}
+
+/* ---------- 2. About me ----------
+   Tablets (640–1199): the hero's text sits on paper right above this block, so "About me" would follow the
+   buttons by only the component's small gap (~28 px) and read as part of the hero. It gets the section
+   margin instead. Wide screens don't need it (the strip's mist feather separates them), and on phones the
+   photo comes first and its white wall (now paper) already gives the face its breathing room. */
+@media (min-width: 40rem) and (max-width: 74.99rem) {
+  .strip--home + .hello { margin-block-start: var(--space-section); }
+}
+
+/* (Tap targets: the shared hit area for quiet action links, "… →" lines and "Next: …" is in layout.css.) */

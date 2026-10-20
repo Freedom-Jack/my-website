@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Strips lab</title>
+  <meta name="robots" content="noindex"><!-- engine lab: every page's strip and closing, every width class (not part of the site) -->
+  <link rel="icon" href="/assets/svg/seal.svg" type="image/svg+xml">
+  <meta name="color-scheme" content="light">
+  <style>
+    :root { --paper: #EFF1EE; --ink: #111416; --ink-3: #434C50; --rule: #C9D0CF; }
+    html { background: var(--paper); color: var(--ink); font: 400 14px/1.45 system-ui, sans-serif; }
+    body { margin: 0; padding: 20px 20px 60px; }
+    h1 { font-size: 18px; margin: 0 0 4px; }
+    h2 { font-size: 15px; margin: 28px 0 8px; }
+    p { margin: 0 0 10px; color: var(--ink-3); max-width: 90ch; }
+    .grid { display: grid; gap: 14px 18px; }
+    .row { display: grid; grid-template-columns: 140px 1fr; gap: 12px; align-items: start; border-top: 1px solid var(--rule); padding-top: 10px; }
+    .row b { display: block; }
+    .tiles { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; }
+    figure { margin: 0; }
+    figure canvas { display: block; background: var(--paper); outline: 1px solid rgba(17, 20, 22, 0.08); }
+    figcaption { color: var(--ink-3); font-size: 12px; font-variant-numeric: tabular-nums; margin-top: 3px; max-width: 520px; }
+    .bad { color: #9b2c22; font-weight: 600; }
+    .sheet { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+    .sheet canvas { width: 100%; height: auto; }
+    #status { position: sticky; top: 0; background: var(--paper); padding: 6px 0; z-index: 2; font-variant-numeric: tabular-nums; }
+    /* the stage: one fixed canvas per width class, sized like that class's viewport; the tiles copy its frames */
+    .stage { position: fixed; left: 0; top: 0; opacity: 0; pointer-events: none; z-index: -2; }
+    .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .stage .box { position: absolute; left: 0; }
+    .stage .keep { position: absolute; }
+  </style>
+</head>
+<body>
+  <h1>Strips lab</h1>
+  <p>Every page's strip and closing at each width class, as the engine frames them (framingAt), with the page's own composition, palette and figure layer. Tiles are the painting alone: no page text, no veils except the keep-out's.
+    <code>?palette=ink|misted|rich</code> · <code>?figures=0</code> · <code>?class=wide|tablet|phone|short</code> · <code>?keepout=580</code> (the wide text block's width; 0 = none) · <code>?scale=0.5</code> (tile display scale) · <code>?q=1</code> (internal quality).</p>
+  <p id="status">Rendering…</p>
+  <div class="grid" id="grid"></div>
+  <h2>Tell the places apart (phone, text hidden)</h2>
+  <p>The six pages' strips at 390 × 844 with no text: they should read as six different places, and Work (the river town) and Contact (the crossing) should be easy to pick out.</p>
+  <div class="sheet" id="sheet"></div>
+
+  <script type="module">
+    import { mountLandscape, framingAt, sceneAt } from '/assets/js/landscape/index.js';
+    const qs = new URLSearchParams(location.search);
+    const palette = qs.get('palette') || 'misted';
+    const figures = qs.get('figures') !== '0';
+    const keepW = qs.has('keepout') ? Number(qs.get('keepout')) : 580;
+    const tileScale = Number(qs.get('scale') || 0.5);
+    const quality = qs.has('q') ? Number(qs.get('q')) : 'auto';
+    // pages: stretch, name, distance, presence, strip kind (SPEC-R4A §10.0); stretch 2 (the road) has no page
+    const PAGES = [
+      [0, 'Home', 'level', 1, 'home'], [1, 'Work', 'deep', 0.8, 'sub'], [2, 'the road (no page)', 'high', 0.8, 'sub'],
+      [3, 'Writing', 'level', 0.6, 'sub'], [4, 'Résumé', 'level', 0.5, 'doc'], [5, 'Contact', 'level', 0.9, 'sub'], [6, '404', 'high', 1, 'sub'],
+    ];
+    // width classes: the viewport, its frame (gutter), and its strip / closing heights (SPEC-R4A §2.3, §6.2)
+    const CLASSES = {
+      wide: { vw: 1440, vh: 900, gutter: 40, strip: { home: 522, sub: 360, doc: 180 }, closing: 240 },
+      tablet: { vw: 1024, vh: 768, gutter: 32, strip: { home: 220, sub: 220, doc: 160 }, closing: 200 },
+      phone: { vw: 390, vh: 844, gutter: 20, strip: { home: 118, sub: 169, doc: 101 }, closing: 160 },
+      short: { vw: 844, vh: 390, gutter: 32, strip: { home: 80, sub: 80, doc: 64 }, closing: 96 },
+    };
+    const only = qs.get('class');
+    const classes = Object.keys(CLASSES).filter((c) => !only || c === only);
+    const status = document.getElementById('status');
+    const grid = document.getElementById('grid');
+    const rows = new Map();
+    for (const [k, name] of PAGES) {
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.innerHTML = `<div><b>${k} · ${name}</b>${sceneAt(k)}</div><div class="tiles"></div>`;
+      grid.append(row);
+      rows.set(k, row.querySelector('.tiles'));
+    }
+    const nextFrame = () => new Promise((r) => requestAnimationFrame(() => r()));
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+    async function renderClass(cls) {
+      const C = CLASSES[cls];
+      const stage = document.createElement('div');
+      stage.className = 'stage';
+      stage.style.width = C.vw + 'px';
+      stage.style.height = C.vh + 'px';
+      const canvas = document.createElement('canvas');
+      const box = document.createElement('div');
+      box.className = 'box';
+      box.style.width = C.vw + 'px';
+      const keep = document.createElement('div');
+      keep.className = 'keep';
+      keep.setAttribute('data-veil', '0.85');
+      stage.append(canvas, box, keep);
+      document.body.append(stage);
+      let land = null;
+      for (const [k, name, distance, presence, kind] of PAGES) {
+        for (const which of ['strip', 'closing']) {
+          const h = which === 'strip' ? C.strip[kind] : C.closing;
+          const top = which === 'strip' ? (cls === 'phone' ? 56 : cls === 'short' ? 48 : 64) : Math.round(C.vh * 0.45);
+          box.style.top = top + 'px';
+          box.style.height = h + 'px';
+          // a document's strip (half feathers, its own framing): the engine reads .strip--doc on an ancestor
+          stage.classList.toggle('strip--doc', which === 'strip' && kind === 'doc');
+          // the keep-out: on wide screens the title block sits in the strip's mist (not on a document's strip)
+          const hasKeep = cls === 'wide' && keepW > 0 && !(which === 'strip' && kind === 'doc');
+          keep.style.display = hasKeep ? 'block' : 'none';
+          keep.style.left = (C.vw - Math.min(1200, C.vw - 2 * C.gutter)) / 2 + 'px';
+          keep.style.top = top + h * 0.2 + 'px';
+          keep.style.width = (which === 'closing' ? 300 : keepW) + 'px';
+          keep.style.height = h * 0.6 + 'px';
+          if (!land) {
+            land = mountLandscape(canvas, {
+              stretch: k, distance, presence, palette, figures, widthClass: cls, horizonMedia: 'not all',
+              strip: box, keepout: [keep], veil: [keep], arrival: 'none', ambient: false, pointer: false, quality,
+            });
+          } else land.panTo(k, { duration: 0, distance, presence });
+          land.rebind(which === 'strip' ? { strip: box, closing: null, keepout: hasKeep ? [keep] : [], veil: hasKeep ? [keep] : [] } : { strip: null, closing: box, keepout: hasKeep ? [keep] : [], veil: hasKeep ? [keep] : [] });
+          if (figures) await land.prepare(k);
+          land.refresh();
+          await nextFrame(); await nextFrame();
+          await sleep(figures ? 380 : 30);   // a figure layer that became ready fades in over 300 ms
+          land.refresh();
+          await new Promise((r) => requestAnimationFrame(() => {
+            // the engine painted in an earlier rAF callback of this frame: its drawing buffer still holds the frame
+            requestAnimationFrame(() => { copy(canvas, cls, k, which, name, top, h, hasKeep, land); r(); });
+          }));
+        }
+        status.textContent = `Rendering… ${cls} ${k}`;
+      }
+      land?.destroy();
+      stage.remove();
+    }
+
+    function copy(src, cls, k, which, name, top, h, hasKeep, land) {
+      const C = CLASSES[cls];
+      const sx = src.width / C.vw;
+      const tile = document.createElement('canvas');
+      tile.width = Math.round(C.vw * sx);
+      tile.height = Math.round(h * sx);
+      const t = tile.getContext('2d', { willReadFrequently: true });
+      t.drawImage(src, 0, Math.round(top * sx), tile.width, tile.height, 0, 0, tile.width, tile.height);
+      const disp = cls === 'phone' || cls === 'short' ? Math.min(1, tileScale * 2) : tileScale;
+      tile.style.width = Math.round(C.vw * disp) + 'px';
+      tile.style.height = Math.round(h * disp) + 'px';
+      const st = land.stats();
+      const fr = st.framing[which] || {};
+      let check = '';
+      if (hasKeep) {
+        // the keep-out acceptance (SPEC-R4A §6.3): no pixel with chroma > 6 inside the text block
+        const kx0 = Math.round(((C.vw - Math.min(1200, C.vw - 2 * C.gutter)) / 2) * sx);
+        const kw = Math.round((which === 'closing' ? 300 : keepW) * sx);
+        const ky = Math.round(h * 0.2 * sx), kh = Math.round(h * 0.6 * sx);
+        const d = t.getImageData(kx0, ky, kw, kh).data;
+        let max = 0;
+        for (let i = 0; i < d.length; i += 4) max = Math.max(max, Math.max(d[i], d[i + 1], d[i + 2]) - Math.min(d[i], d[i + 1], d[i + 2]));
+        check = ` · keep-out max chroma <span class="${max > 6 ? 'bad' : ''}">${max}</span>`;
+      }
+      const fig = document.createElement('figure');
+      fig.append(tile);
+      const cap = document.createElement('figcaption');
+      cap.innerHTML = `${cls} ${which} ${C.vw}×${h} · left ${fr.worldLeft} top ${fr.worldTop} · ${fr.scale} px/stretch · focus ${fr.focus?.join(',')}${fr.keepoutRight ? ` (keep-out ${fr.keepoutRight})` : ''}${check} · figures ${st.figures[k]}`;
+      fig.append(cap);
+      rows.get(k).append(fig);
+      if (cls === 'phone' && which === 'strip' && k !== 2) {
+        const c2 = tile.cloneNode();
+        c2.getContext('2d').drawImage(tile, 0, 0);
+        c2.style.cssText = '';
+        const f2 = document.createElement('figure');
+        f2.append(c2);
+        const cp = document.createElement('figcaption');
+        cp.textContent = `${'ABCDEFG'[k]}`;   // no names on the sheet: the reader sorts the places unaided
+        f2.append(cp);
+        document.getElementById('sheet').append(f2);
+      }
+    }
+
+    (async () => {
+      const t0 = performance.now();
+      for (const cls of classes) await renderClass(cls);
+      status.textContent = `Done in ${((performance.now() - t0) / 1000).toFixed(1)} s · palette ${palette}${figures ? '' : ' · no figures'}`;
+      document.documentElement.dataset.done = '1';
+    })().catch((err) => { status.textContent = 'Failed: ' + err.message; console.error(err); });
+  </script>
+</body>
+</html>

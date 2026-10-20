@@ -1,0 +1,513 @@
+/* ==========================================================================
+   components.css — the round-4a shared components (SPEC-R4A §9).
+   The photo and "About me" (.hello), the signature (.signoff), Now, figures,
+   cases (flagship and compact), the table, the brush diagram, margin notes and
+   the demo's compare panel. Behaviour lives in shared modules (disclosure.js,
+   diagram.js, margin-note.js, compare.js). Page CSS may only add LAYOUT for its
+   own sections, with tokens: no new colours, fonts, weights, shadows or motion.
+   Load order: tokens → base → layout → effects → components → pages/<page>.css
+   Shared file: do not edit from a page.
+   ========================================================================== */
+
+/* ==========================================================================
+   The photo and "About me" (Home; SPEC-R4A §9.2). Directly below the strip.
+     <section class="hello wide" aria-labelledby="about-title" data-veil="0.88">
+       <img class="hello__photo" src="/assets/img/qijin-xu-colour.jpg" width="720" height="900" alt="…"
+            decoding="async" fetchpriority="high">
+       <div class="hello__text"><h2 class="sec__title" id="about-title">About me</h2> <p>…</p> … <p class="signoff">…</p></div>
+     </section>
+   Phone: the photo first (72% wide, at most 20rem), then the text. Tablet: 240 + 600. Wide: 280 + 640.
+   Asymmetric, never 50/50. The photo's top lines up with the heading's cap height.
+   Blended in, in colour: the file's wall is pure white, so multiply turns it into the paper exactly,
+   and the shoulders, faded to white in the file along their own line, dissolve into the paper. No border,
+   radius, frame, shadow, caption, grey, mist, vignette or mask; no motion, no hover.
+   ========================================================================== */
+.hello {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: var(--space-m);
+  align-items: start;
+  margin-block-start: var(--space-m);
+}
+.hello__photo {
+  display: block;
+  width: 72%;
+  max-width: 20rem;
+  height: auto;
+  aspect-ratio: 4 / 5;
+  /* The shoulders' fade is IN THE FILE (tools/build-photo.swift, step 3d): the body dissolves into white along its
+     own shoulder line, the face and neck untouched, so multiply turns it into the paper exactly as it does the
+     wall. No CSS mask: 4a's (a straight bottom fade from 83 % and an 8 % side feather) left a horizontal line and
+     soft vertical sleeve edges, and Chrome's PDF dropped it, printing a hard rectangle. */
+  mix-blend-mode: multiply;
+}
+.hello__text > * { max-width: var(--measure-read); }
+.hello__text > * + * { margin-block-start: var(--space-para); }
+.hello__text > .sec__title + * { margin-block-start: var(--space-head); }
+@media (min-width: 40rem) {
+  .hello {
+    grid-template-columns: 15rem minmax(0, 37.5rem);
+    column-gap: 2.5rem;
+  }
+  .hello__photo { width: 100%; max-width: none; }
+  /* the heading's box starts at its cap height, so the photo's top lines up with the capitals */
+  .hello__text > .sec__title:first-child { text-box: trim-start cap alphabetic; }
+}
+@media (min-width: 75rem) {
+  .hello {
+    grid-template-columns: 17.5rem minmax(0, 40rem);
+    column-gap: 3rem;
+  }
+}
+@media (forced-colors: active) {
+  .hello__photo { mix-blend-mode: normal; }   /* the file's white wall and faded shoulders on Canvas */
+}
+
+/* ==========================================================================
+   The About-me signature (SPEC-R4A §9.3): like a painter's name and seal at the
+   end of the note. Right-aligned to the text column. Never a handwriting font.
+     <p class="signoff"><span class="signoff__name">— Jack</span>
+       <span class="seal seal--sign" aria-hidden="true"><svg class="seal__mark" viewBox="0 0 64 64" focusable="false">
+         …the carved seal, its mask id "seal-carve-sign"…</svg></span></p>
+   The seal is static (seal.js never stamps it) and hidden in forced colours (the name remains).
+   ========================================================================== */
+.signoff {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: .5rem;
+}
+.hello__text > .signoff,
+.signoff { margin-block-start: var(--space-s); }
+.signoff__name {
+  font-family: var(--font-body);
+  font-size: var(--fs-lead);
+  font-weight: var(--w-ui);
+  font-variation-settings: 'FLAR' var(--flare-sign);
+  line-height: 1.2;
+  letter-spacing: .02em;
+  color: var(--ink-2);
+}
+.seal--sign {
+  width: 24px;
+  rotate: -2deg;
+  translate: 0 .08em;
+}
+@media (max-width: 39.99rem) { .seal--sign { width: 22px; } }
+@media (forced-colors: active) { .seal--sign { display: none; } }
+
+/* ==========================================================================
+   Now (Home; SPEC-R4A §9.4): dated, three lines, body size, no links.
+     <section class="sec now" aria-labelledby="now-title" data-veil>
+       <h2 class="sec__title" id="now-title">Now <span class="sec__date small">· <time datetime="2026-10">October 2026</time></span></h2>
+       <ul class="rows rows--plain" role="list"><li><b>Building:</b> …</li> …</ul>
+     </section>
+   ========================================================================== */
+.now .rows--plain { gap: .5rem; }
+
+/* ==========================================================================
+   Figures (SPEC-R4A §2.1): Sofia Sans Extra Condensed 900 at --fs-figure (22 → 28),
+   ink-2. A case's summary figure, the résumé timeline's years. Figures inside
+   sentences are <b> at text size instead.
+   ========================================================================== */
+.fig {
+  font-family: var(--font-name);
+  font-size: var(--fs-figure);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: .005em;
+  font-variant-numeric: lining-nums;
+  color: var(--ink-2);
+}
+
+/* ==========================================================================
+   Cases (Work; SPEC-R4A §9.9, §10.2).
+   Flagship: article.sec.case.case--flagship.has-rail#id > h2.sec__title, p.case__meta.small,
+     p.case__fig (b.fig + span.small), p.case__summary, figure.diagram.wide, dl.case__body.
+   Compact: details.case.case--compact[data-collapse="always"][open]#id >
+     summary.case__summary (h3.case__title, p.case__fig, p.case__meta.small) + dl.case__body.
+   dl.case__body: dt "Context" · "What I did" · "The hard part" · "Outcome" · "Evidence" · "Stack", each
+   with its dd. Inside a .has-rail case the dl and every dd subgrid the rail, so a margin note right after
+   a dd's paragraph sits beside it (layout.css).
+   ========================================================================== */
+.case__fig {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: .5rem;
+}
+.case__fig .small { color: var(--ink-3); }
+.case__body { margin: 0; }
+.case > .case__body { margin-block-start: var(--space-m); }
+.case__body > dt {
+  font-weight: var(--w-strong);
+  color: var(--ink-1);
+}
+.case__body > dt:not(:first-child) { margin-block-start: var(--space-s); }
+.case__body > dd { margin: .25rem 0 0; }
+.case__body > dd > * + * { margin-block-start: var(--space-para); }
+.case__body ul { padding-inline-start: 1.2em; }
+.case__body li + li { margin-block-start: .25rem; }
+
+/* the compact case: a hairline row whose summary is the control (disclosure.js closes it on phones) */
+.case--compact {
+  border-top: 1px solid var(--rule);
+  padding-block: .875rem;
+}
+.case--compact + .case--compact { margin-block-start: 0; }
+summary.case__summary {
+  display: block;
+  position: relative;
+  min-block-size: 44px;
+  cursor: pointer;
+  list-style: none;
+  -webkit-tap-highlight-color: transparent;
+}
+summary.case__summary::-webkit-details-marker { display: none; }
+summary.case__summary:focus-visible { outline-offset: 4px; }
+.case__title {
+  font-family: var(--font-body);
+  font-size: var(--fs-item);
+  font-weight: var(--w-strong);
+  line-height: var(--lh-item);
+  color: var(--ink-1);
+}
+summary.case__summary > * + * { margin-block-start: .375rem; }
+.case--compact > .case__body { margin-block-start: var(--space-s); }
+/* "Show details" / "Hide details": CSS only (read as nothing; the summary itself is announced as
+   expanded or collapsed), with a small chevron. A case folded at every width (data-collapse="always", Work's
+   More work) shows it at every width; a phone-only one (data-collapse="phone") on phones, and on wider screens
+   only while closed (there it opens by default, so "Hide details" would be clutter). */
+summary.case__summary::after {
+  content: 'Show details' / '';
+  display: inline-block;
+  margin-block-start: .375rem;
+  padding-inline-end: 1.05em;
+  font-size: var(--fs-small);
+  font-weight: var(--w-ui);
+  line-height: var(--lh-small);
+  color: var(--ink-2);
+  text-decoration: underline 1px var(--rule-rest);
+  text-underline-offset: .3em;
+  background: no-repeat right center / .62em .62em url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M1.4 3.3Q3.4 5.3 5 7.1Q6.7 5.2 8.6 3.1' fill='none' stroke='%232A3034' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+details[open] > summary.case__summary::after {
+  content: 'Hide details' / '';
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M1.4 6.7Q3.4 4.7 5 2.9Q6.7 4.8 8.6 6.9' fill='none' stroke='%232A3034' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+summary.case__summary:hover::after { text-decoration-color: var(--ink-2); }
+@media (min-width: 40rem) {
+  details[data-collapse='phone'][open] > summary.case__summary::after { content: none; }
+  details[data-collapse='phone'][open] > summary.case__summary { cursor: default; }
+}
+@media print {
+  summary.case__summary::after { content: none; }
+  details.case::details-content { content-visibility: visible; display: block; }
+}
+@media (forced-colors: active) {
+  summary.case__summary::after { background: none; }
+}
+
+/* ==========================================================================
+   Scannable table (Work's index, the "Early work" table). Explicit ARIA roles keep
+   table semantics when the narrow layout changes `display`. Hairlines between rows
+   (typographic, not a box): no fills, no outer border. Every cell in small print
+   (14), project cells in the body face at 700, heads 560 in ink-3. < 48rem each row
+   restacks: the project first (body size), then each value with its label.
+   Year cells never wrap.
+   ========================================================================== */
+.table-wrap { max-width: 100%; }
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.table__caption {
+  caption-side: top;
+  text-align: start;
+  padding-block-end: var(--space-2xs);
+}
+.table th,
+.table td {
+  padding: .7rem 1.5rem .7rem 0;
+  text-align: start;
+  vertical-align: baseline;
+  color: var(--ink-1);
+}
+.table th:last-child,
+.table td:last-child { padding-inline-end: 0; }
+.table td:is([data-label='Years'], [data-label='Year']) { white-space: nowrap; }   /* "2025 – present" never breaks */
+.table thead th {
+  padding-block: 0 .5rem;
+  font-weight: var(--w-ui);
+  color: var(--ink-3);
+  vertical-align: bottom;
+}
+.table tbody tr { border-block-start: 1px solid var(--rule); }
+.table tbody th { font-weight: var(--w-strong); }
+.table tbody th a { text-decoration-thickness: 1px; }
+.table--quiet td { color: var(--ink-3); }
+.table--quiet tbody th { font-weight: var(--w-ui); color: var(--ink-2); }
+
+@media (max-width: 47.99rem) {
+  .table, .table tbody, .table tr, .table th, .table td, .table caption { display: block; }
+  .table thead {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+  }
+  /* (one column no wider than the row: a cell that cannot shrink must never widen every cell of its row) */
+  .table tbody tr { display: grid; grid-template-columns: minmax(0, 1fr); row-gap: .25rem; padding-block: .75rem; }
+  .table tbody th {
+    order: -1;
+    padding: 0 0 .125rem;
+    font-size: var(--fs-body);
+    line-height: var(--lh-item);
+  }
+  .table--quiet tbody th { font-size: var(--fs-small); }
+  /* each value with its label: the label hangs in a left column (absolute), so the cell's own contents, text
+     and inline markup alike (<strong>, <a>, <b>), stay together as one flow of text beside it */
+  .table tbody td {
+    --label-w: max(5.25rem, 28%);
+    position: relative;
+    padding: 0 0 0 calc(var(--label-w) + .75rem);
+    white-space: normal;
+  }
+  .table tbody td::before {
+    content: attr(data-label) / '';            /* a visual label only: role="cell" keeps its column header */
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-start: 0;
+    width: var(--label-w);
+    font-weight: var(--w-ui);
+    color: var(--ink-3);
+  }
+  .table tbody td[data-label=''] { padding-inline-start: 0; }
+  .table tbody td[data-label='']::before { content: none; }
+}
+/* Under 240 CSS px (a phone at 200 % page zoom: a 195 px viewport) the hanging label column leaves ~70 px for the
+   value, and "2025 – present" or "no public page" ran past the edge, where nothing scrolls sideways: each label sits
+   above its value instead, and a word longer than the line breaks rather than leaves the screen (final review r1, 6). */
+@media (max-width: 14.99rem) {
+  .table tbody :is(th, td) { overflow-wrap: anywhere; }
+  .table tbody td { padding-inline-start: 0; }
+  .table tbody td::before { position: static; display: block; width: auto; }
+}
+
+/* ==========================================================================
+   Brush diagram (Work; diagram.js draws the edges in). One spec, two layouts: the
+   --wide SVG from a 60rem container, the --tall one below (the hidden one is
+   display:none, so only one is in the accessibility tree). On a phone the tall one is
+   never taller than 85svh. Labels are real <text> and never animate.
+     bands  .diagram__band (--1 top, --2, --3 bottom): wash at 5 / 8 / 11 %; static
+     nodes  .diagram__node: ink pools, wash at 16 %, no outline; never move
+     edges  .diagram__edge (pathLength="1" data-order="n"): annotation ink, 2.5 units, round caps
+   ========================================================================== */
+.diagram {
+  container-type: inline-size;
+  display: grid;
+  row-gap: var(--space-2xs);
+  margin: 0;
+}
+.diagram__art {
+  display: block;
+  width: 100%;
+  height: auto;                     /* the viewBox reserves the box: no layout shift */
+  overflow: visible;
+}
+.diagram__art--wide { max-width: 1200px; }
+.diagram__art--tall { max-width: min(100%, 27.5rem); }
+@media (max-width: 39.99rem) {
+  .diagram__art--tall { width: auto; max-height: 85svh; margin-inline: auto; }
+}
+@container (min-width: 60rem) { .diagram__art--tall { display: none; } }
+@container (max-width: 59.99rem) { .diagram__art--wide { display: none; } }
+/* figure.diagram[data-fold="phone"] (Work's two flagship cases): on phones the diagram folds behind its own
+   "Read as steps", so the page stays short. The summary comes first; opened, it shows the steps, then the
+   drawing and its caption. (How I build keeps its drawing in view: it is the page's one open diagram.) */
+@media (max-width: 39.99rem) {
+  .diagram[data-fold='phone'] > .diagram__steps { order: -1; }
+  .diagram[data-fold='phone']:not(:has(> .diagram__steps[open])) > :is(.diagram__art, .diagram__caption) { display: none; }
+}
+
+.diagram__band { fill: var(--wash); fill-opacity: .08; stroke: none; }
+.diagram__band--1 { fill-opacity: .05; }
+.diagram__band--2 { fill-opacity: .08; }
+.diagram__band--3 { fill-opacity: .11; }
+.diagram__node { fill: var(--wash); fill-opacity: .16; stroke: none; }
+.diagram__edge {
+  fill: none;
+  stroke: var(--ink-annot);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.diagram__label,
+.diagram__sub,
+.diagram__band-label {
+  font-family: var(--font-body);
+  font-variation-settings: 'FLAR' var(--flare-body);
+}
+.diagram__label { font-size: 21px; font-weight: var(--w-ui); fill: var(--ink-2); }
+.diagram__sub { font-size: 19px; font-weight: var(--w-body); fill: var(--ink-3); }
+.diagram__band-label { font-size: 19px; font-weight: var(--w-ui); fill: var(--ink-annot); }
+.diagram__art--tall .diagram__label { font-size: 19px; }
+.diagram__art--tall .diagram__sub,
+.diagram__art--tall .diagram__band-label { font-size: 17px; }
+
+.diagram__caption,
+.diagram__steps { max-width: var(--measure-read); }
+.diagram__steps > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: .45em;
+  min-block-size: 44px;
+  cursor: pointer;
+  list-style: none;
+  font-weight: var(--w-ui);
+  color: var(--ink-2);
+  text-decoration: underline 1px var(--rule-rest);
+  text-underline-offset: .3em;
+}
+.diagram__steps > summary::-webkit-details-marker { display: none; }
+/* a small brush chevron: points along the reading line when closed, down when open */
+.diagram__steps > summary::after {
+  content: '';
+  width: .42em;
+  height: .42em;
+  border-inline-end: 1.6px solid currentColor;
+  border-block-end: 1.6px solid currentColor;
+  rotate: -45deg;
+  transition: rotate var(--dur-hover) var(--ease-out);
+}
+.diagram__steps[open] > summary::after { rotate: 45deg; }
+.diagram__steps > summary:hover { text-decoration-color: var(--ink-2); }
+.diagram__steps > summary:focus-visible { outline-offset: 2px; }
+.diagram__steps ol {
+  display: grid;
+  gap: var(--space-2xs);
+  margin-block-start: var(--space-2xs);
+  padding-inline-start: 1.5em;
+}
+.diagram__steps li::marker { color: var(--ink-3); font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: reduce) {
+  .diagram__steps > summary::after { transition: none; }
+}
+@media print {
+  /* print the steps, whatever the toggle says (diagram.js also opens them on beforeprint) */
+  .diagram__steps > summary { display: none; }
+  .diagram__steps::details-content { content-visibility: visible; display: block; }
+  .diagram__steps ol { display: grid !important; }
+}
+@media (forced-colors: active) {
+  .diagram__band, .diagram__node { fill: none; }
+  .diagram__edge { stroke: CanvasText; }
+  .diagram__label, .diagram__sub, .diagram__band-label { fill: CanvasText; }
+}
+
+/* ==========================================================================
+   Margin notes (Work; margin-note.js). The aside comes right after the paragraph it
+   annotates: aside.margin-note.small#note-x[aria-label="Note: X"] > p > b.margin-note__term.
+   Wide (>= 75rem): in the rail of a .has-rail block, in annotation ink, beside its
+   paragraph. Below: a "Note: {term}" toggle opens it inline. No JS: inline, open.
+   ========================================================================== */
+.margin-note {
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  color: var(--ink-annot);
+}
+.margin-note p + p { margin-block-start: .5em; }
+.margin-note__term { font-weight: var(--w-strong); }
+@media (min-width: 75rem) {
+  .has-rail .margin-note,
+  .has-rail .margin-notes { grid-column: 2; align-self: start; max-width: var(--rail-w); }
+  .has-rail .margin-notes { grid-row: span 2; }   /* a group runs on beside the next paragraph */
+  /* its first line sits level with the paragraph's first line (no flow margin in the rail) */
+  .has-rail .margin-note,
+  .has-rail .margin-notes { margin-block-start: 0; }
+  .has-rail .margin-note { padding-block-start: .3em; }
+}
+.margin-note__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: .4em;
+  min-block-size: 44px;
+  font: inherit;
+  font-weight: var(--w-ui);
+  color: var(--ink-annot);
+  text-decoration: underline 1px var(--rule-rest);
+  text-underline-offset: .3em;
+}
+.margin-note__toggle::after {
+  content: '';
+  width: .38em;
+  height: .38em;
+  border-inline-end: 1.5px solid currentColor;
+  border-block-end: 1.5px solid currentColor;
+  rotate: 45deg;
+  translate: 0 -.12em;
+  transition: rotate var(--dur-hover) var(--ease-out);
+}
+.margin-note__toggle[aria-expanded='true']::after { rotate: -135deg; translate: 0 .12em; }
+.margin-note__toggle:focus-visible { outline-offset: 2px; }
+.margin-note__toggle:not([hidden]) + .margin-note__body { padding-block: .125rem .5rem; }
+/* consecutive notes after one paragraph share its row (margin-note.js groups them) */
+.margin-notes { display: grid; row-gap: var(--space-s); align-self: start; }
+@media (max-width: 74.99rem) { .margin-notes { row-gap: 0; } }
+@media (prefers-reduced-motion: reduce) { .margin-note__toggle::after { transition: none; } }
+@media print {
+  .margin-note__toggle { display: none !important; }
+  .margin-note__body { display: block !important; }
+}
+
+/* ==========================================================================
+   The compare panel (?compare=1; compare.js injects it). DEMO ONLY: never ported.
+   Small and unobtrusive, bottom-RIGHT (over the empty paper beside the reading
+   column and the rail on every desktop page: bottom left it covered Home's photo
+   and the résumé's timeline), paper at .94 with a 1 px mist outline; the pressed
+   button keeps its brush mark; every button >= 44 px. "Compare" folds it to that
+   one button (folded by default on phones, where any panel covers the text).
+   ========================================================================== */
+.compare {
+  position: fixed;
+  z-index: var(--z-compare);
+  inset-block-end: max(.75rem, env(safe-area-inset-bottom, 0px));
+  inset-inline-end: max(var(--gutter-x, var(--gutter)), env(safe-area-inset-right, 0px));
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-areas: 'rows tools' 'rows fold';
+  align-items: start;
+  column-gap: .75rem;
+  max-width: calc(100vw - 2 * var(--gutter-x, var(--gutter)));
+  padding: .125rem .625rem;
+  background: rgb(var(--paper-rgb) / .94);
+  outline: 1px solid var(--mist-2);
+  border-radius: 2px;
+  font-family: var(--font-body);
+  font-size: var(--fs-small);
+  line-height: 1.3;
+  color: var(--ink-2);
+}
+.compare.is-folded { grid-template-columns: auto; grid-template-areas: 'fold'; padding-inline: .25rem; }
+.compare__fold { grid-area: fold; color: var(--ink-3); }
+.compare__tools { grid-area: tools; }
+.compare__rows { grid-area: rows; display: grid; }
+.compare [hidden] { display: none !important; }
+.compare__row { display: flex; align-items: center; column-gap: .5rem; margin: 0; }
+.compare__label { min-inline-size: 3.25rem; color: var(--ink-3); }
+.compare__group { display: flex; column-gap: .125rem; }
+.compare button {
+  --brush-y: calc(50% + .8em);       /* the pressed button's brush sits just under the word */
+  padding-bottom: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 44px;
+  min-inline-size: 44px;
+  padding-inline: .375rem;
+  font-weight: var(--w-ui);
+  color: var(--ink-2);
+}
+.compare button[aria-pressed='true'] { color: var(--ink-1); }
+.compare__hide { color: var(--ink-3); }
+@media print { .compare { display: none !important; } }

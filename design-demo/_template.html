@@ -1,0 +1,386 @@
+<!doctype html>
+<!--
+  _template.html — the skeleton every page of the demo is built from (round 4a, SPEC-R4A).
+
+  HOW TO MAKE A PAGE
+    1. Copy this file to <route>/index.html. Root-relative URLs (/assets/…) are used everywhere, so the copy
+       works at any depth.
+    2. Fill the {{SLOTS}} in "PAGE HEAD" (words from COPY.md §8.1) and the <body> data attributes
+       (SPEC-R4A §10.0).
+    3. Write the page inside <main>: it opens on its painted strip and ends on its closing scene (see MAIN
+       below and README "Shared classes"). Put page layout in /assets/css/pages/<page>.css and page behaviour
+       in /assets/js/pages/<page>.js (both optional), linked in "PAGE ASSETS" with data-page-style /
+       data-page-module, so the demo router can swap them.
+    4. Never edit the blocks between <!- - @shared:… - -> and <!- - /@shared:… - ->. They are identical on every
+       page and are regenerated from this file by `python3 tools/sync-shared.py` (which also sets aria-current
+       on the home link, the header nav and the footer's story map for each page). A page owner may resync
+       only their own files: `python3 tools/sync-shared.py --only work/index.html`. Need a change there? Ask
+       the design-system owner.
+
+  The page must read completely with JavaScript off: all text is in the HTML, nothing starts hidden, and the
+  painted strip and closing fall back to a faint static ridge drawn by CSS in the same boxes.
+-->
+<html lang="en-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+  <!-- ===================== PAGE HEAD (per page; values from COPY.md 8.1) ===================== -->
+  <title>{{TITLE}}</title>
+  <meta name="description" content="{{DESCRIPTION}}">
+  <link rel="canonical" href="https://my-website-freedomjack.vercel.app{{PATH}}">
+  <meta property="og:type" content="website"><!-- 'profile' on Home, 'article' on the Note -->
+  <meta property="og:site_name" content="Qijin Xu">
+  <meta property="og:locale" content="en_CA">
+  <meta property="og:title" content="{{TITLE}}">
+  <meta property="og:description" content="{{DESCRIPTION}}">
+  <meta property="og:url" content="https://my-website-freedomjack.vercel.app{{PATH}}">
+  <!-- Page-specific JSON-LD goes here (WebSite and ProfilePage on Home, CollectionPage on Work, BlogPosting
+       on the Note). The router swaps every ld+json script that is NOT marked data-shared. -->
+
+  <!-- @shared:head -->
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#EFF1EE">
+  <!-- Ink boot: runs before first paint. It reads no styles, so it sits above the stylesheets and never
+       waits for them. Keep it tiny.
+       html.js               JS is on
+       html.is-sealed        this session has already seen the seal stamped (seal.js)
+       html.is-still         "Still the landscape" is on for this session (still.js; sessionStorage 'ink:still')
+       html.is-arrived       the name's ink settle is done (arrival.js; also forced after 3 s, whatever happens)
+       html.is-routed        added later by the demo router at its first in-page swap (router.js)
+       DEMO ONLY (SPEC-R4A §9.10; ?compare=1|0, ?palette=ink|misted|rich, ?name=56|72|96, remembered in
+       sessionStorage 'ink:compare' / 'ink:palette' / 'ink:name'):
+       html.is-compare       the compare panel is on (compare.js injects it)
+       html[data-palette]    the painting's colour (default misted)
+       html[data-name-size]  the home name's size (default 72)
+       It also clears round 3's retired ?transition= choice ('ink:transition'). -->
+  <script>
+    (function (d, w) {
+      var h = d.documentElement, s = null, q = null;
+      h.classList.add('js');
+      try { s = w.sessionStorage; } catch (e) {}
+      try { q = new URLSearchParams(w.location.search); } catch (e) {}
+      function get(k) { try { return s ? s.getItem(k) : null; } catch (e) { return null; } }
+      function put(k, v) { try { if (s) { if (v === null) s.removeItem(k); else s.setItem(k, v); } } catch (e) {} }
+      function pick(name, re, key) {
+        var v = q && q.get(name);
+        if (v && re.test(v)) { put(key, v); return v; }
+        v = get(key);
+        return v && re.test(v) ? v : null;
+      }
+      if (get('ink:sealed')) h.classList.add('is-sealed');
+      if (get('ink:still') === '1') h.classList.add('is-still');
+      put('ink:transition', null);
+      var c = q && q.get('compare');
+      if (c === '1') put('ink:compare', '1'); else if (c === '0') put('ink:compare', null);
+      if (c === '1' || (c !== '0' && get('ink:compare') === '1')) h.classList.add('is-compare');
+      h.setAttribute('data-palette', pick('palette', /^(ink|misted|rich)$/, 'ink:palette') || 'misted');
+      h.setAttribute('data-name-size', pick('name', /^(56|72|96)$/, 'ink:name') || '72');
+      w.setTimeout(function () {
+        if (!w.__inkFrozen) h.classList.add('is-arrived');
+      }, 3000);
+    })(document, window);
+  </script>
+  <!-- Full-document navigations (a typed URL, a reload, the router's fallback) get the browser's default
+       260 ms cross-fade. The opt-in must be known before the parser reaches <body>, so it is inline. -->
+  <style>@view-transition { navigation: auto; }</style>
+  <link rel="icon" href="/assets/svg/seal.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Every module the page boots with, fetched at once (not after the font CSS or after main.js parses):
+       main.js, its static imports, and the landscape (loaded by main.js with a dynamic import). -->
+  <link rel="modulepreload" href="/assets/js/main.js">
+  <link rel="modulepreload" href="/assets/js/arrival.js">
+  <link rel="modulepreload" href="/assets/js/seal.js">
+  <link rel="modulepreload" href="/assets/js/nav.js">
+  <link rel="modulepreload" href="/assets/js/header.js">
+  <link rel="modulepreload" href="/assets/js/story-map.js">
+  <link rel="modulepreload" href="/assets/js/still.js">
+  <link rel="modulepreload" href="/assets/js/compare.js">
+  <link rel="modulepreload" href="/assets/js/brush-link.js">
+  <link rel="modulepreload" href="/assets/js/ink-button.js">
+  <link rel="modulepreload" href="/assets/js/disclosure.js">
+  <link rel="modulepreload" href="/assets/js/diagram.js">
+  <link rel="modulepreload" href="/assets/js/margin-note.js">
+  <link rel="modulepreload" href="/assets/js/router.js">
+  <link rel="modulepreload" href="/assets/js/transition.js">
+  <link rel="modulepreload" href="/assets/js/landscape/index.js">
+  <link rel="modulepreload" href="/assets/js/landscape/compose.js">
+  <link rel="modulepreload" href="/assets/js/landscape/ridges.js">
+  <link rel="modulepreload" href="/assets/js/landscape/shaders.js">
+  <link rel="modulepreload" href="/assets/js/landscape/gl.js">
+  <link rel="modulepreload" href="/assets/js/landscape/canvas2d.js">
+  <link rel="modulepreload" href="/assets/js/landscape/strip.js">
+  <link rel="modulepreload" href="/assets/js/landscape/palette.js">
+  <link rel="modulepreload" href="/assets/js/landscape/figures.js">
+  <!-- Sofia Sans Extra Condensed 900: the name and figures. Sofia Sans Condensed: page titles.
+       Commissioner (variable, FLAR flare axis): body, headings and UI. -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Commissioner:wght,FLAR@300..700,0..100&amp;family=Sofia+Sans+Condensed:wght@600..800&amp;family=Sofia+Sans+Extra+Condensed:wght@900&amp;display=swap">
+  <!-- Noto Serif SC 900, subset to the seal's single glyph (the text= parameter is that glyph, URL-encoded). -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@900&amp;text=%E5%BE%90&amp;display=block">
+  <link rel="stylesheet" href="/assets/css/tokens.css">
+  <link rel="stylesheet" href="/assets/css/base.css">
+  <link rel="stylesheet" href="/assets/css/layout.css">
+  <link rel="stylesheet" href="/assets/css/effects.css">
+  <link rel="stylesheet" href="/assets/css/components.css">
+  <link rel="expect" href="#main" blocking="render">
+  <script type="module" src="/assets/js/main.js"></script>
+  <script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script>
+  <!-- Person (COPY.md 8.2): on every page. Visible text and this data say the same things.
+       data-shared: the demo router never swaps it. -->
+  <script type="application/ld+json" data-shared>
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "@id": "https://my-website-freedomjack.vercel.app/#person",
+    "name": "Qijin Xu",
+    "givenName": "Qijin",
+    "familyName": "Xu",
+    "alternateName": ["Jack Xu", "Qijin (Jack) Xu"],
+    "description": "Lead AI/ML Architect at CGI's AI Center of Excellence in Toronto. Designs and ships production AI for banks and insurers: LLM agents, retrieval-augmented generation (RAG) systems and the data platforms beneath them.",
+    "url": "https://my-website-freedomjack.vercel.app/",
+    "email": "mailto:qxjack@gmail.com",
+    "image": "https://my-website-freedomjack.vercel.app/assets/img/qijin-xu-colour.jpg",
+    "jobTitle": "Lead AI/ML Architect",
+    "worksFor": {
+      "@type": "Organization",
+      "name": "CGI",
+      "legalName": "CGI Inc.",
+      "url": "https://www.cgi.com/",
+      "sameAs": "https://en.wikipedia.org/wiki/CGI_Inc."
+    },
+    "hasOccupation": {
+      "@type": "Occupation",
+      "name": "Lead AI/ML Architect",
+      "occupationLocation": { "@type": "City", "name": "Toronto" },
+      "skills": "LLM agents, LangGraph, retrieval-augmented generation, vLLM, data engineering, Apache Spark, Kafka, Azure, AWS, GCP"
+    },
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Toronto",
+      "addressRegion": "ON",
+      "addressCountry": "CA"
+    },
+    "alumniOf": {
+      "@type": "CollegeOrUniversity",
+      "name": "York University",
+      "url": "https://www.yorku.ca/",
+      "sameAs": "https://en.wikipedia.org/wiki/York_University"
+    },
+    "hasCredential": [
+      {
+        "@type": "EducationalOccupationalCredential",
+        "name": "Bachelor of Science in Computer Science, Specialized Honours",
+        "credentialCategory": "degree",
+        "dateCreated": "2021",
+        "recognizedBy": { "@type": "CollegeOrUniversity", "name": "York University", "url": "https://www.yorku.ca/" }
+      },
+      {
+        "@type": "EducationalOccupationalCredential",
+        "name": "Microsoft Certified: Azure Solutions Architect Expert",
+        "credentialCategory": "certification",
+        "dateCreated": "2022",
+        "recognizedBy": { "@type": "Organization", "name": "Microsoft", "url": "https://www.microsoft.com/" }
+      },
+      {
+        "@type": "EducationalOccupationalCredential",
+        "name": "Google Cloud Professional Cloud Developer",
+        "credentialCategory": "certification",
+        "dateCreated": "2023",
+        "recognizedBy": { "@type": "Organization", "name": "Google Cloud", "url": "https://cloud.google.com/" }
+      }
+    ],
+    "award": ["CGI Impact Award 2024", "CGI Impact Award 2026"],
+    "knowsAbout": [
+      "Artificial intelligence",
+      "Machine learning",
+      "Large language models",
+      "AI agents",
+      "LangGraph",
+      "Retrieval-augmented generation",
+      "Model Context Protocol",
+      "vLLM",
+      "Computer vision",
+      "Data engineering",
+      "Data lineage",
+      "Apache Spark",
+      "Apache Kafka",
+      "Microsoft Azure",
+      "Amazon Web Services",
+      "Google Cloud Platform",
+      "Python"
+    ],
+    "sameAs": [
+      "https://github.com/Freedom-Jack",
+      "https://www.linkedin.com/in/qijin-x-4899671a9/"
+    ]
+  }
+  </script>
+  <!-- /@shared:head -->
+
+  <!-- ===================== PAGE ASSETS (per page, optional) =====================
+       data-page-style: the router swaps this sheet (as one adopted sheet) on a route change.
+       data-page-module: the page's behaviour, a module with NO side effects at import:
+         export default { init({ main, config, landscape, signal }) {…}, destroy() {…} };
+       main.js imports it and calls init() on load and after every swap. A page with no behaviour has no
+       module and no tag (a missing file would be a 404 in the console). -->
+  <link rel="stylesheet" href="/assets/css/pages/{{PAGE}}.css" data-page-style>
+  <!-- <script type="module" src="/assets/js/pages/{{PAGE}}.js" data-page-module></script> -->
+</head>
+
+<!-- Page config, read by main.js (and copied onto <body> by the router on a route change), SPEC-R4A §10.0:
+     data-page      page id (matches the page CSS/JS file names)
+     data-stretch   the page's place on the one continuous handscroll: Home 0, Work 1, (the road 2: no page),
+                    Writing and the Note 3, Résumé 4, Contact 5, 404 6. The painting pans between them.
+     data-distance  'level' (wide, low ridges) | 'high' (one tall mass) | 'deep' (many overlapping ridges)
+     data-presence  0..1, how strongly the page's scene shows in its strip and closing
+     data-horizon   0..1, the desktop ink horizon between them (default 0.6)
+     data-ground    (optional) 'living' (demo 4b: Home and Work): the page's scene is its living ground on wide
+                    screens with a hardware GPU (landscape/index.js STAGE); absent = 4a's strip and closing -->
+<body data-page="{{PAGE}}" data-stretch="{{STRETCH}}" data-distance="level" data-presence="1" data-horizon="0.6">
+  <!-- @shared:top -->
+  <a class="skip-link" href="#main">Skip to content</a>
+  <!-- The landscape: one fixed canvas behind everything; mountLandscape() paints the page's scene into its
+       windows (the strip, the closing) and, on desktops, a faint ink horizon between them. Decorative. -->
+  <canvas class="landscape" aria-hidden="true"></canvas>
+  <!-- Shared ink filters (referenced from effects.css and the seals). -->
+  <svg class="ink-defs" aria-hidden="true" focusable="false">
+    <!-- capillary edge for ink blooms: buttons, rows -->
+    <filter id="ink-feather" x="-12%" y="-40%" width="124%" height="180%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.045 0.07" numOctaves="4" seed="11" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="16" xChannelSelector="R" yChannelSelector="G" result="d"/>
+      <feGaussianBlur in="d" stdDeviation=".6" result="b"/>
+      <feComponentTransfer in="b"><feFuncA type="table" tableValues="0 .05 .7 1 1"/></feComponentTransfer>
+    </filter>
+    <!-- the wet front of a button's bloom: wider, wicking lobes -->
+    <filter id="ink-bloom" x="-20%" y="-70%" width="140%" height="240%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.026 0.075" numOctaves="4" seed="4" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="30" xChannelSelector="R" yChannelSelector="G" result="d"/>
+      <feGaussianBlur in="d" stdDeviation=".7" result="b"/>
+      <feComponentTransfer in="b"><feFuncA type="table" tableValues="0 .08 .75 1 1"/></feComponentTransfer>
+    </filter>
+    <!-- the name's ink settle on a full load (arrival.js relaxes the scale from 8 to 0 in <= 400 ms) -->
+    <filter id="ink-arrive" x="-3%" y="-15%" width="106%" height="130%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018 0.042" numOctaves="3" seed="7" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="8" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <!-- carved-stone seal: chipped edges, specks where the paste did not transfer -->
+    <filter id="seal-stone" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.11" numOctaves="3" seed="11" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G" result="d"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.32" numOctaves="2" seed="3" result="g"/>
+      <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -11 7.7" result="speck"/>
+      <feComposite in="d" in2="speck" operator="in"/>
+    </filter>
+  </svg>
+  <!-- The header: one home link (the seal and the words "Qijin Xu"; accessible name "Qijin Xu, home"), then
+       Work · Résumé · Contact. It returns, solid, on scroll up once the strip has gone (header.js). -->
+  <header class="site-header">
+    <div class="site-header__inner frame">
+      <a class="home-link" href="/">
+        <span class="seal" aria-hidden="true">
+          <svg class="seal__mark" viewBox="0 0 64 64" focusable="false">
+            <defs>
+              <mask id="seal-carve" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
+                <rect width="64" height="64" fill="#fff"/>
+                <text class="seal__glyph" x="32.3" y="48.2" text-anchor="middle">徐</text>
+              </mask>
+            </defs>
+            <g filter="url(#seal-stone)">
+              <path class="seal__stone" mask="url(#seal-carve)" d="M5.2 4.6 58.9 3.8q1.5.1 1.4 1.8l-.7 53.1q-.1 1.6-1.7 1.5L5.6 59.4q-1.5-.1-1.4-1.8L3.9 6.1q0-1.4 1.3-1.5Z"/>
+            </g>
+          </svg>
+        </span>
+        <span class="home-link__name">Qijin Xu</span><span class="visually-hidden">, home</span>
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <ul class="site-nav__list" role="list">
+          <li><a class="brush" href="/work/">Work</a></li>
+          <li><a class="brush" href="/resume/">Résumé</a></li>
+          <li><a class="brush" href="/contact/">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <!-- /@shared:top -->
+
+  <!-- ===================== MAIN (the page's own content; SPEC-R4A §3, §6, §8, §10) =====================
+       Reading first, then the art. <main> is the 1200 px frame. It opens on its painted strip (an EMPTY art
+       box the engine paints, then the text block it keeps clear of colour and figures) and ends on its
+       closing scene with one "Next: …" link. Sections in between: section.sec[data-veil] with an
+       h2.sec__title; children sit in the 680 px reading column unless .wide (960).
+       Strip variants: strip--home (Home), strip--sub (Work, Writing, Contact, 404), strip--doc (Résumé, the
+       Note: the text is always below the art). No text fades in on scroll; nothing starts hidden.
+       Components (components.css): .hello + .signoff, .now, .rows, .case (flagship / compact), .table,
+       .diagram, .margin-note (in a .has-rail block), .fig. Links: a.brush (+ --rest in running text); one
+       .ink-btn per screen at most. -->
+  <main id="main" tabindex="-1" class="frame">
+    <header class="strip strip--sub" aria-labelledby="page-title">
+      <div class="strip__art bleed" data-landscape="strip" data-wake aria-hidden="true"></div>
+      <div class="strip__text" data-landscape="keepout" data-veil="0.85">
+        <h1 class="page-title" id="page-title">{{H1}}</h1>
+        <p class="lead">{{INTRO}}</p>
+      </div>
+    </header>
+    <section class="sec" aria-labelledby="{{SECTION_ID}}" data-veil>
+      <h2 class="sec__title" id="{{SECTION_ID}}">{{SECTION_TITLE}}</h2>
+      <p>{{BODY}}</p>
+    </section>
+    <nav class="closing" aria-label="Next page">
+      <p class="closing__next" data-landscape="keepout">
+        <a class="next" href="{{NEXT_PATH}}"><span class="next__label">Next:</span> <span class="next__to">{{NEXT}}</span><span class="next__arrow" aria-hidden="true"> →</span></a>
+      </p>
+      <div class="closing__art bleed" data-landscape="closing" data-wake aria-hidden="true"></div>
+    </nav>
+  </main>
+
+  <!-- @shared:bottom -->
+  <!-- The footer, on paper. The story map: the whole painting as one small handscroll of the journey, each place
+       its own opening scene in miniature (build-time stills from the engine: tools/build-stills.py writes
+       assets/img/scenes/; decorative, so alt="" in an aria-hidden art, and shown with or without JS), each in a
+       soft window (the span) that meets its neighbours in mist, one label per place, laid out by geography
+       (data-stretch: the road, 2, has no page; the 404, 6, lies off the map), a tick over each place;
+       aria-current marks "you are here". Then the links line and the "updated" line. -->
+  <footer class="site-footer">
+    <div class="frame">
+      <nav class="story-map" aria-label="All pages">
+        <div class="story-map__art" aria-hidden="true">
+          <span class="story-map__scene" data-stretch="0"><img src="/assets/img/scenes/home@1x.webp" srcset="/assets/img/scenes/home@1x.webp 1x, /assets/img/scenes/home@2x.webp 2x" width="252" height="70" alt="" loading="lazy" decoding="async"></span>
+          <span class="story-map__scene" data-stretch="1"><img src="/assets/img/scenes/work@1x.webp" srcset="/assets/img/scenes/work@1x.webp 1x, /assets/img/scenes/work@2x.webp 2x" width="355" height="70" alt="" loading="lazy" decoding="async"></span>
+          <span class="story-map__scene" data-stretch="3"><img src="/assets/img/scenes/writing@1x.webp" srcset="/assets/img/scenes/writing@1x.webp 1x, /assets/img/scenes/writing@2x.webp 2x" width="386" height="70" alt="" loading="lazy" decoding="async"></span>
+          <span class="story-map__scene" data-stretch="4"><img src="/assets/img/scenes/resume@1x.webp" srcset="/assets/img/scenes/resume@1x.webp 1x, /assets/img/scenes/resume@2x.webp 2x" width="317" height="70" alt="" loading="lazy" decoding="async"></span>
+          <span class="story-map__scene" data-stretch="5"><img src="/assets/img/scenes/contact@1x.webp" srcset="/assets/img/scenes/contact@1x.webp 1x, /assets/img/scenes/contact@2x.webp 2x" width="252" height="70" alt="" loading="lazy" decoding="async"></span>
+          <span class="story-map__tick" data-stretch="0"></span>
+          <span class="story-map__tick" data-stretch="1"></span>
+          <span class="story-map__tick" data-stretch="3"></span>
+          <span class="story-map__tick" data-stretch="4"></span>
+          <span class="story-map__tick" data-stretch="5"></span>
+        </div>
+        <ol class="story-map__list" role="list">
+          <li data-stretch="0"><a class="brush" href="/">Home</a></li>
+          <li data-stretch="1"><a class="brush" href="/work/">Work</a></li>
+          <li data-stretch="3"><a class="brush" href="/writing/">Writing</a></li>
+          <li data-stretch="4"><a class="brush" href="/resume/">Résumé</a></li>
+          <li data-stretch="5"><a class="brush" href="/contact/">Contact</a></li>
+        </ol>
+      </nav>
+      <div class="site-footer__base">
+        <div class="site-footer__line">
+          <p class="site-footer__copy"><span class="nowrap">© 2026 Qijin Xu · Toronto</span></p>
+          <ul class="site-footer__links" role="list">
+            <li><a class="brush" href="mailto:qxjack@gmail.com">Email</a></li>
+            <li><a class="brush" href="https://www.linkedin.com/in/qijin-x-4899671a9/">LinkedIn</a></li>
+            <li><a class="brush" href="https://github.com/Freedom-Jack">GitHub</a></li>
+            <li><a class="brush" href="/resume.pdf" target="_blank" rel="noopener" type="application/pdf">View résumé (PDF)<span class="visually-hidden">, opens in a new tab</span></a></li>
+          </ul>
+        </div>
+        <!-- "Still the landscape" stops all ambient motion for the session (still.js); hidden without JS. -->
+        <p class="site-footer__updated">Updated <time datetime="2026-10">October 2026</time><span class="still"> · <button class="still-toggle brush" type="button" aria-pressed="false">Still the landscape</button></span></p>
+      </div>
+      <!-- After an in-site page change the router announces the new page's title here. -->
+      <p class="visually-hidden" id="route-announcer" aria-live="polite" aria-atomic="true"></p>
+    </div>
+  </footer>
+  <!-- /@shared:bottom -->
+</body>
+</html>

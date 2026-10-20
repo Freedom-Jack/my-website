@@ -1,0 +1,66 @@
+/* Design tokens — study C. Every grey comes from the five-ink ladder. */
+
+@property --r {            /* ink-bloom radius (buttons) */
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+@property --draw {         /* dry-brush underline progress */
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
+}
+@property --drift {        /* mist drift (mask position) */
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+:root {
+  color-scheme: light;
+
+  /* paper + mist: cool rice paper, a faint grey-green; never cream */
+  --paper: #eff1ee;
+  --paper-rgb: 239 241 238;
+  --mist-1: #e3e8e5;
+  --mist-2: #d5dcd9;
+
+  /* five inks: burnt, thick, heavy, light, clear */
+  --ink-900: #111416;
+  --ink-700: #2a3034;
+  --ink-500: #4c5559;   /* 6.6:1 on paper */
+  --ink-300: #8a9498;
+  --ink-100: #c4ccce;
+
+  --wash: #3e5664;      /* indigo wash: far ridges, quiet accents */
+  --celadon: #7e9c94;
+  --cinnabar: #b1362b;  /* the seal, plus one tiny accent per screen */
+
+  /* type */
+  --font-display: 'Sofia Sans Extra Condensed', 'Sofia Fallback', 'Arial Narrow', sans-serif;
+  --font-body: 'Commissioner', 'Commissioner Fallback', ui-sans-serif, system-ui, sans-serif;
+  --step-0: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem); /* 17–19px body */
+  --step-name: clamp(7.5rem, 3.6rem + 14.5vw, 21rem);
+
+  /* motion: fast attack, long decay */
+  --ease-resonance: cubic-bezier(0.2, 0.7, 0.1, 1);
+  --ease-ink: cubic-bezier(0.3, 0.6, 0.2, 1);
+  --dur-arrive: 900ms;
+  --dur-hover: 190ms;
+
+  --gutter: clamp(1.25rem, 0.6rem + 3.2vw, 4rem);
+}
+
+/* metric-matched fallbacks so the swap causes no layout shift */
+@font-face {
+  font-family: 'Sofia Fallback';
+  src: local('Arial Narrow Bold'), local('ArialNarrow-Bold'), local('Arial Bold');
+  size-adjust: 88%;
+  ascent-override: 98%;
+}
+@font-face {
+  font-family: 'Commissioner Fallback';
+  src: local('Arial'), local('Helvetica Neue');
+  size-adjust: 101%;
+  ascent-override: 96%;
+}

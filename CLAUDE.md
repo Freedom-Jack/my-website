@@ -1,139 +1,49 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code in this repository. @AGENTS.md holds Next.js's own notes for agents (it is rewritten by
+`next dev`; commit it as it is).
 
-## Development Commands
+## Read first
 
-### Essential Commands
+- [design-demo/DESIGN.md](design-demo/DESIGN.md): the source of truth. §1 is the process rules, §2 the hard rules
+  and the launch gate, §11.E Jack's answers, §12 the build plan.
+- [README.md](README.md) explains how the app is organised. [CONTENT.md](CONTENT.md) explains where every word lives.
+- The approved look is demo 4b in `design-demo/`. Any visual change is checked side by side with it, on the real GPU (DESIGN §13).
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint
-- `npm run format` - Format code with Prettier
-- `npm run test` - Run Jest tests
-- `npm run test:watch` - Run Jest in watch mode
-- `npm run analyze` - Analyze bundle size
+## Commands
 
-### Environment Setup
+Node 24 (`.node-version`). `npm run dev` · `npm run build` · `npm start` · `npm run ci` (type-check, lint, format
+check, unit tests, stills check) · `npm run test:e2e` (needs a build on port 3100) · `npm run check:compliance` ·
+`npm run check:links` · `npm run build:pdf` · `npm run build:stills`. The table in README.md says what each does.
 
-- Requires Node.js >= 18.17.0
-- Create `.env.local` with `GITHUB_TOKEN` and `GITHUB_USERNAME` for GitHub API integration
-- Uses TypeScript with strict mode enabled
+## How the code is organised
 
-## Architecture Overview
+- `content/` holds every word. Pages never hard-code copy. resume.json is the only source of the résumé page, the
+  PDF and the Person JSON-LD.
+- `src/app/` routes are thin: metadata, loading data, one feature component.
+- `src/features/<feature>/` owns that feature's components, logic and CSS Module. `src/components/` holds what
+  several features share. `src/lib/` holds pure helpers.
+- `src/styles/` is the global design system ported from the demo (tokens, base, layout, effects, components).
+  CSS Modules only place a page's blocks and tune spacing with tokens. They add no new colours, fonts, sizes or
+  motion.
+- `src/features/landscape/engine/` is the demo's WebGL2 engine in strict TypeScript (typed from the demo's
+  JavaScript without changing a pixel), behind the contract in `types.ts`; `engine/renderer.ts` is the contract
+  between the engine and its two painters, `figures.ts` the figure sets' API. Change it only with the engine's own docs in mind (design-demo/README.md, "The landscape engine, inside" and "Figure sets and small life").
+  After any change to the engine, a figure set, a palette, a place or a strip height, regenerate the stills
+  (`npm run build:stills`, which needs a QA build).
+- `places.ts` is the one table of where each page stands in the painting. `PageMain` and the navigation both read
+  it.
 
-### Framework & Tech Stack
+## Rules that are not negotiable (DESIGN §1, §2)
 
-- **Next.js 15.3.0** with App Router (not Pages Router)
-- **TypeScript 5.3** with strict mode
-- **Tailwind CSS** with custom design system
-- **Radix UI** for accessible UI components
-- **Framer Motion** for animations
-- **MDX** for blog content with gray-matter frontmatter
-- **Zustand** for state management
-- **React Query** for data fetching
-
-### Project Structure
-
-```
-src/
-├── app/                    # Next.js App Router pages
-│   ├── layout.tsx         # Root layout with ThemeProvider
-│   ├── page.tsx           # Home page
-│   ├── about/page.tsx     # About page
-│   ├── blog/              # Blog system
-│   │   ├── page.tsx       # Blog listing
-│   │   └── [slug]/page.tsx # Individual blog posts
-│   ├── contact/page.tsx   # Contact page
-│   ├── projects/page.tsx  # Projects page
-│   └── api/               # API routes
-│       └── github/        # GitHub API integration
-├── components/            # React components
-│   ├── ui/               # Reusable UI components (Button, Card, etc.)
-│   ├── layout/           # Layout components (Header, Footer)
-│   ├── sections/         # Page sections (Hero, About, etc.)
-│   └── animations/       # Animation components (Bubbles)
-├── content/              # Content configuration
-│   └── pages/            # Page content definitions
-├── lib/                  # Utility functions
-│   ├── utils.ts          # General utilities
-│   └── github.ts         # GitHub API client
-└── styles/               # CSS organization
-    ├── shared/           # Shared CSS modules
-    ├── components/       # Component-specific styles
-    └── pages/            # Page-specific styles
-```
-
-### Key Architectural Patterns
-
-#### CSS Organization
-
-- **Modular CSS**: Uses CSS modules for component styling
-- **Shared Styles System**: Organized in `src/styles/shared/` with:
-  - `typography.module.css` - Text styles
-  - `cards.module.css` - Card components
-  - `sections.module.css` - Section layouts
-  - `animations.module.css` - Animation styles
-  - `layout.module.css` - Layout utilities
-  - `tags.module.css` - UI elements
-- **Import Pattern**: Use `import { cardStyles, sectionStyles } from '@/styles/shared'`
-- **Composition**: Use `composes:` to extend shared styles in component files
-
-#### Content Management
-
-- **Structured Content**: Page content defined in TypeScript files in `src/content/pages/`
-- **MDX Blog System**: Blog posts stored in `public/blog/[slug]/index.mdx`
-- **Frontmatter**: Uses gray-matter for blog post metadata
-- **Table of Contents**: Auto-generated from MDX headings with mobile/desktop variants
-
-#### Component Architecture
-
-- **Theme System**: Dark/light mode using `next-themes`
-- **UI Components**: Radix UI with custom styling
-- **Animations**: Framer Motion for smooth transitions
-- **Background**: Animated bubble background component
-
-#### Data Fetching
-
-- **GitHub Integration**: Real-time GitHub stats and repository data
-- **API Routes**: Server-side GitHub API calls in `app/api/github/`
-- **Environment Variables**: `GITHUB_TOKEN` and `GITHUB_USERNAME` required
-
-### Development Workflow
-
-#### Adding New Pages
-
-1. Create page in `app/[page]/page.tsx`
-2. Add content configuration in `src/content/pages/[page].ts`
-3. Create page-specific styles in `src/styles/pages/[page].module.css`
-4. Update navigation in Header component
-
-#### Blog System
-
-- Blog posts are MDX files in `public/blog/[slug]/index.mdx`
-- Each post requires frontmatter with title, date, description, keywords
-- Images stored alongside each post
-- Auto-generates table of contents and SEO metadata
-
-#### Styling Guidelines
-
-- Use shared styles from `src/styles/shared/` for consistency
-- Compose styles using CSS modules `composes:` property
-- Follow mobile-first responsive design
-- Use Tailwind utilities for spacing and layout
-- Custom animations defined in `animations.module.css`
-
-### Performance Optimizations
-
-- Server-side rendering with Next.js App Router
-- Image optimization with `next/image`
-- Code splitting and lazy loading
-- Bundle analysis with `npm run analyze`
-- Optimized fonts with `next/font`
-
-### Testing
-
-- Jest testing framework configured
-- React Testing Library for component tests
-- Use `npm test` for single run, `npm run test:watch` for development
+- No phone number anywhere, no street address (city only), no project-management credential. The public email is
+  qxjack@gmail.com. The only Chinese character is the seal's (drawn as a path). Visible text never says "(Jack)".
+- Never link to or publish the old résumé file. It redirects to /resume/, never to /resume.pdf.
+- Never bypass the corporate web filter, and never change system, security or TLS settings.
+- Screenshots and research go to a scratchpad outside the repo.
+- `master` deploys production: never push to it. Pushing any branch publishes it (the repo is public). Commit only
+  when Jack agrees. Launch steps (the history purge, force-pushes, the domain, repository visibility) wait for his
+  explicit go.
+- Questions from Jack are not instructions: answer first. Show a demo or a preview before building, and show any
+  new Chinese text before using it.
+- Versions are exact pins, checked as the latest stable on the day they change, never from memory.

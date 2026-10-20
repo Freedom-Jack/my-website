@@ -1,103 +1,61 @@
-import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import "../styles/performance.css";
-import "../styles/mobile-optimizations.css";
-
-import { ThemeProvider } from "@/components/theme-provider";
-import BackgroundWrapper from "@/components/animations/BackgroundWrapper";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
-import ErrorBoundary from "@/components/ErrorBoundary";
-import LayoutClient from "./layout-client";
-
-const inter = Inter({
-  subsets: ["latin"],
-  display: "swap",
-  preload: false,
-  variable: "--font-inter",
-});
+import type { Metadata, Viewport } from 'next';
+import type { ReactNode } from 'react';
+import { site } from '@content/site';
+import { BootScript } from '@/components/layout/BootScript';
+import { InkDefs } from '@/components/layout/InkDefs';
+import { SiteFooter } from '@/components/layout/SiteFooter';
+import { SiteHeader } from '@/components/layout/SiteHeader';
+import { Effects } from '@/features/effects/Effects';
+import { Landscape } from '@/features/landscape/Landscape';
+import { Navigation } from '@/features/navigation/Navigation';
+import { JsonLd, personLd } from '@/lib/jsonld';
+import { fontFaces } from './fonts';
+// The design system, in order (each feature's CSS Module adds its own layout after these).
+import '@/styles/tokens.css';
+import '@/styles/base.css';
+import '@/styles/layout.css';
+import '@/styles/effects.css';
+import '@/styles/components.css';
 
 export const metadata: Metadata = {
-  title: "Qijin Xu - Software Development Engineer",
-  description:
-    "Software Development Engineer specializing in machine learning, data analysis, and AI applications.",
-  keywords: [
-    "software development engineer",
-    "machine learning",
-    "data engineering",
-    "AI",
-    "python",
-    "ML algorithms",
-    "LLM",
-  ],
-  authors: [{ name: "Qijin Xu" }],
-  creator: "Qijin Xu",
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    title: "Qijin Xu - Software Development Engineer",
-    description:
-      "Software Development Engineer specializing in machine learning, data analysis, and AI applications.",
-    siteName: "Qijin Xu my-website",
-  },
+  metadataBase: new URL(site.url),
+  title: site.searchName,
+  applicationName: site.name,
+  authors: [{ name: site.name, url: `${site.url}/` }],
+  formatDetection: { telephone: false, address: false, email: false },
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "white" },
-    { media: "(prefers-color-scheme: dark)", color: "black" },
-  ],
-  width: "device-width",
+  width: 'device-width',
   initialScale: 1,
-  maximumScale: 5,
-  userScalable: true,
-  viewportFit: "cover",
+  viewportFit: 'cover',
+  themeColor: '#EFF1EE',
+  colorScheme: 'light',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+/**
+ * Every page: the paper, the one persistent landscape canvas behind everything, the header, the page's <main>,
+ * the footer (the story map, the links, "Still the landscape", the route announcer), and the Person JSON-LD.
+ * The canvas and the chrome persist across pages; only <main> changes (features/navigation).
+ */
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${inter.className} overflow-x-hidden`}
-        suppressHydrationWarning
-      >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {/* Performance monitoring client component */}
-          <LayoutClient />
-
-          {/* Optimized background with performance monitoring */}
-          <BackgroundWrapper />
-
-          <div className="relative flex min-h-screen flex-col">
-            <ErrorBoundary>
-              <Header />
-            </ErrorBoundary>
-            <ErrorBoundary>
-              <main
-                className="flex-1 relative"
-                style={{
-                  contain: "layout style paint",
-                  contentVisibility: "auto",
-                }}
-              >
-                {children}
-              </main>
-            </ErrorBoundary>
-            <ErrorBoundary>
-              <Footer />
-            </ErrorBoundary>
-          </div>
-        </ThemeProvider>
+    <html lang="en-CA" style={fontFaces} suppressHydrationWarning>
+      <head>
+        <BootScript />
+      </head>
+      <body>
+        <a className="skip-link" href="#main">
+          Skip to content
+        </a>
+        <Landscape />
+        <InkDefs />
+        <SiteHeader />
+        {children}
+        <SiteFooter />
+        <JsonLd data={personLd()} />
+        <Navigation />
+        <Effects />
       </body>
     </html>
   );

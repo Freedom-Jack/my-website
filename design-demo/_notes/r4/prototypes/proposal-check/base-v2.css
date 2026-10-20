@@ -1,0 +1,58 @@
+/* Round-4 spec check v2 (director). Throwaway grey-box wireframe to test the revised type, spacing and
+   page-head ("scene strip") spec. Not a design. The art in the strips is the scenes researcher's draft sketch. */
+:root{
+  --paper:#EFF1EE;--ink1:#111416;--ink2:#2A3034;--ink3:#545D61;--rule:#C9D0CF;
+  /* phone (< 640) */
+  --gut:20px;--body:17px;--lead:18px;--small:14px;--h3:18px;--h2:22px;--h1:32px;
+  --name:clamp(44px, 35px + 2.6vw, 72px);--hdr:56px;--sec:36px;--item:24px;
+  --strip-home:clamp(96px, 14svh, 120px);--strip-sub:clamp(110px, 20svh, 170px);
+}
+@media (max-width:360px){:root{--gut:16px}}
+@media (min-width:640px){:root{--gut:32px;--body:18px;--lead:20px;--h3:20px;--h2:26px;--h1:40px;--hdr:64px;--sec:52px;--item:32px;
+  --strip-home:220px;--strip-sub:220px}}
+@media (min-width:1200px){:root{--gut:40px;--sec:56px;--strip-home:clamp(440px, 58vh, 540px);--strip-sub:clamp(300px, 40vh, 360px)}}
+/* short or landscape phones */
+@media (max-height:500px) and (max-width:1199px){:root{--strip-home:80px;--strip-sub:80px;--hdr:48px}}
+*{box-sizing:border-box;margin:0}
+html{background:var(--paper)}
+body{background:var(--paper);color:var(--ink1);font:400 var(--body)/1.6 Commissioner,system-ui,sans-serif;-webkit-text-size-adjust:100%}
+.frame{width:min(1200px,100% - 2*var(--gut));margin-inline:auto}
+.read{max-width:680px}.wide{max-width:960px}
+.site-header{height:var(--hdr);display:flex;align-items:center;justify-content:space-between;position:relative;z-index:3}
+.id{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;color:var(--ink1);text-decoration:none;min-height:44px}
+.seal{width:28px;height:28px;background:#B1362B;border-radius:3px;flex:none}
+nav a{color:var(--ink1);text-decoration:none;font-weight:560;font-size:15px;margin-left:14px;display:inline-flex;align-items:center;min-height:44px}
+nav a[aria-current]{text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:6px;text-decoration-color:#3E5664}
+@media(min-width:640px){nav a{font-size:16px;margin-left:28px}}
+@media(max-width:375px){nav a{font-size:14px;margin-left:10px}.seal{width:24px;height:24px}.id{font-size:16px;gap:8px}}
+@media(max-width:339px){.site-header{height:auto;flex-wrap:wrap;padding:6px 0}nav{width:100%}nav a:first-child{margin-left:0}}
+/* the scene strip: full-bleed painting at the top of every page. On wide screens (>= 1200 px) the page's
+   title and intro sit in the strip's misty left part; below 1200 px they sit on paper under the strip. */
+body{overflow-x:clip}
+.pagehead{position:relative}
+.strip{position:relative;margin-inline:calc(50% - 50vw);overflow:hidden;height:var(--h)}
+.strip canvas{position:absolute;display:block}
+.strip{-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 56px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 56px),transparent)}
+.strip .veil{position:absolute;left:0;top:0;width:min(980px,72vw);height:100%;background:radial-gradient(closest-side at 40% 48%,rgba(239,241,238,.96) 60%,rgba(239,241,238,0));display:none}
+.head{position:relative;z-index:2;padding-top:24px;max-width:680px}
+@media(min-width:1200px){
+  .pagehead.overlay .veil{display:block}
+  .pagehead.overlay .head{position:absolute;left:0;top:0;height:var(--h);padding:0;display:flex;flex-direction:column;justify-content:center;max-width:580px}
+}
+h1.name{font:900 var(--name)/1 "Sofia Sans Extra Condensed",sans-serif;letter-spacing:-.005em}
+h1.title{font:780 var(--h1)/1.1 "Sofia Sans Condensed",sans-serif}
+.lede{margin-top:14px;font-size:var(--lead);line-height:1.55}
+.acts{margin-top:22px;display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+.btn{min-height:48px;display:inline-flex;align-items:center;padding:0 20px;background:#3E5664;color:#fff;font-weight:560;border-radius:2px;text-decoration:none}
+.lnk{color:var(--ink1);font-weight:560;text-decoration:underline;text-underline-offset:4px}
+main section{margin-top:var(--sec)}
+h2{font:700 var(--h2)/1.25 Commissioner,sans-serif;letter-spacing:-.01em}
+h3{font:700 var(--h3)/1.3 Commissioner,sans-serif}
+.rows{list-style:none;padding:0;margin-top:12px}
+.rows li{padding:14px 0;border-top:1px solid var(--rule)}
+.small{font-size:var(--small);color:var(--ink3);line-height:1.45}
+.ph{color:#7a8387}
+.vignette{margin-top:var(--sec);margin-inline:calc(50% - 50vw);height:240px;background:linear-gradient(180deg,var(--paper),#d9e1df 70%,#c9d4d2);display:flex;align-items:flex-end;justify-content:center;padding-bottom:20px;font-size:var(--small);color:var(--ink2)}
+.site-footer{padding:20px 0 40px;font-size:var(--small);color:var(--ink3)}
+.storymap{height:22px;margin:0 0 14px;background:repeating-linear-gradient(90deg,#d7dedc 0 15%,#c8d1cf 15% 16.6%)}
+.site-footer p{margin-top:6px}

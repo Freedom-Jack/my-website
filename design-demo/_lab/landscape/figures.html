@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Figure sets lab</title>
+  <meta name="robots" content="noindex"><!-- engine lab: one figure set alone, at any scale, palette and resolution (not part of the site) -->
+  <link rel="icon" href="/assets/svg/seal.svg" type="image/svg+xml">
+  <meta name="color-scheme" content="light">
+  <style>
+    :root { --paper: #EFF1EE; --ink: #111416; --ink-3: #434C50; --rule: #C9D0CF; --life: #3E5664; }
+    html { background: var(--paper); color: var(--ink); font: 400 14px/1.45 system-ui, sans-serif; }
+    body { margin: 0; padding: 20px 20px 60px; }
+    h1 { font-size: 18px; margin: 0 0 4px; }
+    h2 { font-size: 15px; margin: 24px 0 8px; }
+    p { margin: 0 0 10px; color: var(--ink-3); max-width: 100ch; }
+    nav a { margin-right: 12px; color: var(--ink); }
+    nav a[aria-current] { font-weight: 700; }
+    .tiles { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start; }
+    figure { margin: 0; }
+    .layer { position: relative; display: inline-block; background: var(--paper); outline: 1px solid rgba(17, 20, 22, 0.1); }
+    .layer canvas { display: block; image-rendering: pixelated; }
+    .layer .melt { position: absolute; top: 0; bottom: 0; background: rgba(17, 20, 22, 0.05); pointer-events: none; }
+    .layer .box { position: absolute; border: 1px dashed var(--life); pointer-events: none; }
+    .layer .box span { position: absolute; left: 0; top: -15px; font-size: 11px; color: var(--life); white-space: nowrap; }
+    figcaption { color: var(--ink-3); font-size: 12px; font-variant-numeric: tabular-nums; margin-top: 4px; max-width: 760px; }
+    .bad { color: #9b2c22; font-weight: 600; }
+    pre { font-size: 12px; background: rgba(17, 20, 22, 0.04); padding: 8px; overflow: auto; max-width: 100%; }
+    #status { font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body>
+  <h1>Figure sets lab</h1>
+  <p>One figure set (assets/js/landscape/sets/) alone, drawn exactly as the engine requests it (its page's composition), on paper: no
+    mountains, mist or shader. Grey bands mark the ends the scene shader melts (13 % each side); dashed boxes are the set's life anchors.
+    <code>?set=market</code> (or <code>?stretch=1</code>) · <code>?scale=1440</code> (CSS px per stretch; default: every width class) ·
+    <code>?dpr=2</code> · <code>?palette=misted|ink|rich|all</code> · <code>?zoom=1</code> · <code>?life=0</code> · <code>?worker=1</code> (draw through the
+    real worker instead of the main thread, where errors show with line numbers). In the painting: <a href="/_lab/landscape/strips.html">strips lab</a>.
+    Guide: README "Figure sets and small life"; the contract: the header of <code>assets/js/landscape/figures.js</code>.</p>
+  <nav id="sets"></nav>
+  <p id="status">Drawing…</p>
+  <div class="tiles" id="tiles"></div>
+  <h2>Life anchors</h2>
+  <pre id="life">(none)</pre>
+
+  <script type="module">
+    import { figureSets, layerSize, paintSteps, premultiply, createFigureSource } from '/assets/js/landscape/figures.js';
+    import { SCENES, REF_PX } from '/assets/js/landscape/compose.js';
+
+    const qs = new URLSearchParams(location.search);
+    const sets = figureSets();
+    const pick = qs.has('stretch') ? sets.find((s) => s.stretch === Number(qs.get('stretch'))) : sets.find((s) => s.name === (qs.get('set') || 'home'));
+    const nav = document.getElementById('sets');
+    for (const s of sets) {
+      const a = document.createElement('a');
+      a.href = `?set=${s.name}`;
+      a.textContent = `${s.stretch} · ${s.name}${s.meta ? '' : ' (stub)'}`;
+      if (s === pick) a.setAttribute('aria-current', 'true');
+      nav.append(a);
+    }
+    const status = document.getElementById('status');
+    const tiles = document.getElementById('tiles');
+    const lifeOut = document.getElementById('life');
+    const dpr = Number(qs.get('dpr') || Math.min(2, devicePixelRatio || 1));
+    const zoom = Number(qs.get('zoom') || 1);
+    const showLife = qs.get('life') !== '0';
+    const palettes = qs.get('palette') === 'all' ? ['ink', 'misted', 'rich'] : [qs.get('palette') || 'misted'];
+    const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+
+    // the scales the engine draws this stretch at: wide (the viewport, 1440 here) and each class's frame scale
+    function classScales(k) {
+      if (qs.has('scale')) return [['scale', Number(qs.get('scale'))]];
+      const F = SCENES[k].frame;
+      const by = new Map([[1440, ['wide']]]);
+      for (const cls of ['tablet', 'phone', 'short']) {
+        const sc = ((cls === 'short' ? F.short || F.phone : F[cls]) || F.tablet).scale;
+        by.set(sc, [...(by.get(sc) || []), cls]);
+      }
+      return [...by].map(([sc, names]) => [names.join(', '), sc]);
+    }
+
+    /** Draw one layer: { width, height, ms, steps, longest, life, sha, canvas, melt } (for scripts: window.figLab.render). */
+    async function render(p) {
+      const { width, height } = layerSize(p.stretch, p.scale, p.dpr);
+      if (!width) return null;
+      // drawn as the worker draws it (an OffscreenCanvas read back), so the sha matches the bytes the page uploads
+      const off = new OffscreenCanvas(width, height);
+      const ctx = off.getContext('2d', { willReadFrequently: true });
+      let life = [], ms = 0, steps = 0, longest = 0;
+      if (p.worker) {
+        const src = createFigureSource();
+        const res = await src.request({ ...p, out: 'bitmap' });
+        src.destroy();
+        ctx.drawImage(res.bitmap, 0, 0);
+        ms = res.ms; life = res.life || [];
+      } else {
+        const it = paintSteps(ctx, p);
+        for (;;) {
+          const t0 = performance.now();
+          const r = it.next();
+          const dt = performance.now() - t0;
+          ms += dt; longest = Math.max(longest, dt);
+          if (r.done) { life = r.value || []; break; }
+          steps++;
+        }
+      }
+      const data = ctx.getImageData(0, 0, width, height).data;
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(off, 0, 0);
+      let left = 0, right = 0, inked = 0;
+      const m0 = Math.round(width * 0.13), m1 = Math.round(width * 0.87);
+      for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+        if (!data[(y * width + x) * 4 + 3]) continue;
+        inked++; if (x < m0) left++; else if (x >= m1) right++;
+      }
+      const sha = hex(await crypto.subtle.digest('SHA-256', premultiply(new Uint8ClampedArray(data))));
+      return { width, height, ms, steps, longest, life, sha, canvas, melt: { left, right, inked } };
+    }
+    window.figLab = { sets, render: (p) => render({ distance: SCENES[p.stretch].page[0], presence: SCENES[p.stretch].page[1], palette: 'misted', ...p }).then((r) => r && { ...r, canvas: undefined }) };
+
+    function tile(r, p, label) {
+      const fig = document.createElement('figure');
+      const wrap = document.createElement('div');
+      wrap.className = 'layer';
+      const w = r.width / p.dpr * zoom, h = r.height / p.dpr * zoom;   // shown at CSS size x zoom
+      r.canvas.style.width = `${w}px`; r.canvas.style.height = `${h}px`;
+      wrap.append(r.canvas);
+      for (const [l, ww] of [[0, 0.13], [0.87, 0.13]]) {
+        const m = document.createElement('div'); m.className = 'melt'; m.style.left = `${l * 100}%`; m.style.width = `${ww * 100}%`; wrap.append(m);
+      }
+      if (showLife) for (const a of r.life) {
+        const b = document.createElement('div'); b.className = 'box';
+        b.style.left = `${a.uv[0] * w}px`; b.style.top = `${a.uv[1] * h}px`; b.style.width = `${(a.uv[2] - a.uv[0]) * w}px`; b.style.height = `${(a.uv[3] - a.uv[1]) * h}px`;
+        b.innerHTML = `<span>${a.kind}</span>`; wrap.append(b);
+      }
+      const cap = document.createElement('figcaption');
+      const meltPct = r.melt.inked ? ((r.melt.left + r.melt.right) / r.melt.inked) * 100 : 0;
+      cap.innerHTML = `${label} · scale ${p.scale} · dpr ${p.dpr} · ${p.palette} · ${r.width}×${r.height} px${Math.max(r.width, r.height) >= 4096 ? ' <span class="bad">(clamped at 4096)</span>' : ''}
+        · ${r.ms.toFixed(1)} ms${p.worker ? ' (worker)' : `, ${r.steps} yields, longest step ${r.longest.toFixed(1)} ms${r.longest > 8 ? ' <span class="bad">(over 8 ms)</span>' : ''}`}
+        · ink in the melting ends ${meltPct.toFixed(1)} % · ${r.life.length} life anchors · sha ${r.sha.slice(0, 12)}`;
+      fig.append(wrap, cap);
+      tiles.append(fig);
+    }
+
+    async function main() {
+      if (!pick) { status.innerHTML = '<span class="bad">No such set.</span>'; return; }
+      if (!pick.meta) { status.textContent = `${pick.name} (stretch ${pick.stretch}) is a stub: meta is null, so it has no layer yet.`; return; }
+      const k = pick.stretch, [distance, presence] = SCENES[k].page;
+      status.textContent = `${pick.name}: stretch ${k}, rect [${pick.meta.rect.join(', ')}], plane ${pick.meta.plane}, phase ${pick.meta.phase}; composition ${distance} / ${presence}; world px = ${REF_PX} per stretch.`;
+      let last = null;
+      try { await render({ stretch: k, scale: 1440, dpr: 1, palette: palettes[0], distance, presence }); } catch { /* reported below */ }   // warm-up (JIT)
+      for (const palette of palettes) {
+        for (const [cls, scale] of classScales(k)) {
+          const p = { stretch: k, scale, dpr, palette, distance, presence, worker: qs.get('worker') === '1' };
+          try {
+            const r = await render(p);
+            if (r) { tile(r, p, cls || 'scale'); last = last || r; }
+          } catch (err) {
+            status.innerHTML += ` <span class="bad">Error at scale ${scale}: ${String(err && err.message || err)}</span>`;
+            console.error(err);
+          }
+        }
+      }
+      lifeOut.textContent = last && last.life.length ? last.life.map((a) => JSON.stringify(a)).join('\n') : '(none)';
+    }
+    main().finally(() => { window.ready = true; });   // scripts: {"wait_for": "window.ready === true"}
+  </script>
+</body>
+</html>

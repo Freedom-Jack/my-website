@@ -1,0 +1,44 @@
+/* tokens.css: design tokens for the ink site (study B). Every grey comes from the ink ladder. */
+
+@property --r {            /* button bloom radius */
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+@property --bloom {        /* number ink-in: how far the drop has spread */
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 160%;
+}
+
+:root {
+  color-scheme: light;
+
+  /* paper and mist: cool rice paper with a faint grey-green, never cream */
+  --paper: #eff1ee;
+  --mist-1: #e3e8e5;
+  --mist-2: #d5dcd9;
+
+  /* the five inks, burnt → clear */
+  --ink-900: #0b0e10;
+  --ink-1: #111416;
+  --ink-2: #2a3034;
+  --ink-3: #444d51;   /* 7.6:1 on paper */
+  --ink-4: #626b6f;   /* 4.8:1, separators and small print only */
+
+  --wash: #3e5664;    /* indigo wash */
+  --celadon: #7e9c94;
+  --cinnabar: #b1362b;
+
+  --font-display: 'Commissioner', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif;
+
+  /* resonance: fast attack, long decay */
+  --ease-ink: cubic-bezier(.2, .7, .1, 1);
+  --ease-out: cubic-bezier(.3, .6, .2, 1);
+  --t-arrive: 820ms;
+  --t-hover: 200ms;
+
+  --gutter: clamp(1rem, 5.2vw, 6rem);
+  --measure: 42ch;
+}

@@ -1,0 +1,137 @@
+{
+ "about": "Footer story-map stills, made by tools/build-stills.ts from the engine; regenerate after any engine or scene change. inputs = sha256 over inputList.",
+ "inputs": "eb602471644b3fb7ddfd55f47edb1c1d1da0cf6c3881b3f1bb2e9ff935a34eab",
+ "inputList": {
+  "src/features/landscape/engine/canvas2d.ts": "71503547776b380a748347b916852dfd452cfa168ba572312d170450cd7b4f30",
+  "src/features/landscape/engine/compose.ts": "7379a72f9c99c2e9ad484df53225260a2d2966f50aad63c977b6570343a8a13d",
+  "src/features/landscape/engine/figure-source.ts": "2698ed8189c5a7f07b0f3f8cb31f58c95932e4833da55f52ba289181a4592ea7",
+  "src/features/landscape/engine/figures.ts": "30a7a9d15233330893ea9e0ba313894332bdadee0c660cccc103e8076453a897",
+  "src/features/landscape/engine/figures.worker.ts": "8f9c46033720b2f739f3f3e2d806ae1e09bd752d3347177b199b6836dbc073ab",
+  "src/features/landscape/engine/gl.ts": "29e06511958db952b5316f23e72f5694c44f701ebc0e274b9a9990e35e6d6d87",
+  "src/features/landscape/engine/index.ts": "d01c7f992c388ae65213c99953f8f2879358dcda97dfba9b024a5f7447309a86",
+  "src/features/landscape/engine/palette.ts": "55594572a6ad4d3663d88657b3947063cf7fe63bd2212ed742a15639a8df6762",
+  "src/features/landscape/engine/renderer.ts": "b1231980d747c322d9a6e93196311f3e1d54fb44c2f768a0a636ef03dad04ff4",
+  "src/features/landscape/engine/ridges.ts": "fa9dec1ca9e29f7c0f1dc33a7ecfd6fc122045d95b8321a6584507db06f24248",
+  "src/features/landscape/engine/sets/ferry.ts": "4819dd2a7c018c35aa7a861d52ec53bb8140e56692972781c896c64a75c50e83",
+  "src/features/landscape/engine/sets/home.ts": "4b2b17df1e1d2521e775b1b7307b3d112db1c9392ddd49c7754a92a394fbff3f",
+  "src/features/landscape/engine/sets/index.ts": "7035e2c222da4c05528de660342f01a0f2895d0734840d188cabbc08c1b02d5f",
+  "src/features/landscape/engine/sets/market.ts": "5978d62def9bc4b2a46010f557d3b3a7d78e4be3983863614898e3e8c2fc8ee4",
+  "src/features/landscape/engine/sets/path.ts": "adcea97b3cebf6b07941cb9f2440d09a762c8d346e29f135e09ba012cd422f6f",
+  "src/features/landscape/engine/sets/pavilion.ts": "2469035b2aaf7bfac994eb9c395992bf8b28553280ae38231ad76c5a893ef313",
+  "src/features/landscape/engine/sets/terraces.ts": "eaafbdd883e1a9b80677ea7fb09e0bdad6c52d116a7b1011e9fe37105cf88357",
+  "src/features/landscape/engine/shaders.ts": "9bdde11f3bbf79963f2ee7ca9d4676427ea5029f5d49de359ebb9adee5599191",
+  "src/features/landscape/engine/strip.ts": "ef3634c8666f5bde5dcbdca35c0640557ee9976ed0cc3350414420363ebf5384",
+  "src/features/landscape/places.ts#contact": "5658cda693994fca179d62526f7241a8a433ece7d571b09e42e8719a26f18ea2",
+  "src/features/landscape/places.ts#home": "08e3672733131327a202106f1e907e5a57894a3a7c67e8f9f8125a63629a5180",
+  "src/features/landscape/places.ts#resume": "c4f9464a02380ffd1547cda5855c2333af8450b98d74484a463aed5a179f73bf",
+  "src/features/landscape/places.ts#work": "dcf27033496d04050525ed635716bbd27f39b14c60ca1f3b015f4a7ea62cb02d",
+  "src/features/landscape/places.ts#writing": "03ae2b53b2e2585f9d85bb76ea902b83ba17e33d0c6b5752f6afdbf82638974a",
+  "src/styles/tokens.css#strip-heights": "4411417b7c9f21fed417a6aba8aa0d2257c4ed6769abcbbdff77684fb8a11a23",
+  "tools/build-stills.ts#settings": "15be056e674f8855b4b0732ee36ad4ef57fd9ef2522e3e1db84ced887a0323ed"
+ },
+ "tiles": {
+  "home": [
+   334,
+   70
+  ],
+  "work": [
+   334,
+   70
+  ],
+  "writing": [
+   334,
+   70
+  ],
+  "resume": [
+   334,
+   70
+  ],
+  "contact": [
+   334,
+   70
+  ]
+ },
+ "files": {
+  "contact@1x.webp": {
+   "bytes": 2652,
+   "sha256": "8a072659ea0b15b64d9f3cb7d282dc23b6f81a57d07e0dd4583dddbeee623b19",
+   "size": [
+    334,
+    70
+   ]
+  },
+  "contact@2x.webp": {
+   "bytes": 6130,
+   "sha256": "eaa3ef6a2987b3faa398b1c804c145bad6bbb0c13b091914713ed39cb13ad2b5",
+   "size": [
+    668,
+    140
+   ]
+  },
+  "home@1x.webp": {
+   "bytes": 4042,
+   "sha256": "3ecc926e184fcc178c059bf41625ac2535c5abcb5ca3aaf001f4d9f84b6192a4",
+   "size": [
+    334,
+    70
+   ]
+  },
+  "home@2x.webp": {
+   "bytes": 8928,
+   "sha256": "ae76734010f0c929b57057e40f4511dcc4726f6a7a76b31520cd68dc220d71bb",
+   "size": [
+    668,
+    140
+   ]
+  },
+  "resume@1x.webp": {
+   "bytes": 2684,
+   "sha256": "f08c5c71fa11570cca1e7095438d6ef6f847ba6c01badd39aaf55cb9567010a4",
+   "size": [
+    334,
+    70
+   ]
+  },
+  "resume@2x.webp": {
+   "bytes": 6136,
+   "sha256": "b245c8ac079dda8d6918a5905fa74cc458970f1cd77cc910c678a131ee62e35e",
+   "size": [
+    668,
+    140
+   ]
+  },
+  "work@1x.webp": {
+   "bytes": 4294,
+   "sha256": "9ea43ef3e772d42757f6f608fc7d3110e5e5714f8ca7f1ac6f5fb43ae71eae05",
+   "size": [
+    334,
+    70
+   ]
+  },
+  "work@2x.webp": {
+   "bytes": 10210,
+   "sha256": "0353e5c844e3e6c8dfdc5ba4654456ea4ca276dfd1a36c246b20644d17a51659",
+   "size": [
+    668,
+    140
+   ]
+  },
+  "writing@1x.webp": {
+   "bytes": 2618,
+   "sha256": "1d78cdb9e7fafa5fc7f69cb1e065e330d45536fdf5fe5bc5ddd20c0a16e3d060",
+   "size": [
+    334,
+    70
+   ]
+  },
+  "writing@2x.webp": {
+   "bytes": 6064,
+   "sha256": "b6fc75c8b1a46e28a98c06e18a865758b11e47d1cf6a79b0971beeb307fad3f8",
+   "size": [
+    668,
+    140
+   ]
+  }
+ },
+ "totalBytes": 53758
+}
