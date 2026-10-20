@@ -21,13 +21,14 @@
 
 import {
   REF_PX, VH_PX, SCENE_FIELDS, planeTop, sceneField, streams, vnoise, mix, mix3, clamp01, smooth, stroke, wash, softWash,
-  runs, ellipse, anchor, D, type Env, type FigureMeta, type Pt, type Rng,
+  runs, ellipse, anchor, ownSprite, D, type Env, type FigureMeta, type Pt, type Rng, type RGB,
 } from '../figures';
+import { swallowInk } from './young';
 import type { Resolved } from '../compose';
 
 /** The set's stretch: every world x below is K + its offset (move the place by changing K). */
 const K = 3;
-export const meta: FigureMeta = { rect: [K + 0.16, K + 1, 0.2, 0.5], plane: 2, phase: 0 };
+export const meta: FigureMeta = { rect: [K + 0.16, K + 1, 0.2, 0.6], plane: 2, phase: 0 };   // (q3: up into the sky for the swallow)
 type PtData = [x: number, y: number, ...data: number[]];
 interface TreeOptions { pale?: boolean; upright?: boolean }
 
@@ -143,7 +144,8 @@ export function* draw(env: Env) {
   // the fields on the treads, between a wall's lip and the foot of the wall above: each a long band, pinched a little at
   // its ends where it meets the next field (a low dike) or runs out against the hill's outline. Flooded fields hold
   // the sky (paper), young rice is pale, ripe rice a little darker; some lie bare
-  const flood = colour ? mix3(C.white, C.az, 0.08) : C.white;
+  // (q3: the flooded fields hold the morning sky: a clear pale ice-cyan, each with a lit line along its lip)
+  const flood = colour ? mix3(C.white, [168, 214, 232], 0.42) : C.white;
   const young = colour ? mix3(C.mal, C.white, 0.5) : mix3(C.ink2, C.white, 0.78);
   const ripe = colour ? mix3(C.malD, C.ink2, 0.25) : C.ink2;
   for (const w of walls) {
@@ -171,7 +173,10 @@ export function* draw(env: Env) {
         const a = fade2(m[2], m[3]);
         const poly = [...seg.map(([x, y]): Pt => [x, y - 0.5]), ...top.slice().reverse()];
         const seed = w.k * 13 + i0;
-        if (kind < 0.26 && !open && w.k > 1 && n * DU * REF_PX < 70 * big) wash(ctx, poly, rgba(flood, (0.44 + R() * 0.2) * a), { jit: 0.4, seed });
+        if (kind < 0.34 && !open && w.k > 1 && n * DU * REF_PX < 90 * big) {
+          wash(ctx, poly, rgba(flood, (0.5 + R() * 0.2) * a), { jit: 0.4, seed });
+          if (colour && n > 8) stroke(ctx, seg.slice(2, n - 2).map(([x, y]): Pt => [x, y - 1.1 * wk]), { w: 0.75 * wk, col: rgba(C.light, 0.92 * a), tin: 0.3, tout: 0.4, min: 0.2, dry: 0.2, seed: seed + 5 });
+        }
         else if (kind < 0.6) wash(ctx, poly, rgba(young, (0.26 + R() * 0.2) * a), { jit: 0.4, seed });
         else if (kind < 0.8) wash(ctx, poly, rgba(ripe, (0.08 + R() * 0.08) * a), { jit: 0.4, seed });
         i0 = i1 + (R() < 0.5 ? 1 : 0);
@@ -294,11 +299,12 @@ export function* draw(env: Env) {
   };
   onCrest(K + 0.392, 0.012, 0.66, 'crown2', { pale: true });
   onCrest(K + 0.405, 0.011, 0.7, 'crown', { upright: true });
-  onCrest(K + 0.418, 0.011, 0.9, 'crown3', {});
+  // (q3: one tree on the crown is in blossom, the spring accent of the terraces; another, smaller, on the shoulder)
+  { const y = crest(K + 0.418) - 0.011; if (fade2(K + 0.418, y) >= 0.3) blossomTree(env, X(K + 0.418), Y(y), 2.1 * fk, own('tree', 'blossom')); }
   onCrest(K + 0.432, 0.013, 0.62, 'crown4', {});
   onCrest(K + 0.525, 0.012, 0.75, 'saddle', { pale: true });
   onCrest(K + 0.539, 0.014, 0.6, 'saddle2', {});
-  onCrest(K + 0.772, 0.012, 0.6, 'shoulder', {});
+  { const y = crest(K + 0.772) - 0.012; if (fade2(K + 0.772, y) >= 0.3) blossomTree(env, X(K + 0.772), Y(y), 1.3 * fk, own('tree', 'shoulder blossom')); }
   if (start) {
     ctx.globalAlpha = clamp01(fade2(start[0] / REF_PX, 1 - start[1] / VH_PX) * 1.3);
     fieldTree(env, start[0] + 9 * wk, start[1] + 1.5 * wk, 0.8 * fk, own('tree', 'shore', 1), {});
@@ -306,6 +312,53 @@ export function* draw(env: Env) {
     ctx.globalAlpha = 1;
   }
   yield;
+  // (A r2: the bamboo is dropped: a third green, cut by the frame's edge)
+  // ---- q3 (BRIEF3 #2, Résumé's one painted moment): terraces in the morning light. A swallow sweeps low over the
+  // fields toward the light (the painted bird, its own sprite, gliding), the flooded treads hold the sky with a lit
+  // line along each lip, and one tree on the left crown is in blossom.
+  if (!env.still) {
+    const sx = X(K + 0.6), sy = Y(0.445), path: Pt[] = [], sb = 40 * Math.pow(big, 0.5);
+    for (let k = 0; k <= 30; k++) { const u = k / 30; path.push([sx - 120 + 260 * u, sy + 18 - 40 * u + 10 * Math.sin(u * 3.4)]); }
+    ownSprite(env, 'walker', { x: sx - sb * 0.85, y: sy - sb * 0.72, w: sb * 1.7, h: sb * 1.45 }, { path, home: [sx, sy], speed: 11, bird: true }, (e) => swallowInk(e, sx, sy, sb, 0.28, own('q3 swallow'), { bank: -0.5, lift: 0.4 }));
+  }
+  yield;
+}
+
+/**
+ * q3: a tree in blossom, small in the far landscape (a peach on the terraces' crown): a short forked trunk under a
+ * rounded crown of overlapping dabs, white and pale pink on its lit upper left, a deeper rose in its shade, over a
+ * soft blush wash, a few dabs loose at its edge. (x, y) = the foot; s = scale (1 ~ 20 world px tall).
+ */
+function blossomTree(env: Env, x: number, y: number, s: number, R: Rng) {
+  const { ctx, ink } = env;
+  const { C, rgba } = ink;
+  const ic = mix3(C.ink, C.navy, 0.3);
+  stroke(ctx, [[x, y + 0.5 * s], [x - 0.8 * s, y - 5 * s], [x + 0.3 * s, y - 9 * s]], { w: 1.7 * s, col: rgba(ic, 0.85), tin: 0.05, tout: 0.5, min: 0.4, seed: x });
+  stroke(ctx, [[x - 0.5 * s, y - 5.5 * s], [x - 4 * s, y - 10.5 * s]], { w: 0.9 * s, col: rgba(ic, 0.75), tin: 0.05, tout: 0.7, min: 0.2, seed: x + 1 });
+  stroke(ctx, [[x + 0.1 * s, y - 7.5 * s], [x + 4.4 * s, y - 11.5 * s]], { w: 0.8 * s, col: rgba(ic, 0.75), tin: 0.05, tout: 0.7, min: 0.2, seed: x + 2 });
+  const cx = x + 0.3 * s, cy = y - 13 * s, rx = 10.5 * s, ry = 6.8 * s;
+  softWash(env, ellipse(cx, cy, rx * 1.05, ry * 1.05, 24), rgba([246, 206, 222], 0.5), 1.6 * s);
+  const fam: RGB[] = [[255, 253, 254], [250, 222, 232], [242, 182, 202], [222, 132, 160]];
+  const lobes: [number, number, number][] = [[-5, 1, 5], [4.5, 0.5, 5.5], [0, -3, 5.5], [-1, 3.2, 4.5], [7, 3, 3.5]];
+  for (const [lx, ly, lr] of lobes) {
+    const n = Math.round(lr * 3.2);
+    for (let i = 0; i < n; i++) {
+      const a = R() * Math.PI * 2, rr = Math.sqrt(R()) * lr * s;
+      const px = cx + lx * s + Math.cos(a) * rr, py = cy + ly * s + Math.sin(a) * rr * 0.75;
+      // lit upper left: white and pale; shade lower right: deeper rose
+      const lit = ((cx - px) / rx - (py - cy) / ry) * 0.5 + 0.5 + (R() - 0.5) * 0.5;
+      const c = fam[Math.max(0, Math.min(3, Math.floor((1 - lit) * 3.6)))];
+      const d = (0.9 + R() * 1.1) * s;
+      ctx.fillStyle = rgba(c, 0.82 + R() * 0.15);
+      ctx.beginPath(); ctx.ellipse(px, py, d, d * (0.6 + R() * 0.3), R() * 3, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+  // a few dabs loose at its edge
+  for (let i = 0; i < 4; i++) {
+    const a = R() * Math.PI * 2, px = cx + Math.cos(a) * rx * 1.15, py = cy + Math.sin(a) * ry * 1.2, d = 0.7 * s;
+    ctx.fillStyle = rgba(fam[1 + Math.floor(R() * 2)], 0.7);
+    ctx.beginPath(); ctx.ellipse(px, py, d, d * 0.7, R() * 3, 0, Math.PI * 2); ctx.fill();
+  }
 }
 
 /**

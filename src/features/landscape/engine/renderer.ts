@@ -50,6 +50,10 @@ export interface SceneBase {
   draft: boolean;
   draftScale: number;
   aspect: number;
+  /** M n1: a story-map still (QA frame): only Home's light keeps its heart and bloom. */
+  stillL?: number;
+  /** P2 morning: seconds into Home's once-a-session morning (>= 9: none, at rest). */
+  morn?: number;
 }
 /** What scene() paints: one view's framing, composition, figures and arrival. */
 export interface SceneU extends SceneBase {
@@ -120,10 +124,20 @@ export interface LifeTable {
   ridge: string | null;
   sprite: string | null;
   fig: string | null;
+  /** P3 (elements.ts): the stirred water's ring sets (4 x [uv x, y, age s, 2 x kind + seed]) and their strength; the
+   *  plum's gust ([age s, lean, strength, nudge rad]) and its petals ([origin uv x, y, size uv x, 0]). */
+  stir: Float32Array;
+  stirK: Float32Array;
+  gust: Float32Array;
+  gust2: Float32Array;
 }
 /** What present() lays on screen. */
 export interface PresentU {
   aspect: number;
+  /** M n1: a story-map still (QA frame): only Home's light keeps its heart and bloom. */
+  stillL?: number;
+  /** P2 morning: seconds into Home's once-a-session morning (>= 9: none, at rest). */
+  morn?: number;
   windows: PresentWindow[];
   life: LifeTable | null;
   horizon: { id: string; k: number; view: Float32Array } | null;
@@ -141,6 +155,12 @@ export interface PresentU {
   wakeR: number;
   sweep: Float32Array;
   sweepSeed: number;
+  /** M enriched (silk veil): the text keep-out's right edge, screen uv x (0 = none). */
+  sweepKeep?: number;
+  /** Final round (silk veil = mist dissolve): copy this frame after drawing it (a long jump before its splice). */
+  grab?: boolean;
+  /** Final round: how much of the grabbed frame still shows over this one (a long jump after its splice), 1 -> 0. */
+  hold?: number;
   stage: StageU | null;
   /** 4b living veils (shaders.ts PRESENT: uLive, uLive2). */
   live: Float32Array;

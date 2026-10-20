@@ -7,6 +7,7 @@ import { landscape } from '@/features/landscape/store';
 import { currentMain, placeOf, targetsOf } from '@/features/landscape/targets';
 import { quiet } from '@/features/chrome/still';
 import { cut, enter, exit, restore, travel } from './transition';
+import { liftNavMark } from '@/features/effects/nav-mark';
 
 /**
  * Moving between pages inside the one painting (design-demo/README "Route changes"; the demo router's
@@ -133,6 +134,7 @@ export function Navigation() {
       router.prefetch(url.pathname + url.search);
       prepare(dest);
       if (!quiet()) travel(landscape.get(), dest, { dir });
+      liftNavMark(url.pathname, dir); // (navMark: the nav's mark lifts at the click, inside the pan)
       void exit(main, { dir, signal: ctrl.signal }).then(() => {
         if (pending.current !== p || ctrl.signal.aborted) return;
         p.pushed = true;

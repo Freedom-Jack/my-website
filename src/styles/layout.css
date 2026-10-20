@@ -682,7 +682,17 @@ main:has(> .closing:last-child) + .site-footer {
   --ra3: 0.844;
   /* a slanted (8deg) gradient's stop for a boundary at x across the window's middle row: x cos 8 + h sin 8 / 2 */
   --mask:
-    linear-gradient(to bottom, transparent, #000 7%, #000 calc(100% - var(--fade-b)), transparent),
+    /* (M n1: the sky band feathers into paper over its top 35 % and its foot over 25 %: no ruled band) */
+    linear-gradient(
+      to bottom,
+      transparent,
+      rgb(0 0 0 / 0.25) 12%,
+      rgb(0 0 0 / 0.7) 24%,
+      #000 35%,
+      #000 calc(100% - max(var(--fade-b), 25%)),
+      rgb(0 0 0 / 0.45) calc(100% - max(var(--fade-b), 25%) / 2),
+      transparent
+    ),
     linear-gradient(
       var(--tl),
       transparent calc(var(--h) * 0.0696),

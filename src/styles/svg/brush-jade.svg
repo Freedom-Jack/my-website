@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 20" preserveAspectRatio="none">
+  <!-- A r2: the link brush in jade ink: a pressed start, an even run, a tapering finish; two unequal skips of flying
+       white that follow the stroke (no turbulence streaks, nothing on the top edge). -->
+  <defs>
+    <mask id="dry" maskUnits="userSpaceOnUse" x="0" y="0" width="240" height="20">
+      <rect width="240" height="20" fill="#fff"/>
+      <path fill="#000" d="M128 8.6c24-.5 50-.3 72 .4 6 .2 10 .5 13 .8-6 .2-14 .2-22 .1-22-.2-44-.6-63-1.3z"/>
+      <path fill="#000" fill-opacity=".8" d="M60 10.6c12-.3 26-.3 38 .1 4 .1 6 .3 8 .5-4 .1-9 .2-14 .1-11-.1-22-.4-32-.7z"/>
+    </mask>
+  </defs>
+  <path mask="url(#dry)" fill="#134a47" d="M2.6 11.2C2.4 7.6 7 5.6 15 5.3c50-.9 112-.2 168 .9 26 .5 44 1.4 55 3.2-10 1.7-30 2.7-56 3.4-58 1.5-118 2.4-163 2.6-8 .1-16-.4-16.4-4.2z"/>
+</svg>

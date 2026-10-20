@@ -245,7 +245,9 @@ export const SCENES: Scene[] = [
       // on phones the figures are drawn larger (figures.ts `big`), so the traveller stays >= 12 CSS px tall. The view
       // ends at u 1.06, before the river town; it may begin a little left of u 0, where the scroll opens in mist.
       tablet: { scale: 620, band: [0.195, 0.588], fbIn: 0, u: 0.76, fx: 0.62, uMax: 1.14 },
-      phone: { scale: 270, band: [0.195, 0.588], fbIn: 0, u: 0.76, fx: 0.6, uMax: 1.06 },
+      // (M n1, the critic: "the host peak is tiny, a thumbnail": framed tighter on the host peak and its light, so the
+      // two fill about half the strip; the hut stays, the traveller sits in the bottom feather)
+      phone: { scale: 360, band: [0.25, 0.62], fbIn: 0.3, u: 0.73, fx: 0.55, uMax: 1.06 },
       // sideways phones: an 80 px sliver holds the summits above their mist (the figures cannot read at that size)
       short: { scale: 600, band: [0.44, 0.588], u: 0.72, fx: 0.62, uMax: 1.06 },
       // closing: the whole mountain with the hut and the traveller, ending before the river town (the wide one only off

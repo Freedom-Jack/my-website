@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 64" preserveAspectRatio="none">
+  <!-- M n1: the jade button's silhouette (a CSS mask, alpha only): one loaded stroke, pressed and rounded at its start,
+       an even body, and a tail about a fifth shorter than before that does not taper to a vector point: it ends BLUNT,
+       broken into a dry brush by three bristle gaps that run with the stroke and open out through its end. Flying white
+       inside the body: two unequal skips along its edges (none across the label's line). -->
+  <defs>
+    <filter id="edge" x="-3%" y="-10%" width="106%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.045 0.09" numOctaves="2" seed="21" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="2.2" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <mask id="dry" maskUnits="userSpaceOnUse" x="0" y="0" width="240" height="64">
+      <rect width="240" height="64" fill="#fff"/>
+      <path fill="#000" fill-opacity=".85" d="M120 19.4c16-.7 32-.6 46 0 6 .3 10 .7 13 1.1-5 .3-11 .4-18 .4-15 0-29-.6-41-1.5z"/>
+      <path fill="#000" fill-opacity=".7" d="M34 48.2c14-.5 32-.6 48-.3 6 .1 10 .3 13 .6-6 .3-14 .5-22 .5-14 0-27-.3-39-.8z"/>
+      <!-- the bristle gaps of the dry tail: thin at their start, open through the blunt end -->
+      <path fill="#000" d="M174 25.2c14-.9 30-1 48-.4v2.2c-17 .1-33-.2-48-1.8z"/>
+      <path fill="#000" d="M190 33.6c10-.6 20-.6 32-.2v1.8c-12 .3-22 .1-32-1.6z"/>
+      <path fill="#000" fill-opacity=".9" d="M181 41.6c13-.6 26-.5 41 .2v1.6c-15 .1-29-.4-41-1.8z"/>
+    </mask>
+  </defs>
+  <g filter="url(#edge)">
+    <path mask="url(#dry)" fill="#000" d="M15 11.6C7 12.6 3.4 21.4 3.6 31.6 3.8 42.6 7.4 50.8 15.4 52.2c44 1.4 104 .2 152-1.2 18-.5 32-2.2 42-4.6 3.2-.8 5.4-1.6 6.6-2.4 1.6-4 2.2-9.4 1.8-14.2-.3-3.4-1-5.8-2-7.2-5.4-2-14-3.2-26-4.2-12-1-29-1.8-52-2.4C100 13.4 60 11 15 11.6z"/>
+  </g>
+</svg>

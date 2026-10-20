@@ -187,7 +187,7 @@ export function travel(
   const duration = back ? token('--dur-route-back-pan', 400) : token('--dur-route-pan', 600);
   void land.panTo(to.stretch, { duration, ease: 'cubic-out', distance: to.distance, presence: to.presence });
   if (back) return;
-  void land.sweep({ dir: dir < 0 ? -1 : 1, duration: token('--dur-route-sweep', 420) });
+  void land.sweep({ dir: dir < 0 ? -1 : 1, duration: token('--dur-route-sweep', 340) });
 }
 
 /** The quiet form: the painting simply is at the new stretch (at the swap). */

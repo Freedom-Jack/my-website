@@ -28,7 +28,7 @@ export const PALETTES = Object.freeze({
   // terraces and the crossing's water now carry them at .55 / .50, so every place has its own colour)
   // (round 5: the lake keeps a breath of the blue-green and the lone peak a trace, so the colour runs along the whole
   // scroll and only fades, never stops)
-  misted: Object.freeze({ scenes: Object.freeze([0.55, 0.40, 0.14, 0.55, 0.50, 0.08]), figures: 1 }),
+  misted: Object.freeze({ scenes: Object.freeze([0.85, 0.70, 0.36, 0.70, 0.75, 0.32]), figures: 1 }),   // A: the young palette, re-indexed to the six places
   rich: Object.freeze({ scenes: Object.freeze([0.75, 0.60, 0.22, 0.75, 0.70, 0.12]), figures: 1.25 }),
 });
 
@@ -78,3 +78,19 @@ export function pigmentAt(u: number, palette: string = DEFAULT_PALETTE, out: num
   out[2] = sum > 0 ? w / sum : 0;
   return out;
 }
+
+/**
+ * A r2: the one colour story, locked (every place carries it; the sets and shaders.ts COLORS draw from these values).
+ * Washes: ice and celadon. ONE accent pair: the jade/cyan of the light and the peach-pink of the plum blossom (Home
+ * only). ONE foliage green for every leaf (the willow; trees take it misted). Ink: brown-black for near limbs.
+ */
+export const STORY = Object.freeze({
+  skyTop: '#B8D9F0',       // the ice-blue sky high in a window (shaders.ts SKY_T)
+  light: '#FBFEFF',        // the light's core and the mist (never darker than #E1ECF1)
+  celadon: '#8BCECC',      // the misted jade wash (MA_M)
+  jade: '#1C7D82',         // the deep jade (MA_D); the UI's #134A47 / #0F3D36 are its ink
+  glow: '#BFE9F2',         // the cyan-white halo round every place's light
+  blossom: '#F4A8B8',      // the one warm accent: peach-pink, with white plum #FFFCFD
+  foliage: '#9DC77A',      // the one foliage green, near; misted far #BFD9B0
+  limbInk: '#2B2C2D',      // INK_N moved ~15 % toward umber: near branches and boughs
+});

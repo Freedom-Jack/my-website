@@ -28,12 +28,14 @@ import { spec, blendSpec, resolve, framing, cameraLeft, sceneName, framingBlend,
 import { VEILS, TRAIL, LIFE } from './shaders';
 import { paletteName } from './palette';
 import { figureMeta, registerSets } from './figures';
+import { el } from '../elements';
 import { createFigureSource, type FigureSource } from './figure-source';
 import { SETS } from './sets';
 import { framingAt, pageSpec, layerScaleAt } from './compose';
 import type { Distance, Framing, Resolved, Spec, WidthClass, WindowKind } from './compose';
 import type { FigureMeta, LifeKind, LifeOut, Pt } from './figures';
 import type { FigureImage, FigureSlot, LifeTable, PresentU, PresentWindow, Renderer, SceneBase, StageU } from './renderer';
+import { elementOn } from '../elements';
 import type { LandscapeHandle, LandscapeStats, LandscapeTargets, Mode, MountOptions, PanOptions } from '../types';
 
 registerSets(SETS);   // the figure sets, on the main thread (the worker registers its own)
@@ -65,7 +67,7 @@ export interface EngineOptions extends Omit<MountOptions, 'veil'> {
   reducedMotion?: boolean;
   widthClass?: WidthClass;
   /** QA only: the strip window's framing, fixed (world x at its left edge, scene height at its top, CSS px per stretch). */
-  frame?: { left: number; top: number; scale: number };
+  frame?: { left: number; top: number; scale: number; light?: number }; // light (P4 sun): which place keeps its sun in a still (-1: none)
 }
 /** rebind()'s targets: the contract's (types.ts), with the head / descend aliases and a single veil element. */
 export type EngineTargets = Partial<Omit<LandscapeTargets, 'veil'>> & Pick<EngineOptions, 'veil' | 'head' | 'descend'>;
@@ -82,6 +84,23 @@ export interface EngineHandle extends LandscapeHandle {
 
 const S_SCENE = 2, S_PRESENT = 4, S_MEASURE = 8, S_SCROLL = 16, S_ALL = 31;   // dirty flags
 const ARRIVE_END = 1.7;   // s, the bloom is over (matches the shader's "settled")
+// P2 "Morning opens" (elements.ts morning): Home's first full load of a session runs the arrival a little longer, to
+// MORN_END: the light rises and opens, the mist parts, the silk unfurls (shaders.ts uMorn); the waterfall's own lights
+// come up with it (the hand-off: no separate glint). On phones (< 768 px) the same morning runs in 1.6 s, inside the
+// plain bloom's 1.7 s, so phones never get a longer arrival.
+const MORN_END = 2.3;
+const MORN_PHONE = 1.6;
+const MORN_SUNUP = 1.8;   // morning s: the light has risen (shaders.ts mornE ~1): the name's swash catches it (swash.ts)
+const MORN_KEY = 'ink:morning';
+const firstMorning = () => {
+  try {
+    if (sessionStorage.getItem(MORN_KEY)) return false;
+    sessionStorage.setItem(MORN_KEY, '1');
+  } catch {
+    /* private mode: every load is a first load */
+  }
+  return true;
+};
 const LONG_CAP = 1920;    // internal buffer: long side cap
 const AMBIENT_MS = 70;    // drifting mist: < 15 fps on every GPU
 const POINTER_MS = 33;    // the wake: <= 30 fps
@@ -577,6 +596,8 @@ interface Tween {
   clock?: number;
   hold: number;
   held: number;
+  /** Final round: the last frame drawn was before the splice (a long jump's cross-dissolve grabs it). */
+  pre?: boolean;
 }
 /** A mist sweep in progress. */
 interface Sweep {
@@ -618,6 +639,10 @@ interface LifeView {
   bloom: boolean;
   vr: Variant;
   map: (w: number[]) => number[];
+  /** P3: canvas uv -> the world point (as map's inverse), the ridge column of a canvas uv x, and the ridges (water). */
+  inv: (u: number, v: number) => [number, number];
+  col: (u: number) => number;
+  rid: () => { buf: Float32Array | null; samples: number };
 }
 /** A life anchor placed in a view this frame. */
 interface LifeEntry {
@@ -629,6 +654,8 @@ interface LifeEntry {
   k: number;
   sprite: { id: string; px: number[]; atlas: number[] } | null;
   area: number;
+  /** (final round) the plum's arrival: how far its ink has bloomed from the root (1 = whole) */
+  rev?: number;
 }
 /** A figure layer that is drawn and uploaded (ready()). */
 type ReadyLayer = Layer & { status: 'ready' };
@@ -717,6 +744,30 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     for (const k of PLACE_KEYS) (T as Record<(typeof PLACE_KEYS)[number], unknown>)[k] = at[k] ?? STAGE[k];
   };
   const living = () => ground === 'living';
+
+  // ---------------------------------------------------------------- P3 "Life that answers you" (elements.ts)
+  // 1. stir: ring sets on the open water, kept in the world (so they ride the page's scroll) with the view they lie in
+  const STIR_N = 4;
+  const STIR_LIFE = [1.4, 1.4, 4.4];   // s, per kind: the pointer's dwell, a tap's drop, the pole's / the bow's (shaders.ts lifeStir)
+  const STIR_USER = 2;                 // (final round) at most two of the pointer's rings alive in a place
+  const STIR_DWELL = 450;              // (final round) ms the pointer must rest over the water for one ring
+  interface Stir { wx: number; wy: number; t: number; t0: number; seed: number; kind: number }
+  const stirs: Stir[] = [];
+  const stirU = new Float32Array(16).fill(-1), stirKU = new Float32Array(4);
+  let stirAt = 0, stirTapAt = 0, stirPX = -1e9, stirPY = -1e9, stirSeq = 0;
+  let dwellTimer: ReturnType<typeof setTimeout> | null = null;
+  const autoNext = new Map<string, number>();     // 6. contactLife: when each auto drop falls next
+  // the view life lies in, and how to read its water from a canvas point (lifeU)
+  let lifeHit: LifeView | null = null;
+  // 2. plumGust
+  const gustU = new Float32Array([-1, 0, 0, 0]), gust2U = new Float32Array(4);
+  let gust: { t0: number; dir: number; u: number; v: number } | null = null, gustAt = -1e9;
+  let plumLimbUV: number[][] | null = null, petalR = 0;
+  let lastPX = 0, lastPT = 0, pvx = 0;
+  // (3. parallax: CUT in the final round: it turned the handscroll into a cut-paper diorama)
+  // 7. stillSettle: the drift easing to rest before Still takes hold
+  const SETTLE_MS = 800;
+  let settling = false;
   let palette = paletteName(opts.palette);
   const figuresOn = opts.figures !== false;
 
@@ -729,6 +780,17 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
   let tween: Tween | null = null;
 
   let arriving = !quantized() && opts.arrival !== 'none';
+  // P2: the morning plays once per session, on Home only, inside the ink bloom (never on a route change: no arrival)
+  const morning = arriving && !hasFrom && !(QA && opts.frame) && Math.round(target0) === 0 && elementOn('morning') && firstMorning();
+  // (the morning's own clock: on phones it runs MORN_END / MORN_PHONE faster, so it ends inside the plain bloom)
+  const mornK = () => ((cssW || innerWidth) < 768 ? MORN_END / MORN_PHONE : 1);
+  const mornNow = () => (morning && arriving ? arrive * mornK() : 9);
+  let sunUp = false;   // has 'ink:sunup' been sent (once per load: the light is up, on a morning or a plain arrival)?
+  const sendSunUp = () => {
+    if (sunUp) return;
+    sunUp = true;
+    try { dispatchEvent(new CustomEvent('ink:sunup', { detail: { morning } })); } catch { /* old browsers: the swash's own timer */ }
+  };
   let arrive = arriving ? 0 : 9;      // shader seconds: the bloom is authored as 1.25 s
   let arriveSeen = false;             // has any of the bloom been painted while the page was visible?
   const arriveRate = 1250 / Math.min(20000, Math.max(300, num(opts.arrivalMs, 1250)));
@@ -741,6 +803,13 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
   // QA only (the panorama tool): the strip window looks at a fixed slice of the world at a fixed scale, its figure layer
   // drawn at that scale, so a row of such windows stitches into the whole handscroll at one scale
   const qaFrame = QA && opts.frame && [opts.frame.left, opts.frame.top, opts.frame.scale].every(Number.isFinite) ? opts.frame : null;
+  // a still's lights (shaders.ts uStillL): 0 a live page; 1 Home's sun only (the M default); 2 none; 3 + k place k's
+  const stillLight = () => {
+    if (!qaFrame) return 0;
+    const l = qaFrame.light;
+    if (typeof l !== 'number' || !Number.isFinite(l)) return 1;
+    return l < 0 ? 2 : 3 + Math.round(l);
+  };
   let time = 40;             // ambient clock, seconds (never jumps after a pause)
   let driftT = 1;            // 0..1: the drift eases out after IDLE_MS without input, and back in
   let lastInput = performance.now();
@@ -812,6 +881,11 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
   // the sweep
   let sw: Sweep | null = null;
   let sweepN = 0;
+  // (final round, silkVeil) a long jump's cross-dissolve: grab each frame before the splice, then hold the last one
+  // over the new place for XF_MS while it dissolves away (xfT: ms since the splice, -1 = none)
+  let xfGrab = false, xfT = -1;
+  const XF_MS = 340;
+  const xfMs = () => (QA && Number((globalThis as { __xfMs?: number }).__xfMs)) || XF_MS;   // (QA: a slow-motion check)
   const sweepU = new Float32Array(4);
   let sweepSeed = 0;
 
@@ -890,7 +964,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     L = { key, stretch: k, scale, meta, status: 'pending', img: null, readyAt: 0, uploaded: false, waiters: [], used: performance.now(), shownSince: 0 };
     layers.set(key, L);
     figSource().request({
-      stretch: k, scale, dpr: layerDpr(), palette, distance: f.distance, presence: f.presence, cls,
+      stretch: k, scale, dpr: layerDpr(), palette, distance: f.distance, presence: f.presence, cls, still: !!qaFrame,
       out: mode === 'webgl' ? (renderer.bitmaps ? 'gpu' : 'bytes') : 'bitmap',
     }).then((res) => {
       if (destroyed || layers.get(key) !== L) return;
@@ -1468,7 +1542,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
   }
 
   // the wake: fine pointers, inside a [data-wake] region, never under reduced motion or still
-  const wakeOn = () => opts.pointer !== false && !quantized() && mode === 'webgl' && mqFine.matches && wakeEls.length > 0;
+  const wakeOn = () => opts.pointer !== false && !quantized() && !settling && mode === 'webgl' && mqFine.matches && wakeEls.length > 0;
   function insideWake(x: number, y: number) {
     if (stageOn()) return true;   // the stage is everywhere (the veils keep the wake off the text)
     if (!wakeRects) wakeRects = wakeEls.filter((el) => el.isConnected).map((el) => el.getBoundingClientRect());
@@ -1482,6 +1556,100 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     wakeBox.set([2, 2, -1, -1]);
     trailU.fill(0);
   }
+  // ---------------------------------------------------------------- P3 "Life that answers you" (elements.ts)
+  const p3OK = () => mode === 'webgl' && !quantized() && !settling && ambientWanted && !hidden;
+  function addStir(S: Stir) {
+    // (sparse: with every slot in use a pass or an auto drop waits its turn, so no ring ever vanishes mid-life; a tap
+    // takes the oldest's slot, which is fading by then)
+    const now = performance.now();
+    for (let i = stirs.length - 1; i >= 0; i--) if (now - stirs[i].t0 > STIR_LIFE[stirs[i].kind] * 1000) stirs.splice(i, 1);
+    if (stirs.length >= STIR_N && S.kind !== 1) return false;
+    // (final round: the pointer's own rings, at most STIR_USER at once: a dwell waits, a tap takes the oldest's place)
+    const own = stirs.filter((q) => q.kind < 2);
+    if (S.kind < 2 && own.length >= STIR_USER) {
+      if (S.kind === 0) return false;
+      stirs.splice(stirs.indexOf(own[own.length - 1]), 1);
+    }
+    stirs.unshift(S);
+    if (stirs.length > STIR_N) stirs.length = STIR_N;
+    return true;
+  }
+  /** 1. Is canvas point (u, v) on the open water of the view life lies in? (its ridge rows, as the shader reads them:
+   *  below the waterline, past a river's near bank, no near headland standing over it) */
+  function waterAt(h: LifeView, u: number, v: number) {
+    const { buf, samples: n } = h.rid();
+    if (!buf || !n) return false;
+    const c = h.col(u);
+    if (!(c >= 0 && c < n)) return false;
+    const wy = h.inv(u, v)[1];
+    const o5 = (LAYERS * n + c) * 4, o7 = ((LAYERS + 2) * n + c) * 4;
+    if (!(buf[o5] > 0.3) || !(buf[o5 + 1] - wy > 0.006)) return false;
+    if (buf[o7] > -0.5 && wy < buf[o7] + 0.02) return false;
+    for (let l = 3; l < LAYERS; l++) if (buf[(l * n + c) * 4] > wy) return false;
+    return true;
+  }
+  /** 1. A ring set where the pointer passes (kind 0) or a tap lands (kind 1), if that point is open water. */
+  function spawnStir(x: number, y: number, kind: number, now: number) {
+    const h = lifeHit;
+    if (!h || !(el('stir'))) return false;
+    const u = (x - rect.left) / (cssW || 1), v = 1 - (y - rect.top) / (cssH || 1);
+    const c = h.clip;
+    if (u < c[0] || u > c[2] || v < c[1] || v > c[3] || !waterAt(h, u, v)) return false;
+    const w = h.inv(u, v);
+    if (!addStir({ wx: w[0], wy: w[1], t: h.t, t0: now, seed: (stirSeq++ * 0.618034) % 1, kind })) return false;
+    pace(S_PRESENT, 0);
+    return true;
+  }
+  /** The pointer's P3 answers: the stirred water, the plum's gust, the stage's depth (fine pointers only). */
+  function p3Pointer(e: PointerEvent) {
+    if (!p3OK() || e.pointerType === 'touch' || !mqFine.matches) return;
+    const now = performance.now(), x = e.clientX, y = e.clientY;
+    // (the pointer's horizontal speed, CSS px per s, eased: the gust leans with it)
+    const dtp = Math.max(1, now - lastPT);
+    pvx += (((x - lastPX) / dtp) * 1000 - pvx) * Math.min(1, dtp / 120);
+    lastPX = x; lastPT = now;
+    // 1. stir (final round): no rings on a pass. One ring when the pointer rests over the water for STIR_DWELL ms (each
+    // move restarts the wait; one ring per rest), or on a tap (onTap)
+    if (el('stir')) {
+      if (dwellTimer) clearTimeout(dwellTimer);
+      dwellTimer = setTimeout(() => {
+        dwellTimer = null;
+        if (!p3OK() || !wake.inWin) return;
+        if (Math.hypot(x - stirPX, y - stirPY) < 6 && performance.now() - stirAt < 2000) return;
+        const t1 = performance.now();
+        if (spawnStir(x, y, 0, t1)) { stirAt = t1; stirPX = x; stirPY = y; }
+      }, STIR_DWELL);
+    }
+    // 2. plumGust: the pointer passing within ~60 px of the bough's limb, moving, at most once every 8 s; the petals let
+    // go from the limb where it came nearest, a little under it (where the blossoms hang)
+    if (el('plumGust') && plumLimbUV && plumLimbUV.length > 1 && lifeHit && now - gustAt > 8000 && Math.abs(pvx) > 60) {
+      const px = x - rect.left, py = y - rect.top;
+      let best = Infinity, bx = 0, by = 0;
+      for (let i = 1; i < plumLimbUV.length; i++) {
+        const ax = plumLimbUV[i - 1][0] * cssW, ay = (1 - plumLimbUV[i - 1][1]) * cssH, qx = plumLimbUV[i][0] * cssW, qy = (1 - plumLimbUV[i][1]) * cssH;
+        const dx = qx - ax, dy = qy - ay, L2 = dx * dx + dy * dy || 1;
+        const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / L2));
+        const cx = ax + dx * t, cy = ay + dy * t, dd = Math.hypot(px - cx, py - cy);
+        if (dd < best) { best = dd; bx = cx; by = cy; }
+      }
+      if (best < 60) {
+        const u = bx / (cssW || 1), v = 1 - (by + 14) / (cssH || 1);
+        gust = { t0: now, dir: pvx > 0 ? 1 : -1, u, v };
+        gustAt = now;
+        pace(S_PRESENT, 0);
+      }
+    }
+  }
+  /** 1. A tap (or a click) on the water drops a stone: three rings. On a touch screen at most one every 2 s. */
+  const onTap = (e: PointerEvent) => {
+    if (!p3OK() || !el('stir')) return;
+    const now = performance.now();
+    if (now - stirTapAt < (e.pointerType === 'touch' ? 2000 : 450)) return;
+    if (spawnStir(e.clientX, e.clientY, 1, now)) { stirTapAt = now; stirAt = now; stirPX = e.clientX; stirPY = e.clientY; }
+  };
+  /** P3: something that answers the pointer is moving (paced at the wake's <= 30 fps), or only the ambient drops. */
+  const fxFast = (now: number) => mode === 'webgl' && (settling || (!!gust && now - gust.t0 < 7600)
+    || stirs.some((S) => S.kind < 2 && now - S.t0 < STIR_LIFE[S.kind] * 1000));
   // the wake's radius, viewport heights (WAKE_VH of the viewport, clamped to WAKE_PX CSS px)
   const wakeR = () => { const h = cssH || innerHeight || 900; return Math.min(WAKE_PX[1], Math.max(WAKE_PX[0], WAKE_VH * h)) / h; };
   // the wake needs frames only while it moves (a parked pointer's parted mist is a still picture)
@@ -1494,6 +1662,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
   };
   const onPointer = (e: PointerEvent) => {
     onInput();
+    p3Pointer(e);
     if (e.pointerType === 'touch' || !wakeOn()) return;
     wake.tx = e.clientX;
     wake.ty = e.clientY;
@@ -1673,6 +1842,11 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     let at = due;
     if (wakeLive()) at = Math.min(at, lastPresent + POINTER_MS);
     if (ambientOn()) at = Math.min(at, lastPresent + AMBIENT_MS);
+    // P3: a response to the pointer (rings, the gust, the depth, the page change's swallow, Still settling) at the
+    // wake's <= 30 fps while it moves; the ambient drops only ride the ambient frames
+    const nowF = performance.now();
+    if (fxFast(nowF)) at = Math.min(at, lastPresent + POINTER_MS);
+    else if (stirs.length && !quantized()) at = Math.min(at, lastPresent + AMBIENT_MS);
     if (at < Infinity) wakeAt(at);
   }
 
@@ -1795,7 +1969,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     const note = w.note ? new Float32Array([w.note[0] / b.width, 1 - w.note[3] / b.height, w.note[2] / b.width, 1 - w.note[1] / b.height]) : null;
     const U = {
       ...U0, view: w.viewU, hs, feet: layerFeet(P), keep, note, figA: fa, figB: fb,
-      arrive: w.kind === 'strip' ? arrive : 9, hz: hzZero, hzK: 0, lift: 0, P, box: b, fr,
+      arrive: w.kind === 'strip' ? arrive : 9, morn: w.kind === 'strip' ? mornNow() : 9, hz: hzZero, hzK: 0, lift: 0, P, box: b, fr,
     };
     const t1 = performance.now();
     const done = renderer!.scene(w.id, U) !== false;
@@ -1938,7 +2112,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       const view = new Float32Array(job.j === 0 ? vX : [vX[0], top - c[1] * unit, (c[3] - c[1]) * unit, vX[3]]);
       const U = {
         ...U0, view, hs: HS, feet: layerFeet(P), keep, note: null, figA: job.fa, figB: job.fb,
-        arrive, hz: hzZero, hzK: 0, lift: 0, P, planes: new Float32Array([job.lo, job.hi, job.layer, 0]),
+        arrive, morn: mornNow(), hz: hzZero, hzK: 0, lift: 0, P, planes: new Float32Array([job.lo, job.hi, job.layer, 0]),
         crop: new Float32Array([c[0] / cssWX, (c[2] - c[0]) / cssWX, 0, 0]),
       };
       const t1 = performance.now();
@@ -2104,7 +2278,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     const x = sw.dir > 0 ? 1.18 - 1.36 * e : -0.18 + 1.36 * e;
     const a = sstep(0, 0.32, u) * (1 - sstep(0.62, 1, u));
     const thick = tween && tween.cut ? 1 : 0;
-    sweepU[0] = x; sweepU[1] = SWEEP_W; sweepU[2] = a; sweepU[3] = thick;
+    sweepU[0] = x; sweepU[1] = SWEEP_W * sw.dir; sweepU[2] = a; sweepU[3] = thick;   // (P1: the sign carries its travel, for the silk veil; the bank squares it)
     sweepSeed = sw.seed;
     if (u >= 1) { endSweep(); return false; }
     return true;
@@ -2158,6 +2332,12 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
         // travel CUT_SPAN on screen; the middle of the journey is spliced out under the thick mist
         const D = tween.to - tween.from, sg = Math.sign(D), span = Math.min(CUT_SPAN, Math.abs(D));
         stretch = tween.from + sg * (span * e + (e >= ease(CUT_AT) ? Math.abs(D) - span : 0));
+        const pre = e < ease(CUT_AT);
+        if (el('silkVeil')) {
+          if (tween.pre && !pre) xfT = 0;
+          xfGrab = pre;
+        }
+        tween.pre = pre;
       } else stretch = tween.from + (tween.to - tween.from) * e;
       curSpec = blendSpec(tween.fromSpec, tween.toSpec, e);
       if (tween.t >= 1) {
@@ -2170,23 +2350,45 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     if (arriving) {
       if (dt > 0 && !hidden) arriveSeen = true;
       arrive += (dt / 1000) * arriveRate;
-      if (arrive >= ARRIVE_END) { arriving = false; arrive = 9; } else animating = true;
+      if (morning ? arrive * mornK() >= MORN_SUNUP : arrive >= 1.24) sendSunUp();
+      if (morning ? arrive >= Math.max(ARRIVE_END, MORN_END / mornK()) : arrive >= ARRIVE_END) { arriving = false; arrive = 9; sendSunUp(); } else animating = true;
     }
     if (stepHz(false)) need |= S_PRESENT;
     if (Math.abs(hzK - hzTarget) > 1e-4 && !quantized() && forced === null) animating = true;
     if (sw) { if (updateSweep(dt)) animating = true; need |= S_PRESENT; }
+    if (!tween || !tween.cut) xfGrab = false;
+    if (xfT >= 0) {
+      xfT += dt;
+      if (xfT >= xfMs() || quantized() || hidden) xfT = -1;
+      animating = true; need |= S_PRESENT;
+    }
     if (wake.has || wake.s > 0 || trail.length) { if (updateWake(dt, now)) need |= S_PRESENT; }
-    if (drifting() && dt > 0) {
+    if (settling) {
+      // P3 (elements.ts stillSettle): Still was asked for: the drift, the small life and the plum ease to rest over
+      // SETTLE_MS (at the wake's pace), then the painting is still
+      driftT = Math.max(0, driftT - dt / SETTLE_MS);
+      const d = driftT * driftT * (3 - 2 * driftT);
+      if (d > 0) time += (dt / 1000) * d * T.drift;
+      need |= S_PRESENT;
+      if (driftT <= 0) {
+        settling = false;
+        still = true;
+        stirs.length = 0; gust = null;
+        need |= S_SCROLL | S_SCENE | S_PRESENT;
+      }
+    } else if (drifting() && dt > 0) {
       driftT = awake() ? Math.min(1, driftT + dt / EASE_IN_MS) : Math.max(0, driftT - dt / EASE_OUT_MS);
       const d = driftT * driftT * (3 - 2 * driftT);
       if (d > 0) { time += (dt / 1000) * d * T.drift; need |= S_PRESENT; }   // (every page: gently perceptible)
     }
+    // P3: the gust, Still settling and the stirred water ask for presents while they move
+    if (fxFast(now) || stirs.length) need |= S_PRESENT;
 
     // the scenes: a window repaints when its framing, palette, keep-out or figures change, while it is in motion,
     // and once at full quality after motion stops. Never while the page merely scrolls (its key stays the same).
     const moving = (panning && !holding) || arriving;
     const draft = mode === 'webgl' ? moving && draftScale < 1 : panning && !holding;
-    const U0 = { tide, draft, draftScale, aspect };
+    const U0 = { tide, draft, draftScale, aspect, stillL: stillLight() };
     const slots = lastSlots = figSlots();
     for (const s of slots) if (s.k < 1) animating = true;
     const scrollIdle = performance.now() - lastScroll > 100;
@@ -2294,11 +2496,12 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
   const LIFE_KIND: Record<LifeKind, number> = { shimmer: 1, smoke: 2, willow: 3, boat: 4, walker: 4 };
   const LIFE_ORDER: Record<LifeKind, number> = { boat: 0, walker: 0, shimmer: 1, smoke: 2, willow: 3 };   // (sprites first: they are no longer in their layer)
   const SPRITED = (a: LifeOut): a is LifeOut & Required<Pick<LifeOut, 'cut' | 'atlas'>> => (a.kind === 'boat' || a.kind === 'walker') && Array.isArray(a.cut) && Array.isArray(a.atlas);
-  const LIFE_AMP: Partial<Record<LifeKind, number>> = { shimmer: 0.3, smoke: 1, willow: 1.2 };          // the shimmer's strength; the sway in CSS px
+  const LIFE_AMP: Partial<Record<LifeKind, number>> = { shimmer: 0.3, smoke: 1, willow: 1.8 };   // (M n1: the willow sways 1.5x wider)          // the shimmer's strength; the sway in CSS px
   const lifeR = new Float32Array(LIFE * 4), lifeA = new Float32Array(LIFE * 4), lifeB = new Float32Array(LIFE * 4);
   const lifeK = new Float32Array(4), lifeUb = new Float32Array(4), lifeFR = new Float32Array(4);
   const lifeTs = new Float32Array(8);
-  const lifeT: LifeTable = { rect: lifeR, a: lifeA, b: lifeB, k: lifeK, union: lifeUb, figR: lifeFR, starts: lifeTs, ridge: null, sprite: null, fig: null };
+  const lifeT: LifeTable = { rect: lifeR, a: lifeA, b: lifeB, k: lifeK, union: lifeUb, figR: lifeFR, starts: lifeTs, ridge: null, sprite: null, fig: null,
+    stir: stirU, stirK: stirKU, gust: gustU, gust2: gust2U };
   let lifeN = 0, lifeKinds: LifeKind[] = [];
   /** The world point (viewport heights across, scene height up) of a world px point of a figure layer. */
   const lifeW = (x: number, y: number) => [(x / REF_PX) * HS, 1 - (y * HS) / REF_PX];
@@ -2331,6 +2534,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
 
   function lifeU(windows: PresentWindow[], stage: StageU | null): LifeTable | null {
     lifeN = 0; lifeKinds = []; lifeK[0] = 0;
+    lifeHit = null; plumLimbUV = null;
     if (mode !== 'webgl' || !figuresOn || fullMode || !W || !lastSlots.length) return null;   // (full mode: no figures)
     const vh = cssH || 1, phone = cls === 'phone';
     // the views on screen, each with its map from world to canvas uv, the planes it holds and its arrival (the strip and
@@ -2346,7 +2550,9 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
         const kr = wins[0].keepR !== null && wins[0].keepR > 0 && wins[0].box ? (wins[0].keepR + wins[0].box.left - 140) / (cssW || 1) : 0;
         const cx = j > 0 ? Math.max(st.rects[j * 4], kr) + ox : 0;
         views.push({ t: 2 + j, lo, hi, clip: [cx, 0, 1, 1], bloom: true, vr: 'strip',
-          map: (w) => [(w[0] - M[0]) / M[3] + ox, 1 - (M[1] - w[1]) / M[2] - oy] });
+          map: (w) => [(w[0] - M[0]) / M[3] + ox, 1 - (M[1] - w[1]) / M[2] - oy],
+          inv: (u, v) => [M[0] + (u - ox) * M[3], M[1] - (1 - v - oy) * M[2]],
+          col: (u) => Math.floor((u - ox) * (cssW / ((cssW + st.ext) || 1)) * st.samples), rid: () => ({ buf: st.buf, samples: st.samples }) });
       }
     } else {
       windows.forEach((w, i) => {
@@ -2355,7 +2561,9 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
         // layer, drawn at another scale, and a strip layer's anchors must not land in it)
         const src = wins.find((x) => x.id === w.id);
         views.push({ t: i, lo: 0, hi: LAYERS - 1, clip: R, bloom: w.id === 'strip', vr: src ? variantOf(src) : 'strip',
-          map: (p) => [R[0] + ((p[0] - M[0]) / M[3]) * (R[2] - R[0]), R[1] + (1 - (M[1] - p[1]) / M[2] - sink) * (R[3] - R[1])] });
+          map: (p) => [R[0] + ((p[0] - M[0]) / M[3]) * (R[2] - R[0]), R[1] + (1 - (M[1] - p[1]) / M[2] - sink) * (R[3] - R[1])],
+          inv: (u, v) => [M[0] + ((u - R[0]) / (R[2] - R[0])) * M[3], M[1] - (1 - (v - R[1]) / (R[3] - R[1]) - sink) * M[2]],
+          col: (u) => Math.floor(((u - R[0]) / (R[2] - R[0])) * (src ? src.samples : 0)), rid: () => ({ buf: src ? src.buf : null, samples: src ? src.samples : 0 }) });
       });
     }
     if (!views.length) return null;
@@ -2399,12 +2607,19 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
         }
         for (const v of views) {
           if (a.plane < v.lo || a.plane > v.hi || v.vr !== (slot.v || 'strip')) continue;
-          const p0 = v.map(lifeW(box[0], box[3])), p1 = v.map(lifeW(box[2], box[1]));   // (canvas uv is y up)
+          const bloom = v.bloom ? clamp01((arrive - a.plane * 0.1 - 0.35) / 0.6) : 1;
+          // (final round: the arrival never fades the plum or the swallow in at partial alpha (a grey "loading" ghost):
+          // the plum's ink blooms from its root to its tips over 500 ms (a threshold in the shader, rev), and the
+          // swallow flies in at full value, already moving along its heading, gliding up from the left into its place)
+          const swing = !!(sprite && a.params?.swing), bird = !!(sprite && a.params?.bird);
+          const rev = swing && v.bloom ? clamp01((arrive - a.plane * 0.1 - 0.35) / 0.5) : 1;
+          let bx = box;
+          if (bird && bloom < 1) { const s = (1 - bloom) * (1 - bloom) * (box[2] - box[0]); bx = [box[0] - s * 1.6, box[1] + s * 0.5, box[2] - s * 1.6, box[3] + s * 0.5]; }   // (along its heading, up from the left, clear of the peak and the header's paper)
+          const p0 = v.map(lifeW(bx[0], bx[3])), p1 = v.map(lifeW(bx[2], bx[1]));   // (canvas uv is y up)
           const rc = [Math.min(p0[0], p1[0]), Math.min(p0[1], p1[1]), Math.max(p0[0], p1[0]), Math.max(p0[1], p1[1])];
           const c = v.clip;
           if (rc[2] < Math.max(0, c[0]) || rc[0] > Math.min(1, c[2]) || rc[3] < Math.max(0, c[1]) || rc[1] > Math.min(1, c[3])) continue;
-          const bloom = v.bloom ? clamp01((arrive - a.plane * 0.1 - 0.35) / 0.6) : 1;
-          list.push({ a, n, L, v, rc, k: slot.k * bloom * alpha, sprite, area: (rc[2] - rc[0]) * (rc[3] - rc[1]) });
+          list.push({ a, n, L, v, rc, k: slot.k * (swing || bird ? 1 : bloom) * alpha, sprite, area: (rc[2] - rc[0]) * (rc[3] - rc[1]), rev });
         }
       });
     }
@@ -2431,12 +2646,28 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       let B = [0, 0, 0, 0], amp = LIFE_AMP[a.kind] ?? 1;
       if (a.kind === 'shimmer') {
         amp *= phone ? 0.8 : 1;
-        B = [1, 0.15, 0, 0];
+        B = [1, 0.15, a.params?.rings ?? 0, 0];   // (d5 f1: z = ripple rings)
         if (!lifeT.fig) {
           const r = e.L.meta.rect;
           lifeT.fig = e.L.key;
           lifeFR.set([r[0] * HS, r[2], 1 / ((r[1] - r[0]) * HS), 1 / (r[3] - r[2])]);
         }
+      } else if (a.kind === 'smoke' && a.params?.fall) {
+        // P3 (elements.ts waterfall): the fall's column: its x, its lip's and its foot's y (canvas uv), its half-width
+        const f = a.params.fall;
+        const lip = v.map(lifeW(f.x, f.y0)), foot = v.map(lifeW(f.x, f.y1)), side = v.map(lifeW(f.x + f.hw, f.y0));
+        B = [lip[0], lip[1], foot[1], Math.abs(side[0] - lip[0])];
+        if (!lifeT.fig) {
+          const r = e.L.meta.rect;
+          lifeT.fig = e.L.key;
+          lifeFR.set([r[0] * HS, r[2], 1 / ((r[1] - r[0]) * HS), 1 / (r[3] - r[2])]);
+        }
+      } else if (a.kind === 'smoke' && a.params?.petals) {
+        // d5 f1: falling petals (the present pass draws them in the box): count, speed, size (canvas uv x), 0
+        const pp = a.params.petals;
+        // (P2 morning: w holds the petals back until its end, then they come as a small gust once the light is up)
+        B = [Math.min(12, pp.n), pp.speed ?? 1, (pp.size * (rc[2] - rc[0])) / Math.max(1, a.w), morning && arriving ? 1 - clamp01((mornNow() - 1.5) / 0.6) : 0];
+        petalR = B[2];   // (P3 plumGust: the gust's petals are the plum's own size)
       } else if (a.kind === 'smoke') {
         const src = Array.isArray(a.params?.src) ? a.params.src : [a.x + a.w / 2, a.y + a.h];
         const s0 = v.map(lifeW(src[0], src[1]));
@@ -2446,7 +2677,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
         const f = Array.isArray(a.params?.foot) ? a.params.foot : [a.x + a.w / 2, a.y + a.h];
         const p = v.map(lifeW(f[0], f[1]));
         // (at most 1.5 CSS px, calmer on phones)
-        B = [p[0], p[1], Math.max(1e-4, rc[3] - p[1]), (Math.min(1.5, amp * (phone ? 0.6 : 1)) / (cssW || 1))];
+        B = [p[0], p[1], Math.max(1e-4, rc[3] - p[1]), (Math.min(2.2, amp * (phone ? 0.6 : 1)) / (cssW || 1))];
         amp = 1;
       } else if (e.sprite) {
         if (lifeT.sprite && lifeT.sprite !== e.sprite.id) continue;   // (one layer's sprite atlas on show at a time)
@@ -2455,15 +2686,56 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
         const lod = Math.max(0, Math.log2(e.sprite.px[0] / Math.max(1e-3, (rc[2] - rc[0]) * W)));
         B = [e.k, lod, e.sprite.atlas[0], e.sprite.atlas[1]];
         amp = 1;
+        if (a.params?.swing) {   // (P3 plumGust: the bough's limb, its line on the canvas)
+          plumLimbUV = Array.isArray(a.params.limb) ? a.params.limb.map((p) => v.map(lifeW(p[0], p[1]))) : null;
+        }
       }
-      lifeR.set(rc, i * 4);
-      lifeA.set([LIFE_KIND[a.kind], e.sprite ? e.sprite.atlas[2] : 0, amp * (e.sprite ? 1 : e.k), ((e.n * 0.618 + e.L.stretch * 0.31) % 1) * 6.28], i * 4);
+      // (P3 contactLife: a clump that bends in the breeze gets 8 % more room each side, so its bent tips are never cut;
+      // the shader maps back into the sprite)
+      const bend = !!(e.sprite && a.params?.bend && el('contactLife'));
+      const rcB = bend ? [rc[0] - (rc[2] - rc[0]) * 0.08 / 1.0, rc[1], rc[2] + (rc[2] - rc[0]) * 0.08, rc[3]] : rc;
+      lifeR.set(rcB, i * 4);
+      lifeA.set([LIFE_KIND[a.kind], e.sprite ? e.sprite.atlas[2] : (a.params?.fall ? -2 : a.params?.petals ? -1 : 0), e.sprite ? (a.params?.bird ? 2 : a.params?.swing ? 3 + 0.45 * (1 - (e.rev ?? 1)) : bend ? (phone ? 4.6 : 4.99) : 1) : amp * e.k, ((e.n * 0.618 + e.L.stretch * 0.31) % 1) * 6.28], i * 4);
       lifeB.set(B, i * 4);
-      U[0] = Math.min(U[0], rc[0]); U[1] = Math.min(U[1], rc[1]); U[2] = Math.max(U[2], rc[2]); U[3] = Math.max(U[3], rc[3]);
+      U[0] = Math.min(U[0], rcB[0]); U[1] = Math.min(U[1], rcB[1]); U[2] = Math.max(U[2], rcB[2]); U[3] = Math.max(U[3], rcB[3]);
+      // P3 (elements.ts contactLife): the shimmer's auto drops (the ferryman's pole, the bow) fall now and then, each on
+      // its own slow beat, only while the painting is awake (they ride the ambient frames)
+      if (a.kind === 'shimmer' && Array.isArray(a.params?.drops) && el('contactLife') && d > 0.5) {
+        a.params.drops.forEach((pt, k) => {
+          const key = `${e.L.key}|${e.n}|${k}`, now = performance.now();
+          const next = autoNext.get(key);
+          if (next === undefined) { autoNext.set(key, now + 900 + k * 2600); return; }
+          if (now < next) return;
+          const w = lifeW(pt[0], pt[1]);
+          addStir({ wx: w[0], wy: w[1], t: v.t, t0: now, seed: (stirSeq++ * 0.618034) % 1, kind: 2 });
+          autoNext.set(key, now + 5200 + 2400 * (((stirSeq * 0.37) % 1)));
+        });
+      }
       lifeKinds.push(a.kind);
       lifeN++;
     }
     if (!lifeN) return null;
+    lifeHit = lv;
+    // P3 (elements.ts stir, contactLife): the live ring sets in this view, at their world points (they ride the scroll)
+    const now = performance.now();
+    stirU.fill(-1);
+    for (let i = stirs.length - 1; i >= 0; i--) if (stirs[i].t !== lv.t || now - stirs[i].t0 > STIR_LIFE[stirs[i].kind] * 1000) stirs.splice(i, 1);
+    stirs.forEach((S, i) => {
+      const p = lv.map([S.wx, S.wy]);
+      stirU.set([p[0], p[1], (now - S.t0) / 1000, S.kind * 2 + S.seed], i * 4);
+      const rx = 78 / (cssW || 1), ry = 78 / 3.4 / vh + 8 / vh;
+      U[0] = Math.min(U[0], p[0] - rx); U[1] = Math.min(U[1], p[1] - ry); U[2] = Math.max(U[2], p[0] + rx); U[3] = Math.max(U[3], p[1] + ry);
+    });
+    stirKU.set([stirs.length ? 1 : 0, el('stillSettle') ? 1 : 0, stage ? cssW / ((cssW + st.ext) || 1) : 1, el('stir') ? 1 : 0]);
+    // P3 (elements.ts plumGust): the gust's age, lean and the bough's nudge; its petals' origin (a world point, mapped back)
+    gustU.set([-1, 0, 0, 0]);
+    if (gust && (now - gust.t0) / 1000 > 7.6) gust = null;
+    if (gust && el('plumGust')) {
+      const p = lv.map(lv.inv(gust.u, gust.v)), age = (now - gust.t0) / 1000;
+      gustU.set([age, gust.dir, 1, 0.04]);
+      gust2U.set([p[0], p[1], petalR || 0.004, (gust.t0 * 0.001) % 97]);   // (w: this gust's seed)
+      U[0] = Math.min(U[0], p[0] - 280 / (cssW || 1)); U[1] = Math.min(U[1], p[1] - 200 / vh); U[2] = Math.max(U[2], p[0] + 280 / (cssW || 1)); U[3] = Math.max(U[3], p[1] + 60 / vh);
+    }
     // where each kind's run starts (shimmer, smoke, willow, boat), the count, the view
     const from = (k: number) => { let i = 0; while (i < lifeN && lifeA[i * 4] < k) i++; return i; };
     lifeTs.set([from(1), from(2), from(3), from(4), lifeN, lv.t, 0, 0]);
@@ -2486,7 +2758,9 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     // painter scales them itself, beside a block only (above and below it they keep their 1440 reach))
     liveU.set([staged ? 2 : 1, T.core / vhPx, T.feather / vhPx,
       mode === 'webgl' ? T.sky * (1 + (staged && st.ok ? T.rise * st.midK : 0)) : 0]);
-    liveU2.set([(window.scrollY || 0) / vhPx, T.clear / vhPx, T.swell / vhPx, 1 / vhPx]);
+    // (A r2: a story-map still has no header above it: its scroll is sent far down, so the header's paper band (shaders.ts)
+    // never reaches the still)
+    liveU2.set([qaFrame ? 100 : (window.scrollY || 0) / vhPx, T.clear / vhPx, T.swell / vhPx, 1 / vhPx]);
     if (qaNoVeil) { veil.fill(-1); veilS.fill(0); }
     const windows: PresentWindow[] = [];
     for (const w of wins) {
@@ -2501,13 +2775,16 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
         box: b,
         view: w.viewU,
         feather: new Float32Array([Math.max(1e-3, (ft * k) / b.height), Math.max(1e-3, (fb * k) / b.height), w.wakeOK ? 1 : 0, 1]),
-        keep: w.keepU ? new Float32Array([w.keepU[0], w.keepU[1], w.keepU[2], 0]) : null,
+        // (M n1: w = 1 marks the page's own hero window: the inner pages' sky grade stays inside it)
+        keep: new Float32Array(w.keepU ? [w.keepU[0], w.keepU[1], w.keepU[2], w.kind === 'strip' ? 1 : 0] : [0, 0, 0, w.kind === 'strip' ? 1 : 0]),
         sink: w.sink || 0,
       });
     }
     const stage = stageOn() && st.ok ? stageU() : null;
     return {
       aspect,
+      stillL: stillLight(),
+      morn: mornNow(),
       windows,
       life: lifeU(windows, stage),
       horizon: hzK > 0 && hzv.painted ? { id: hzv.id, k: hzK, view: hzv.view } : null,
@@ -2517,6 +2794,9 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       veilR: 0.13 * Math.min(1, aspect),   // the veil's feather: 13% of the shorter side (x veilF per veil)
       trail: trailU, wakeBox, wakeR: wakeR(),
       sweep: sweepU, sweepSeed,
+      grab: xfGrab,
+      hold: xfT >= 0 ? 1 - sstep(0, xfMs(), xfT) : 0,
+      sweepKeep: wins[0].keepR !== null && wins[0].keepR > 0 && wins[0].box ? (wins[0].keepR + wins[0].box.left) / (cssW || 1) : 0,
       stage,
       live: liveU,
       live2: liveU2,
@@ -2569,7 +2849,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       tween = { from: stretch, to: dest, fromSpec: curSpec, toSpec, t: 0, dur, ease: o.ease === 'cubic-out' ? 'cubic' : 'whip', cut, resolve: res } as Tween;
       // the destination's layer fades in over the pan's last 40% (or from whenever it is ready, if later)
       if (Lb && !ready(Lb)) Lb.shownSince = 0;
-      if (cut && !sw) startSweep(Math.sign(dest - stretch), Math.min(420, dur * 0.75));
+      if (cut && !sw) startSweep(Math.sign(dest - stretch), Math.min(340, dur * 0.75));
       request(S_SCENE);
     });
   }
@@ -2629,6 +2909,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
   addEventListener('scroll', onScroll, passive);
   addEventListener('pointermove', onPointer, passive);
   addEventListener('pointerdown', onInput, passive);
+  addEventListener('pointerdown', onTap, passive);
   addEventListener('wheel', onInput, passive);
   addEventListener('keydown', onInput, passive);
   document.documentElement.addEventListener('pointerleave', onLeave);
@@ -2717,7 +2998,20 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     },
     setStill(on) {
       on = !!on;
-      if (on === still || destroyed) return;
+      if (destroyed) return;
+      if (!on && settling) { settling = false; lastInput = performance.now(); request(S_PRESENT); return; }
+      if (on === still || (on && settling)) return;
+      // P3 (elements.ts stillSettle): with the painting alive, Still lets it settle first (draw(): the drift, the small
+      // life and the plum ease to rest over SETTLE_MS, then still); reduced motion, a hidden page or a still drift cut
+      if (on && el('stillSettle') && !reduced && mode === 'webgl' && !hidden && driftT > 0.02 && running()) {
+        settling = true;
+        finishPan();
+        endSweep();
+        resetWake();
+        if (arriving) { arriving = false; arrive = 9; }
+        request(S_PRESENT);
+        return;
+      }
       still = on;
       if (still) {
         finishPan();
@@ -2737,6 +3031,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     destroy() {
       if (destroyed) return;
       destroyed = true;
+      if (dwellTimer) clearTimeout(dwellTimer);
       stop();
       cancelIdle();
       clearTimeout(lostTimer);
@@ -2750,6 +3045,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       removeEventListener('scroll', onScroll);
       removeEventListener('pointermove', onPointer);
       removeEventListener('pointerdown', onInput);
+      removeEventListener('pointerdown', onTap);
       removeEventListener('wheel', onInput);
       removeEventListener('keydown', onInput);
       removeEventListener('resize', onWinResize);
@@ -2832,6 +3128,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
         still,
         sweeping: !!sw,
         arriving,
+        morning: mornNow(),
         ambient: ambientOn(),
         drift: r3(driftT),
         // (a window painted ahead while the bloom ran stays a draft until it comes on screen: only what shows counts)
@@ -2848,6 +3145,8 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
         stageVeto, govPresent: govP.slice(),
         // 4b small life on the last present: how many entries, their kinds, and its strength now (0 = still)
         life: { n: lifeN, kinds: lifeKinds.slice(), k: r3(lifeK[0]), bitmaps: !!renderer?.bitmaps },
+        // P3 (elements.ts): what answers the pointer now
+        p3: { stirs: stirs.length, gust: !!gust, settling, fine: mqFine.matches },
         ...(QA ? { veils: [...Array(VEILS).keys()].filter((k) => veil[k * 4] > -0.5).map((k) => [veil[k * 4], veil[k * 4 + 1], veil[k * 4 + 2], veil[k * 4 + 3]].map((v, i) => Math.round(i % 2 ? (1 - v) * (cssH || 0) : v * (cssW || 0))).concat(r3(veilS[k]))) } : {}),
         // the living state (QA): `y` is the scroll the state was read at; `ready` = the three layers are painted at full
         // quality and shown; `phase` hero | lifting | settled | descending | end; `prog` the camera's progress (0 at the

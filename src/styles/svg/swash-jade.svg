@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 28" preserveAspectRatio="none">
+  <!-- A r2: the one swash, under the Home name only (a CSS mask, alpha only): a real brush stroke with a slight upward
+       curve, pressed at its start, both ends tapering, a dry, broken finish (two skips and a lifted last fleck). -->
+  <defs>
+    <mask id="dry" maskUnits="userSpaceOnUse" x="0" y="0" width="480" height="28">
+      <rect width="480" height="28" fill="#fff"/>
+      <path fill="#000" d="M250 15.8c40-2.6 84-5 118-6.2 12-.4 22-.5 30-.3-10 1-26 2.2-44 3.4-36 2.2-72 3.6-104 3.1z"/>
+      <path fill="#000" fill-opacity=".8" d="M330 18.4c22-1.6 44-2.8 62-3.4 6-.2 11-.2 15 0-6 .8-15 1.6-26 2.2-18 1-35 1.4-51 1.2z"/>
+      <path fill="#000" fill-opacity=".9" d="M420 9.4l14-1.2 3 .8-14 1.8z"/>
+    </mask>
+  </defs>
+  <path mask="url(#dry)" fill="#000" d="M6 19.8C3.4 17.4 4.6 13.6 10 12.6c18-3 46-3.4 86-3.6 70-.4 150-1.6 214-3.6 46-1.4 104-3.3 164-4.6-50 3.4-110 7.4-160 10.9-74 5.2-160 9.4-228 10.4-36 .5-66 .3-74-2.3z"/>
+  <path fill="#000" fill-opacity=".55" d="M444 6.4c10-.8 20-1.6 30-2.6-8 1.2-18 2.6-30 3.8z"/>
+</svg>

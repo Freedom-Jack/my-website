@@ -7,6 +7,8 @@
  * corner; a row's wash comes to rest ~80% of the way to the row's far edge, so its tide line stays in view.
  * Idempotent; returns its undo.
  */
+import { fxOn } from '@/features/landscape/elements';
+
 const bound = new WeakSet<Element>();
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -51,6 +53,8 @@ function centre(el: HTMLElement) {
 
 function rings(btn: HTMLElement, clientX: number, clientY: number) {
   if (reduced()) return;
+  // (final round: Home's brush button answers a press with value only, jade.css: no rings, no crescent, no hairline)
+  if (btn.closest('.strip--home')) return;
   const ink = btn.querySelector('.ink-btn__ink');
   if (!ink) return;
   const r = ink.getBoundingClientRect();
@@ -88,7 +92,15 @@ export function initInkButtons(root: ParentNode, selector = '.ink-btn, .ink-row'
   for (const el of els) {
     bound.add(el);
     el.addEventListener('pointerenter', (e) => place(el, e.clientX, e.clientY), { signal });
-    el.addEventListener('pointerleave', (e) => place(el, e.clientX, e.clientY), { signal });
+    el.addEventListener(
+      'pointerleave',
+      (e) => {
+        // P4 rowrule: the brushed rule lifts where it lies (its fronts stay put), so the row keeps its entry point
+        if (fxOn('rowrule') && el.classList.contains('ink-row')) return;
+        place(el, e.clientX, e.clientY);
+      },
+      { signal },
+    );
     el.addEventListener(
       'focusin',
       () => {

@@ -108,6 +108,8 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
   const maxTex: number = gl.getParameter(gl.MAX_TEXTURE_SIZE) || 4096;
   let R: Resources | null = null;   // live GL resources
   let W = 0, H = 0;       // drawing-buffer size
+  // (final round) a long jump's cross-dissolve: the last frame before the splice, copied off the drawing buffer
+  let prev: WebGLTexture | null = null, prevW = 0, prevH = 0;
   const views = new Map<string, View>();
   const figs = new Map<string, WebGLTexture>();   // id -> texture
   const figBytes = new Map<string, number>();     // id -> bytes (QA: memory())
@@ -283,6 +285,8 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
     gl.deleteProgram(R.presentP.p);
     gl.deleteProgram(R.presentL.p);
     for (const t of [R.noise, R.blank]) if (t) gl.deleteTexture(t);
+    if (prev) gl.deleteTexture(prev);
+    prev = null; prevW = prevH = 0;
     gl.deleteVertexArray(R.vao);
     R = null;
   }
@@ -446,6 +450,8 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       gl.uniform4fv(P.u('uNote'), U.note || ZERO4);
       gl.uniform1f(P.u('uLift'), U.lift || 0);
       gl.uniform1f(P.u('uArrive'), U.arrive);
+      gl.uniform1f(P.u('uStillL'), U.stillL || 0);
+      gl.uniform1f(P.u('uMorn'), U.morn ?? 9);
       gl.uniform1f(P.u('uTide'), U.tide);
       gl.uniform4fv(P.u('uHz'), U.hz);
       gl.uniform1f(P.u('uHzK'), U.hzK);
@@ -491,6 +497,8 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       gl.uniform4fv(P.u('uHzM'), U.horizon ? U.horizon.view : ZERO4);
       gl.uniform1f(P.u('uAspect'), U.aspect);
       gl.uniform1f(P.u('uTime'), U.time);
+      gl.uniform1f(P.u('uStillL'), U.stillL || 0);
+      gl.uniform1f(P.u('uMorn'), U.morn ?? 9);
       gl.uniform4fv(P.u('uVeil'), U.veil);
       gl.uniform1fv(P.u('uVeilS'), U.veilS);
       gl.uniform1fv(P.u('uVeilF'), U.veilF);
@@ -500,6 +508,10 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       gl.uniform1f(P.u('uWakeR'), U.wakeR);
       gl.uniform4fv(P.u('uSweep'), U.sweep);
       gl.uniform1f(P.u('uSweepSeed'), U.sweepSeed);
+      gl.uniform1f(P.u('uSweepK'), U.sweepKeep ?? 0);
+      const hold = prev && prevW === W && prevH === H ? U.hold ?? 0 : 0;
+      gl.uniform1f(P.u('uHold'), hold);
+      bindTex(P, 10, 'uPrev', hold > 0 ? prev : null);
       gl.uniform1f(P.u('uPx'), U.px);
       gl.uniform1f(P.u('uPanPx'), U.panPx);
       gl.uniform1f(P.u('uGrain'), U.grain);
@@ -537,8 +549,23 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
         gl.uniform4fv(P.u('uLifeB'), lf.b);
         gl.uniform4fv(P.u('uLifeK'), lf.k);
         gl.uniform4fv(P.u('uLifeFigR'), lf.fig && figs.has(lf.fig) ? lf.figR : ZERO4);
+        // P3 (elements.ts): the stirred water, the plum's gust
+        gl.uniform4fv(P.u('uStir'), lf.stir);
+        gl.uniform4fv(P.u('uStirK'), lf.stirK);
+        gl.uniform4fv(P.u('uGust'), lf.gust);
+        gl.uniform4fv(P.u('uGust2'), lf.gust2);
       }
       gl.drawArrays(gl.TRIANGLES, 0, 3);
+      if (U.grab) {
+        // (final round) keep this frame for a long jump's cross-dissolve (only while one is about to splice)
+        gl.activeTexture(gl.TEXTURE0 + 10);
+        if (!prev || prevW !== W || prevH !== H) {
+          if (prev) gl.deleteTexture(prev);
+          prev = tex(W, H, gl.RGB8, gl.RGB, gl.UNSIGNED_BYTE, gl.CLAMP_TO_EDGE);   // (the drawing buffer has no alpha)
+          prevW = W; prevH = H;
+        } else gl.bindTexture(gl.TEXTURE_2D, prev);
+        gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 0, 0, W, H);
+      }
       if (!fence) {
         try { fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0); fenceAt = performance.now(); } catch { fence = null; }
       }

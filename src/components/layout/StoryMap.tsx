@@ -1,11 +1,16 @@
 'use client';
 
 import Link from 'next/link';
+import type { CSSProperties } from 'react';
 import manifest from '../../../public/scenes/manifest.json';
 import { STORY_MAP } from '@/features/landscape/places';
 import { useCurrent } from '@/features/chrome/current';
 
 type Tiles = Record<string, number[]>;
+
+/** sun: where each place's light sits across / down its still (0..1). From the one light table (engine/lights.ts),
+ *  written into the manifest by tools/build-stills.ts with the stills themselves, so they always agree. */
+const SUNS = (manifest as unknown as { suns?: Record<string, [number, number]> }).suns ?? {};
 
 /**
  * The footer's story map: the whole painting as one small handscroll. Each place's own opening scene in
@@ -23,21 +28,41 @@ export function StoryMap() {
         {STORY_MAP.map((p) => {
           const [w = 300, h = 70] = tiles[p.still] ?? [];
           return (
-            <span key={p.still} className="story-map__scene" data-stretch={p.stretch}>
-              {/* A decorative still at its own pixel sizes (1x, 2x): next/image would re-encode it. */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={`/scenes/${p.still}@1x.webp`}
-                srcSet={`/scenes/${p.still}@1x.webp 1x, /scenes/${p.still}@2x.webp 2x`}
-                width={w}
-                height={h}
-                alt=""
-                loading="lazy"
-                decoding="async"
-              />
+            <span
+              key={p.still}
+              className={current(p.href) ? 'story-map__scene is-here' : 'story-map__scene'}
+              data-stretch={p.stretch}
+            >
+              {/* A decorative still at its own pixel sizes (1x, 2x): next/image would re-encode it. P4 sun: the dim
+                  still (no sun) under the lit one (its own sun); CSS shows the lit one for the current place and
+                  raises it for a hovered or focused label (layout.css / finish.css). */}
+              {(['', '-lit'] as const).map((v) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={v}
+                  className={v ? 'story-map__lit' : 'story-map__dim'}
+                  src={`/scenes/${p.still}${v}@1x.webp`}
+                  srcSet={`/scenes/${p.still}${v}@1x.webp 1x, /scenes/${p.still}${v}@2x.webp 2x`}
+                  width={w}
+                  height={h}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                />
+              ))}
             </span>
           );
         })}
+        {STORY_MAP.map((p) => (
+          <span
+            key={`sun-${p.still}`}
+            className={current(p.href) ? 'story-map__sun is-here' : 'story-map__sun'}
+            data-stretch={p.stretch}
+            style={
+              { '--fx': (SUNS[p.still] ?? [0.5, 0.3])[0], '--fy': (SUNS[p.still] ?? [0.5, 0.3])[1] } as CSSProperties
+            }
+          />
+        ))}
         {STORY_MAP.map((p) => (
           <span
             key={p.still}

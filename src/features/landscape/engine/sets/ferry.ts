@@ -1,3 +1,6 @@
+import { rushes, ripples, farBird } from './young';
+import { el } from '../../elements';
+import type { RGB } from '../figures';
 // sets/ferry.ts — Contact (stretch 4): the crossing, "the ferry that brings you across to meet him".
 // On the near side of the water a short timber jetty comes in from the right on its posts, out of a low reedy bank,
 // and at its head the ferry waits, turned toward you: a small flat Song river boat with a squared, swept-up bow, a
@@ -12,13 +15,13 @@
 // water (phase 1), so the crossing's water runs under the boat and the jetty.
 
 import {
-  REF_PX, VH_PX, SCENE_FIELDS, sceneField, streams, vnoise, mix, mix3, stroke, dryBrush, wash, runs, anchor, bounds, ownSprite,
+  REF_PX, VH_PX, SCENE_FIELDS, sceneField, streams, vnoise, mix, mix3, stroke, dryBrush, wash, softWash, runs, anchor, bounds, ownSprite,
   type Env, type FigureMeta, type Pt, type Rng, type Streams,
 } from '../figures';
 
 /** The set's stretch: every world x below is K + its offset (move the place by changing K). */
 const K = 4;
-export const meta: FigureMeta = { rect: [K + 0.5, K + 1.06, 0.1, 0.4], plane: 2, phase: 1 };
+export const meta: FigureMeta = { rect: [K + 0.5, K + 1.06, 0.1, 0.6], plane: 2, phase: 1 };
 
 const SEED = 11;
 
@@ -47,9 +50,21 @@ export function* draw(env: Env) {
   const line: Pt[] = [];
   for (let x = X(K + 0.52); x <= X(K + 1.04); x += 40) line.push([x, farY(x)]);
   const top = Math.min(...line.map((p) => p[1]));
-  anchor(env, 'shimmer', { x: X(K + 0.52), y: top, w: X(K + 1.04) - X(K + 0.52), h: Y(0.1) - top }, { waterline: line });
+  // (contactLife: and now and then a ring set falls by itself exactly where the ferryman's pole stands in the water and
+  // where the bow meets it: the same geometry ferry() draws them with, ferryDrops)
+  const drops: Pt[] | undefined = el('contactLife') && !env.still ? ferryDrops(boat, sz, own) : undefined;
+  anchor(env, 'shimmer', { x: X(K + 0.52), y: top, w: X(K + 1.04) - X(K + 0.52), h: Y(0.1) - top }, { waterline: line, rings: 2, ...(drops ? { drops } : {}) });
 
   reflections(env, boat, jet, own('reflections'), sz);           // the water first: reflections, wake, rings
+  {
+    // d5 f1: a long glassy cyan wake fanning out behind the ferry toward the open water (two lines, a lit core)
+    const fb0 = boat.box, sx = fb0.x + fb0.w * 0.15, sy = fb0.y + fb0.h * 0.92;
+    for (const [dy, a, w, c] of [[0, 0.75, 1.6, [168, 228, 240]], [5, 0.55, 1.2, [150, 214, 232]], [-3, 0.9, 0.8, [246, 254, 255]]] as const) {
+      const pts: Pt[] = [];
+      for (let k = 0; k <= 24; k++) { const u = k / 24; pts.push([sx - u * 260 * sz, sy + dy * sz * u + u * u * 22 * sz * (dy >= 0 ? 1 : 0.4) + Math.sin(u * 9) * 0.8 * sz]); }
+      stroke(env.ctx, pts, { w: w * sz, col: env.ink.rgba([...c] as RGB, a), tin: 0.02, tout: 0.95, min: 0.05, dry: 0.2, seed: dy + 9 });
+    }
+  }
   yield;
   bank(env, jet, own('bank'), sz);                                // the near shore at the jetty's root
   reeds(env, jet.root[0] + 14 * sz, jet.wl - 1 * sz, sz, own('reeds', 'back'), 9, 0.7);
@@ -65,6 +80,38 @@ export function* draw(env: Env) {
     { L: boat.L, bob: { amp: 0.45 * sz, period: 7 } }, (e) => ferry(e, boat, jet, own, sz));
   yield;
   reeds(env, jet.root[0] - 4 * sz, jet.wl + 6 * sz, sz * 1.1, own('reeds', 'root'), 12, 1);
+  yield;
+  // ---- A r2: no willow copied from Work: a clump of rushes at the landing, in front of the jetty's root (young.ts)
+  if (!env.still) {
+    const rx = jet.root[0] + 22 * sz, ry = jet.wl + 8 * sz, rs = sz * 0.72;
+    // P3 (elements.ts contactLife): the rushes are their own sprite, so they bend in the breeze (the present pass)
+    if (el('contactLife')) ownSprite(env, 'boat', { x: rx - 64 * rs, y: ry - 100 * rs, w: 128 * rs, h: 106 * rs }, { bend: true, range: [rx - 4000, rx + 4000] }, (e) => rushes(e, rx, ry, rs, own('d5 rushes'), 13, 52));
+    else rushes(env, rx, ry, rs, own('d5 rushes'), 13, 52);
+  }
+  yield;
+  {
+    // ---- q3 (BRIEF3 #2, Contact's one painted moment): the ferry in the morning glow. Under the dawn light a road of
+    // light comes across the water toward the boat (glassy highlights over a faint clear cyan sheet, as on the lake),
+    // the bow and the pole each stand in their own broken rings, and two far birds cross over the far shore.
+    const { ctx, ink } = env, Rg = own('q3 glints');
+    const lx = X(K + 0.8), y0 = farY(lx) + 3;
+    const fb1 = boat.box, bx = fb1.x + fb1.w * 0.3, by = jet.wl + 30 * sz, ex = mix(lx, bx, 0.55);
+    // (the road runs from the far shore under the light to the near water in front of the jetty, toward the boat; laid last,
+    // over the bank's mist)
+    softWash(env, [[lx - 30, y0 - 2], [lx + 30, y0 - 2], [ex + 70 * sz, by + 4], [ex - 60 * sz, by + 4]], ink.rgba([128, 192, 216], 0.5), 10);
+    softWash(env, [[lx - 14, y0], [lx + 14, y0], [ex + 30 * sz, by], [ex - 26 * sz, by]], ink.rgba([108, 178, 206], 0.32), 6);
+    for (let i = 0; i < 24; i++) {
+      const t = i / 23, y = mix(y0 + 2, by - 2 * sz, t * t) + Rg() * 2, cx = mix(lx, ex, t * t), wdt = 24 + 120 * t * sz * 0.5, L = 12 + 34 * (1 - t) * Rg() + 14 * Rg() * (0.5 + t);
+      const x = cx + (Rg() - 0.5) * wdt;
+      stroke(ctx, [[x - L / 2, y], [x, y + 0.2], [x + L / 2, y]], { w: 1.0 + 1.1 * (1 - t), col: ink.rgba([255, 255, 255], 0.8 + 0.2 * Rg()), tin: 0.35, tout: 0.4, min: 0.1, wob: 0.3, seed: i + 500 });
+    }
+    ripples(env, fb1.x + fb1.w * 0.22, fb1.y + fb1.h * 0.97, 14 * sz, own('q3 rings'), { n: 3, sq: 0.25, alpha: 0.8 });
+    ripples(env, fb1.x + fb1.w * 0.86, fb1.y + fb1.h * 0.9, 6 * sz, own('q3 rings', 2), { n: 2, sq: 0.25, alpha: 0.6 });
+    if (!env.still) {
+      farBird(env, X(K + 0.72), Y(0.4), 8.5, -0.1, own('q3 birds', 1), 0.45);
+      farBird(env, X(K + 0.735), Y(0.415), 6.5, 0.15, own('q3 birds', 2), 0.55);
+    }
+  }
   yield;
 }
 
@@ -302,9 +349,7 @@ function ferry(env: Env, b: FerryShape, j: Jetty, own: Streams, s: number) {
   const feet = P3(L * ft, hw(ft) * 0.3, hs(ft) - 0.5 * s);
   const hands = ferryman(env, feet[0], feet[1], 1.75 * s, own('ferryman'));
   // the pole: steep, at his right, its foot in the water off the stern quarter
-  const dirP = [-0.34, -1], waterY = b.wR[N][1] + 1.5 * s;
-  const tP = (waterY - hands[1]) / -dirP[1];
-  const poleFoot: Pt = [hands[0] - dirP[0] * tP, waterY];
+  const poleFoot = poleFootOf(b, hands, s);
   // the canopy: a low barrel of woven mats on bamboo hoops over the waist; from the bow you look into it
   const t0 = 0.25, t1 = 0.66, wallH = 0.9 * s, ch = 7.4 * s;
   const arch = (t: number, from = -1, to = 1, n = 14) => {
@@ -362,6 +407,25 @@ function ferry(env: Env, b: FerryShape, j: Jetty, own: Streams, s: number) {
 /** The ferryman: a short faded-indigo jacket over dark trousers rolled to the knee, a wide shallow cone hat, leaning
  *  a little toward the pole at his right, both hands on it at the chest, one knee easy. (x, y) = his feet; s = scale
  *  (1 ~ 10 px tall). Returns where his hands hold the pole. */
+// The pole's foot in the water for the ferryman's hands (ferry() draws it there; contactLife drops its rings there).
+function poleFootOf(b: FerryShape, hands: Pt, s: number): Pt {
+  const dirP = [-0.34, -1], waterY = b.wR[b.N][1] + 1.5 * s;
+  const tP = (waterY - hands[1]) / -dirP[1];
+  return [hands[0] - dirP[0] * tP, waterY];
+}
+// Where his hands hold the pole, for his feet (x, y), his scale s and his lean (ferryman() draws them there).
+function ferrymanHands(x: number, y: number, s: number, lean: number): Pt {
+  const sh = [x + 0.2 * s + Math.sin(lean) * 7.1 * s, y - 7.1 * s];
+  return [sh[0] + 2.5 * s, sh[1] + 1.3 * s];
+}
+// contactLife: the pole's foot and the bow at the water (where the wake starts), without drawing: ferry()'s feet, the
+// ferryman's lean from his own seeded stream (its first draw), so the drops sit exactly on what is painted.
+function ferryDrops(b: FerryShape, s: number, own: Streams): Pt[] {
+  const ft = 0.9;
+  const feet = b.P3(b.L * ft, b.hw(ft) * 0.3, b.hs(ft) - 0.5 * s);
+  const lean = 0.1 + own('ferryman')() * 0.05;
+  return [poleFootOf(b, ferrymanHands(feet[0], feet[1], 1.75 * s, lean), s), b.P3(b.L * 0.2, 0, 0)];
+}
 function ferryman(env: Env, x: number, y: number, s: number, R: Rng): Pt {
   const { ctx, ink } = env;
   const { C, rgba } = ink;
@@ -378,7 +442,7 @@ function ferryman(env: Env, x: number, y: number, s: number, R: Rng): Pt {
   stroke(ctx, [jk[0], jk[4]], { w: 0.52 * s, col: rgba(C.ink, 0.75), tin: 0.05, tout: 0.3, dry: 0.25, seed: x + 1 });
   stroke(ctx, [jk[2], jk[3]], { w: 0.4 * s, col: rgba(C.ink, 0.45), tin: 0.05, tout: 0.4, seed: x + 2 });
   stroke(ctx, [[hip[0] - 1.6 * s, hip[1] - 0.5 * s], [hip[0] + 1.7 * s, hip[1] - 0.7 * s]], { w: 0.5 * s, col: rgba(C.ink, 0.6), tin: 0, tout: 0.2 });
-  const hands: Pt = [sh[0] + 2.5 * s, sh[1] + 1.3 * s];
+  const hands: Pt = ferrymanHands(x, y, s, lean);
   wash(ctx, [[sh[0] + 0.9 * s, sh[1] + 0.1 * s], [sh[0] + 1.7 * s, sh[1] + 0.3 * s], [hands[0] + 0.1 * s, hands[1] + 0.2 * s], [hands[0] - 0.6 * s, hands[1] + 1.1 * s], [sh[0] + 0.7 * s, sh[1] + 1.9 * s]], rgba(mix3(C.indigoP, C.indigo, 0.7), 0.95), { jit: 0.08 * s });
   stroke(ctx, [[sh[0] + 0.9 * s, sh[1] + 1.8 * s], [hands[0] - 0.5 * s, hands[1] + 1.0 * s]], { w: 0.42 * s, col: rgba(C.ink, 0.6), tin: 0.1, tout: 0.2 });
   stroke(ctx, [[sh[0] - 1.0 * s, sh[1] + 0.5 * s], [sh[0] + 0.4 * s, sh[1] + 2.0 * s], [hands[0] - 0.3 * s, hands[1] - 0.5 * s]], { w: 0.55 * s, col: rgba(C.ink, 0.62), tin: 0, tout: 0.2 });

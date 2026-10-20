@@ -1,0 +1,505 @@
+/* ==========================================================================
+   jade.css — M "Spring ink": the interface's finish, loaded last (after components.css). ONE block: the colour
+   tokens live in tokens.css (--jade*, --glow*, --wash, --rule*); this file only applies them. Three earlier rounds of
+   overrides (d5, A r2, M) are collapsed here into their final values.
+   The rules: words stay on paper and never glow; jade is the one accent beside the seal; one confident gesture (the
+   Home name's swash and the one brush button), everything else restraint. Contrast on paper (#EFF1EE): name #0f3d36
+   11:1, page titles --jade-deep 8.8:1, the button's label 9.5:1 on --jade-deep, table heads --jade-ink 5.2:1.
+   ========================================================================== */
+
+/* ---------- the header: ink nav; jade only in the current page's brush tick ---------- */
+.site-nav__list a {
+  --brush-img: url('./svg/brush-jade.svg');
+  position: relative;
+  letter-spacing: 0.02em;
+}
+.site-nav__list a:hover,
+.site-nav__list a[aria-current] {
+  color: var(--ink-1);
+}
+.home-link__name {
+  letter-spacing: 0.01em;
+}
+
+/* ---------- links: a jade resting mark; the hover brush draws in jade ink ---------- */
+.brush {
+  --brush-img: url('./svg/brush-jade.svg');
+}
+.brush[data-brush='2'] {
+  --brush-img: url('./svg/brush-2-jade.svg');
+}
+.brush:hover,
+.brush:focus-visible {
+  color: var(--jade-deep);
+}
+
+/* ---------- titles: the Home name in solid deep jade on its one swash; every page title solid --jade-deep (8.8:1),
+   no gradient, no swash (M n1: the finish no longer stops at Home) ---------- */
+.page-title {
+  color: var(--jade-deep);
+}
+.strip--home .name {
+  position: relative;
+  width: fit-content;
+  font-size: calc(var(--fs-name) * 1.55);
+  line-height: 0.92;
+  letter-spacing: -0.012em;
+  color: var(--jade-name);
+}
+.strip--home .name::after {
+  content: '';
+  display: block;
+  width: 76%;
+  height: 15px;
+  margin-block-start: 0.12em;
+  margin-inline-start: -0.02em;
+  background: var(--jade-deep);
+  -webkit-mask: url('./svg/swash-jade.svg') 0 50% / 100% 100% no-repeat;
+  mask: url('./svg/swash-jade.svg') 0 50% / 100% 100% no-repeat;
+}
+.strip--home .strip__text > .name + * {
+  margin-block-start: 1.15rem;
+}
+.strip--home .strip__text > .lead:first-of-type {
+  font-weight: 340;
+  line-height: 1.62;
+  letter-spacing: 0.003em;
+  color: var(--ink-1);
+}
+.strip--home .lead + .lead {
+  position: relative;
+  margin-block-start: 1.25rem;
+  color: var(--ink-2); /* 11.8:1: a quieter note, set apart by space alone */
+  font-size: calc(var(--fs-lead) * 0.94);
+}
+.strip--home .hero__actions {
+  margin-block-start: 2rem;
+}
+.hello {
+  margin-block-start: calc(var(--space-l, 3rem) * 0.6);
+}
+.sec__title {
+  letter-spacing: -0.005em;
+}
+@media (max-width: 40rem) {
+  .strip--home .name {
+    font-size: calc(var(--fs-name) * 1.42);
+  }
+}
+
+/* ---------- the one brush button (Home's "See the work"): a deep-jade loaded stroke whose tail breaks into a dry
+   brush (svg/btn-jade.svg); no shadow at rest; on hover/focus deep ink blooms from the pointer and a soft light
+   rises behind it ---------- */
+.ink-btn {
+  --ink-tail: 12px;
+  filter: none;
+}
+.ink-btn__ink {
+  -webkit-mask: url('./svg/btn-jade.svg') 0 0 / 100% 100% no-repeat;
+  mask: url('./svg/btn-jade.svg') 0 0 / 100% 100% no-repeat;
+}
+.ink-btn__ink::before {
+  background: linear-gradient(
+    97deg,
+    #1b5f5a,
+    var(--jade-deep) 45%,
+    #0f3d3b 82%,
+    color-mix(in oklab, #0f3d3b 70%, transparent)
+  );
+}
+.ink-btn__ink::after {
+  background: radial-gradient(
+    circle at calc(var(--x) + var(--ink-dx)) calc(var(--y) + var(--ink-dy)),
+    #0a2e2d 0,
+    #082726 calc(var(--ink-r) - 30px),
+    color-mix(in oklab, #082726 45%, transparent) calc(var(--ink-r) - 5px),
+    transparent var(--ink-r)
+  );
+}
+.ink-btn::after {
+  content: '';
+  position: absolute;
+  inset: -16px -8px -16px -20px;
+  z-index: -2;
+  pointer-events: none;
+  border-radius: 40% 60% 50% 50% / 60% 50% 50% 40%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--glow) 55%, transparent),
+    color-mix(in oklab, var(--glow) 22%, transparent) 55%,
+    transparent
+  );
+  filter: blur(8px);
+  opacity: 0;
+  scale: 0.86;
+  transition:
+    opacity var(--dur-bloom) var(--ease-bloom),
+    scale var(--dur-bloom) var(--ease-bloom);
+}
+.strip--home .ink-btn:hover::after,
+.strip--home .ink-btn:focus-visible::after {
+  opacity: 1;
+  scale: 1;
+}
+/* (final round) Home's button answers with value only: no bloom front (its edge crossed the head as a hard pale
+   wedge), no gloss. Hover/focus: the soft glow behind it and a ~4 % lift of the ink; press: ~6 % darker and 1 px
+   down for 120 ms. */
+.strip--home .ink-btn__ink::after {
+  display: none;
+}
+.strip--home .ink-btn__ink {
+  transition: filter 200ms var(--ease-out);
+}
+.strip--home .ink-btn:is(:hover, :focus-visible) .ink-btn__ink {
+  filter: brightness(1.04);
+}
+.strip--home .ink-btn:active {
+  scale: none;
+  translate: 0 1px;
+  transition: translate 120ms var(--ease-out);
+}
+.strip--home .ink-btn:active .ink-btn__ink {
+  filter: brightness(0.94);
+  transition: filter 120ms var(--ease-out);
+}
+.ink-btn__label {
+  padding-inline-end: 2.7em;
+  color: var(--glow-core);
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  font-weight: 620;
+  letter-spacing: 0.012em;
+}
+.ink-btn__arrow {
+  background: var(--glow-core);
+}
+
+/* every other action (Résumé's PDF, Contact's Copy email, a note's "more") is a quiet ink link: ink text on paper with
+   the site's resting underline, jade on hover/focus; no stroke, no tail, no glow */
+.ink-btn:not(.strip--home .ink-btn) {
+  min-height: 44px;
+}
+.ink-btn:not(.strip--home .ink-btn) .ink-btn__ink,
+.ink-btn:not(.strip--home .ink-btn)::after {
+  display: none;
+}
+.ink-btn:not(.strip--home .ink-btn) .ink-btn__label {
+  padding: 0.5em 0;
+  color: var(--ink-1);
+  font-weight: 600;
+  text-decoration: underline 1px var(--rule-rest);
+  text-underline-offset: 0.3em;
+  transition:
+    color var(--dur-hover) var(--ease-out),
+    text-decoration-color var(--dur-hover) var(--ease-out);
+}
+.ink-btn:not(.strip--home .ink-btn):hover .ink-btn__label,
+.ink-btn:not(.strip--home .ink-btn):focus-visible .ink-btn__label {
+  color: var(--jade-deep);
+  text-decoration-color: var(--jade-deep);
+}
+.ink-btn:not(.strip--home .ink-btn) .ink-btn__arrow {
+  background: currentColor;
+}
+
+/* ---------- rows, table heads, the story map's ticks, focus ---------- */
+.ink-row:hover .row__title a,
+.ink-row:focus-within .row__title a {
+  color: var(--jade-deep);
+}
+.rows > li {
+  border-top-color: var(--rule);
+}
+.table thead th {
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--jade-ink);
+}
+.story-map__tick {
+  background: var(--jade-hair);
+}
+/* (final round: no "you are here" bar over the map: the still's warmth and the label's underline say it) */
+.story-map__tick.is-here,
+.story-map:has(> .story-map__list > [data-stretch] > a[aria-current]) .story-map__tick.is-here {
+  width: 1px;
+  height: 6px;
+  margin-left: -0.5px;
+  background: var(--jade-hair);
+  box-shadow: none;
+}
+:focus-visible {
+  outline-color: var(--jade-deep);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ink-btn::after {
+    transition: none;
+  }
+}
+@media (forced-colors: active) {
+  .strip--home .name {
+    color: CanvasText;
+  }
+  .strip--home .name::after,
+  .ink-btn::after {
+    display: none;
+  }
+}
+@media print {
+  .ink-btn::after {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   P2 lab, "Arrival and the name" (features/landscape/elements.ts: each behind one html.el-* class)
+   ========================================================================== */
+
+/* ---------- swash: the name's swash laid down, catching the light once (html.el-swash.swash-play: a full load of
+   Home, once per session, set by the boot script). The name itself never moves and is readable at first paint; the
+   swash shows its faint trace (35 %), then just after the name's ink settle the loaded jade stroke is drawn over it in
+   the reading direction (a feathered wet front, the dry tail last), and one warm wet sheen runs along it once when the
+   painting's light is up (masked by the stroke itself). At rest it is the plain swash. ---------- */
+html.el-swash.swash-play:not(.is-routed):not(.is-still) .strip--home .name::after {
+  /* (final round: the light is a warm-white wet sheen, a soft gaussian ~60 px long at <= 25 %, screened onto the
+     jade: never a cyan-white specular dot) */
+  background:
+    radial-gradient(
+        closest-side,
+        rgb(255 250 240 / 0.25),
+        rgb(255 248 236 / 0.13) 45%,
+        rgb(255 248 236 / 0.04) 75%,
+        transparent
+      )
+      no-repeat,
+    var(--jade-deep);
+  background-blend-mode: screen, normal;
+  background-size:
+    60px 80%,
+    auto;
+  background-position:
+    -16% 70%,
+    0 0;
+  -webkit-mask:
+    linear-gradient(90deg, #000 43%, rgb(0 0 0 / 0.35) 57%) 100% 0 / 250% 100% no-repeat,
+    url('./svg/swash-jade.svg') 0 50% / 100% 100% no-repeat;
+  -webkit-mask-composite: source-in;
+  mask:
+    linear-gradient(90deg, #000 43%, rgb(0 0 0 / 0.35) 57%) 100% 0 / 250% 100% no-repeat,
+    url('./svg/swash-jade.svg') 0 50% / 100% 100% no-repeat;
+  mask-composite: intersect;
+}
+/* (M enriched: sequenced, not by fixed delays: the lay starts when the name's ink settle is done
+   (html.is-arrived), and the one light rides the stroke when the painting's light is up (the engine's 'ink:sunup':
+   the morning's light at ~1.8 s, a plain bloom's at ~1.24 s), so the name and the sun catch together) */
+html.el-swash.swash-play.is-arrived:not(.is-routed):not(.is-still) .strip--home .name::after {
+  animation: p2-swash-lay 720ms cubic-bezier(0.38, 0.1, 0.22, 1) both;
+}
+html.el-swash.swash-play.is-arrived.swash-light:not(.is-routed):not(.is-still) .strip--home .name::after {
+  animation:
+    p2-swash-lay 720ms cubic-bezier(0.38, 0.1, 0.22, 1) both,
+    p2-swash-glint 700ms cubic-bezier(0.45, 0.05, 0.35, 1) both;
+}
+@keyframes p2-swash-lay {
+  from {
+    -webkit-mask-position:
+      100% 0,
+      0 50%;
+    mask-position:
+      100% 0,
+      0 50%;
+  }
+  to {
+    -webkit-mask-position:
+      0 0,
+      0 50%;
+    mask-position:
+      0 0,
+      0 50%;
+  }
+}
+/* the light rides the stroke's centre line, high on the stroke (its wet, lit top): low and broad at the pressed start,
+   rising with the swash toward its dry tail */
+@keyframes p2-swash-glint {
+  0% {
+    background-position:
+      -16% 62%,
+      0 0;
+  }
+  35% {
+    background-position:
+      34% 42%,
+      0 0;
+  }
+  70% {
+    background-position:
+      76% 18%,
+      0 0;
+  }
+  100% {
+    background-position:
+      118% 0%,
+      0 0;
+  }
+}
+
+/* ---------- navMark: the nav's current-page mark lifted and laid again (html.el-navMark; effects/nav-mark.ts adds
+   .is-lifting / .is-laying on a route change). The mark is the same jade brush stroke as before, drawn as its own ink
+   (::after) so it can be laid and lifted: on a route change the old page's mark lifts off its word, its ink closing
+   toward the direction of travel as the brush leaves the paper; then the new page's is laid down under its word in the
+   reading direction, wet and dark, drying to jade. Two marks, never one that slides. The words never move. Without JS,
+   flag off, reduced motion or Still: the mark simply sits under the current page. ---------- */
+/* (the old background mark gives way to the drawn one; under the pointer the hover stroke stays, the same stroke, so
+   a click never leaves the word bare while the new mark is laid over it) */
+html.el-navMark .site-nav__list a.brush[aria-current]:not(:hover):not(:focus-visible) {
+  background-size: 0% var(--brush-h);
+}
+html.el-navMark .site-nav__list a.brush::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc((100% - var(--brush-h)) / 2 + 0.72em);
+  height: var(--brush-h);
+  pointer-events: none;
+  background: var(--jade-deep);
+  -webkit-mask:
+    linear-gradient(#000, #000) 0 0 / 100% 100% no-repeat,
+    var(--brush-img) 0 0 / 100% 100% no-repeat;
+  -webkit-mask-composite: source-in;
+  mask:
+    linear-gradient(#000, #000) 0 0 / 100% 100% no-repeat,
+    var(--brush-img) 0 0 / 100% 100% no-repeat;
+  mask-composite: intersect;
+  opacity: 0;
+}
+html.el-navMark .site-nav__list a.brush[aria-current]::after {
+  opacity: 1;
+}
+html.el-navMark .site-nav__list a.brush.is-laying::after {
+  opacity: 1; /* (laid at the click, before the route commits and moves aria-current) */
+  -webkit-mask-image: linear-gradient(90deg, #000 40%, transparent 60%), var(--brush-img);
+  mask-image: linear-gradient(90deg, #000 40%, transparent 60%), var(--brush-img);
+  -webkit-mask-size:
+    250% 100%,
+    100% 100%;
+  mask-size:
+    250% 100%,
+    100% 100%;
+  animation:
+    p2-nav-lay 400ms var(--ease-ink) 130ms both,
+    p2-nav-dry 1100ms ease-out 130ms both;
+}
+html.el-navMark .site-nav__list a.brush.is-lifting::after {
+  opacity: 1;
+  -webkit-mask-image: linear-gradient(90deg, transparent 40%, #000 60%), var(--brush-img);
+  mask-image: linear-gradient(90deg, transparent 40%, #000 60%), var(--brush-img);
+  -webkit-mask-size:
+    250% 100%,
+    100% 100%;
+  mask-size:
+    250% 100%,
+    100% 100%;
+  transform-origin: 50% 100%;
+  animation: p2-nav-lift-r 320ms cubic-bezier(0.5, 0, 0.75, 0.4) both;
+}
+html.el-navMark .site-nav__list a.brush.is-lifting.lift-l::after {
+  -webkit-mask-image: linear-gradient(90deg, #000 40%, transparent 60%), var(--brush-img);
+  mask-image: linear-gradient(90deg, #000 40%, transparent 60%), var(--brush-img);
+  animation-name: p2-nav-lift-l;
+}
+@keyframes p2-nav-lay {
+  from {
+    -webkit-mask-position:
+      100% 0,
+      0 0;
+    mask-position:
+      100% 0,
+      0 0;
+  }
+  to {
+    -webkit-mask-position:
+      0 0,
+      0 0;
+    mask-position:
+      0 0,
+      0 0;
+  }
+}
+@keyframes p2-nav-dry {
+  from {
+    background-color: #082726;
+  }
+  to {
+    background-color: var(--jade-deep);
+  }
+}
+/* the brush leaves the paper: its ink closes toward the travel, the stroke thins and lifts a hair as it goes */
+@keyframes p2-nav-lift-r {
+  from {
+    -webkit-mask-position:
+      100% 0,
+      0 0;
+    mask-position:
+      100% 0,
+      0 0;
+    transform: translateY(0) scaleY(1);
+    opacity: 1;
+  }
+  to {
+    -webkit-mask-position:
+      0 0,
+      0 0;
+    mask-position:
+      0 0,
+      0 0;
+    transform: translateY(-1px) scaleY(0.45);
+    opacity: 0.2;
+  }
+}
+@keyframes p2-nav-lift-l {
+  from {
+    -webkit-mask-position:
+      0 0,
+      0 0;
+    mask-position:
+      0 0,
+      0 0;
+    transform: translateY(0) scaleY(1);
+    opacity: 1;
+  }
+  to {
+    -webkit-mask-position:
+      100% 0,
+      0 0;
+    mask-position:
+      100% 0,
+      0 0;
+    transform: translateY(-1px) scaleY(0.45);
+    opacity: 0.2;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html.el-swash.swash-play .strip--home .name::after,
+  html.el-swash.swash-play.is-arrived .strip--home .name::after,
+  html.el-swash.swash-play.is-arrived.swash-light .strip--home .name::after,
+  html.el-navMark .site-nav__list a.brush::after {
+    animation: none !important;
+  }
+  html.el-navMark .site-nav__list a.brush.is-lifting::after {
+    opacity: 0;
+  }
+}
+html.is-still.el-navMark .site-nav__list a.brush::after {
+  animation: none !important;
+}
+html.is-still.el-navMark .site-nav__list a.brush.is-lifting:not([aria-current])::after {
+  opacity: 0;
+}
+@media (forced-colors: active) {
+  html.el-navMark .site-nav__list a.brush::after {
+    background: CanvasText;
+  }
+}

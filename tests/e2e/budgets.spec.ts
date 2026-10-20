@@ -107,3 +107,51 @@ for (const [vp, v] of Object.entries(VIEWPORTS) as Array<
     }
   });
 }
+
+/**
+ * M n1 (the critic: blue blocks and stripes leaked onto the inner pages): colour stays out from behind text. On the
+ * inner pages at 1440 the 120 px column left of the text block, from the header's foot to the hero box's foot, is
+ * paper: its mean chroma (max - min of RGB, 0-255) within 2 of the paper's own (#EFF1EE: 3).
+ */
+const PAPER_CHROMA = 3;
+test.describe('colour off text: the column left of the text is paper', () => {
+  test.use({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
+  for (const r of ROUTES.filter((x) => ['writing', 'resume', 'contact'].includes(x.id))) {
+    test(r.id, async ({ page }) => {
+      await page.goto(r.path);
+      await settle(page);
+      const box = await page.evaluate(() => {
+        const t = document.querySelector('.strip__text')?.getBoundingClientRect();
+        const a = document.querySelector('.strip__art')?.getBoundingClientRect();
+        const h = document.querySelector('header')?.getBoundingClientRect();
+        return t && a
+          ? { left: t.left, top: Math.max(h ? h.bottom : 0, a.top), bottom: Math.min(a.bottom, innerHeight) }
+          : null;
+      });
+      expect(box, `${r.id}: hero boxes`).not.toBeNull();
+      const w = Math.max(8, Math.min(120, Math.floor(box!.left)));
+      const png = await page.screenshot({
+        clip: { x: 0, y: box!.top, width: w, height: Math.max(8, box!.bottom - box!.top) },
+      });
+      const chroma = await page.evaluate(async (b64) => {
+        const img = new Image();
+        img.src = `data:image/png;base64,${b64}`;
+        await img.decode();
+        const c = document.createElement('canvas');
+        c.width = img.width;
+        c.height = img.height;
+        const x = c.getContext('2d')!;
+        x.drawImage(img, 0, 0);
+        const d = x.getImageData(0, 0, c.width, c.height).data;
+        let s = 0;
+        for (let i = 0; i < d.length; i += 4)
+          s += Math.max(d[i], d[i + 1], d[i + 2]) - Math.min(d[i], d[i + 1], d[i + 2]);
+        return s / (d.length / 4);
+      }, png.toString('base64'));
+      expect(
+        Math.abs(chroma - PAPER_CHROMA),
+        `${r.id}: mean chroma left of the text ${chroma.toFixed(2)}`,
+      ).toBeLessThanOrEqual(2);
+    });
+  }
+});

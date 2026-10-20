@@ -104,18 +104,27 @@
   --ink-5: #b9c2c4; /* clear: hairlines; never text */
 
   /* ---- UI pigments (the landscape's own pigments live in the engine, never here) ---- */
-  --wash: #3e5664; /* indigo wash: the button's resting stroke, annotation ink, diagram washes */
-  --wash-deep: #22303a; /* a fully loaded indigo-ink wash: the row wash's tide line */
+  --wash: #1b5960; /* M: indigo turned toward jade: the row wash, annotation ink, diagram washes (7.0:1) */
+  --wash-deep: #0f3a3c; /* a fully loaded wash: the row wash's tide line */
+  /* M "Spring ink": jade, the one UI accent beside the seal's cinnabar (contrast on paper #EFF1EE) */
+  --jade: #2f8f86; /* 3.4:1: marks only, never text */
+  --jade-ink: #1f6f68; /* 5.2:1: small text OK */
+  --jade-deep: #134a47; /* 8.8:1: page titles, the button, hover ink */
+  --jade-name: #0f3d36; /* 11:1: the Home name */
+  --jade-hair: rgb(47 143 134 / 0.55);
+  --glow: #9eeaf2; /* light only, never text */
+  --glow-core: #e9fdfe; /* the button's label (9.5:1 on --jade-deep) */
+  --glow-rim: #4fb3cf;
   --cinnabar: #b1362b; /* THE SEAL ONLY (the header's and the signature's). Nothing else is red. */
 
   /* ---- Semantic aliases ---- */
   --text: var(--ink-1);
   --text-2: var(--ink-3);
   --text-3: var(--ink-4);
-  --rule: var(--ink-5); /* hairlines between rows */
-  --rule-rest: #7b8385; /* every link's resting mark (3.4:1 on paper) */
+  --rule: #c3d3d2; /* hairlines between rows: a breath of jade */
+  --rule-rest: #5d8987; /* every link's resting mark (3.4:1 on paper) */
   --ink-annot: var(--wash); /* margin notes, diagram strokes, band labels (6.8:1 paper) */
-  --focus: var(--ink-1);
+  --focus: var(--jade-deep);
 
   /* ---- Families ---- */
   --font-name:
@@ -156,7 +165,7 @@
   --route-shift: 16px; /* how far text drifts with the travel */
   --route-blur: 3px; /* the h1 only */
   --dur-route-pan: 600ms;
-  --dur-route-sweep: 420ms;
+  --dur-route-sweep: 340ms; /* (final round: the mist dissolve, 300-360 ms) */
   --dur-route-back-pan: 400ms; /* back/forward: content is instant, the painting follows */
   --dur-route-reduced: 150ms; /* reduced motion or "Still": a plain cross-fade */
   --dur-header: 220ms; /* the returning header's slide */
@@ -233,7 +242,7 @@
   --nav-gap: 14px; /* between the nav links; 28 from 640; 10 at ≤ 416; 8 at ≤ 360 */
 
   /* the painted strips and the closing scene (art boxes; the engine paints inside them) */
-  --strip-home: clamp(96px, 14svh, 120px); /* 118 @ 390 × 844 */
+  --strip-home: clamp(190px, 28svh, 240px); /* A r2: 236 @ 390 × 844 (was 118: the young look shrank to a thumbnail) */
   --strip-sub: clamp(110px, 20svh, 170px); /* 169 @ 844 */
   --strip-doc: clamp(88px, 12svh, 110px);
   --closing-h: 160px;

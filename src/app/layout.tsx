@@ -6,6 +6,7 @@ import { InkDefs } from '@/components/layout/InkDefs';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import { Effects } from '@/features/effects/Effects';
+import { elementClasses } from '@/features/landscape/elements';
 import { Landscape } from '@/features/landscape/Landscape';
 import { Navigation } from '@/features/navigation/Navigation';
 import { JsonLd, personLd } from '@/lib/jsonld';
@@ -16,6 +17,8 @@ import '@/styles/base.css';
 import '@/styles/layout.css';
 import '@/styles/effects.css';
 import '@/styles/components.css';
+import '@/styles/jade.css'; // d5 lab: the jade interface
+import '@/styles/finish.css'; // the interface finish (each element behind its el-* class: features/landscape/elements.ts)
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -40,7 +43,7 @@ export const viewport: Viewport = {
  */
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en-CA" style={fontFaces} suppressHydrationWarning>
+    <html lang="en-CA" className={elementClasses()} style={fontFaces} suppressHydrationWarning>
       <head>
         <BootScript />
       </head>
