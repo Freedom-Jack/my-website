@@ -2,18 +2,18 @@ import { expect, test, type Page } from '@playwright/test';
 import { ROUTES, settle } from './support/pages';
 
 /**
- * Step 3, the scroll (elements.ts cameraTravels + air): the hard rules on the rendered pages.
+ * The scroll (elements.ts cameraTravels + air): the hard rules on the rendered pages.
  *   - reduced motion and "Still the landscape": no scroll-linked motion. A frame taken while the page is still scrolling
  *     equals the rest frame at the same place (the painting may switch between rest states, never animate), the stage's
  *     pose is only ever a rest state (0 or 1), and the air is off;
  *   - the scroll's air settles: within 1.5 s of the last wheel tick nothing in it moves, and the loop goes back to the
  *     ambient pace (<= 15 fps) or sleeps;
  *   - smooth: rAF intervals while wheel-scrolling top to bottom (hardware GPU only: a software rasteriser keeps the
- *     approved strips and is not timed here);
+ *     plain strips and is not timed here);
  *   - the parted windows below 1200 px: the strip parts as it leaves, the closing arrives through mist that has wholly
- *     parted at the page's end (the approved closing);
- *   - the stage on the three new living pages: the story map and the footer's lines sit on clean paper at the page's
- *     end, and its memory stays in budget.
+ *     parted at the page's end (the closing at rest);
+ *   - the stage on Writing, Résumé and Contact (living with the camera travel): the story map and the footer's lines
+ *     sit on clean paper at the page's end, and its memory stays in budget.
  * They read the QA build's window.__ink (NEXT_PUBLIC_INK_QA=1), like the other e2e probes.
  */
 type S = Record<string, any>;
@@ -72,7 +72,7 @@ for (const quiet of ['reduced motion', 'Still the landscape'] as const) {
   test.describe(`scroll: ${quiet} = no scroll-linked motion`, () => {
     for (const vp of [
       { width: 1440, height: 900, dpr: 1, mobile: false },
-      { width: 768, height: 1024, dpr: 2, mobile: true }, // (s3fix 8: tablets too)
+      { width: 768, height: 1024, dpr: 2, mobile: true }, // (tablets too)
       { width: 390, height: 844, dpr: 3, mobile: true },
     ]) {
       test.describe(`${vp.width}`, () => {
@@ -93,8 +93,8 @@ for (const quiet of ['reduced motion', 'Still the landscape'] as const) {
               // (reached by wheel ticks, a scroll in progress, then pinned there: the shot at once and the one 350 ms
               // later must be the same frame, whatever the scroll just did)
               await wheelTo(page, Math.round(H * f));
-              // (s3fix: let the wheel's smooth-scroll tail land first: pinned too early, the page itself moved a pixel or
-              // two between the two shots, text and story map included; the painting, a fixed canvas, had not)
+              // (let the wheel's smooth-scroll tail land first: pinned too early, the page itself moves a pixel or two
+              // between the two shots, text and story map included, while the painting, a fixed canvas, does not)
               await page.waitForFunction(
                 () =>
                   new Promise((r) => {
@@ -127,8 +127,8 @@ for (const quiet of ['reduced motion', 'Still the landscape'] as const) {
                 undefined,
                 { timeout: 10_000, polling: 50 },
               );
-              // (the frame below the site header's band: the sticky header's own slide is the approved interface's, not
-              // the painting's, and "Still the landscape" does not govern it)
+              // (the frame below the site header's band: the sticky header's own slide belongs to the interface, not
+              // the painting, and "Still the landscape" does not govern it)
               const clip = await page.evaluate(() => {
                 const h = document.querySelector('.site-header')?.getBoundingClientRect();
                 const top = Math.min(innerHeight - 8, Math.max(0, Math.ceil((h?.bottom ?? 0) + 2), 72));
@@ -221,7 +221,7 @@ test.describe('scroll: frame time while wheel-scrolling (hardware GPU)', () => {
             };
           });
           expect(res.p95, `${r.id} at ${vp.width}: rAF p95 ${res.p95.toFixed(1)} ms`).toBeLessThan(20);
-          // (nothing is repainted while the page scrolls, at any width: s3fix 6, the closing is painted ahead, off screen,
+          // (nothing is repainted while the page scrolls, at any width: the closing is painted ahead, off screen,
           // once what it shows is ready, so its arrival on a phone never paints a scene)
           expect(res.scenes, `${r.id}: scenes painted while scrolling`).toBe(0);
         });
@@ -257,9 +257,9 @@ test.describe('scroll: the parted windows below 1200 px', () => {
   }
 });
 
-/** The stage on the new living pages, at the page's end: the story map's labels and the footer's line sit on paper. */
+/** The stage at the end of Writing, Résumé and Contact: the story map's labels and the footer's line sit on paper. */
 const PAPER_CHROMA = 3;
-test.describe('scroll: the footer on clean paper at the end of the new living pages (1440)', () => {
+test.describe('scroll: the footer on clean paper at the end of Writing, the Résumé and Contact (1440)', () => {
   test.use({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
   for (const r of MAP.filter((x) => ['writing', 'resume', 'contact'].includes(x.id))) {
     test(r.id, async ({ page }) => {
@@ -305,8 +305,8 @@ test.describe('scroll: the footer on clean paper at the end of the new living pa
   }
 });
 
-/** The step-3 flags (elements.ts): with all of them off the site is approved Spring ink (QA builds: window.__elOff). */
-const STEP3 = ['cameraTravels', 'air', 'visited'];
+/** The scroll's flags and visited (elements.ts): all of them off is Spring ink without the scroll (window.__elOff). */
+const SCROLL_FLAGS = ['cameraTravels', 'air', 'visited'];
 /** How many pixels differ by more than `t` (any channel) between two same-size screenshots, decoded in the page. */
 async function diffOver(page: Page, a: Buffer, b: Buffer, t: number) {
   return page.evaluate(
@@ -349,13 +349,13 @@ async function restAt(page: Page, y: number) {
   await page.waitForTimeout(400);
 }
 
-test.describe('scroll: Work keeps its approved poses (1440, step-3 flags on vs off)', () => {
-  // (s3fix 2: the footer's veils, new with cameraTravels, once counted as the reading column, put Work's curtain at
-  // 1412 px at 1440 and hid the river town and its willow for most of the read)
+test.describe("scroll: Work keeps its approved poses (1440, the scroll's flags on vs off)", () => {
+  // (the footer's veils, which come with cameraTravels, are not the reading column: counted as one, they would put
+  // Work's curtain at 1412 px at 1440 and hide the river town and its willow for most of the read)
   test.use({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
   test('work', async ({ browser }) => {
     const shots: Buffer[][] = [];
-    for (const off of [[], STEP3]) {
+    for (const off of [[], SCROLL_FLAGS]) {
       const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
       const page = await ctx.newPage();
       await page.addInitScript((o) => ((window as unknown as { __elOff: string[] }).__elOff = o), off);
@@ -384,7 +384,7 @@ test.describe('scroll: Work keeps its approved poses (1440, step-3 flags on vs o
 });
 
 test.describe('scroll: no straight seam in the sky at the end of a living page (1440)', () => {
-  // (s3fix 3: the Résumé's way on brought the far layer's edge into the sky as a vertical seam at x 1300)
+  // (a far layer's edge in the sky would read as a vertical seam)
   test.use({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
   for (const r of MAP) {
     test(r.id, async ({ page }) => {
@@ -473,7 +473,7 @@ test.describe('scroll: no straight seam in the sky at the end of a living page (
 });
 
 test.describe('scroll: Home stays in its memory budget at DPR 2', () => {
-  // (s3fix 7: stats().memory.total, the engine's views and figure layers in bytes; approved Spring ink: 42.4 MB)
+  // (stats().memory.total, the engine's views and figure layers in bytes; with the scroll's flags off: 42.4 MB)
   test.use({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 });
   test('home', async ({ page }) => {
     await page.goto(MAP.find((x) => x.id === 'home')!.path);

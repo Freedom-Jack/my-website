@@ -11,7 +11,11 @@ import { ROUTES, settle, VIEWPORTS } from './support/pages';
  *   - a page whose whole content fits screen one reports a low word count;
  *   - the Résumé and the Note up to 5 words short at 1440 / 1280 (SPEC §15.4.2);
  *   - Home at 390 up to 2 words short: demo 4b's 56 counted its "Draft art" label (2 words), which the build drops;
- *   - the 404 at 390 over .10 (.69: one short line under its title; the demo's known miss, RECORD §7.4).
+ *   - the 404 at 390 over .10 (.69: one short line under its title; the demo's known miss, RECORD §7.4);
+ *   - Home's big name and what Spring ink's type costs (Jack, 2026-10-19: "keep Home's big name and relax the
+ *     budget"): the name at --fs-name × 1.55 (× 1.42 up to 40 rem), about 112 / 106 / 64 px; Home's display ÷
+ *     readable up to .40; 5 type sizes on Home, and on Work at 1280 × 720 (its section title, sub-heading, table
+ *     head, text and caption share one short screen); Home at 1280 up to 2 words short.
  * OPEN (questions for Jack, reported but not failed):
  *   - a case page at 390 is over .10 (.28), because the case's long title is the page's h1 at title size (32 px, two
  *     or three lines). Options: accept, or set case titles at the section-heading size on phones;
@@ -21,10 +25,10 @@ import { ROUTES, settle, VIEWPORTS } from './support/pages';
  */
 const MEASURE = readFileSync(path.join(import.meta.dirname, 'support/measure.js'), 'utf8');
 const WORDS = { home: { '1440': 120, '1280': 100, '390': 55 }, sub: { '1440': 150, '1280': 120, '390': 90 } } as const;
-const NAME = { '1440': 72, '1280': 68, '390': 45 } as const;
+const NAME = { '1440': 112, '1280': 106, '390': 64 } as const;
 const TITLE = { '1440': 40, '1280': 40, '390': 32 } as const;
 const WORK_LEN = { '1440': 5, '1280': 6, '390': 8 } as const;
-const FIVE_OK = new Set(['resume', 'contact', 'writing']);
+const FIVE_OK = new Set(['resume', 'contact', 'writing', 'home']);
 const SHORT = new Set(['contact', 'writing', 'note', '404', 'case']);
 
 type M = Record<string, any>;
@@ -50,10 +54,12 @@ for (const [vp, v] of Object.entries(VIEWPORTS) as Array<
         const tgt = WORDS[r.id === 'home' ? 'home' : 'sub'][vp];
         const w4 = m.s0.words4a as number;
         const homeLabel = r.id === 'home' && vp === '390' && tgt - w4 <= 2;
+        const homeName = r.id === 'home' && vp === '1280' && tgt - w4 <= 2;
         if (
           w4 < tgt &&
           !m.fitsFirstScreen &&
           !homeLabel &&
+          !homeName &&
           !((r.id === 'resume' || r.id === 'note') && wide && tgt - w4 <= 5) &&
           !SHORT.has(r.id)
         ) {
@@ -67,7 +73,7 @@ for (const [vp, v] of Object.entries(VIEWPORTS) as Array<
           else fail.push(`first-screen words ${w4} < ${tgt}`);
         }
         // display ÷ readable
-        const lim = r.id === 'home' ? 0.25 : 0.1;
+        const lim = r.id === 'home' ? 0.4 : 0.1;
         const worst = Math.round(Math.max(m.s0.ratio || 0, m.pageRatio || 0) * 100) / 100;
         if (worst > lim && !(SHORT.has(r.id) && wide) && !(r.id === '404' && vp === '390')) {
           if (r.id === 'case' && vp === '390')
@@ -78,7 +84,8 @@ for (const [vp, v] of Object.entries(VIEWPORTS) as Array<
           else fail.push(`display/read ${worst} > ${lim}`);
         }
         // type sizes per screen
-        if (m.maxSizesPerScreen > 4 && !(m.maxSizesPerScreen === 5 && FIVE_OK.has(r.id)))
+        const fiveOk = FIVE_OK.has(r.id) || (r.id === 'work' && vp === '1280');
+        if (m.maxSizesPerScreen > 4 && !(m.maxSizesPerScreen === 5 && fiveOk))
           fail.push(`${m.maxSizesPerScreen} type sizes on one screen`);
         // the largest text
         if (r.id === 'home') {
@@ -109,9 +116,9 @@ for (const [vp, v] of Object.entries(VIEWPORTS) as Array<
 }
 
 /**
- * M n1 (the critic: blue blocks and stripes leaked onto the inner pages): colour stays out from behind text. On the
- * inner pages at 1440 the 120 px column left of the text block, from the header's foot to the hero box's foot, is
- * paper: its mean chroma (max - min of RGB, 0-255) within 2 of the paper's own (#EFF1EE: 3).
+ * Colour stays out from behind text: no blue blocks or stripes on the inner pages. On the inner pages at 1440 the
+ * 120 px column left of the text block, from the header's foot to the hero box's foot, is paper: its mean chroma
+ * (max - min of RGB, 0-255) within 2 of the paper's own (#EFF1EE: 3).
  */
 const PAPER_CHROMA = 3;
 test.describe('colour off text: the column left of the text is paper', () => {

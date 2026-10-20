@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 28" preserveAspectRatio="none">
-  <!-- A r2: the one swash, under the Home name only (a CSS mask, alpha only): a real brush stroke with a slight upward
+  <!-- The one swash, under the Home name only (a CSS mask, alpha only): a real brush stroke with a slight upward
        curve, pressed at its start, both ends tapering, a dry, broken finish (two skips and a lifted last fleck). -->
   <defs>
     <mask id="dry" maskUnits="userSpaceOnUse" x="0" y="0" width="480" height="28">

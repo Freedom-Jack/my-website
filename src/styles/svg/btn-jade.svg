@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 64" preserveAspectRatio="none">
-  <!-- M n1: the jade button's silhouette (a CSS mask, alpha only): one loaded stroke, pressed and rounded at its start,
-       an even body, and a tail about a fifth shorter than before that does not taper to a vector point: it ends BLUNT,
+  <!-- The jade button's silhouette (a CSS mask, alpha only): one loaded stroke, pressed and rounded at its start,
+       an even body, and a short tail that does not taper to a vector point: it ends BLUNT,
        broken into a dry brush by three bristle gaps that run with the stroke and open out through its end. Flying white
        inside the body: two unequal skips along its edges (none across the label's line). -->
   <defs>

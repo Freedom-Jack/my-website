@@ -1,6 +1,7 @@
 /**
  * The footer story map's five scene stills, cut at build time from the real engine (DESIGN 11.B), so the map is
- * the painting itself in miniature. public/scenes/<place>@1x|2x.webp + manifest.json, read by StoryMap.
+ * the painting itself in miniature. public/scenes/<place>[-lit]@1x|2x.webp (each place dim and lit) + manifest.json,
+ * read by StoryMap; and the windows' stills (public/scenes/glimpse/, below).
  *
  *   NEXT_PUBLIC_INK_QA=1 npm run build && npm start     a QA build (it exposes the engine as window.__inkEngine)
  *   npm run build:stills                                cut all five; needs Google Chrome (headless, SwiftShader)
@@ -111,7 +112,7 @@ const PALETTE = 'misted'; // the site's default palette
 const PAPER = [239, 241, 238]; // --paper and the shader's PAPER (#EFF1EE); divided out to white
 const STABLE_MS = 1500; // two captures this far apart must match before a still is cut
 const CAP_FILE = 16 * 1024; // bytes, any one still
-const CAP_TOTAL = 110 * 1024; // bytes, all twenty (P4 sun: dim + lit; was 60 KB for ten)
+const CAP_TOTAL = 110 * 1024; // bytes, all twenty (each place dim and lit, at 1x and 2x)
 const CHROME_ARGS = [
   '--use-angle=swiftshader',
   '--enable-unsafe-swiftshader',
@@ -122,14 +123,14 @@ const OUT_DIR = path.join(ROOT, 'public', 'scenes');
 const MANIFEST = path.join(OUT_DIR, 'manifest.json');
 
 // ------------------------------------------------------------------------------------------------ the windows' stills
-// Step 3b (elements.ts glimpses): each window into the painting has its own still, its rest pose ("Still the
+// The windows (elements.ts glimpses): each window into the painting has its own still, its rest pose ("Still the
 // landscape" on), cut from the page at 390 x 844 (DPR 2) with the words hidden: public/scenes/glimpse/<id>@1x|2x.webp.
 // The window shows it until the engine paints it (and wherever it cannot), then cross-fades to the painting (layout.css
 // .glimpse[data-live]). Recorded in the manifest's `glimpses` (inputs: the same as the map's).
 const GLIMPSE_PAGES = [
   { page: 'home', route: '/', n: 2 },
   { page: 'work', route: '/work/', n: 2 },
-  { page: 'resume', route: '/resume/', n: 2 }, // (last fixes: before Experience and before Skills; never in the timeline)
+  { page: 'resume', route: '/resume/', n: 2 }, // (before Experience and before Skills; never in the timeline)
 ] as const;
 const GLIMPSE_VP = { width: 390, height: 844, dpr: 2 };
 const GLIMPSE_DIR = path.join(OUT_DIR, 'glimpse');
@@ -138,9 +139,8 @@ const CAP_GLIMPSE = 40 * 1024; // bytes, any one window's still
 const CAP_GLIMPSE_TOTAL = 260 * 1024; // all of them (12 files)
 const glimpseName = (page: string, j: number, d: number) => `${page}-${j}@${d}x.webp`;
 // (the box holds no words: only the header, which may return over it, is hidden)
-const GLIMPSE_HIDE = `.site-header, .skip-link, .seal { visibility: hidden !important; }`; // (r9: the seal above Home's first window had left a red row on its still)
-// every window of the page painted, at rest, and the loop quiet
-// (window j of the page's laid-out ones painted and shown, at rest, and the loop quiet)
+const GLIMPSE_HIDE = `.site-header, .skip-link, .seal { visibility: hidden !important; }`; // (the seal too: it would leave a red row on Home's first window)
+// window j of the page's laid-out ones painted and shown, at rest, and the loop quiet
 const GLIMPSE_SETTLE_JS = `(async ([n, j]) => {
   await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
   const h = window.__ink; if (!h) return false;
@@ -257,8 +257,8 @@ function sunsOf(): Record<string, [number, number]> {
 // ------------------------------------------------------------------------------------------------ inputs and hashes
 const rel = (p: string) => path.relative(ROOT, p).split(path.sep).join('/');
 const sha = (data: string | Uint8Array) => createHash('sha256').update(data).digest('hex');
-// P4 sun: every place is cut twice: dim (no sun anywhere; '') and lit (its own sun only; '-lit'). The footer shows
-// the current place lit and crossfades a hovered place's lit still in (StoryMap, layout.css).
+// Every place is cut twice (elements.ts sun): dim (no sun anywhere; '') and lit (its own sun only; '-lit'). The footer
+// shows the current place lit and crossfades a hovered place's lit still in (StoryMap, layout.css).
 const VARIANTS = [
   { suffix: '', light: () => -1 },
   { suffix: '-lit', light: (s: Still) => s.stretch },
@@ -277,7 +277,7 @@ function inputs(): [string, string][] {
   const items: [string, string][] = [];
   for (const p of walk(path.join(ROOT, 'src', 'features', 'landscape', 'engine')))
     if (p.endsWith('.ts')) items.push([rel(p), sha(readFileSync(p))]);
-  // (the element switches decide what the engine paints: the silk thread, the stills' suns)
+  // (the element switches decide what the engine and the figure sets paint)
   const elements = path.join(ROOT, 'src', 'features', 'landscape', 'elements.ts');
   items.push([rel(elements), sha(readFileSync(elements))]);
   // only the place's config, not its words: what <main data-*> tells the engine, and the strip's kind (its height)
@@ -286,7 +286,8 @@ function inputs(): [string, string][] {
     const config = { stretch, distance, presence, horizon, ground, strip };
     items.push([`src/features/landscape/places.ts#${s.page}`, sha(JSON.stringify(config))]);
   }
-  // the strip heights size the windows, hence their framings: each --strip-* / --closing-* line with its media query
+  // the strip heights size the windows, hence their framings: each --strip-* / --closing-* / --glimpse-* line with its
+  // media query
   let media = '';
   const lines: string[] = [];
   for (const l of readFileSync(path.join(ROOT, 'src', 'styles', 'tokens.css'), 'utf8').split('\n')) {
@@ -610,7 +611,7 @@ async function build(): Promise<number> {
         });
         await page.close();
       }
-    // the windows' stills (step 3b): each window's rest pose, at a phone's width
+    // the windows' stills: each window's rest pose, at a phone's width
     if (!only || flag('--glimpses')) {
       await mkdir(GLIMPSE_DIR, { recursive: true });
       const gctx = await browser.newContext({

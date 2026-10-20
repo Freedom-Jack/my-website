@@ -1,19 +1,16 @@
 /* ==========================================================================
-   finish.css — P4 "Interface finish", loaded last. Six elements, each behind its own html.el-* class
-   (src/features/effects/elements.ts). One vocabulary, used sparingly (final round: no glints,
-   no glows on the interface; jade lines and value only). Words never move, never glow, and nothing
-   new sits behind a letter. Reduced motion and "Still the landscape": nothing runs; the static parts stay.
+   finish.css — the interface finish, loaded last (after jade.css). Its elements (sun and visited, focus, rowrule,
+   flow) each sit behind their own html.el-* class (src/features/landscape/elements.ts). One vocabulary, used
+   sparingly (no glints, no glows on the interface; jade lines and value only). Words never move, never glow, and
+   nothing new sits behind a letter. Reduced motion and "Still the landscape": nothing runs; the static parts stay.
    ========================================================================== */
 
-/* ---------- 1. glint: CUT (final round). The specular sweep along the button's lip and the press crescent read as
-   a plastic pill; Home's button now answers with value only (jade.css: hover +4 %, press -6 % and 1 px down). ---------- */
-
-/* ---------- 2. sun: the story map's "you are here" ----------
+/* ---------- sun: the story map's "you are here" ----------
    Each place has two stills cut from the engine (tools/build-stills.ts): dim (no sun anywhere) and lit (its own sun,
-   held at least .85 of Home's). The lit one lies over the dim one inside the same multiplied window. Flag off: the
-   M look (Home's sun only). Flag on: the CURRENT place holds the sun; hovering or focusing another label raises
+   held at least .85 of Home's). The lit one lies over the dim one inside the same multiplied window. Flag off:
+   Home's sun only. Flag on: the CURRENT place holds the sun; hovering or focusing another label raises
    that place's light over 500 ms (a small sunrise), while the current one stays. Only those two are ever lit.
-   No tick marks the current place (final round): its warmth and the label's underline do. */
+   No tick marks the current place: its warmth and the label's underline do. */
 .story-map__scene img.story-map__lit {
   opacity: 0;
   transition: opacity 520ms var(--ease-out);
@@ -21,7 +18,7 @@
 html:not(.el-sun) .story-map__scene[data-stretch='0'] .story-map__lit {
   opacity: 1;
 }
-/* M step 3 (S2's graft; elements.ts visited): the places visited this session keep a little of their light (where you
+/* visited (elements.ts): the places visited this session keep a little of their light (where you
    have travelled); the current place and a hovered one hold all of it (below). */
 html.el-visited.el-sun .story-map__scene.is-been:not(.is-here) img.story-map__lit {
   opacity: 0.5;
@@ -69,29 +66,6 @@ html.el-sun
   .story-map__lit {
   opacity: 1;
 }
-html.el-sun .story-map__tick.is-here,
-html.el-sun
-  .story-map:has(> .story-map__list > [data-stretch='0'] > a[aria-current])
-  .story-map__tick[data-stretch='0'],
-html.el-sun
-  .story-map:has(> .story-map__list > [data-stretch='1'] > a[aria-current])
-  .story-map__tick[data-stretch='1'],
-html.el-sun
-  .story-map:has(> .story-map__list > [data-stretch='2'] > a[aria-current])
-  .story-map__tick[data-stretch='2'],
-html.el-sun
-  .story-map:has(> .story-map__list > [data-stretch='3'] > a[aria-current])
-  .story-map__tick[data-stretch='3'],
-html.el-sun
-  .story-map:has(> .story-map__list > [data-stretch='4'] > a[aria-current])
-  .story-map__tick[data-stretch='4'] {
-  /* (final round: no "here" bar: it read as a caret. The current place's tick is the plain resting tick, and its
-     still's warmth and the label's brush underline say "here") */
-  width: 1px;
-  height: 6px;
-  margin-left: -0.5px;
-  background: var(--jade-hair);
-}
 /* the sun's bloom in the miniature: a soft light ABOVE the paper (plus-lighter), at the place's light, over its lit
    still. The still alone can only clear the blue toward paper; this lets the light be brighter than the sheet. */
 .story-map__sun {
@@ -103,14 +77,13 @@ html.el-sun .story-map__sun {
   position: absolute;
   left: calc(50% + (var(--fx) - 0.5) * var(--still-w));
   top: calc(var(--fy) * 100%);
-  /* (M enriched: wider and softer, so it is a warmth over the place, not a disc) */
+  /* (wide and soft, so it is a warmth over the place, not a disc) */
   width: calc(var(--story-map-art) * 1.9);
   height: calc(var(--story-map-art) * 1.15);
   translate: -50% -50%;
   pointer-events: none;
   mix-blend-mode: plus-lighter;
-  /* a gaussian falloff, +0..20 levels at most: the paper clears to white at the heart, the blue air lifts */
-  /* (M enriched: half the peak, about +10 levels, on a long gaussian falloff) */
+  /* a long gaussian falloff, about +10 levels at its heart: the paper clears toward white there, the blue air lifts */
   background: radial-gradient(
     closest-side,
     rgb(255 255 255 / 0.042) 0,
@@ -153,25 +126,6 @@ html.el-sun
   .story-map__sun[data-stretch='4'] {
   opacity: 1;
 }
-/* a hovered place's tick stays the plain resting tick (final round); its light rises in the still */
-html.el-sun
-  .story-map:has(> .story-map__list > [data-stretch='0'] > a:is(:hover, :focus-visible):not([aria-current]))
-  .story-map__tick[data-stretch='0'],
-html.el-sun
-  .story-map:has(> .story-map__list > [data-stretch='1'] > a:is(:hover, :focus-visible):not([aria-current]))
-  .story-map__tick[data-stretch='1'],
-html.el-sun
-  .story-map:has(> .story-map__list > [data-stretch='2'] > a:is(:hover, :focus-visible):not([aria-current]))
-  .story-map__tick[data-stretch='2'],
-html.el-sun
-  .story-map:has(> .story-map__list > [data-stretch='3'] > a:is(:hover, :focus-visible):not([aria-current]))
-  .story-map__tick[data-stretch='3'],
-html.el-sun
-  .story-map:has(> .story-map__list > [data-stretch='4'] > a:is(:hover, :focus-visible):not([aria-current]))
-  .story-map__tick[data-stretch='4'] {
-  height: 6px;
-  background: var(--jade-hair);
-}
 @media (prefers-reduced-motion: reduce) {
   .story-map__scene img.story-map__lit,
   .story-map__sun {
@@ -183,11 +137,11 @@ html.is-still .story-map__sun {
   transition: none;
 }
 
-/* ---------- 4. focus: a plain jade ring; selection in glow-tinted paper; a jade scrollbar ---------- */
+/* ---------- focus: a plain jade ring; selection in glow-tinted paper; a jade scrollbar ---------- */
 html.el-focus {
   scrollbar-color: var(--jade-hair) transparent;
 }
-/* (final round: a plain 2 px jade ring 3 px off the control's own box, no glow and no paper spread: 8.8:1 on paper) */
+/* (a plain 2 px jade ring 3 px off the control's own box, no glow and no paper spread: 8.8:1 on paper) */
 html.el-focus :focus-visible {
   outline: 2px solid var(--jade-deep);
   outline-offset: 3px;
@@ -228,8 +182,8 @@ html.el-focus ::selection {
   color: var(--ink-1);
 }
 
-/* ---------- 6. rowrule: the rule under a row is drawn in from the left (final round) ----------
-   Replaces the pale wash behind the row's text: nothing behind the text. On hover/focus a 1.5 px jade line at 0.7
+/* ---------- rowrule: the rule under a row is drawn in from the left ----------
+   In place of the pale wash behind the row's text: nothing behind the text. On hover/focus a 1.5 px jade line at 0.7
    lies exactly on the row's bottom border, drawn from the row's left edge to its right over 260 ms; leaving fades
    it. No brush taper, no centre-out reveal, no heavier stroke than the table's own rules. */
 html.el-rowrule .ink-row::before {
@@ -264,7 +218,7 @@ html.el-rowrule .rule-row {
   position: relative;
 }
 
-/* ---------- 3. flow: light runs through the diagrams (features/effects/finish.ts clones each edge) ---------- */
+/* ---------- flow: light runs through the diagrams (features/effects/finish.ts clones each edge) ---------- */
 .diagram__flow {
   fill: none;
   stroke-linecap: round;
@@ -272,14 +226,14 @@ html.el-rowrule .rule-row {
   pointer-events: none;
   opacity: 0;
 }
-/* (final round) a small ink dot with a short tapering tail (three stacked dashes: 1, 2 and 3 px wide), dark jade, no
+/* a small ink dot with a short tapering tail (three stacked dashes: 1, 2 and 3 px wide), dark jade, no
    glow, no blur; the arrowhead it reaches does not light */
-.diagram__flow--glow,
+.diagram__flow--tail,
 .diagram__flow--body,
 .diagram__flow--core {
   stroke: #082726; /* a wetter, darker jade than the arrows (--jade-deep), so the dot reads on its own line */
 }
-.diagram__flow--glow {
+.diagram__flow--tail {
   stroke-width: 1;
 }
 .diagram__flow--body {
@@ -287,9 +241,6 @@ html.el-rowrule .rule-row {
 }
 .diagram__flow--core {
   stroke-width: 3.5;
-}
-.diagram__flow--tip {
-  display: none;
 }
 @media (prefers-reduced-motion: reduce) {
   html.el-rowrule :is(.ink-row, .rule-row):is(:hover, :focus-within)::after {

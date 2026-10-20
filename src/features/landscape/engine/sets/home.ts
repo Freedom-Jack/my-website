@@ -15,7 +15,7 @@ import { ownSprite, REF_PX, VH_PX, planeTop, streams, vnoise, mix, mix3, runs, s
 
 // u1 reaches past the crag (1.06, not 0.9): on phones the hut is drawn larger and must stay clear of the right end's
 // melt (the last 13 % of the rect's width), and the fall in the crag's cleft (u 0.94) stands clear of it too
-export const meta: FigureMeta = { rect: [0.50, 1.10, 0.06, 0.87], plane: 3, phase: 1 };   // A: up into the sky (the bough, the swallows)
+export const meta: FigureMeta = { rect: [0.50, 1.10, 0.06, 0.87], plane: 3, phase: 1 };   // (up into the sky for the bough and the swallows)
 
 const SEED = 5;
 const OB: Pt = [0.72, -0.48];   // the Song oblique (figures.ts D, copied: a set's top level runs before figures.ts's own)
@@ -183,24 +183,25 @@ export function* draw(env: Env) {
   // ---- the fall in the cleft between the near crag's summits: where the river begins
   waterfall(env, X(0.942), crestY, 1 + (big - 1) * 0.7, own('fall'));
   yield;
-  // ---- d5 f1: the young elements. A plum bough framing the scene hard from its top-right corner (young.ts plumFrame:
+  // ---- the young elements. A plum bough framing the scene hard from its top-right corner (young.ts plumFrame:
   // a near-camera element, its limbs running out of the frame, blossoms in three size classes), petals falling from it
   // (life: the petals kind, drawn by the present pass), a swallow in colour gliding up across the light (a bird: its
   // wings beat), two far ones misted
-  // (A r2: it enters from the top-right corner, out of the paper under the header, and arcs down and left across the
+  // (it enters from the top-right corner, out of the paper under the header, and arcs down and left across the
   // sky above the right crag; its lowest blossom stays above the crag's shoulder, right of the fall; the hut, the
   // cleft and the host peak stay clear. On phones it is drawn larger, from the same corner.)
   const bs0 = 1.28 + (big - 1) * 0.6;
-  // (n1, phones: the bough is smaller and tucked into the strip's top-right corner, so the host peak and its light stay clear)
+  // (phones: the bough is smaller and tucked into the strip's top-right corner, so the host peak and its light stay
+  // clear)
   const phoneK = big > 1.5;
   const bs = phoneK ? bs0 * 0.6 : bs0;
   // (a story-map still leaves the near framing out: one continuous strip; so does a window into the painting, inlay,
   // where the bough would hang from no edge, a sticker in the sky)
   if (!env.still && !env.inlay) {
-    // (n1: drawn as its own sprite so it can swing about its root, ~0.5 deg at ~0.08 Hz, in the present pass; a
-    // still painting (no sprites) paints it into the layer as before)
+    // (drawn as its own sprite so it can swing about its root, ~0.5 deg at ~0.08 Hz, in the present pass; a painting
+    // without sprites paints it into the layer)
     const ex = 1478 + (big - 1) * 14, ey = phoneK ? 150 : Math.max(196, 286 - (big - 1) * 30), Rb = own('d5 bough');
-    // (P3 plumGust: the limb's line rides along, so the pointer can find the bough)
+    // (plumGust: the limb's line rides along, so the pointer can find the bough)
     const limb = el('plumGust') ? { limb: plumLine(ex, ey, bs, big > 1.5 ? 0.8 : 1) } : {};
     ownSprite(env, 'boat', { x: ex - 400 * bs, y: ey - 70 * bs, w: 460 * bs, h: 260 * bs }, { swing: true, range: [ex - 4000, ex + 4000], ...limb }, (e) => { plumFrame(e, ex, ey, bs, Rb, { trim: big > 1.5 ? 0.8 : 1 }); });
     anchor(env, 'smoke', { x: ex - 400 * bs, y: ey + 64 * bs, w: 300 * bs, h: 220 * bs }, { petals: { n: 8, size: 5.5 * bs, speed: 1 } });
@@ -208,11 +209,11 @@ export function* draw(env: Env) {
   yield;
   if (!env.still) {
     // one swallow in the open sky left of the peak (never over the light), gliding on a curving line; two tiny far ones
-    const sx = big > 1.5 ? 730 : 812, sy = big > 1.5 ? 470 : 470, path: Pt[] = [];   // (n1: on phones too, left of the peak inside the tighter frame)
+    const sx = big > 1.5 ? 730 : 812, sy = big > 1.5 ? 470 : 470, path: Pt[] = [];   // (on phones too, left of the peak inside the tighter frame)
     for (let k = 0; k <= 30; k++) { const u = k / 30; path.push([sx + 150 - 330 * u, sy + 40 - 70 * u - 46 * Math.sin(u * Math.PI)]); }
     // (a window into the painting, inlay, keeps only the far birds: the strip's large swallow, magnified there, crowded it)
     if (!env.inlay) ownSprite(env, 'walker', { x: sx - 48 * bs0 / 1.28, y: sy - 42 * bs0 / 1.28, w: 96 * bs0 / 1.28, h: 84 * bs0 / 1.28 }, { path, home: [sx, sy], speed: 10, bird: true }, (e) => swallowInk(e, sx, sy, 62 * bs0, -0.3, own('d5 swallow', 0), { bank: 0.7, lift: 0.35 }));
-    // (n1: the far birds are tiny thick-thin open V glides, hazed by the mist, never grey crescents)
+    // (the far birds are tiny thick-thin open V glides, hazed by the mist, never grey crescents)
     farBird(env, 1184, 552, 9, -0.12, own('d5 swallow', 1), 0.5);
     farBird(env, 1203, 540, 6.5, 0.18, own('d5 swallow', 2), 0.6);
     farBird(env, 1226, 548, 7.5, -0.05, own('d5 swallow', 3), 0.55);
@@ -221,13 +222,13 @@ export function* draw(env: Env) {
 
 /**
  * A thin fall in a cleft of the crag (round 5: the source of the one river), as the painters leave one: unpainted paper
- * framed by dark rock. Out of the notch at x (a world px column) it drops in three short tiers that step down and aside
- * the cleft, each ribbon uneven and broken where a rock lip crosses it, the lips dark against it; its foot is lost in a
- * bank of mist (the river comes out of the mist, beyond the crag). s: scale (phones draw it larger).
+ * in a shaded cleft. Out of the notch at x (a world px column) it drops in broken strands that step a little aside where
+ * the rock steps; its foot is lost in a plume of mist (the river comes out of the mist, beyond the crag). s: scale
+ * (phones draw it larger).
  */
 function waterfall(env: Env, x: number, crestY: (x: number) => number, s: number, R: Rng) {
-  // M n1 (the critic: "a white stick with crossbars: a pole, a ladder, an antenna"): no lips, no ledges, no spray bars,
-  // no ruled rock rails. Two or three broken vertical strands of different widths, dry-brushed and tapered, stepping
+  // no lips, no ledges, no spray bars, no ruled rock rails (with them the fall reads as a white stick with crossbars:
+  // a pole, a ladder, an antenna). Two or three broken vertical strands of different widths, dry-brushed and tapered, stepping
   // a little aside where the rock steps; a faint shaded cleft behind them; a plume of mist at the foot that melts into
   // the plane's own mist.
   const { ctx, ink } = env;
@@ -259,7 +260,7 @@ function waterfall(env: Env, x: number, crestY: (x: number) => number, s: number
   softWash(env, ellipse(x + 2 * s, fy - 4 * s, 16 * s, 9 * s, 18), rgba(C.white, 0.34), 7 * s);
   softWash(env, ellipse(x + 8 * s, fy + 4 * s, 44 * s, 9 * s, 18), rgba(C.mist, 0.36), 12 * s);
   softWash(env, ellipse(x + 18 * s, fy + 12 * s, 70 * s, 10 * s, 18), rgba(C.mist, 0.28), 16 * s);
-  // P3 (elements.ts waterfall): life: lights slide down the strands, the spray at the foot breathes
+  // life (elements.ts waterfall): lights slide down the strands, the spray at the foot breathes
   if (el('waterfall') && !env.still) anchor(env, 'smoke', { x: x - 46 * s, y: y0 - 8 * s, w: 104 * s, h: H + 44 * s }, { fall: { x: x + 0.3 * s, y0, y1: y0 + H * 0.9, hw: 7 * s } });
 }
 const smoothstep01 = (t: number) => { const c = Math.min(1, Math.max(0, t)); return c * c * (3 - 2 * c); };

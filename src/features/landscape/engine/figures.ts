@@ -152,12 +152,12 @@ export interface LayerParams {
   distance?: string;
   presence?: number;
   cls?: WidthClass | null;
-  /** A r2: a story-map still (the QA frame hook): the sets leave out their near framing elements and moving life. */
+  /** A story-map still (the QA frame hook): the sets leave out their near framing elements and moving life. */
   still?: boolean;
   /** 'gpu': an ImageBitmap with its sprites cut apart (WebGL, 4b); 'bytes': premultiplied RGBA (WebGL, 4a);
    *  'bitmap': the layer as drawn (Canvas2D). */
   out?: 'gpu' | 'bytes' | 'bitmap';
-  /** M step 3b: drawn for a window into the painting (index.ts GLIMPSE), a still view: its sprites are painted in, never
+  /** Drawn for a window into the painting (index.ts GLIMPSE), a still view: its sprites are painted in, never
    *  cut apart (the window's present has no life pass), and the sets leave out what hangs from the strip's top edge. */
   inlay?: boolean;
 }
@@ -185,9 +185,9 @@ export interface Env {
   life: LifeAnchor[];
   softOK: boolean;
   cls: WidthClass | null;
-  /** A r2: drawn for a story-map still: no near framing elements, no moving life (LayerParams.still). */
+  /** Drawn for a story-map still: no near framing elements, no moving life (LayerParams.still). */
   still: boolean;
-  /** M step 3b: drawn for a window into the painting (LayerParams.inlay): no element that hangs from the strip's edge. */
+  /** Drawn for a window into the painting (LayerParams.inlay): no element that hangs from the strip's edge. */
   inlay: boolean;
   /** The set's own sprites (ownSprite), when the worker paints them apart; null: painted into the layer. */
   sprites: { a: LifeAnchor; paint: (env: Env) => void; box: Box }[] | null;
@@ -228,22 +228,22 @@ export interface LifeParams {
   /** walker: its path, its home (its feet, where it is drawn) and speed. */
   path?: Pt[];
   home?: Pt;
-  /** d5 f1, smoke's box as falling petals instead: how many, their size (world px) and speed. */
+  /** Smoke's box as falling petals instead: how many, their size (world px) and speed. */
   petals?: { n: number; size: number; speed?: number };
-  /** d5 f1, a walker that is a bird: its wings beat as it glides (the present pass squashes it in time). */
+  /** A walker that is a bird: its wings beat as it glides (the present pass squashes it in time). */
   bird?: boolean;
-  /** d5 f1, shimmer: expanding ripple rings on the water too. */
+  /** Shimmer: expanding ripple rings on the water too. */
   rings?: number;
-  /** M n1, a sprite that swings slowly about its root (the plum: ~0.5 deg at ~0.08 Hz; the present pass turns it). */
+  /** A sprite that swings slowly about its root (the plum: ~0.5 deg at ~0.08 Hz; the present pass turns it). */
   swing?: boolean;
-  /** P3 (elements.ts waterfall), smoke's box as a falling stream instead: its x, its lip's and its foot's y, its
+  /** (elements.ts waterfall) Smoke's box as a falling stream instead: its x, its lip's and its foot's y, its
    *  half-width (world px); the present pass slides lights down what the layer painted white there. */
   fall?: { x: number; y0: number; y1: number; hw: number };
-  /** P3 (elements.ts plumGust), the plum sprite: its main limb (world px), where the pointer touches the bough. */
+  /** (elements.ts plumGust) The plum sprite: its main limb (world px), where the pointer touches the bough. */
   limb?: Pt[];
-  /** P3 (elements.ts contactLife), a sprite that bends from its foot in a breeze (a clump of rushes). */
+  /** (elements.ts contactLife) A sprite that bends from its foot in a breeze (a clump of rushes). */
   bend?: boolean;
-  /** P3 (elements.ts contactLife), shimmer: points (world px) where a ring set falls now and then by itself (a pole,
+  /** (elements.ts contactLife) Shimmer: points (world px) where a ring set falls now and then by itself (a pole,
    *  a bow). */
   drops?: Pt[];
 }
@@ -479,7 +479,7 @@ const BASE: Record<InkName, RGB> = {
   ink: [20, 24, 27], ink2: [42, 48, 52], wall: [236, 238, 235], white: [246, 247, 244], paper: [239, 241, 238], mist: [233, 237, 236],
   tile: [56, 78, 98], timber: [76, 96, 128], timberM: [140, 168, 200], indigo: [44, 78, 104], indigoP: [150, 180, 204],
   mal: [139, 200, 196], malD: [36, 128, 132], az: [156, 196, 224], earth: [120, 128, 134],
-  // d5: the young palette's figure inks (navy ink for near accents, jade, the one blossom accent)
+  // the young palette's figure inks (navy ink for near accents, jade, the one blossom accent)
   navy: [27, 40, 60], jade: [64, 160, 160], jadeD: [24, 98, 104], blossom: [244, 190, 212], blossomD: [206, 120, 158], light: [251, 254, 255],
 };
 /** The inks' names (Inks.C). */

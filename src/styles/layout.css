@@ -550,16 +550,17 @@ html.no-landscape .closing__art {
 }
 
 /* ==========================================================================
-   Step 3b, windows into the painting (components/page/Glimpse; elements.ts glimpses): below 1200 px, at a page's
-   major breaks, a short box the engine paints with the page's own place, each one further along the place and higher
-   in one climb through it (a handscroll unrolled down the page). It takes the section's gap (the section after it sits
+   Windows into the painting (components/page/Glimpse; elements.ts glimpses): below 1200 px, at a page's major
+   breaks, a short box the engine paints with the page's own place, each one further along the place and higher in
+   one climb through it (a handscroll unrolled down the page). It takes the section's gap (the section after it sits
    directly under it), so a break costs the reader about one window's height; its top and bottom 40 px are mist and
-   paper (the painting keeps 40 px off the words on either side). Phones: a full-bleed 180 px box; tablets: the column's
-   width (at most 40 rem) with paper on either side; a phone held sideways: none (its 390 px tall screen keeps the
-   approved strip and closing; the 110 px sliver windows tried there added little). Until the engine paints a window, and wherever it cannot (no
-   JavaScript, no WebGL, a software rasteriser, the governor's veto), the window's own still stands in it (--glimpse-
-   still, cut by build:stills at its rest pose), cross-fading to the painting over 300 ms ([data-live]): never an
-   empty hole. The short pages (Writing, Contact) have none: their closing ends on the place, near and large.
+   paper (the painting keeps 40 px off the words on either side). Phones: a full-bleed 180 px box; tablets: the
+   column's width (at most 40 rem) with paper on either side; a phone held sideways: none (its 390 px tall screen
+   keeps only the strip and the closing; a 110 px sliver of a window adds little there). Until the engine paints a
+   window, and wherever it cannot (no JavaScript, no WebGL, a software rasteriser, the governor's veto), the window's
+   own still stands in it (--glimpse-still, cut by build:stills at its rest pose), cross-fading to the painting over
+   300 ms ([data-live]): never an empty hole. The short pages (Writing, Contact) have none: their closing ends on the
+   place, near and large.
      <div class="glimpse bleed" data-landscape="glimpse" aria-hidden="true" style="--glimpse-still: …"></div>
    ========================================================================== */
 .glimpse {
@@ -601,7 +602,7 @@ html.no-landscape .closing__art {
     width: min(100%, 40rem);
     margin-inline: auto;
   }
-  /* (a tablet's column is shorter: one window fewer, the Résumé's in its timeline) */
+  /* (a tablet's column is shorter: one window fewer, Home's second) */
   html.el-glimpses .glimpse--phone {
     display: none;
   }
@@ -609,7 +610,7 @@ html.no-landscape .closing__art {
     margin-block-start: var(--space-section);
   }
 }
-/* a phone held sideways (a 390 px tall screen): no window mid-page; the strip and the closing as approved */
+/* a phone held sideways (a 390 px tall screen): no window mid-page; only the strip and the closing */
 @media (max-height: 31.25rem) and (max-width: 74.99rem) {
   html.el-glimpses .glimpse {
     display: none;
@@ -665,9 +666,9 @@ main:has(> .closing:last-child) + .site-footer {
    - phones whose labels do not fit one row (large text, WCAG 1.4.4; the footer frame is narrower than 20.3em of
      its own text, the labels' width plus their .5rem gaps), and browsers without subgrid or container queries:
      the art keeps the geography and the labels wrap in a flex row (Contact goes to a second line).
-   Each label's hit area also covers its column of the art (not in the wrapping row). Ticks mark every place;
-   "you are here" (the aria-current label, from the route) gets its
-   brush mark and a taller ink tick (by :has() below, and StoryMap's .is-here where :has() is missing). */
+   Each label's hit area also covers its column of the art (not in the wrapping row). Ticks mark every place, all
+   alike; "you are here" (the aria-current label, from the route) gets its brush mark (and, with the sun element,
+   its place holds the sun: finish.css). */
 .site-footer > .frame {
   container: story-map / inline-size;
 } /* the map's width: its windows' unit, its labels' fit */
@@ -765,7 +766,7 @@ main:has(> .closing:last-child) + .site-footer {
   --ra3: 0.844;
   /* a slanted (8deg) gradient's stop for a boundary at x across the window's middle row: x cos 8 + h sin 8 / 2 */
   --mask:
-    /* (M n1: the sky band feathers into paper over its top 35 % and its foot over 25 %: no ruled band) */
+    /* (the sky band feathers into paper over its top 35 % and its foot over 25 %: never a ruled band) */
     linear-gradient(
       to bottom,
       transparent,
@@ -934,22 +935,6 @@ main:has(> .closing:last-child) + .site-footer {
   height: 6px;
   margin-left: -0.5px;
   background: var(--rule-rest);
-}
-.story-map__tick.is-here {
-  width: 2px;
-  height: 14px;
-  margin-left: -1px;
-  background: var(--ink-1);
-}
-.story-map:has(> .story-map__list > [data-stretch='0'] > a[aria-current]) .story-map__tick[data-stretch='0'],
-.story-map:has(> .story-map__list > [data-stretch='1'] > a[aria-current]) .story-map__tick[data-stretch='1'],
-.story-map:has(> .story-map__list > [data-stretch='2'] > a[aria-current]) .story-map__tick[data-stretch='2'],
-.story-map:has(> .story-map__list > [data-stretch='3'] > a[aria-current]) .story-map__tick[data-stretch='3'],
-.story-map:has(> .story-map__list > [data-stretch='4'] > a[aria-current]) .story-map__tick[data-stretch='4'] {
-  width: 2px;
-  height: 14px;
-  margin-left: -1px;
-  background: var(--ink-1);
 }
 
 /* the labels */

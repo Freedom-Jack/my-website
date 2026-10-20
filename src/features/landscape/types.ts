@@ -15,8 +15,8 @@ export interface LandscapeTargets {
   closing: Element | null;
   /** [data-landscape="keepout"]: text the painting keeps clear of colour and figures. */
   keepout: Iterable<Element>;
-  /** N1 (elements.ts glimpses) [data-landscape="glimpse"]: the windows into the painting at a page's major section
-   *  breaks (below 1200 px), each with its own data-depth (0..1). */
+  /** (elements.ts glimpses) [data-landscape="glimpse"]: the windows into the painting at a page's major section
+   *  breaks (below 1200 px), in page order, and a short page's closing box ([data-glimpse="end"]). */
   glimpse?: Iterable<Element>;
   /** [data-veil]: paper mist behind text. */
   veil: Iterable<Element>;

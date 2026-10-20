@@ -28,7 +28,7 @@ import {
 // of the countryside under his mountain's foot and goes back into it before the lake), and from scene height 0.10 (the
 // near bank's land fades out above it) up to 0.42 (above the back rows' roofs and the masts; the town's highest point
 // is about 0.38).
-export const meta: FigureMeta = { rect: [1.0, 2.12, 0.10, 0.95], plane: 2, phase: 1 };   // A: up into the sky (the willow, a swallow)
+export const meta: FigureMeta = { rect: [1.0, 2.12, 0.10, 0.95], plane: 2, phase: 1 };   // (up into the sky for the willow and the swallows)
 
 const SEED = 11;
 
@@ -329,11 +329,11 @@ function houseInk(env: Env, far: number, R: Rng, o: BuildingOptions, x = 0) {
   const A = 1 - 0.45 * far;
   const kk = o.k ?? 1;
   const wall = mix3(C.wall, C.ink2, (o.wall ?? 0) + 0.04 + R() * 0.12 + far * 0.08);
-  // (d5 f1: atmospheric perspective toward ice: the front row crisp slate-blue, the back rows dissolving into the air)
+  // (atmospheric perspective toward ice: the front row crisp slate-blue, the back rows dissolving into the air)
   const ICE: RGB = [206, 226, 238];
   const tile0 = o.thatch ? mix3(mix3(C.timber, C.ink2, 0.5), C.white, 0.15 + far * 0.2) : mix3(C.tile, C.white, 0.02 + R() * 0.12);
-  // (A: glazed jade-slate roofs, gathered in one or two groups along the front rows (by x, no extra random draws, so
-  // the town's streams and the bridge's identity hold): KEY's glazed roofs, the young colour in the town itself)
+  // (glazed jade-slate roofs, gathered in one or two groups along the front rows (by x, no extra random draws, so the
+  // town's streams and the bridge's identity hold): the young colour in the town itself)
   const gl = o.thatch ? 0 : Math.pow(Math.max(0, Math.sin(x * 0.0041 + 4.69)), 2.5) * (1 - far * 0.7) * 0.85;
   const tile = mix3(mix3(mix3(tile0, [52, 122, 128], gl), ICE, far * 0.62), C.paper, (1 - kk) * 0.8);
   const lineC = mix3(mix3(C.navy, C.ink, 0.4), [120, 150, 172], far * 0.8);
@@ -425,11 +425,11 @@ function hall(env: Env, x: number, y: number, w: number, h: number, R: Rng, o: H
   const rr: Pt[] = gable ? [[rL[0] - 1.0, rL[1] - 0.6], rL, [rR[0] + ov * 0.6, rR[1]], [rR[0] + ov * 0.6 + 1.0, rR[1] - 0.6]] : [[rL[0] - 1.3, rL[1] - 1.1], rL, rR, [rR[0] + 1.3, rR[1] - 1.1]];
   rib(B, K.line(o.thatch ? 0.7 : 0.9), rr, { w: o.thatch ? 1.2 : 1.6, tin: 0.12, tout: 0.12, wob: 0.25, seed: x + 11 }, 6);
   if (!o.thatch && far < 0.5) {
-    // d5 f1: the light catches the ridge and the upper slope: a white line just over the ridge, a pale band under it
+    // the light catches the ridge and the upper slope: a white line just over the ridge, a pale band under it
     wsh(B, rgba(C.light, 0.28 * A), [rL, rR, [mix(rR[0], eF[0], 0.22), mix(rR[1], eF[1], 0.22)], [mix(rL[0], eave[0][0], 0.22), mix(rL[1], eave[0][1], 0.22)]], 0.2, x + 12, 6);
     rib(B, rgba(C.light, 0.9 * A), rr.map(([px, py]): Pt => [px, py - 1.15]), { w: 0.7, tin: 0.15, tout: 0.15, wob: 0.15, dry: 0.15, seed: x + 13 }, 6);
   }
-  if (far < 0.5 && R() < 0.3) {   // d5 f1: a lit window or two, pale cyan
+  if (far < 0.5 && R() < 0.3) {   // a lit window or two, pale cyan
     const nw = 1 + Math.floor(R() * 2);
     for (let i = 0; i < nw; i++) { const lx = x + w * (0.2 + R() * 0.6), ly = y - h * (0.5 + R() * 0.2); B.fill(rgba([196, 238, 246], 0.92 * A), oval(lx, ly, 1.1, 0.9, 6), 7); }
   }
@@ -950,7 +950,7 @@ function rainbow(env: Env, A: Pt, span: number, Hb: number, R: Rng, o: RainbowOp
   const deckN = ts.map((t) => deckAt(t, 1));
   const rail = deckN.map(([px, py]): Pt => [px, py - 5]);
   for (let i = 0; i <= N; i++) N2.line(rgba(C.ink, 0.7), 0.5, [deckN[i], rail[i]], 0);
-  for (let i = 0; i < N; i++) for (const f of [0.33, 0.66]) {   // d5 f1: fine balusters between the posts (suisui 0m28's long bridge)
+  for (let i = 0; i < N; i++) for (const f of [0.33, 0.66]) {   // fine balusters between the posts, as on a long bridge
     const a = deckN[i], b = deckN[i + 1], px = mix(a[0], b[0], f), py = mix(a[1], b[1], f);
     N2.line(rgba(C.ink, 0.45), 0.3, [[px, py - 0.4], [px, py - 4.6]], 0);
   }
@@ -1224,16 +1224,16 @@ export function* draw(env: Env) {
   ] satisfies MooredBoat[];
   const BIG_L = 136, BIG_X = X(1.645) + BIG_L, BIG_Y = mix(fb(1.69), nearB(X(1.69)), 0.6);
   const BIG_O = { s: 1.1, dir: -1 as const, mast: 'aframe' as const, mastAngle: 38, mastLen: 0.4, c0: 0.2, c1: 0.5 };
-  // M "Spring ink" (B's Work river, suisui 0m28's glassy water): the bridge's arch and the boats mirrored in the river
-  // first, softened, torn by the ripples into level rows and fading with depth, so they stand on the water
+  // glassy water: the bridge's arch and the boats mirrored in the river first, softened, torn by the ripples into level
+  // rows and fading with depth, so they stand on the water
   {
     const river: Pt[] = [];
     for (let x = x0; x <= x1; x += 6) river.push([x, farB(x) + 1.2]);
     for (let x = x1; x >= x0; x -= 6) river.push([x, nearB(x) - 1]);
     const Rm = own('reflections');
-    // (n1, the critic: "a level copy of a diagonal span reads as wrong-way diagonal stripes": the arch is mirrored per
-    // column about the water under it, the line through its two feet (y' = 2 wl(x) - y), so the arch mirrors as an arch;
-    // reflectIn still tears it into level ripple rows)
+    // (the arch is mirrored per column about the water under it, the line through its two feet (y' = 2 wl(x) - y), so
+    // the arch mirrors as an arch: a level copy of a diagonal span reads as wrong-way diagonal stripes; reflectIn still
+    // tears it into level ripple rows)
     const mB = BD[1] / (Math.abs(BD[0]) > 1e-3 ? BD[0] : 1e-3);
     reflectIn(env, river, [bA[0], bA[1] + 1.5], () => { rainbow(env, bA, span, 74, own('bridge'), BRIDGE_O); }, Rm, { alpha: 0.5, blur: 2.0, fade: 70, m: mB });
     for (const b of BOATS) reflectIn(env, river, [b.x, b.y + 0.8], () => { craft(env, b.x, b.y, b.L, own('boat', b.key), b.o); }, Rm, { alpha: 0.85, blur: 0.9, fade: 50, box: [b.x - b.L * 1.2, b.y, b.x + b.L * 1.2, b.y + 60] });
@@ -1314,11 +1314,11 @@ export function* draw(env: Env) {
     Bw.flush();
   }
   yield;
-  // M "Spring ink" (B's rings, qingxiao 0m49): a few broken ripple rings in the open water between the boats, of unequal
-  // size, thick-thin, never closed, each with a lit arc on the side toward the light (upper right, Work's glow)
+  // a few broken ripple rings where the boats sit in the water, of unequal size, thick-thin, never closed, each with a
+  // lit arc on the side toward the light (upper right, Work's glow)
   {
     const Rr = own('rain rings');
-    // (n1: rings only where a hull or a pole meets the water: never in open water under the swallows, where they read
+    // (rings only where a hull or a pole meets the water: never in open water under the swallows, where they read
     // as logo arcs)
     for (const b of BOATS.slice(0, 3)) ripples(env, b.x + b.L * 0.42, b.y + 2.5, 7 + Rr() * 3, Rr, { n: 2, alpha: 1.4, lightDir: Math.PI * 1.68 });
     ripples(env, BIG_X - BIG_L * 0.08, BIG_Y + 3, 11, Rr, { n: 2, alpha: 1.5, lightDir: Math.PI * 1.68 });
@@ -1457,16 +1457,16 @@ export function* draw(env: Env) {
     if (sway) anchor(env, 'willow', t.box, { foot: [x, y], s, sway: 1.3 });   // life: sway
   });
   yield;
-  // ---- A r2: a willow tip out of the top edge (young.ts willowTip: brown-ink bough, spring yellow-green strands, their
-  // tips above the roofline), and a pair of swallows low over the river (no sprite repeated from Home)
+  // ---- a willow tip out of the top edge (young.ts willowTip: brown-ink bough, spring yellow-green strands, their tips
+  // above the roofline), and a pair of swallows low over the river (no sprite repeated from Home)
   if (!env.still) {
-    // (M step 3b, last fixes round 2: in the windows too: the first shows its tip as the tuft by the swallow, as approved;
-    // the second window is framed west of it, on the town's lower bank, so it never floats there like a sticker)
+    // (in the windows too: the first shows its tip as the tuft by the swallow; the second window is framed west of it,
+    // on the town's lower bank, so it never floats there like a sticker)
     willowTip(env, [[2672, 340], [2635, 409], [2575, 454], [2515, 479], [2458, 489]], [[2635, 411], [2685, 439], [2728, 449]], 1.1, 574, own('d5 willow'));
     yield;
-    const sx = 2300, sy = 505, path: Pt[] = [];   // (q1, BRIEF3 #3: in the open sky over the town, clear of the boat's mast and the willow)
+    const sx = 2300, sy = 505, path: Pt[] = [];   // (in the open sky over the town, clear of the boat's mast and the willow)
     for (let k = 0; k <= 30; k++) { const u = k / 30; path.push([sx + 160 - 300 * u, sy + 6 - 22 * u + 14 * Math.sin(u * 4.2)]); }
-    // (n1: Home's painted swallow, large enough to show its white belly and paler hand; the pair apart, at different
+    // (Home's painted swallow, large enough to show its white belly and paler hand; the pair apart, at different
     // headings, never two black hooks side by side)
     ownSprite(env, 'walker', { x: sx - 50, y: sy - 42, w: 100, h: 84 }, { path, home: [sx, sy], speed: 13, bird: true }, (e) => swallowInk(e, sx, sy, 58, 0.12, own('d5 swallow', 0), { bank: 0.4, lift: 0.3 }));
     swallowInk(env, 2398, 548, 40, -0.38, own('d5 swallow', 1), { bank: 0.8, lift: 0.55, mist: 0.15 });

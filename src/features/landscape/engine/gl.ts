@@ -32,9 +32,9 @@ const ZERO4 = new Float32Array(4);
 const ALL_PLANES = new Float32Array([0, LAYERS - 1, 0, 0]);   // an ordinary view: every plane, opaque (4b depth layers set their own)
 const NO_CROP = new Float32Array([0, 1, 0, 0]);                 // an ordinary view: the whole width of its ridges
 const ZERO12 = new Float32Array(12);
-const ZERO12A = new Float32Array(12);   // (M step 3 air: no petals)
+const ZERO12A = new Float32Array(12);   // (the scroll's air: no petals)
 const FULL_RECTS = new Float32Array([0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1]);
-const NONE16 = new Float32Array([2, 2, -1, -1, 2, 2, -1, -1, 2, 2, -1, -1, 2, 2, -1, -1]);   // (N1: no glimpse)
+const NONE16 = new Float32Array([2, 2, -1, -1, 2, 2, -1, -1, 2, 2, -1, -1, 2, 2, -1, -1]);   // (no window into the painting)
 const ZERO8 = new Float32Array(8);
 
 /** What the engine does when the context is lost (a restore is asked for), restored, or cannot be rebuilt. */
@@ -111,7 +111,7 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
   const maxTex: number = gl.getParameter(gl.MAX_TEXTURE_SIZE) || 4096;
   let R: Resources | null = null;   // live GL resources
   let W = 0, H = 0;       // drawing-buffer size
-  // (final round) a long jump's cross-dissolve: the last frame before the splice, copied off the drawing buffer
+  // a long jump's cross-dissolve (the silk veil): the last frame before the splice, copied off the drawing buffer
   let prev: WebGLTexture | null = null, prevW = 0, prevH = 0;
   const views = new Map<string, View>();
   const figs = new Map<string, WebGLTexture>();   // id -> texture
@@ -363,30 +363,6 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
     },
     dropView(id) { const v = views.get(id); if (v) { freeView(v); views.delete(id); } },
     hasView(id) { return !!views.get(id)?.tex; },
-    /** M step 3b (N3's readback): a small copy of view `id`'s painting (pw x ph, RGBA8, bottom row first), read back once
-     *  after it is painted, at idle (never while a page scrolls), so the windows into the painting can find where the
-     *  place stands in it (index.ts glimpseProfile). The draw and read framebuffers and the texture binding are put back. */
-    readSmall(id, pw, ph) {
-      const v = views.get(id);
-      if (!v || !v.tex || !v.fb || gl.isContextLost()) return null;
-      const sw = v.sw || v.w, sh = v.sh || v.h;
-      const prevTex = gl.getParameter(gl.TEXTURE_BINDING_2D) as WebGLTexture | null;
-      const prevFb = gl.getParameter(gl.FRAMEBUFFER_BINDING) as WebGLFramebuffer | null;
-      const t = tex(pw, ph, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, gl.CLAMP_TO_EDGE);
-      const fb = gl.createFramebuffer();
-      gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, fb);
-      gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t, 0);
-      gl.bindFramebuffer(gl.READ_FRAMEBUFFER, v.fb);
-      gl.blitFramebuffer(0, 0, sw, sh, 0, 0, pw, ph, gl.COLOR_BUFFER_BIT, gl.LINEAR);
-      gl.bindFramebuffer(gl.READ_FRAMEBUFFER, fb);
-      const px = new Uint8Array(pw * ph * 4);
-      try { gl.readPixels(0, 0, pw, ph, gl.RGBA, gl.UNSIGNED_BYTE, px); } catch { /* ignore */ }
-      gl.bindFramebuffer(gl.FRAMEBUFFER, prevFb);
-      gl.deleteFramebuffer(fb);
-      gl.deleteTexture(t);
-      gl.bindTexture(gl.TEXTURE_2D, prevTex);
-      return px;
-    },
     /** QA: bytes held per view (its scene buffer, RGBA8, and its ridge rows, RGBA16F) and by the figure layers. */
     memory() {
       const out: RendererMemory = { total: 0, views: {}, figures: 0 };   // (figure layers: with their mip levels, x 4/3)
@@ -455,7 +431,7 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       if (!R || !v || !v.ridges || !v.tex) return;
       const P = R.sceneP;
       const ds = U.draft ? Math.min(1, Math.max(0.25, U.draftScale || 1)) : 1;
-      const half = U.half === 0 || U.half === 1 ? U.half : -1;   // (M step 3b: a window's two layers, one buffer)
+      const half = U.half === 0 || U.half === 1 ? U.half : -1;   // (a window's two depth layers share one buffer)
       v.sw = half >= 0 ? v.w : Math.max(2, Math.round(v.w * ds));
       v.sh = half >= 0 ? v.h : Math.max(2, Math.round(v.h * ds));
       gl.bindVertexArray(R.vao);
@@ -498,7 +474,7 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       gl.useProgram(P.p);
       const wins = U.windows || [];
       const rect = new Float32Array(8), map = new Float32Array(8), suv = new Float32Array(8), fea = new Float32Array(8), kee = new Float32Array(8), sink = new Float32Array(8)
-      const nuv = new Float32Array(8), part = new Float32Array(8);   // (S1: each window's front layer)
+      const nuv = new Float32Array(8), part = new Float32Array(8);   // (each window's front depth layer)
       for (let i = 0; i < 2; i++) {
         const w = wins[i];
         const v = w && views.get(w.id);
@@ -514,7 +490,7 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       }
       bindTex(P, 0, 'uWin0', wins[0] && views.get(wins[0].id)?.tex);
       bindTex(P, 1, 'uWin1', wins[1] && views.get(wins[1].id)?.tex);
-      // S1: the windows' front depth layers (units 11, 12), when parted
+      // the windows' front depth layers (units 11, 12), when parted
       bindTex(P, 11, 'uWinN0', part[0] > 0 && wins[0]?.near ? views.get(wins[0].near)?.tex : null);
       bindTex(P, 12, 'uWinN1', part[4] > 0 && wins[1]?.near ? views.get(wins[1].near)?.tex : null);
       gl.uniform4fv(P.u('uWinNS'), nuv);
@@ -570,13 +546,13 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       gl.uniform4fv(P.u('uSea'), stOn ? st.sea : ZERO4);
       gl.uniform4fv(P.u('uStC'), stOn && st.cloud ? st.cloud : ZERO4);
       gl.uniform4fv(P.u('uStV'), stOn && st.curt ? st.curt : ZERO4);
-      gl.uniform4fv(P.u('uStX'), stOn && st.air ? st.air : ZERO4);   // (M step 3: an inner place's air, soft crops, footer)
+      gl.uniform4fv(P.u('uStX'), stOn && st.air ? st.air : ZERO4);   // (an inner place's air, soft crops, footer)
       gl.uniform4fv(P.u('uStF'), stOn && st.foot ? st.foot : ZERO4);
       gl.uniform4fv(P.u('uStG'), stOn && st.grade ? st.grade : ZERO4);
-      gl.uniform4fv(P.u('uStK'), stOn && st.rule ? st.rule : ZERO4);   // (s3fix 10: the row rules' end)
+      gl.uniform4fv(P.u('uStK'), stOn && st.rule ? st.rule : ZERO4);   // (the row rules' end)
       gl.uniform4fv(P.u('uLive'), U.live || ZERO4);
       gl.uniform4fv(P.u('uLive2'), U.live2 || ZERO4);
-      // M step 3b (elements.ts glimpses): the windows into the painting (units 13, 14: each window's own view, its back
+      // the windows into the painting (elements.ts glimpses; units 13, 14: each window's own view, its back
       // in the lower half and its front in the upper)
       const G = U.glimpse;
       const gv = [0, 1].map((i) => (G && G.ids[i] ? views.get(G.ids[i]) : null));
@@ -596,7 +572,7 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       gl.uniform4fv(P.u('uGlC'), gOn ? G!.c : ZERO8);
       gl.uniform4fv(P.u('uGlD'), gOn ? G!.d : ZERO8);
       gl.uniform4fv(P.u('uGlM'), gOn ? G!.m : ZERO8);
-      // M step 3 (elements.ts air): the scroll's air
+      // the scroll's air (elements.ts air)
       const A = U.air;
       gl.uniform4fv(P.u('uAir'), A ? A.a : ZERO4);
       gl.uniform4fv(P.u('uAir2'), A ? A.b : ZERO4);
@@ -617,7 +593,7 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
         gl.uniform4fv(P.u('uLifeB'), lf.b);
         gl.uniform4fv(P.u('uLifeK'), lf.k);
         gl.uniform4fv(P.u('uLifeFigR'), lf.fig && figs.has(lf.fig) ? lf.figR : ZERO4);
-        // P3 (elements.ts): the stirred water, the plum's gust
+        // the stirred water, the plum's gust (elements.ts)
         gl.uniform4fv(P.u('uStir'), lf.stir);
         gl.uniform4fv(P.u('uStirK'), lf.stirK);
         gl.uniform4fv(P.u('uGust'), lf.gust);
@@ -625,7 +601,7 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       }
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       if (U.grab) {
-        // (final round) keep this frame for a long jump's cross-dissolve (only while one is about to splice)
+        // keep this frame for a long jump's cross-dissolve (only while one is about to splice)
         gl.activeTexture(gl.TEXTURE0 + 10);
         if (!prev || prevW !== W || prevH !== H) {
           if (prev) gl.deleteTexture(prev);

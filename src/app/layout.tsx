@@ -17,7 +17,7 @@ import '@/styles/base.css';
 import '@/styles/layout.css';
 import '@/styles/effects.css';
 import '@/styles/components.css';
-import '@/styles/jade.css'; // d5 lab: the jade interface
+import '@/styles/jade.css'; // the jade interface, Spring ink (after components.css)
 import '@/styles/finish.css'; // the interface finish (each element behind its el-* class: features/landscape/elements.ts)
 
 export const metadata: Metadata = {

@@ -17,14 +17,15 @@ const SUNS = (manifest as unknown as { suns?: Record<string, [number, number]> }
 /**
  * The footer's story map: the whole painting as one small handscroll. Each place's own opening scene in
  * miniature (build-time stills cut from the engine: tools/build-stills.ts → public/scenes/), each in a soft
- * window that meets its neighbours in mist (layout.css), one label per place in the painting's order, a tick
- * over each. "You are here" is the label's aria-current (CSS lifts its tick through :has(), and .is-here mirrors
- * it for browsers without :has()). Decorative art: alt="" inside an aria-hidden box. Works without JS.
+ * window that meets its neighbours in mist (layout.css), one label per place in the painting's order, a plain tick
+ * over each. "You are here" is the label's aria-current; with the `sun` element its place holds the sun (finish.css,
+ * through :has(); .is-here on the scene and the sun is the hook for the current place). Decorative art: alt=""
+ * inside an aria-hidden box. Works without JS.
  */
 const BEEN_KEY = 'ink:been';
-/** M step 3 (S2's graft; elements.ts `visited`): the places visited this session (their stretches), remembered in this
- *  tab only; the map shows them still holding a little of their light, where you have travelled. A convenience: with no
- *  storage it simply marks nothing, and the server renders none (no hydration mismatch). */
+/** elements.ts `visited`: the places visited this session (their stretches), remembered in this tab only; the map
+ *  shows them still holding a little of their light, where you have travelled. A convenience: with no storage it
+ *  simply marks nothing, and the server renders none (no hydration mismatch). */
 const beenFns = new Set<() => void>();
 const beenRead = (): string => {
   try {
@@ -80,7 +81,7 @@ export function StoryMap() {
               className={`story-map__scene${current(p.href) ? ' is-here' : ''}${been.includes(p.stretch) ? ' is-been' : ''}`}
               data-stretch={p.stretch}
             >
-              {/* A decorative still at its own pixel sizes (1x, 2x): next/image would re-encode it. P4 sun: the dim
+              {/* A decorative still at its own pixel sizes (1x, 2x): next/image would re-encode it. Two (sun): the dim
                   still (no sun) under the lit one (its own sun); CSS shows the lit one for the current place and
                   raises it for a hovered or focused label (layout.css / finish.css). */}
               {(['', '-lit'] as const).map((v) => (
@@ -111,11 +112,7 @@ export function StoryMap() {
           />
         ))}
         {STORY_MAP.map((p) => (
-          <span
-            key={p.still}
-            className={current(p.href) ? 'story-map__tick is-here' : 'story-map__tick'}
-            data-stretch={p.stretch}
-          />
+          <span key={p.still} className="story-map__tick" data-stretch={p.stretch} />
         ))}
       </div>
       <ol className="story-map__list" role="list">

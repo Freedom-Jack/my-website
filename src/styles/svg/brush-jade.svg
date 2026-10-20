@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 20" preserveAspectRatio="none">
-  <!-- A r2: the link brush in jade ink: a pressed start, an even run, a tapering finish; two unequal skips of flying
+  <!-- The link brush in jade ink: a pressed start, an even run, a tapering finish; two unequal skips of flying
        white that follow the stroke (no turbulence streaks, nothing on the top edge). -->
   <defs>
     <mask id="dry" maskUnits="userSpaceOnUse" x="0" y="0" width="240" height="20">

@@ -57,7 +57,7 @@ export function* draw(env: Env) {
 
   reflections(env, boat, jet, own('reflections'), sz);           // the water first: reflections, wake, rings
   {
-    // d5 f1: a long glassy cyan wake fanning out behind the ferry toward the open water (two lines, a lit core)
+    // a long glassy cyan wake fanning out behind the ferry toward the open water (two lines, a lit core)
     const fb0 = boat.box, sx = fb0.x + fb0.w * 0.15, sy = fb0.y + fb0.h * 0.92;
     for (const [dy, a, w, c] of [[0, 0.75, 1.6, [168, 228, 240]], [5, 0.55, 1.2, [150, 214, 232]], [-3, 0.9, 0.8, [246, 254, 255]]] as const) {
       const pts: Pt[] = [];
@@ -81,18 +81,18 @@ export function* draw(env: Env) {
   yield;
   reeds(env, jet.root[0] - 4 * sz, jet.wl + 6 * sz, sz * 1.1, own('reeds', 'root'), 12, 1);
   yield;
-  // ---- A r2: no willow copied from Work: a clump of rushes at the landing, in front of the jetty's root (young.ts)
+  // ---- a clump of rushes at the landing, in front of the jetty's root (young.ts; Work's willow is not repeated here)
   if (!env.still) {
     const rx = jet.root[0] + 22 * sz, ry = jet.wl + 8 * sz, rs = sz * 0.72;
-    // P3 (elements.ts contactLife): the rushes are their own sprite, so they bend in the breeze (the present pass)
+    // contactLife (elements.ts): the rushes are their own sprite, so they bend in the breeze (the present pass)
     if (el('contactLife')) ownSprite(env, 'boat', { x: rx - 64 * rs, y: ry - 100 * rs, w: 128 * rs, h: 106 * rs }, { bend: true, range: [rx - 4000, rx + 4000] }, (e) => rushes(e, rx, ry, rs, own('d5 rushes'), 13, 52));
     else rushes(env, rx, ry, rs, own('d5 rushes'), 13, 52);
   }
   yield;
   {
-    // ---- q3 (BRIEF3 #2, Contact's one painted moment): the ferry in the morning glow. Under the dawn light a road of
-    // light comes across the water toward the boat (glassy highlights over a faint clear cyan sheet, as on the lake),
-    // the bow and the pole each stand in their own broken rings, and two far birds cross over the far shore.
+    // ---- Contact's one painted moment: the ferry in the morning glow. Under the dawn light a road of light comes
+    // across the water toward the boat (glassy highlights over a faint clear cyan sheet, as on the lake), the bow and
+    // the pole each stand in their own broken rings, and two far birds cross over the far shore.
     const { ctx, ink } = env, Rg = own('q3 glints');
     const lx = X(K + 0.8), y0 = farY(lx) + 3;
     const fb1 = boat.box, bx = fb1.x + fb1.w * 0.3, by = jet.wl + 30 * sz, ex = mix(lx, bx, 0.55);

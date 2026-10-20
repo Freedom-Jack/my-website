@@ -89,23 +89,21 @@ export async function HomePage() {
       </section>
 
       {now.lines.length ? (
-        <>
-          <section className="sec now" aria-labelledby="now-title" data-veil="">
-            <h2 className="sec__title" id="now-title">
-              {now.title}{' '}
-              <span className="sec__date small">
-                · <time dateTime={now.month}>{monthYear(now.month)}</time>
-              </span>
-            </h2>
-            <ul className="rows rows--plain" role="list">
-              {now.lines.map((line) => (
-                <li key={line.label}>
-                  <b>{line.label}:</b> <Inline text={line.text} />
-                </li>
-              ))}
-            </ul>
-          </section>
-        </>
+        <section className="sec now" aria-labelledby="now-title" data-veil="">
+          <h2 className="sec__title" id="now-title">
+            {now.title}{' '}
+            <span className="sec__date small">
+              · <time dateTime={now.month}>{monthYear(now.month)}</time>
+            </span>
+          </h2>
+          <ul className="rows rows--plain" role="list">
+            {now.lines.map((line) => (
+              <li key={line.label}>
+                <b>{line.label}:</b> <Inline text={line.text} />
+              </li>
+            ))}
+          </ul>
+        </section>
       ) : null}
 
       {notes.length ? (

@@ -12,7 +12,7 @@ export const LIGHTS: readonly Light[] = [
   [1.8, 0.5, 0.24, -0.45], // Work: a wide sky glow over the bridge and the town
   [2.85, 0.47, 0.11, 0.62], // Writing: a low moon glow over the lake, glittering in it
   [3.8, 0.4, 0.26, -0.42], // Résumé: a morning haze behind the terraced hill
-  [4.8, 0.45, 0.22, 0.55], // Contact: a pale dawn over the crossing, a glint on the water (q3: .45 -> .55)
+  [4.8, 0.45, 0.22, 0.55], // Contact: a pale dawn over the crossing, a glint on the water
   [5.7, 0.7, 0.3, -0.35], // 404
 ];
 

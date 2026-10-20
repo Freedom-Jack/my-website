@@ -2,18 +2,18 @@ import { expect, test, type Page } from '@playwright/test';
 import { settle } from './support/pages';
 
 /**
- * Step 3b, windows into the painting (elements.ts glimpses), below 1200 px: the hard rules on the rendered pages.
- * Frozen first (they held before the art was reworked, and must hold after it):
+ * Windows into the painting (elements.ts glimpses), below 1200 px: the hard rules on the rendered pages.
+ * The page's own rules, whatever the windows paint:
  *   - laptops: no window is laid out, and the page is the approved one (flag on = flag off, "Still the landscape" on);
  *   - phones: every window is painted and scrolling past all of them paints no scene;
  *   - the words keep 40 px of paper: no figure pixel (lum < 190 or C* > 28) within 40 px of a text line;
  *   - reduced motion: a window is its rest pose wherever it stands on the screen;
- * and the reworked windows' own rules:
+ * and the windows' own rules:
  *   - nothing in a window is lighter than the paper round it; no figure within 24 px of the screen's sides;
  *   - windows never share a screen: >= 1.1 viewports apart, <= 30 % of any screen;
  *   - a short page's end (Writing, Contact) is uncovered at the end of the page at 390, 768 and 1024;
  *   - the fallback is the window's own still; a phone held sideways lays out no window (the strip and the closing).
- *   - (last fixes) the Résumé's timeline is never cut: its windows stand only before Experience and before Skills.
+ *   - the Résumé's timeline is never cut: its windows stand only before Experience and before Skills.
  * They read the QA build's window.__ink (NEXT_PUBLIC_INK_QA=1), like the other e2e probes.
  */
 type S = Record<string, any>;
@@ -346,7 +346,7 @@ test.describe('glimpses: phones', () => {
     const a = await crop(0.3);
     const c = await crop(0.7);
     const d = await diffFrac(page, a, c, 12);
-    // (the paper grain is anchored to the screen, as approved: it moves a pixel by at most ~12/255; the painting moving
+    // (the paper grain is anchored to the screen by design: it moves a pixel by at most ~12/255; the painting moving
     // would differ by far more)
     expect(d).toBeLessThan(0.002);
   });

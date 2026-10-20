@@ -28,7 +28,7 @@ import type { Resolved } from '../compose';
 
 /** The set's stretch: every world x below is K + its offset (move the place by changing K). */
 const K = 3;
-export const meta: FigureMeta = { rect: [K + 0.16, K + 1, 0.2, 0.6], plane: 2, phase: 0 };   // (q3: up into the sky for the swallow)
+export const meta: FigureMeta = { rect: [K + 0.16, K + 1, 0.2, 0.6], plane: 2, phase: 0 };   // (up into the sky for the swallow)
 type PtData = [x: number, y: number, ...data: number[]];
 interface TreeOptions { pale?: boolean; upright?: boolean }
 
@@ -144,7 +144,7 @@ export function* draw(env: Env) {
   // the fields on the treads, between a wall's lip and the foot of the wall above: each a long band, pinched a little at
   // its ends where it meets the next field (a low dike) or runs out against the hill's outline. Flooded fields hold
   // the sky (paper), young rice is pale, ripe rice a little darker; some lie bare
-  // (q3: the flooded fields hold the morning sky: a clear pale ice-cyan, each with a lit line along its lip)
+  // (the flooded fields hold the morning sky: a clear pale ice-cyan, each with a lit line along its lip)
   const flood = colour ? mix3(C.white, [168, 214, 232], 0.42) : C.white;
   const young = colour ? mix3(C.mal, C.white, 0.5) : mix3(C.ink2, C.white, 0.78);
   const ripe = colour ? mix3(C.malD, C.ink2, 0.25) : C.ink2;
@@ -299,7 +299,7 @@ export function* draw(env: Env) {
   };
   onCrest(K + 0.392, 0.012, 0.66, 'crown2', { pale: true });
   onCrest(K + 0.405, 0.011, 0.7, 'crown', { upright: true });
-  // (q3: one tree on the crown is in blossom, the spring accent of the terraces; another, smaller, on the shoulder)
+  // (one tree on the crown is in blossom, the spring accent of the terraces; another, smaller, on the shoulder)
   { const y = crest(K + 0.418) - 0.011; if (fade2(K + 0.418, y) >= 0.3) blossomTree(env, X(K + 0.418), Y(y), 2.1 * fk, own('tree', 'blossom')); }
   onCrest(K + 0.432, 0.013, 0.62, 'crown4', {});
   onCrest(K + 0.525, 0.012, 0.75, 'saddle', { pale: true });
@@ -312,10 +312,10 @@ export function* draw(env: Env) {
     ctx.globalAlpha = 1;
   }
   yield;
-  // (A r2: the bamboo is dropped: a third green, cut by the frame's edge)
-  // ---- q3 (BRIEF3 #2, Résumé's one painted moment): terraces in the morning light. A swallow sweeps low over the
-  // fields toward the light (the painted bird, its own sprite, gliding), the flooded treads hold the sky with a lit
-  // line along each lip, and one tree on the left crown is in blossom.
+  // (no bamboo here: it would be a third green, cut by the frame's edge)
+  // ---- Résumé's one painted moment: terraces in the morning light. A swallow sweeps low over the fields toward the
+  // light (the painted bird, its own sprite, gliding), the flooded treads hold the sky with a lit line along each lip,
+  // and one tree on the left crown is in blossom.
   if (!env.still) {
     const sx = X(K + 0.6), sy = Y(0.445), path: Pt[] = [], sb = 40 * Math.pow(big, 0.5);
     for (let k = 0; k <= 30; k++) { const u = k / 30; path.push([sx - 120 + 260 * u, sy + 18 - 40 * u + 10 * Math.sin(u * 3.4)]); }
@@ -327,7 +327,7 @@ export function* draw(env: Env) {
 }
 
 /**
- * q3: a tree in blossom, small in the far landscape (a peach on the terraces' crown): a short forked trunk under a
+ * A tree in blossom, small in the far landscape (a peach on the terraces' crown): a short forked trunk under a
  * rounded crown of overlapping dabs, white and pale pink on its lit upper left, a deeper rose in its shade, over a
  * soft blush wash, a few dabs loose at its edge. (x, y) = the foot; s = scale (1 ~ 20 world px tall).
  */

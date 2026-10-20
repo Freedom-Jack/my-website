@@ -7,7 +7,8 @@ down to the river town (Work), past the still lake (Writing), up through the ter
 
 - **Words:** all of them are in `content/`. To edit, read [CONTENT.md](CONTENT.md).
 - **Design:** the source of truth is [design-demo/DESIGN.md](design-demo/DESIGN.md), the approved static demo 4b in
-  `design-demo/`, and its copy deck [design-demo/COPY.md](design-demo/COPY.md). This app is that demo, built for real.
+  `design-demo/`, and its copy deck [design-demo/COPY.md](design-demo/COPY.md). This app is that demo, built for real,
+  as changed by round 5 (DESIGN §12): one painting, and the style "Spring ink" with its scroll motion.
 
 ## Stack
 
@@ -36,17 +37,17 @@ The site is then at http://localhost:3000. `.env.local` may hold a `GITHUB_TOKEN
 for Work's "In the open" list. Without one the build uses GitHub's anonymous rate limit, and if GitHub cannot be
 reached it falls back to `content/github/snapshot.json`.
 
-| Command                      | What it does                                                                                  |
-| ---------------------------- | --------------------------------------------------------------------------------------------- |
-| `npm run dev`                | the dev server                                                                                |
-| `npm run build`, `npm start` | a production build, served on port 3000 (`-- -p 3100` for the tools below)                    |
-| `npm run ci`                 | type-check, lint, format check, unit tests, stills check: run before every push               |
-| `npm run test:e2e`           | Playwright against a built site on port 3100: a smoke test per route, navigation, the budgets |
-| `npm run check:compliance`   | the hard rules over the sources and the built pages                                           |
-| `npm run check:links`        | crawls the built site: every link answers, every outside link is https and allowed            |
-| `npm run build:pdf`          | prints `/resume/` to `public/resume.pdf` (`-- --check` in CI)                                 |
-| `npm run build:stills`       | cuts the footer's story-map stills from the engine (needs a QA build; `-- --check` in CI)     |
-| `npm run format`             | Prettier                                                                                      |
+| Command                      | What it does                                                                                   |
+| ---------------------------- | ---------------------------------------------------------------------------------------------- |
+| `npm run dev`                | the dev server                                                                                 |
+| `npm run build`, `npm start` | a production build, served on port 3000 (`-- -p 3100` for the tools below)                     |
+| `npm run ci`                 | type-check, lint, format check, unit tests, stills check: run before every push                |
+| `npm run test:e2e`           | Playwright against a built site on port 3100: smoke, navigation, budgets, scroll, phone bands  |
+| `npm run check:compliance`   | the hard rules over the sources and the built pages                                            |
+| `npm run check:links`        | crawls the built site: every link answers, every outside link is https and allowed             |
+| `npm run build:pdf`          | prints `/resume/` to `public/resume.pdf` (`-- --check` in CI)                                  |
+| `npm run build:stills`       | cuts the story map's stills and the phone bands' stills (needs a QA build; `-- --check` in CI) |
+| `npm run format`             | Prettier                                                                                       |
 
 A **QA build** (`NEXT_PUBLIC_INK_QA=1 npm run build`) exposes the painting to the test tools as `window.__ink` and
 `window.__inkEngine`. Production builds leave both out, along with the engine's QA-only code.
@@ -58,22 +59,29 @@ content/                 every word: site.ts, resume.json, pages/*.ts, work/*.md
 src/app/                 thin routes: metadata, data loading, and one feature component each
 src/components/          shared building blocks
   layout/                header, footer, the story map, "Still the landscape", the boot script, ink filters
-  page/                  PageMain (every page's <main>), Strip (its opening scene), Closing (its end scene)
+  page/                  PageMain (every page's <main>), Strip (its opening scene), Closing (its end scene),
+                         Glimpse (an empty depth band at a section break, painted below 1200 px)
   ui/                    Seal, InkButton, MarginNote, Diagram
 src/features/            one folder per feature, each owning its components, logic and CSS Module
   landscape/             the painting: places.ts (where each page stands), Landscape.tsx (the one persistent
-                         canvas), engine/ (the WebGL2 engine; types.ts is its contract)
+                         canvas), elements.ts (THE switch table of Spring ink's elements and scroll motion),
+                         engine/ (the WebGL2 engine; types.ts is its contract, lights.ts the one table of each
+                         place's light, sets/ the places' figures, sets/young.ts the plum, swallow and willow)
   navigation/            route changes as pans along the painting: exit, travel, arrival, focus, announce
   chrome/                current page, the returning header, Still, the 404's lost mark
-  effects/               brush links, ink buttons, diagram draw-in, the seal, arrival
+  effects/               brush links, ink buttons, diagram draw-in, the seal, arrival, the name's swash (swash.ts),
+                         the nav's mark (nav-mark.ts), row rules and the diagram's flow dot (finish.ts)
   home/ work/ writing/ resume/ contact/ github/     the pages and their data
 src/lib/                 typography, inline markup, dates, SEO and JSON-LD, redirects, the compliance patterns,
                          the MDX plugin (mdx/rehype-site.mjs)
-src/styles/              the design system: tokens, base, layout, effects, components (global, from the demo)
+src/styles/              the design system: tokens, base, layout, effects, components (global, from the demo);
+                         jade.css (Spring ink's interface: jade name, titles, the one button, focus) and finish.css
+                         (the interface elements, each behind its html.el-* class), loaded last
 tools/                   build-pdf, build-stills, compliance, linkcheck (TypeScript, run by Node 24 directly)
 tests/unit/              content schemas and counts, GitHub rules, the engine's pure parts (Vitest)
 tests/e2e/               smoke, navigation and the DESIGN §6 budgets (Playwright; support/measure.js is the
-                         demo's own probe)
+                         demo's own probe); scroll.spec.ts (the scroll motion: quiet modes, smoothness, seams,
+                         memory); glimpse.spec.ts (the phone and tablet depth bands)
 design-demo/             the approved static demo, its notes and its QA tools: reference only, never deployed
 legacy-v1/               the old site, kept until its removal is approved
 ```
@@ -88,8 +96,22 @@ changes and is safe under Strict Mode. Everything else talks to it only through 
 (`types.ts`). It respects reduced motion and the footer's "Still the landscape" switch, which is remembered across
 visits. Without WebGL it paints in Canvas2D; without JavaScript it shows a static ridge.
 
-**After changing the engine, its figure sets, a palette, a place or a strip height**, regenerate the story-map
-stills (CI fails until you do). Use two terminals:
+**The elements** of the Spring ink style (the morning, the water's rings, the plum's gust, the page change's mist,
+the nav mark, the swash, focus, and so on) and the scroll motion (`cameraTravels`, `air`, `glimpses`) each have one
+flag in `src/features/landscape/elements.ts`. Off means gone: its engine paths are skipped and its `el-<name>` class
+on `<html>` is not set, so its CSS does not apply. `silkVeil`, `air` and `glimpses` also compile their shader code
+out (GLSL `#define`s); the other elements' shader code stays compiled in, skipped by its uniforms. A QA build can
+switch flags off in one browser (localStorage `ink-elements`, or `window.__elOff`). The Canvas2D fallback paints
+Spring ink's figure sets and misted palette, without the shader work: no ice-blue air or light, no dry-brush ink,
+none of the painting's elements, no scroll motion; the depth bands keep their stills.
+
+**The depth bands** (below 1200 px): a page marks a section break with `<Glimpse still="home-0" />` (`phone` for phones
+only). The engine paints the page's own place into it, framed by its table `GLIMPSE` in `engine/index.ts`; where it
+cannot, the band shows its still (`public/scenes/glimpse/`, cut by `build:stills`).
+
+**After changing the engine, its figure sets, a palette, a light, `elements.ts`, a place, or a strip or band
+height**, regenerate the stills: the story map's (dim and lit, per place) and each depth band's (CI fails until you
+do). Use two terminals:
 
 ```bash
 NEXT_PUBLIC_INK_QA=1 npm run build && npm start -- -p 3100
@@ -108,7 +130,7 @@ CI (`.github/workflows/ci.yml`) runs on every push and pull request:
 3. a QA production build, then the built site's own checks: the résumé PDF matches the résumé and holds no phone
    number, the hard rules (no phone, no street address, no project-management credential, no link to the old
    résumé file, no CJK text but the seal), every link, and the Playwright suite (a smoke test per route, client
-   navigation, the DESIGN §6 budgets at 1440, 1280 and 390).
+   navigation, the DESIGN §6 budgets at 1440, 1280 and 390, the scroll motion, the depth bands).
 
 ## Deploying
 

@@ -139,7 +139,7 @@ describe('places (features/landscape/places)', () => {
     // the story map: the places in the painting's order, one per stretch, the 404 off it
     expect(STORY_MAP.map((p) => p.stretch)).toEqual([0, 1, 2, 3, 4]);
   });
-  it('lives on the five map pages (S1, the camera travels; Home and Work without it); every page on the road ends on its closing scene (round 5)', () => {
+  it('lives on the five map pages with cameraTravels (Home and Work without it); every page on the road ends on its closing scene', () => {
     expect(
       Object.values(PLACES)
         .filter((p) => p.ground === 'living')

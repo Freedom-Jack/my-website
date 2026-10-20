@@ -8,7 +8,10 @@ Guidance for Claude Code in this repository. @AGENTS.md holds Next.js's own note
 - [design-demo/DESIGN.md](design-demo/DESIGN.md): the source of truth. §1 is the process rules, §2 the hard rules
   and the launch gate, §11.E Jack's answers, §12 the build plan.
 - [README.md](README.md) explains how the app is organised. [CONTENT.md](CONTENT.md) explains where every word lives.
-- The approved look is demo 4b in `design-demo/`. Any visual change is checked side by side with it, on the real GPU (DESIGN §13).
+- The approved look is the build on `round5/spring-ink` itself (DESIGN §12 "Round 5": the one painting, the style
+  "Spring ink", its scroll motion and phone depth bands), and demo 4b in `design-demo/` for everything round 5 did not
+  change. Any visual change is checked side by side with them, on the real GPU (DESIGN §13); the screenshots stay
+  outside the repo.
 
 ## Commands
 
@@ -29,8 +32,10 @@ check, unit tests, stills check) · `npm run test:e2e` (needs a build on port 31
 - `src/features/landscape/engine/` is the demo's WebGL2 engine in strict TypeScript (typed from the demo's
   JavaScript without changing a pixel), behind the contract in `types.ts`; `engine/renderer.ts` is the contract
   between the engine and its two painters, `figures.ts` the figure sets' API. Change it only with the engine's own docs in mind (design-demo/README.md, "The landscape engine, inside" and "Figure sets and small life").
-  After any change to the engine, a figure set, a palette, a place or a strip height, regenerate the stills
-  (`npm run build:stills`, which needs a QA build).
+  After any change to the engine, a figure set, a palette, a light, `elements.ts`, a place, or a strip or band height,
+  regenerate the stills (`npm run build:stills`, which needs a QA build).
+- `src/features/landscape/elements.ts` is the one switch table of Spring ink's elements and the scroll motion: a new
+  element gets a flag there, and off must mean gone.
 - `places.ts` is the one table of where each page stands in the painting. `PageMain` and the navigation both read
   it.
 

@@ -6,8 +6,8 @@ import { bootElements } from '@/features/landscape/elements';
  *   html.is-sealed     this session has already seen the seal stamped
  *   html.is-still      "Still the landscape" is on (remembered across visits: localStorage 'ink:still')
  *   html.is-arrived    the name's ink settle is done (the arrival effect; also forced after 3 s, whatever happens)
- *   html.el-<name>     P2 lab: an element of features/landscape/elements.ts that is switched on
- *   html.swash-play    P2 swash: this full load of Home lays the name's swash (once per session: sessionStorage 'ink:swash')
+ *   html.el-<name>     an element of features/landscape/elements.ts that is switched on
+ *   html.swash-play    this full load of Home lays the name's swash (once per session: sessionStorage 'ink:swash')
  * It also drops the demo's retired session keys once.
  */
 const BOOT = `(function(d,w){var h=d.documentElement,s=null,l=null;h.classList.add('js');

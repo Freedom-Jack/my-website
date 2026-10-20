@@ -50,9 +50,9 @@ export interface SceneBase {
   draft: boolean;
   draftScale: number;
   aspect: number;
-  /** M n1: a story-map still (QA frame): only Home's light keeps its heart and bloom. */
+  /** A story-map still (QA frame): only Home's light keeps its heart and bloom. */
   stillL?: number;
-  /** P2 morning: seconds into Home's once-a-session morning (>= 9: none, at rest). */
+  /** Seconds into Home's once-a-session morning (>= 9: none, at rest). */
   morn?: number;
 }
 /** What scene() paints: one view's framing, composition, figures and arrival. */
@@ -83,7 +83,7 @@ export interface SceneU extends SceneBase {
   /** 4b depth layers: [first plane, last plane, 1 = over transparent paper, 0], and the crop [x0, width] (view uv). */
   planes?: Float32Array;
   crop?: Float32Array;
-  /** M step 3b: paint into the lower (0) or upper (1) half of the view's buffer (a window's two depth layers). */
+  /** Paint into the lower (0) or upper (1) half of the view's buffer (a window's two depth layers). */
   half?: number;
 }
 
@@ -99,12 +99,12 @@ export interface PresentWindow {
   keep: Float32Array | null;
   /** How far its painting has sunk inside its box (0..1 of its height). */
   sink: number;
-  /** S1 (index.ts PART): the front depth layer's view (the window's own view is then its back), or null. */
+  /** The front depth layer's view (index.ts PART; the window's own view is then its back), or null. */
   near?: string | null;
-  /** S1: [on, the back's sink, the mist between the layers (box fraction), the front's sideways drift (box widths)]. */
+  /** [on, the back's sink, the mist between the layers (box fraction), the front's sideways drift (box widths)]. */
   part?: Float32Array | null;
 }
-/** M step 3b (elements.ts glimpses): the windows into the painting on screen, below 1200 px (index.ts glimpseU), at most
+/** The windows into the painting on screen (elements.ts glimpses), below 1200 px (index.ts glimpseU), at most
  *  two (shaders.ts GLN). Each has its own view: two depth layers painted for its own framing, the back in the lower half
  *  of the view's buffer and the front (premultiplied, over transparent paper) in the upper half. */
 export interface PresentGlimpse {
@@ -136,13 +136,13 @@ export interface StageU {
   rects: Float32Array;
   cloud: Float32Array;
   curt: Float32Array;
-  /** M step 3: [the inner place's far-sky air 0..1, its layers' soft foot (crop fraction), the column's edge (uv x), a
-   *  seed] and [the footer's top (uv y, up), its feather (uv), on 0/1, QA debug]. */
+  /** [the inner place's far-sky air 0..1, its layers' soft foot (crop fraction), the column's edge (uv x), a
+   *  seed] and [the footer's top (uv y, up), its feather (uv), on 0/1, unused]. */
   air?: Float32Array;
   foot?: Float32Array;
-  /** M step 3: the inner places' grade on the stage: [hero box y0, y1 (uv, up, at the page's top), keep-out x, ramp]. */
+  /** The inner places' grade on the stage: [hero box y0, y1 (uv, up, at the page's top), keep-out x, ramp]. */
   grade?: Float32Array;
-  /** s3fix 10: [the right end of the page's row rules (uv x; 0 none), how far the lifted middle and near layers clear it
+  /** [the right end of the page's row rules (uv x; 0 none), how far the lifted middle and near layers clear it
    *  (0..1: the lift)]. */
   rule?: Float32Array;
 }
@@ -159,7 +159,7 @@ export interface LifeTable {
   ridge: string | null;
   sprite: string | null;
   fig: string | null;
-  /** P3 (elements.ts): the stirred water's ring sets (4 x [uv x, y, age s, 2 x kind + seed]) and their strength; the
+  /** The stirred water's ring sets (elements.ts; 4 x [uv x, y, age s, 2 x kind + seed]) and their strength; the
    *  plum's gust ([age s, lean, strength, nudge rad]) and its petals ([origin uv x, y, size uv x, 0]). */
   stir: Float32Array;
   stirK: Float32Array;
@@ -169,9 +169,9 @@ export interface LifeTable {
 /** What present() lays on screen. */
 export interface PresentU {
   aspect: number;
-  /** M n1: a story-map still (QA frame): only Home's light keeps its heart and bloom. */
+  /** A story-map still (QA frame): only Home's light keeps its heart and bloom. */
   stillL?: number;
-  /** P2 morning: seconds into Home's once-a-session morning (>= 9: none, at rest). */
+  /** Seconds into Home's once-a-session morning (>= 9: none, at rest). */
   morn?: number;
   windows: PresentWindow[];
   life: LifeTable | null;
@@ -190,21 +190,21 @@ export interface PresentU {
   wakeR: number;
   sweep: Float32Array;
   sweepSeed: number;
-  /** M enriched (silk veil): the text keep-out's right edge, screen uv x (0 = none). */
+  /** The silk veil: the text keep-out's right edge, screen uv x (0 = none). */
   sweepKeep?: number;
-  /** Final round (silk veil = mist dissolve): copy this frame after drawing it (a long jump before its splice). */
+  /** The silk veil's mist dissolve: copy this frame after drawing it (a long jump before its splice). */
   grab?: boolean;
-  /** Final round: how much of the grabbed frame still shows over this one (a long jump after its splice), 1 -> 0. */
+  /** How much of the grabbed frame still shows over this one (a long jump after its splice), 1 -> 0. */
   hold?: number;
   stage: StageU | null;
-  /** N1: the windows into the painting on screen (null: none). */
+  /** The windows into the painting on screen (null: none). */
   glimpse?: PresentGlimpse | null;
-  /** M step 3b: a pixel outside every painted rect is written as paper at once (below 1200 px with the windows on). */
+  /** A pixel outside every painted rect is written as paper at once (below 1200 px with the windows on). */
   paperOut?: boolean;
   /** 4b living veils (shaders.ts PRESENT: uLive, uLive2). */
   live: Float32Array;
   live2: Float32Array;
-  /** M step 3 (elements.ts air): the scroll's air: [on, speed, drift, envelope], [plum lean, ribbon bow, strength, 0],
+  /** The scroll's air (elements.ts air): [on, speed, drift, envelope], [plum lean, ribbon bow, strength, 0],
    *  [light swell, warmth, 0, 0], the petals aloft (3 x 2 vec4). null = none (the approved scroll). */
   air?: { a: Float32Array; b: Float32Array; c: Float32Array; petals: Float32Array; petalsB: Float32Array } | null;
   /** CSS px per buffer px, the pan in CSS px, the grain's strength and its texel. */
@@ -238,8 +238,6 @@ export interface Renderer {
   dropView(id: string): void;
   /** (optional: a painter without it holds every view) */
   hasView?(id: string): boolean;
-  /** M step 3b: a small RGBA8 copy of a painted view (bottom row first), read at idle; null when it has none. */
-  readSmall?(id: string, pw: number, ph: number): Uint8Array | null;
   memory(): RendererMemory;
   /** Upload view `id`'s ridge rows (ridges.ts buildRidges, `samples` columns). */
   ridges(id: string, data: Float32Array, samples: number): void;

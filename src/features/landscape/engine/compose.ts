@@ -235,7 +235,7 @@ export interface Scene {
 export const WORLD: [Distance, number] = ['level', 1];
 
 export const SCENES: Scene[] = [
-  // Narrow framings (fixer, 10 Oct): every strip shows its mountains whole. A `band` [y0, y1] puts the scene's highest
+  // Narrow framings: every strip shows its mountains whole. A `band` [y0, y1] puts the scene's highest
   // summits (the far range included) just under the top feather and its ground above the bottom one (bandFrame).
   { name: 'peak', page: WORLD,
     frame: {
@@ -245,8 +245,8 @@ export const SCENES: Scene[] = [
       // on phones the figures are drawn larger (figures.ts `big`), so the traveller stays >= 12 CSS px tall. The view
       // ends at u 1.06, before the river town; it may begin a little left of u 0, where the scroll opens in mist.
       tablet: { scale: 620, band: [0.195, 0.588], fbIn: 0, u: 0.76, fx: 0.62, uMax: 1.14 },
-      // (M n1, the critic: "the host peak is tiny, a thumbnail": framed tighter on the host peak and its light, so the
-      // two fill about half the strip; the hut stays, the traveller sits in the bottom feather)
+      // (framed tight on the host peak and its light, so the two fill about half the strip and the peak never reads as a
+      // thumbnail; the hut stays, the traveller sits in the bottom feather)
       phone: { scale: 360, band: [0.25, 0.62], fbIn: 0.3, u: 0.73, fx: 0.55, uMax: 1.06 },
       // sideways phones: an 80 px sliver holds the summits above their mist (the figures cannot read at that size)
       short: { scale: 600, band: [0.44, 0.588], u: 0.72, fx: 0.62, uMax: 1.06 },
@@ -341,7 +341,7 @@ export function sceneField(u: number, P: Resolved, out: Float32Array = new Float
       const t = win(u, k + sc.tech.at[0], k + sc.tech.at[1]);
       bone += (sc.tech.bone - 1) * t;
       // a phone's narrow window holds the far shore behind Contact's stacked lines: there the crossing
-      // keeps a little more ink (inkPortrait), so the water and the echo still read (lead, round 3)
+      // keeps a little more ink (inkPortrait), so the water and the echo still read
       const sink = sc.tech.inkPortrait === undefined ? sc.tech.ink : sc.tech.ink + (sc.tech.inkPortrait - sc.tech.ink) * (P.portrait || 0);
       ink += (sink - 1) * t;
       terr += (sc.tech.terr || 0) * t;
@@ -784,7 +784,7 @@ function closingOf(F: Frame, cls: WidthClass, T: View, twin: boolean): ClosingVi
 }
 
 /**
- * A band of the scene in a window (round 4a, fixer 10 Oct): the band's summits [y0, y1] (scene heights) sit just under
+ * A band of the scene in a window (round 4a): the band's summits [y0, y1] (scene heights) sit just under
  * the window's top feather, never cut by it (a strip shows whole mountains and lets only the mist dissolve into the
  * paper), and its ground (Home's traveller) above the bottom feather when the box is tall enough; else the summits
  * win. The scale fits the band to the box within 0.8-1.15 of the class's nominal scale T.scale (the figure layers are
@@ -820,7 +820,7 @@ function bandTop(T: ClosingView, cls: WidthClass, height: number, scale: number,
 }
 
 /**
- * A span of the place (final review r2, item 1; a twin closing): the part of the box right of the text (its keep-out
+ * A span of the place (a twin closing): the part of the box right of the text (its keep-out
  * edge `kr`, where the text overlaps the box on wide screens; else the whole box) holds exactly stretch-local
  * T.span [u0, u1], so the scale follows the width: no width, from a 320 phone to an ultrawide, shows past the span
  * (into a neighbour's scene, a figure layer, or the strip's landmark). Vertically the band's summits (T.band[1]) sit

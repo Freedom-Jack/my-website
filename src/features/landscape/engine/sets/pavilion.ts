@@ -23,7 +23,7 @@ import { REF_PX, VH_PX, streams, vnoise, mix, mix3, wash, softWash, stroke, dryB
 
 /** The set's stretch: every world x below is K + its offset (move the place by changing K). */
 const K = 2;
-export const meta: FigureMeta = { rect: [K + 0.78, K + 1.22, 0.10, 0.7], plane: 2, phase: 1 };   // (q3: up into the sky for the willow)
+export const meta: FigureMeta = { rect: [K + 0.78, K + 1.22, 0.10, 0.7], plane: 2, phase: 1 };   // (up into the sky for the willow)
 interface Rock { key: string; top: Pt[]; k: number; P: Pt[] }
 
 const SEED = 31;
@@ -314,14 +314,14 @@ export function* draw(env: Env) {
     stroke(ctx, [[x0, y], [x0 + L * 0.5, y + 0.2 * b], [x0 + L, y]], { w: 0.55 * b, col: rgba(INK2, 0.14 + Rw() * 0.08), tin: 0.3, tout: 0.5, wob: 0.5, dry: 0.3, seed: i + 70 });
   }
   yield;
-  // ---- d5 f1: the framing element: a pine bough from the top-right over the moon, reeds at the water's edge
-  // (A r2: the pine is gone, the lake is lovelier without it; the reeds are thin ink-grey-green rushes)
+  // ---- the framing element: reeds at the water's edge, thin ink-grey-green rushes (no pine bough over the moon: the
+  // lake is lovelier without it)
   if (!env.still) rushes(env, X(K + 1.071), 705, 0.95, own('d5 reeds'), 18, 70);
   yield;
-  // ---- q3 (BRIEF3 #2, Writing's one painted moment): the lake catching the spring morning. A willow comes in from
-  // the top-right corner and lets its long fresh-green strands down over the water toward the pavilion (the lake's
-  // willow: longer, looser than the river town's tip); a few petals that have drifted down lie on the still water,
-  // each with its own broken rings and their lit arcs; more petals fall through the air (life: the present pass).
+  // ---- Writing's one painted moment: the lake catching the spring morning. A willow comes in from the top-right
+  // corner and lets its long fresh-green strands down over the water toward the pavilion (the lake's willow: longer,
+  // looser than the river town's tip); a few petals that have drifted down lie on the still water, each with its own
+  // broken rings and their lit arcs; more petals fall through the air (life: the present pass).
   // The light on the water is the shader's (a glassy glitter column under the low light).
   if (!env.still) {
     // (it comes in from the right, under the window's top feather, so the whole of it is seen)

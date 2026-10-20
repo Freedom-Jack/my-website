@@ -32,9 +32,9 @@ export function targetsOf(main: HTMLElement): LandscapeTargets {
     strip: main.querySelector('[data-landscape="strip"]'),
     closing: main.querySelector('[data-landscape="closing"]'),
     keepout: main.querySelectorAll('[data-landscape="keepout"]'),
-    // (N1: the windows into the painting at the page's section breaks; none when the flag is off)
+    // (the windows into the painting at the page's section breaks; none when the flag is off)
     glimpse: elementOn('glimpses') ? main.querySelectorAll('[data-landscape="glimpse"], [data-glimpse="end"]') : [],
-    // (S1: the footer's lines are veiled too: on a short living page the sea of mist reaches under them)
+    // (with the camera travelling, the footer's lines are veiled too: on a short living page the sea of mist reaches under them)
     veil: [
       ...main.querySelectorAll('[data-veil]'),
       ...(elementOn('cameraTravels')

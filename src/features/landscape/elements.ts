@@ -1,7 +1,9 @@
 /**
- * Spring ink, enriched: THE one switch table for every new element (scene, motion and interface). Set a flag to false
- * and that element is gone: its shader code is not compiled in (a GLSL #define), its engine paths are skipped, its
- * <html> class (`el-<name>`, server-rendered, so no flash) is not set, so its CSS does not apply. Nothing else changes.
+ * Spring ink's elements: THE one switch table for every new element (scene, motion and interface). Set a flag to false
+ * and that element is gone: its engine, effects and figure-set paths are skipped and its <html> class (`el-<name>`,
+ * server-rendered, so no flash) is not set, so its CSS does not apply. Only silkVeil, air and glimpses compile their
+ * shader code out (a GLSL #define: elementDefines); the others' shader code stays compiled in, idle, since the engine
+ * leaves their uniforms at rest. Nothing else changes.
  * Read on the main thread (engine, effects, layout), in the figure worker (the sets) and by the boot script.
  *
  * Every element keeps the engine's rules: nothing behind text (the veils, the keep-out, the 40 px text guard), text never
@@ -30,20 +32,20 @@ export const ELEMENTS = {
   contactLife: true,
   /** "Still the landscape" lets the painting settle over 0.8 s instead of cutting (reduced motion stays a cut). */
   stillSettle: true,
-  // ---- the scroll (step 3)
-  /** The camera travels (S1): every page on the map is a living ground. On wide screens the scene's depth layers part as
+  // ---- the scroll
+  /** The camera travels: every page on the map is a living ground. On wide screens the scene's depth layers part as
    *  you scroll (near crags and the plum drop away fastest, the middle settles over a sea of mist, the far range barely
    *  moves), the place parks beside the reading column and the camera comes down to the closing view at the end, with
    *  each place's own choreography (places' STAGE_AT). Below 1200 px the strip's and the closing's layers part as they
    *  leave and gather as they arrive, with mist rising between them. Reduced motion and Still: rest frames only. */
   cameraTravels: true,
-  /** The scroll's air (M step 3, S3's wind on the figures only): the scroll's speed is a breeze. Home's plum leans on a
-   *  damped spring and two or three of its petals blow off it, the silk ribbon bows and its twist runs along it, the
-   *  swallow banks, Work's willows stream and Contact's rushes bend; all of it settles within 1.5 s of the scroll
-   *  stopping. The light swells a little as the camera rises and as you read on (near the light only). A jump (a route
-   *  swap, an anchor) is not a speed. Off under reduced motion, Still, Canvas2D; half strength and no petals on phones. */
+  /** The scroll's air (a wind on the figures only): the scroll's speed is a breeze. Home's plum leans on a damped
+   *  spring and two or three of its petals blow off it, the silk ribbon bows and its twist runs along it, Work's
+   *  willows stream and Contact's rushes bend; all of it settles within 1.5 s of the scroll stopping. The light swells
+   *  a little as the camera rises and as you read on (near the light only). A jump (a route swap, an anchor) is not a
+   *  speed. Off under reduced motion, Still, Canvas2D; half strength and no petals on phones. */
   air: true,
-  /** Windows into the painting (N1, step 3b), below 1200 px only: at the page's major section breaks a short, full-bleed
+  /** Windows into the painting, below 1200 px only: at the page's major section breaks a short, full-bleed
    *  window of the page's own place opens in the gap (<Glimpse>, [data-landscape="glimpse"]), and the camera has
    *  travelled further into the place each time (the near crags, then higher in the mist, then above the sea of cloud;
    *  the closing brings it back down). Each window's depth layers part as it passes through the viewport and mist
@@ -68,8 +70,8 @@ export const ELEMENTS = {
   focus: true,
   /** Rows: a 1.5 px jade rule drawn in from the left on the row's bottom border (no wash behind the text). */
   rowrule: true,
-  /** The story map keeps a little light on the places visited this session (M step 3, S2's graft; sessionStorage, this
-   *  tab only; no words). Off by default (s3fix 11): it is not scroll motion, and it is offered to Jack on its own. */
+  /** The story map keeps a little light on the places visited this session (sessionStorage, this tab only; no
+   *  words). Off by default: it is not scroll motion, so it stays a choice of its own. */
   visited: false,
 };
 

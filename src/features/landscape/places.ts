@@ -14,7 +14,7 @@
 // (with its extension: tools/build-stills.ts loads this file in Node's own TypeScript, which resolves no bare paths)
 import { ELEMENTS } from './elements.ts';
 
-/** S1, the camera travels (elements.ts): every page on the map is a living ground; off, only Home and Work are. */
+/** The camera travels (elements.ts cameraTravels): every page on the map is a living ground; off, only Home and Work are. */
 const TRAVEL: 'living' | '' = ELEMENTS.cameraTravels ? 'living' : '';
 
 export type Distance = 'level' | 'high' | 'deep';
