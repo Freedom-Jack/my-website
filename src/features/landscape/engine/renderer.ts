@@ -97,6 +97,10 @@ export interface PresentWindow {
   keep: Float32Array | null;
   /** How far its painting has sunk inside its box (0..1 of its height). */
   sink: number;
+  /** S1 (index.ts PART): the front depth layer's view (the window's own view is then its back), or null. */
+  near?: string | null;
+  /** S1: [on, the back's sink, the mist between the layers (box fraction), the front's sideways drift (box widths)]. */
+  part?: Float32Array | null;
 }
 /** 4b: the living ground's three depth layers and the mist between them (index.ts stageU). */
 export interface StageU {
@@ -110,6 +114,15 @@ export interface StageU {
   rects: Float32Array;
   cloud: Float32Array;
   curt: Float32Array;
+  /** M step 3: [the inner place's far-sky air 0..1, its layers' soft foot (crop fraction), the column's edge (uv x), a
+   *  seed] and [the footer's top (uv y, up), its feather (uv), on 0/1, QA debug]. */
+  air?: Float32Array;
+  foot?: Float32Array;
+  /** M step 3: the inner places' grade on the stage: [hero box y0, y1 (uv, up, at the page's top), keep-out x, ramp]. */
+  grade?: Float32Array;
+  /** s3fix 10: [the right end of the page's row rules (uv x; 0 none), how far the lifted middle and near layers clear it
+   *  (0..1: the lift)]. */
+  rule?: Float32Array;
 }
 /** 4b small life on show (index.ts lifeU): a small table the present shader works out once per pixel. */
 export interface LifeTable {
@@ -165,6 +178,9 @@ export interface PresentU {
   /** 4b living veils (shaders.ts PRESENT: uLive, uLive2). */
   live: Float32Array;
   live2: Float32Array;
+  /** M step 3 (elements.ts air): the scroll's air: [on, speed, drift, envelope], [plum lean, ribbon bow, strength, 0],
+   *  [light swell, warmth, 0, 0], the petals aloft (3 x 2 vec4). null = none (the approved scroll). */
+  air?: { a: Float32Array; b: Float32Array; c: Float32Array; petals: Float32Array; petalsB: Float32Array } | null;
   /** CSS px per buffer px, the pan in CSS px, the grain's strength and its texel. */
   px: number;
   panPx: number;

@@ -30,6 +30,19 @@ export const ELEMENTS = {
   contactLife: true,
   /** "Still the landscape" lets the painting settle over 0.8 s instead of cutting (reduced motion stays a cut). */
   stillSettle: true,
+  // ---- the scroll (step 3)
+  /** The camera travels (S1): every page on the map is a living ground. On wide screens the scene's depth layers part as
+   *  you scroll (near crags and the plum drop away fastest, the middle settles over a sea of mist, the far range barely
+   *  moves), the place parks beside the reading column and the camera comes down to the closing view at the end, with
+   *  each place's own choreography (places' STAGE_AT). Below 1200 px the strip's and the closing's layers part as they
+   *  leave and gather as they arrive, with mist rising between them. Reduced motion and Still: rest frames only. */
+  cameraTravels: true,
+  /** The scroll's air (M step 3, S3's wind on the figures only): the scroll's speed is a breeze. Home's plum leans on a
+   *  damped spring and two or three of its petals blow off it, the silk ribbon bows and its twist runs along it, the
+   *  swallow banks, Work's willows stream and Contact's rushes bend; all of it settles within 1.5 s of the scroll
+   *  stopping. The light swells a little as the camera rises and as you read on (near the light only). A jump (a route
+   *  swap, an anchor) is not a speed. Off under reduced motion, Still, Canvas2D; half strength and no petals on phones. */
+  air: true,
   // ---- the page change
   /** The page change as a mist dissolve (340 ms): mist gathers and clears across the hero window only, right of the
    *  words; a long jump cross-dissolves the old place into the new one (the words cross-fade under paper). */
@@ -48,6 +61,9 @@ export const ELEMENTS = {
   focus: true,
   /** Rows: a 1.5 px jade rule drawn in from the left on the row's bottom border (no wash behind the text). */
   rowrule: true,
+  /** The story map keeps a little light on the places visited this session (M step 3, S2's graft; sessionStorage, this
+   *  tab only; no words). Off by default (s3fix 11): it is not scroll motion, and it is offered to Jack on its own. */
+  visited: false,
 };
 
 export type ElementName = keyof typeof ELEMENTS;
@@ -83,7 +99,9 @@ export const el = elementOn;
 
 /** The switches the present shader reads, as GLSL #defines (an element that is off is not compiled in). */
 export function elementDefines(): string {
-  return [elementOn('silkVeil') ? '#define EL_SILK_VEIL 1' : ''].filter(Boolean).join('\n');
+  return [elementOn('silkVeil') ? '#define EL_SILK_VEIL 1' : '', elementOn('air') ? '#define EL_AIR 1' : '']
+    .filter(Boolean)
+    .join('\n');
 }
 
 /** The <html> classes of the elements that are on (server-rendered by the root layout). */

@@ -32,6 +32,7 @@ const ZERO4 = new Float32Array(4);
 const ALL_PLANES = new Float32Array([0, LAYERS - 1, 0, 0]);   // an ordinary view: every plane, opaque (4b depth layers set their own)
 const NO_CROP = new Float32Array([0, 1, 0, 0]);                 // an ordinary view: the whole width of its ridges
 const ZERO12 = new Float32Array(12);
+const ZERO12A = new Float32Array(12);   // (M step 3 air: no petals)
 const FULL_RECTS = new Float32Array([0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1]);
 
 /** What the engine does when the context is lost (a restore is asked for), restored, or cannot be rebuilt. */
@@ -468,7 +469,8 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       gl.viewport(0, 0, W, H);
       gl.useProgram(P.p);
       const wins = U.windows || [];
-      const rect = new Float32Array(8), map = new Float32Array(8), suv = new Float32Array(8), fea = new Float32Array(8), kee = new Float32Array(8), sink = new Float32Array(8);
+      const rect = new Float32Array(8), map = new Float32Array(8), suv = new Float32Array(8), fea = new Float32Array(8), kee = new Float32Array(8), sink = new Float32Array(8)
+      const nuv = new Float32Array(8), part = new Float32Array(8);   // (S1: each window's front layer)
       for (let i = 0; i < 2; i++) {
         const w = wins[i];
         const v = w && views.get(w.id);
@@ -479,9 +481,16 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
         fea.set(w.feather, i * 4);
         kee.set(w.keep || ZERO4, i * 4);
         sink[i * 4 + 1] = w.sink || 0;
+        const nv = w.near ? views.get(w.near) : null;
+        if (nv && nv.tex && w.part) { nuv.set(sceneUV(nv), i * 4); part.set(w.part, i * 4); }
       }
       bindTex(P, 0, 'uWin0', wins[0] && views.get(wins[0].id)?.tex);
       bindTex(P, 1, 'uWin1', wins[1] && views.get(wins[1].id)?.tex);
+      // S1: the windows' front depth layers (units 11, 12), when parted
+      bindTex(P, 11, 'uWinN0', part[0] > 0 && wins[0]?.near ? views.get(wins[0].near)?.tex : null);
+      bindTex(P, 12, 'uWinN1', part[4] > 0 && wins[1]?.near ? views.get(wins[1].near)?.tex : null);
+      gl.uniform4fv(P.u('uWinNS'), nuv);
+      gl.uniform4fv(P.u('uWinP'), part);
       const hz = U.horizon && views.get(U.horizon.id);
       const hzK = hz && hz.tex ? U.horizon!.k : 0;
       bindTex(P, 2, 'uHzTex', hz?.tex);
@@ -533,8 +542,19 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       gl.uniform4fv(P.u('uSea'), stOn ? st.sea : ZERO4);
       gl.uniform4fv(P.u('uStC'), stOn && st.cloud ? st.cloud : ZERO4);
       gl.uniform4fv(P.u('uStV'), stOn && st.curt ? st.curt : ZERO4);
+      gl.uniform4fv(P.u('uStX'), stOn && st.air ? st.air : ZERO4);   // (M step 3: an inner place's air, soft crops, footer)
+      gl.uniform4fv(P.u('uStF'), stOn && st.foot ? st.foot : ZERO4);
+      gl.uniform4fv(P.u('uStG'), stOn && st.grade ? st.grade : ZERO4);
+      gl.uniform4fv(P.u('uStK'), stOn && st.rule ? st.rule : ZERO4);   // (s3fix 10: the row rules' end)
       gl.uniform4fv(P.u('uLive'), U.live || ZERO4);
       gl.uniform4fv(P.u('uLive2'), U.live2 || ZERO4);
+      // M step 3 (elements.ts air): the scroll's air
+      const A = U.air;
+      gl.uniform4fv(P.u('uAir'), A ? A.a : ZERO4);
+      gl.uniform4fv(P.u('uAir2'), A ? A.b : ZERO4);
+      gl.uniform4fv(P.u('uAir3'), A ? A.c : ZERO4);
+      gl.uniform4fv(P.u('uAirP'), A ? A.petals : ZERO12A);
+      gl.uniform4fv(P.u('uAirQ'), A ? A.petalsB : ZERO12A);
       // 4b small life (the life program only; units 7-9): its table, the ridges of the view it lies in (where its water
       // is), the drifting boat's sprite and the figure layer the water's shimmer keeps off (boats, the bridge)
       const lf = U.life;

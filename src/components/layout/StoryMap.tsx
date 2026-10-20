@@ -1,9 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import type { CSSProperties } from 'react';
+import { useEffect, useSyncExternalStore, type CSSProperties } from 'react';
+import { usePathname } from 'next/navigation';
 import manifest from '../../../public/scenes/manifest.json';
-import { STORY_MAP } from '@/features/landscape/places';
+import { STORY_MAP, placeForPath } from '@/features/landscape/places';
+import { ELEMENTS } from '@/features/landscape/elements';
 import { useCurrent } from '@/features/chrome/current';
 
 type Tiles = Record<string, number[]>;
@@ -19,8 +21,53 @@ const SUNS = (manifest as unknown as { suns?: Record<string, [number, number]> }
  * over each. "You are here" is the label's aria-current (CSS lifts its tick through :has(), and .is-here mirrors
  * it for browsers without :has()). Decorative art: alt="" inside an aria-hidden box. Works without JS.
  */
+const BEEN_KEY = 'ink:been';
+/** M step 3 (S2's graft; elements.ts `visited`): the places visited this session (their stretches), remembered in this
+ *  tab only; the map shows them still holding a little of their light, where you have travelled. A convenience: with no
+ *  storage it simply marks nothing, and the server renders none (no hydration mismatch). */
+const beenFns = new Set<() => void>();
+const beenRead = (): string => {
+  try {
+    return sessionStorage.getItem(BEEN_KEY) || '[]';
+  } catch {
+    return '[]';
+  }
+};
+const beenParse = (raw: string): number[] => {
+  try {
+    return (JSON.parse(raw) as unknown[]).map(Number).filter(Number.isFinite);
+  } catch {
+    return [];
+  }
+};
+function useBeen(): number[] {
+  const path = usePathname() || '/';
+  const raw = useSyncExternalStore(
+    (fn) => {
+      beenFns.add(fn);
+      return () => beenFns.delete(fn);
+    },
+    beenRead,
+    () => '[]',
+  );
+  useEffect(() => {
+    if (!ELEMENTS.visited) return;
+    const k = placeForPath(path).stretch;
+    const list = beenParse(beenRead());
+    if (k > 4 || list.includes(k)) return;
+    try {
+      sessionStorage.setItem(BEEN_KEY, JSON.stringify([...list, k]));
+    } catch {
+      /* no storage: nothing is marked */
+    }
+    beenFns.forEach((fn) => fn());
+  }, [path]);
+  return ELEMENTS.visited ? beenParse(raw) : [];
+}
+
 export function StoryMap() {
   const current = useCurrent();
+  const been = useBeen();
   const tiles = manifest.tiles as Tiles;
   return (
     <nav className="story-map" aria-label="All pages">
@@ -30,7 +77,7 @@ export function StoryMap() {
           return (
             <span
               key={p.still}
-              className={current(p.href) ? 'story-map__scene is-here' : 'story-map__scene'}
+              className={`story-map__scene${current(p.href) ? ' is-here' : ''}${been.includes(p.stretch) ? ' is-been' : ''}`}
               data-stretch={p.stretch}
             >
               {/* A decorative still at its own pixel sizes (1x, 2x): next/image would re-encode it. P4 sun: the dim

@@ -21,6 +21,11 @@
 html:not(.el-sun) .story-map__scene[data-stretch='0'] .story-map__lit {
   opacity: 1;
 }
+/* M step 3 (S2's graft; elements.ts visited): the places visited this session keep a little of their light (where you
+   have travelled); the current place and a hovered one hold all of it (below). */
+html.el-visited.el-sun .story-map__scene.is-been:not(.is-here) img.story-map__lit {
+  opacity: 0.5;
+}
 html.el-sun .story-map__scene.is-here .story-map__lit,
 html.el-sun
   .story-map:has(> .story-map__list > [data-stretch='0'] > a[aria-current])

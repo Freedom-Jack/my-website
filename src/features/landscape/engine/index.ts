@@ -172,6 +172,9 @@ const FORCED = new Set<unknown>(['hero', 'horizon', 'closing']);
 // window that leaves at a slower rate (paper below), and the closing shows the opening.
 // (The demo's 33 URL tunables over these numbers are not ported: a shared URL could thin the reading veils.)
 const STAGE_IDS = ['stage0', 'stage1', 'stage2'];
+// M step 3 (S2's way on, rebuilt on the stage): at a page's end the camera also travels a little east toward the next
+// place, by depth: each layer's share of the travel (far, middle, near). The plum, which frames the corner, stays put.
+const J_RATE = [0.45, 1, 1.15];
 const GLIDE_TAU = 150;      // ms: after a pan, and when one combined layer gives way to the three, the pose glides to
                             // where the scroll puts it (an exponential approach) instead of jumping
 const HOLD_MS = 180;        // ms (round 3): a pan from a lifted pose first brings the camera down to the opening on the three
@@ -214,6 +217,28 @@ interface StageTunables {
   sky: number;
   drift: number;
   lag: number;
+  /** S1: each layer's share of the sideways step [far, middle, near] (a lateral parallax), and a step paced by the
+   *  whole page's scroll rather than by `slideAt`. */
+  slideL: number[];
+  slideWhole: number;
+  /** S1: the camera comes down in this many steps through the reading (between the lift and the descent), taking
+   *  stairShare of the descent's way to the end pose in them (the descent itself the rest); 0 = none. */
+  stairs: number;
+  stairShare: number;
+  /** M step 3: an inner place's far sky as air (0..1: how far its pale blue fades to paper near the column and high up),
+   *  its stage dissolving into paper above the footer (0/1), a per-place seed for their lobes, and how much of each
+   *  transparent layer's crop height its foot dissolves over (0 = a hard crop: Home and Work, whose sea covers it). */
+  air: number;
+  foot: number;
+  seed: number;
+  botF: number;
+  /** M step 3, the way on: how far (stretches, at most 0.8 of the scroll it is taken over) the camera travels east at the
+   *  page's end (with the descent; a page without one over its whole scroll), so the next place comes in at the edge. */
+  way: number;
+  /** ...each depth layer's share of it (far, middle, near: J_RATE), and how far a mist curtain hides what the travel
+   *  brings out from under the keep-out's mist at the left (0..1; a place with its own curtain keeps that one). */
+  wayL: number[];
+  wayC: number;
 }
 const STAGE: StageTunables = {
   split: [2, 3],              // the first plane of the middle layer and of the near one (far: 0..1, middle: 2, near: 3..4)
@@ -277,6 +302,19 @@ const STAGE: StageTunables = {
   sky: 0.45,                  // the sky deck's strength (the drift, gently perceptible in open sky; every page)
   drift: 1.25,                // the drift clock (x 4a's; every page)
   lag: 0.55,                  // below 1200 px: the strip's painting leaves at this rate of the scroll (inside its box)
+  slideL: [0, 1, 1],          // S1: the step's share per layer (Home and Work: the far ranges never step)
+  slideWhole: 0,              // S1: 1 = the step is taken over the whole page's scroll (Contact's crossing)
+  stairs: 0,                  // S1: the Résumé's terraces: the camera comes down them step by step through the reading
+  stairShare: 0.75,           // S1: ...taking this share of the way to the end pose (each layer toward its own end: one way)
+  air: 0,                     // M step 3: Home and Work keep their approved sky; the inner places' far sky is air (STAGE_AT)
+  foot: 0,                    // ...and their stage clears to paper above the footer (Home and Work: the sea at the footer, approved)
+  seed: 0,
+  botF: 0,
+  way: 0,                     // M step 3, the way on (S2's): off everywhere (s3fix 1: at Home it hid the host, the sun and the
+                              // ribbon behind a cut-paper curtain for a sliver of roofs; at the Résumé its travel brought the
+                              // far layer's edge into the sky). The page change's pan carries the journey; > 0 travels east.
+  wayL: J_RATE,
+  wayC: 1,
 };
 // Per place (stretch). Home keeps STAGE's numbers. The river town is the middle layer (its near layer holds nothing on
 // screen), so the sea keeps to the town's sink; the town east of the bridge and its boat (the two-storey house, the
@@ -287,8 +325,51 @@ const STAGE: StageTunables = {
 // so the margin held the arch's east half as a sheared stump beside the reader for 3-4 screens.)
 // (round 4: `arch`, the bridge's west foot, crown and east end, measured on the painting at 1440 and 2560)
 const STAGE_AT: Record<number, Partial<StageTunables>> = { 1: { sink: [0.06, 0.24, 0.24], anchor: 1.755, cluster: 0.175, cloud: 1, cloudAt: [0.25, 0.37, 0.53, 0.65], curtain: 1,
-  arch: [[1.482, 0.204], [1.572, 0.323], [1.655, 0.291]] } };
-const PLACE_KEYS = ['sink', 'anchor', 'cluster', 'cloud', 'cloudAt', 'curtain', 'arch'] as const;
+  // (M step 3: no way on: the town's framing willow is painted in its layer and would be cut; the bridge coming out
+  // of the mist is Work's own arrival)
+  arch: [[1.482, 0.204], [1.572, 0.323], [1.655, 0.291]], way: 0 },
+  // S1 (elements.ts cameraTravels): the three places that were 4a strips, each with its own choreography. Writing, the
+  // lake (a short page): the lake shore drops away fast, the pavilion and its willow settle on the water, the far
+  // mountain and its mirror barely move, and the mist lies on the lake like a second mirror.
+  // (s3fix 10: as the camera lifts it also drifts a little east, the lake and the pavilion with it (the sky and the sun
+  // stay), so the mountain's west foot clears the end of the note's hairline as it rises past: at rest it was 143 px
+  // clear, mid-lift the rule ran into it)
+  2: { sink: [0.02, 0.12, 0.3], reach: 0.3, ease: 1.6, descend: 0, haze: 0.6, air: 0.9, foot: 1, seed: 0.17, botF: 0.3,
+    slide: 56, slideL: [0, 1, 1], slideAt: [0, 0.2],
+    // (M step 3: no way on: the lake's framing willow is painted in its layer and would be cut, and a short page's
+    // one move is its lift; the end pose is the pavilion settled on the lake beside the note, on clean paper)
+    way: 0 },
+  // The Résumé, the terraces (a long page): after the lift the camera climbs the terraced hill one step per stretch of
+  // reading, the fields stepping down past the column, and at the end comes back down to the opening.
+  3: { sink: [0.03, 0.08, 0.12], stairs: 4, stairShare: 0.8, air: 0.65, foot: 1, seed: 0.53, botF: 0.3,
+    // (M step 3: no way on (s3fix 1): the terraces come down to their own closing, as approved)
+    way: 0 },
+  // Contact, the crossing (a short page): the camera travels across the water with the scroll, the near reeds and the
+  // ferry passing faster than the far shore, which stays (a lateral parallax over the whole page).
+  4: { sink: [0.02, 0.1, 0.2], slide: 110, slideWhole: 1, slideL: [0, 0.55, 1], reach: 0.4, ease: 1.6, descend: 0, air: 0.85, foot: 1, seed: 0.81, botF: 0.35, way: 0 },
+};
+const PLACE_KEYS = ['sink', 'anchor', 'cluster', 'cloud', 'cloudAt', 'curtain', 'arch',
+  // S1 (cameraTravels): a place's own choreography may also set these
+  'reach', 'still', 'ease', 'descend', 'haze', 'hazeK', 'body', 'seaK', 'slide', 'slideAt', 'slideL', 'slideWhole', 'stairs', 'stairShare', 'rise',
+  // M step 3: the inner places' air, footer and soft crops
+  'air', 'foot', 'seed', 'botF', 'way', 'wayL', 'wayC'] as const;
+// S1, the camera travels (elements.ts cameraTravels), below 1200 px (and wherever the stage is not painted): the strip's
+// and the closing's painting is laid as two depth layers, painted once at rest: the back (the sky and the far ranges)
+// and the front (the place: its planes from `split` on, with its figures). As the strip leaves, the back leaves slower
+// than the front (the near crags go first, the far range lingers) and a bank of mist rises between them; as the closing
+// comes up, its front rises faster than its back and the mist between them clears, so the camera comes down to the
+// closing view, which is exactly the approved one at the page's end. Present-only: a scroll never repaints a layer.
+const PART = {
+  split: [3, 2, 2, 2, 2] as number[],   // per place (stretch): the first plane of the front (Home: the near crags, its
+                                        // hut, traveller and plum; elsewhere the place itself, plane 2, with its figures)
+  lagB: 0.45,   // the strip: the back leaves at this rate of the page's speed...
+  lagF: 0.8,    // ...the front at this one (both inside the box, clipped by its feathers: paper above and below)
+  rise: 0.92,   // ...and the mist rises between them, up to this much of what still shows of the strip as it goes (M)
+  comeMax: 0.08,// the closing (M step 3): its front a breath lower than its back while it arrives (box heights)...
+  clearR: 0.88, // ...and the mist over it has parted by the time this much of its run-in is left (of it, 1 -> 0)
+  dx: [0, 0, 0, 0, -0.05] as number[],  // per place: the front's sideways drift as it leaves or arrives (box widths;
+                                        // Contact: the ferry crosses the water)
+};
 
 const live = new WeakMap<HTMLCanvasElement, EngineHandle>(); // canvas -> controller: one live landscape per canvas
 // QA builds only (the probes' judging hooks: setState, qa, and stats().veils / memory). The bundler inlines the flag,
@@ -488,6 +569,18 @@ interface Win {
   want: boolean;
   /** 4b, living below 1200 px: how far the strip's painting has sunk inside its box (0..1). */
   sink?: number;
+  /** S1 (PART): the front layer's view, its key and state; the plane it starts at (0: one view, not parted); the back's
+   *  sink, the mist between them and the front's sideways drift (box fractions), read with the scroll. */
+  nid: string;
+  nkey: string;
+  npainted: boolean;
+  npending: boolean;
+  split: number;
+  parted: boolean;
+  sinkB?: number;
+  sinkP?: number;
+  rise?: number;
+  dx?: number;
 }
 /** The horizon band's view. */
 interface HorizonView {
@@ -550,6 +643,11 @@ interface Stage extends HoldGeometry {
   descT: number;
   slideK: number;
   slideT: number;
+  /** S1: the stairs climbed so far (0..1), eased like the rest of the pose. */
+  stairK: number;
+  stairT: number;
+  holdSt: number;
+
   cloudK: number;
   cloudT: number;
   midK: number;
@@ -580,6 +678,23 @@ interface Stage extends HoldGeometry {
   rects: Float32Array;
   cloud: Float32Array;
   curt: Float32Array;
+  /** M step 3: the reading column's right edge (viewport CSS px, layout-only) and the footer's top (doc px); the
+   *  inner places' air and footer uniforms (shaders.ts uStX, uStF). */
+  colR: number;
+  footDoc: number;
+  /** M step 3, the way on: the middle layer's travel east at the end (CSS px), its progress (eased) and target, the
+   *  progress a pan's hold started from, and how much wider the far layer is painted for it (CSS px). */
+  jPx: number;
+  jK: number;
+  jT: number;
+  holdJ: number;
+  extF: number;
+  airU: Float32Array;
+  footU: Float32Array;
+  gradeU: Float32Array;
+  /** s3fix 10: the row rules' right end (viewport CSS px, layout only; 0 none) and its uniform. */
+  ruleR: number;
+  ruleU: Float32Array;
 }
 /** A pan in progress. */
 interface Tween {
@@ -643,6 +758,9 @@ interface LifeView {
   inv: (u: number, v: number) => [number, number];
   col: (u: number) => number;
   rid: () => { buf: Float32Array | null; samples: number };
+  /** M step 3, the way on: the part of this stage layer's slide that is the travel east (canvas uv): the plum, which
+   *  frames the view from its corner, stays where it hangs while the landscape travels on behind it. */
+  jx?: number;
 }
 /** A life anchor placed in a view this frame. */
 interface LifeEntry {
@@ -743,7 +861,8 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     const at = STAGE_AT[Math.round(tween ? tween.to : stretch)] || {};
     for (const k of PLACE_KEYS) (T as Record<(typeof PLACE_KEYS)[number], unknown>)[k] = at[k] ?? STAGE[k];
   };
-  const living = () => ground === 'living';
+  // (S1: Writing, Résumé and Contact are living only with the camera's travel on; a QA override switches them back)
+  const living = () => ground === 'living' && (Math.round(tween ? tween.to : stretch) <= 1 || elementOn('cameraTravels'));
 
   // ---------------------------------------------------------------- P3 "Life that answers you" (elements.ts)
   // 1. stir: ring sets on the open water, kept in the world (so they ride the page's scroll) with the view they lie in
@@ -768,6 +887,115 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
   // 7. stillSettle: the drift easing to rest before Still takes hold
   const SETTLE_MS = 800;
   let settling = false;
+
+  // ---------------------------------------------------------------- M step 3: the scroll's air (elements.ts air)
+  // S3's wind on the figures only (the judges' graft): the scroll's eased speed is a breeze through the painting. The
+  // plum's bough leans on a damped spring (~1.2 Hz, damping ~0.6: settled within ~1 s), the ribbon bows and its twist
+  // runs along it, the swallow banks, the willows stream and Contact's rushes bend; two or three of the plum's own
+  // petals may blow off it (Home's hero, never on phones). Everything here lives in the present pass and settles within
+  // 1.5 s of the scroll stopping, at the display's rate (never a stepped settle beside a 60 fps scroll); then the loop
+  // sleeps. One curve of light rides the scroll's position: the bloom swells as the camera rises and as you read on, and
+  // warms a little near the light. None of it under reduced motion, Still, Canvas2D, a software rasteriser, a QA frame or
+  // a forced pose: there the scroll moves the page and nothing else.
+  const AIR_TAU = 140;         // ms: the scroll's speed is eased over this (a wheel tick never pops the air)
+  const AIR_RELEASE = 1100;    // ms: the speed's envelope dies away over this
+  const AIR_PETALS = 3;        // petals aloft at most (Home), and no more than one every 1.5 s on average
+  const airOn = () => el('air') && mode === 'webgl' && !software && !quantized() && forced === null && !qaFrame && !fullMode;
+  interface AirPetal { x: number; y: number; vx: number; vy: number; rot: number; spin: number; age: number; life: number; size: number; h: number }
+  const air = { y: NaN, v: 0, act: 0, drift: 0, plumA: 0, plumV: 0, bow: 0, spawnT: 0, tokens: AIR_PETALS, seq: 0, live: false, petals: [] as AirPetal[], held: 0 };
+  // s3fix 9: one wind family per place (the shader's uAir2.w, a bit set: 1 Home's plum and its ribbon, 2 the willows,
+  // 4 the rushes): Home the plum and the ribbon, Work and Writing their willows, Contact its rushes, the Résumé none. The
+  // swallow no longer banks (a bird banking because the page scrolled is a non-sequitur).
+  const AIR_FAMILY = [1, 2, 2, 0, 4, 0];
+  const airU = new Float32Array(4), airU2 = new Float32Array(4), airU3 = new Float32Array(4);
+  const airP = new Float32Array(AIR_PETALS * 4), airQ = new Float32Array(AIR_PETALS * 4);
+  let airLimb: number[][] | null = null;   // the hero's plum bough on the canvas (lifeU), where the petals let go
+  function airReset() {
+    air.v = air.act = air.plumA = air.plumV = air.bow = air.held = 0;
+    air.petals.length = 0;
+    air.y = NaN;
+    air.live = false;
+    airU.fill(0); airU2.fill(0); airU3.fill(0); airP.fill(0); airQ.fill(0);
+  }
+  /** One step of the air (draw(), every frame): true while something in it still moves. */
+  function airStep(dt: number, now: number) {
+    if (!airOn() || !W) { if (air.live || airU[0]) airReset(); return false; }
+    const vh = cssH || innerHeight || 1;
+    const y = window.scrollY || 0;
+    // the scroll's speed (viewports per second, + = reading down), eased; a jump (a route swap, a fragment link, a pan,
+    // more than 1.2 viewports in one frame) is not a speed
+    let vr = 0;
+    if (Number.isFinite(air.y) && dt > 0) { const d = (y - air.y) / vh; if (Math.abs(d) < 1.2 && !tween) vr = d / (dt / 1000); }
+    air.y = y;
+    // (QA builds only: window.__airHold = a speed holds the air as if the page were scrolled at it, page still, so a frame
+    // "while scrolling" lines up pixel for pixel with the rest frame at the same place: the contrast and motion proofs)
+    const hold = QA ? Number((globalThis as { __airHold?: number }).__airHold) : NaN;
+    if (Number.isFinite(hold)) vr = hold;
+    const kv = dt > 0 ? 1 - Math.exp(-dt / AIR_TAU) : 0;
+    air.v += (Math.max(-6, Math.min(6, vr)) - air.v) * kv;
+    if (Math.abs(air.v) < 0.012 && vr === 0) air.v = 0;   // (below ~1 % of a brisk read: still)
+    const sp = Math.min(1, Math.abs(air.v) / 1.1);
+    air.act = Math.max(sp, air.act - dt / AIR_RELEASE);
+    if (air.act < 1e-3) air.act = 0;
+    air.drift = (air.drift + air.v * (dt / 1000)) % 500;
+    const str = cls === 'phone' ? 0.5 : 1;   // (phones: calm, half the wind)
+    // the plum's bough leans against the wind (a damped spring: ~0.6 deg at a brisk read) and swings back to rest
+    const tgt = -Math.max(-1.6, Math.min(1.6, air.v)) * 0.0105 * str;
+    for (let t = dt; t > 0; t -= 8) { const h = Math.min(8, t) / 1000; air.plumV += (60 * (tgt - air.plumA) - 9 * air.plumV) * h; air.plumA += air.plumV * h; }
+    if (Math.abs(air.plumA) < 1.5e-4 && Math.abs(air.plumV) < 1.5e-3 && tgt === 0) air.plumA = air.plumV = 0;   // (< 0.01 deg)
+    // the ribbon bows with the scroll (scene units) and straightens after it
+    const kb = dt > 0 ? 1 - Math.exp(-dt / 260) : 0;
+    air.bow += (Math.max(-2, Math.min(2, air.v)) * 0.011 * str - air.bow) * kb;
+    if (Math.abs(air.bow) < 2.5e-4 && air.v === 0) air.bow = 0;   // (a fraction of a px)
+    // petals: the wind takes one of the plum's own now and then (Home's hero bough, wherever it is on screen; never on a
+    // phone): at most three aloft, and the gust's purse refills one every 1.5 s, so a long fast read never makes confetti
+    air.tokens = Math.min(AIR_PETALS, air.tokens + dt / 1500);
+    const Pp = air.petals;
+    const Vpx = air.v * vh;
+    // (s3fix 9: only after half a second of sustained reading, and only while the plum's bough is on screen: one wheel
+    // tick never sets petals off)
+    air.held = sp > 0.3 ? air.held + dt : sp < 0.1 ? 0 : air.held;
+    const limb = cls === 'phone' ? null : airLimb;
+    const limbIn = !!limb && limb.some(([u, v]) => u > 0.02 && u < 0.98 && v > 0.05 && v < 0.95);
+    if (limb && limbIn && limb.length > 1 && air.held >= 500 && sp > 0.45 && Pp.length < AIR_PETALS && air.tokens >= 1 && now - air.spawnT > 380) {
+      air.spawnT = now; air.tokens -= 1;
+      const h = ((air.seq++ * 0.618034) % 1), t = 0.15 + 0.8 * (((air.seq * 0.7548777) % 1));
+      const f = t * (limb.length - 1), i = Math.min(limb.length - 2, Math.floor(f)), q = f - i;
+      const u = limb[i][0] + (limb[i + 1][0] - limb[i][0]) * q, v = limb[i][1] + (limb[i + 1][1] - limb[i][1]) * q;
+      const size = Math.max(4.5, (petalR || 0.004) * cssW) * (0.7 + 0.5 * h);
+      Pp.push({ x: u * cssW, y: (1 - v) * vh + (h - 0.5) * 18, vx: -(14 + 22 * h), vy: -Vpx * 0.3, rot: h * 6.28, spin: (h - 0.5) * 2.4, age: 0, life: 2.6 + 1.2 * h, size, h });
+    }
+    const kp = dt > 0 ? 1 - Math.exp(-dt / 420) : 0;
+    for (let i = Pp.length - 1; i >= 0; i--) {
+      const p = Pp[i];
+      p.age += dt / 1000;
+      const tvx = -(12 + 30 * sp) + 9 * Math.sin(p.age * 1.3 + p.h * 6.28), tvy = -Vpx * 0.55 + 16;
+      p.vx += (tvx - p.vx) * kp; p.vy += (tvy - p.vy) * kp;
+      p.x += p.vx * (dt / 1000); p.y += p.vy * (dt / 1000);
+      p.rot += p.spin * (dt / 1000);
+      if (sp < 0.05) p.life = Math.min(p.life, p.age + 0.7);   // (the wind has dropped: they settle out of the air)
+      if (p.age > p.life || p.x < -40 || p.y < -60 || p.y > vh + 60) Pp.splice(i, 1);
+    }
+    airP.fill(0); airQ.fill(0);
+    Pp.forEach((p, i) => {
+      const a = sstep(0, 0.25, p.age) * (1 - sstep(p.life - 0.6, p.life, p.age));
+      airP.set([p.x / (cssW || 1), 1 - p.y / vh, p.rot, a], i * 4);
+      airQ.set([p.size / (cssW || 1), 0.3 + 0.7 * Math.abs(Math.cos(p.age * (0.6 + 0.5 * p.h) + i)), p.h, (p.h * 7.3) % 1 < 0.34 ? 1 : 0], i * 4);
+    });
+    airU.set([1, air.v, air.drift, air.act]);
+    airU2.set([air.plumA, air.bow, str, AIR_FAMILY[Math.round(tween ? tween.to : stretch)] ?? 0]);
+    // one curve of light, by the scroll's position (no frames of its own): the camera's rise on the stage, and the page
+    // read on; its warmth near the light only
+    const maxY = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+    // (s3fix 5: at most +0.25 together, and a short page barely changes: the whole curve scales with the page's scroll
+    // range over 1.5 viewports, so Writing's 263 px or Contact's 426 px never play it out as a flash in two ticks)
+    const pg = clamp01(y / maxY), lift = stageOn() && st.ok ? st.prog * (1 - st.desc) : 0;
+    const rk = Math.min(1, maxY / (1.5 * vh));
+    airU3.set([Math.min(0.25, 0.28 * lift + 0.22 * pg) * rk, 0.5 * pg * rk, 0, 0]);
+    // (the envelope alone moves nothing on screen: it never keeps the loop awake)
+    air.live = air.v !== 0 || air.plumA !== 0 || air.plumV !== 0 || air.bow !== 0 || Pp.length > 0;
+    return air.live;
+  }
   let palette = paletteName(opts.palette);
   const figuresOn = opts.figures !== false;
 
@@ -827,6 +1055,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
   const mkWin = (kind: WindowKind, el: Element | null): Win => ({
     kind, id: kind, el, box: null, vis: false, near: !!el, keepR: null, keepU: null, viewU: null, wakeOK: false, doc: false, note: null, noteEl: null,
     fr: null, key: '', buf: null, samples: 0, draft: false, pending: false, painted: false, want: false,
+    nid: `${kind}~n`, nkey: '', npainted: false, npending: false, split: 0, parted: false,
   });
   const wins = [mkWin('strip', elOr(opts.strip, opts.head)), mkWin('closing', elOr(opts.closing, opts.descend))];
   const hzv: HorizonView = { id: 'horizon', key: '', buf: null, samples: 0, draft: false, painted: false, pending: false, want: false, view: new Float32Array(4) };
@@ -840,7 +1069,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     layers: STAGE_IDS.map((id) => ({ id, key: '', painted: false, pending: false, draft: false, crop: [0, 0, 1, 1], px: [0, 0] })),
     buf: null, bufC: null, samples: 0, view: new Float32Array(4), fr: null, left: 0, wvis: 1, wvisX: 1, ext: 0, ok: false, single: true, alloc: false,
     topDoc: 0, bottomDoc: 0, stripVis: false, y: 0, prog: 0, progT: 0, desc: 0, descT: 0, endSink: 0,
-    slidePx: 0, slideK: 0, slideT: 0, cloudK: 0, cloudT: 0, midK: 0, midT: 0, curtX: -1, curtSweep: 0,
+    slidePx: 0, slideK: 0, slideT: 0, stairK: 0, stairT: 0, holdSt: 0, cloudK: 0, cloudT: 0, midK: 0, midT: 0, curtX: -1, curtSweep: 0,
     glide: false, sepK: 1, liftF: 1, span: 0, crest: 0,   // the pose glides to its targets (after a pan); the far layer's own depth (0 while combined)
     curtH: 1, holdP: 0, holdC: 0, holdS: 0, holdG: null,   // a pan's hold (HOLD_MS): the curtain's share, the pose and cloud it started from, the geometry it shows
     // (round 4) the descent: its linear progress, the middle and near layers' end and the part of their drop taken inside
@@ -849,6 +1078,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     descP: 0, endMid: 0, jump: 0, jumpK: 0, jumpT: 0, hideK: 0, hideT: 0, revK: 0, revT: 0, partK: 1, archPx: null, archNow: null, bands: [], archGap: 0,
     offsets: new Float32Array(12), k: new Float32Array(4), sea: new Float32Array(4), rects: new Float32Array(12), cloud: new Float32Array(4),
     curt: new Float32Array(4),
+    colR: 0, footDoc: -1, jPx: 0, jK: 0, jT: 0, holdJ: 0, extF: 0, airU: new Float32Array(4), footU: new Float32Array(4), gradeU: new Float32Array(4), ruleR: 0, ruleU: new Float32Array(4),
   };
   /** The stage replaces the strip and the closing windows: a living page on a wide screen, with a strip to frame from,
    *  painted by a hardware GPU. (Final review r1, item 8: the stage's full-viewport present on every scroll frame has no
@@ -1069,17 +1299,39 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
         // (a closing whose view holds none of the place's figures, a twin's: no layer of its own is drawn for it)
         if (v === 'closing' && !closingSees(k)) continue;
         let n = 0;
+        // (M step 3: on the way on the stage's span reaches east, and the next place's layer is drawn as it comes in)
+        const wayK = v === 'strip' && stageOn() && st.jPx > 0 && st.fr ? k + 1 : -1;
+        const wayM = wayK >= 0 && wayK <= 4 ? figureMeta(wayK) : null;
+        const waySee = !!wayM && T.wayL[1] > 0 && st.left + (cssW + st.jPx * T.wayL[1]) / st.fr!.scale > wayM.rect[0] && st.left < wayM.rect[1];
         for (const j of [k, k + 1, k - 1]) {
           if (n >= 2) break;
-          const S = j === k ? show(j, v, curSpec, true) : { L: layerFor(j, false, v, curSpec) };
+          const S = j === k || (j === wayK && waySee) ? show(j, v, curSpec, true) : { L: layerFor(j, false, v, curSpec) };
           if (!S || !ready(S.L)) continue;
-          if (j !== k && !windowsSee(S.L.meta.rect)) continue;
+          if (j !== k && !(j === wayK && waySee) && !windowsSee(S.L.meta.rect)) continue;
           out.push({ ...S, v, k: late(S.L) } as Slot);
           n++;
         }
       }
     }
     return out;   // (alpha 0 included: a layer about to fade in still asks for its frames)
+  }
+  /** s3fix 6: is everything the closing will show ready, so a paint ahead of time (off screen) is its last one? Each
+   *  figure layer its view sees (its own place's and a neighbour's) is asked for, loaded and past its fade-in; otherwise
+   *  the closing repainted as it scrolled in (phones: 2 scenes at the arrival, a stall risk on a low-end GPU). */
+  let aheadT = 0;
+  function closingAhead() {
+    if (!figuresOn || mode === 'static' || tween) return true;
+    const k = Math.round(stretch), now = performance.now();
+    for (const j of [k, k + 1, k - 1]) {
+      const m = figureMeta(j);
+      if (!m || !closingSees(j)) continue;
+      const L = layerFor(j, true, 'closing', curSpec);
+      if (!L) continue;
+      if (L.status === 'failed') continue;
+      if (!ready(L)) return false;
+      if (L.shownSince && now - L.shownSince < fadeIn()) return false;
+    }
+    return true;
   }
   /** Does the closing, at its framing now, see stretch k's figure layer? (True when that cannot be told yet.) */
   function closingSees(k: number) {
@@ -1131,6 +1383,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     renderer.resize(bw, bh);
     W = bw; H = bh;
     for (const v of [...wins, hzv, ...st.layers]) v.key = '';
+    for (const w of wins) w.nkey = '';
     need |= S_SCENE | S_PRESENT | S_MEASURE | S_SCROLL;
     wakeRects = null;
     return true;
@@ -1150,10 +1403,38 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       } else if (!w.el) w.box = null;
       // 4b, living, below 1200 px: the strip's painting sinks inside its box as the box scrolls away, so it leaves at
       // T.lag of the page's speed, clipped by the box's own feathers (it never slides under the text; paper below)
-      w.sink = 0;
+      w.sink = 0; w.sinkB = 0; w.sinkP = 0; w.rise = 0; w.dx = 0;
       if (w.kind === 'strip' && w.box && living() && !stageOn() && !fullMode && T.lag < 1 && !quantized()) {
         const y = Math.max(0, window.scrollY || 0);
-        w.sink = Math.min(1, (y * (1 - Math.max(0, T.lag))) / Math.max(1, w.box.height));
+        w.sinkP = w.sink = Math.min(1, (y * (1 - Math.max(0, T.lag))) / Math.max(1, w.box.height));
+      }
+      // S1 (PART): the two layers' sinks, the mist between them and the front's drift (used once the window is parted)
+      if (w.box && living() && !stageOn() && !fullMode && !quantized() && elementOn('cameraTravels')) {
+        const y = Math.max(0, window.scrollY || 0), h = Math.max(1, w.box.height), k = Math.round(stretch);
+        if (w.kind === 'strip') {
+          const e = Math.min(1, y / h);
+          w.sink = Math.min(1, (y * (1 - PART.lagF)) / h);
+          w.sinkB = Math.min(1, (y * (1 - PART.lagB)) / h);
+          // (M step 3, the judges: "the mist bank briefly covers the lower half of the strip"; S3's rising sea: the
+          // bank keeps to the lower part of what still shows of the strip, and takes more of it as it leaves, so the
+          // place sinks into cloud instead of being cut by the screen's top edge)
+          const vis = clamp01((w.box.top + h) / h), kq = 1 - vis;
+          // (s3fix 3/4: the bank comes in from the first pixel of the exit, about a third of what shows at a quarter of the
+          // way out and three fifths at halfway, so the place's foot always goes into billows, never into the box's flat feather)
+          w.rise = vis * PART.rise * Math.pow(sstep(0, 1, kq), 0.6);
+          w.dx = (PART.dx[k] || 0) * sstep(0, 1, e);
+        } else {
+          // (M step 3, the judges: "the front rises while the top of the box is still pale and empty"; S3's airPart:
+          // the closing's two layers arrive together, the front only a breath lower, and it comes out of two banks of
+          // mist that part as the reader arrives, from its top's first visible pixel to the page's end)
+          const maxY = Math.max(0, document.documentElement.scrollHeight - innerHeight);
+          const r = Math.max(0, maxY - y), run = Math.max(h * 0.6, (cssH || innerHeight) - (w.box.top - r));
+          const e = clamp01(r / run);
+          w.sink = PART.comeMax * sstep(0, 1, e);
+          w.sinkB = 0;
+          w.rise = sstep(0.0, PART.clearR, e);
+          w.dx = -(PART.dx[k] || 0) * sstep(0, 1, e);
+        }
       }
       const b = w.box;
       w.vis = !!b && b.top < cssH && b.top + b.height > 0 && b.left < cssW && b.left + b.width > 0;
@@ -1183,8 +1464,10 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     let sv = Math.max(0, y / vh);
     let desc = 0, f = 1, p = 0;
     st.endSink = st.endMid = st.jump = 0;
+    const maxYAll = Math.max(0, document.documentElement.scrollHeight - innerHeight);
+    st.span = 0;
     if (c.box && T.descend > 0) {
-      const maxY = Math.max(0, document.documentElement.scrollHeight - innerHeight);
+      const maxY = maxYAll;
       const ctEnd = c.box.top - (maxY - y);           // the closing's top once the page is at its end
       // the end pose wanted: the opening composition lowered so its strip's bottom edge lies on the closing's bottom edge
       const E0 = Math.max(0, (ctEnd + c.box.height) - (st.bottomDoc)) / vh;
@@ -1219,12 +1502,27 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       st.jump = T.cloud > 0 ? Math.max(0, E0 - (Dm + M)) : 0;
       st.span = span;
     }
+    // (M step 3, the judges: "short pages: confirm the one-way move is visible and never stalls": a page without a
+    // descent that is too short for its lift lifts less, its sinks and reach together, so the move keeps its speed and
+    // is complete at the page's end on every window: Writing at 1920 x 1080 has 84 px of scroll)
+    if (T.descend <= 0 && T.reach > 0) f = Math.max(0.2, Math.min(1, (maxYAll * 0.92) / (T.reach * vh)));
     st.descP = p;
     st.liftF = f;
+
     sv /= f;                                         // (the lift's own profiles run in lift viewports)
     const t = T.reach > 0 ? clamp01(sv / T.reach) : 1;
     let prog = 1 - Math.pow(1 - t, Math.max(1, T.ease));
-    let slide = sstep(T.slideAt[0], T.slideAt[1], sv);
+    // (S1: Contact's crossing takes its step over the whole page's scroll)
+    let slide = T.slideWhole > 0 ? sstep(0, 1, maxYAll > 0 ? y / maxYAll : 0) : sstep(T.slideAt[0], T.slideAt[1], sv);
+    // S1: the stairs (the Résumé's terraces): through the reading, between the lift and the descent, the camera climbs
+    // T.stairs steps; each is taken over the last 45 % of its stretch of scroll, so the painting rests while a section
+    // is read and moves on as the next comes up
+    let stair = 0;
+    if (T.stairs > 0) {
+      const a0 = T.reach * f * vh, a1 = Math.max(a0 + 1, maxYAll - (st.span || 0));
+      const x = clamp01((y - a0) / (a1 - a0)), n = Math.max(1, Math.round(T.stairs)), q = x * n, i = Math.floor(q);
+      stair = x >= 1 ? 1 : Math.min(1, (i + sstep(0.55, 1, q - i)) / n);
+    }
     const ca = T.cloudAt;
     let mid = sstep(ca[0], ca[1], sv) * (1 - sstep(ca[2], ca[3], sv));
     let cloud = T.cloud * mid;
@@ -1242,12 +1540,28 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       // (round 4: a place with an arch takes its end pose, in one quiet change, only once the arch can come out whole there)
       const end = desc > 0.5 && revealTarget(prog, 1, 1, sv > 0.5 ? 1 : 0, vh) >= 0.5;
       prog = sv > 0.5 && !end ? 1 : 0; desc = end ? 1 : 0; slide = sv > 0.5 ? 1 : 0; cloud = mid = hide = 0; jump = desc;
+      stair = 0;   // (S1: rest frames only: the settled pose and the end pose)
     }
+    if (forced !== null) stair = 0;
     if (forced === 'hero' || forced === 'closing') { prog = 0; desc = forced === 'closing' ? 1 : 0; slide = desc; cloud = mid = hide = 0; jump = desc; }
     else if (forced === 'horizon') { prog = 1; desc = 0; slide = 1; cloud = mid = hide = jump = 0; }
     st.descT = desc;
+    // M step 3, the way on (S2's, on the stage's depth layers): with the descent (a page without one: over its whole
+    // scroll) the camera also travels east toward the next place, at most 0.8 px of painting per px of scroll; quantized
+    // modes switch with the descent (its rest frames), forced poses take their own
+    {
+      const wayOn = elementOn('cameraTravels') && T.way > 0;
+      const spanW = T.descend > 0 ? st.span : maxYAll;
+      st.jPx = wayOn && spanW > 0 ? Math.round(Math.min(T.way * Math.min(cssW || 1440, 1700), 0.8 * spanW)) : 0;
+      let jT = T.descend > 0 ? desc : maxYAll > 0 ? sstep(0.05, 1, y / maxYAll) : 0;
+      if (quantized()) jT = T.descend > 0 ? desc : 0;
+      if (forced === 'hero' || forced === 'horizon') jT = 0;
+      else if (forced === 'closing') jT = T.descend > 0 ? 1 : 0;
+      st.jT = st.jPx > 0 ? jT : 0;
+    }
     st.progT = prog;
     st.slideT = slide;   // (the step is kept through the descent: the scene never slides back in view)
+    st.stairT = stair;
     st.cloudT = cloud;
     st.midT = mid;
     st.jumpT = jump;
@@ -1273,7 +1587,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     const f = st.liftF, y = st.y;
     // the middle layer's sink there (as stageU puts it) and the step
     const sink = (T.sink[1] * f * prog * (1 - desc) + (st.endMid - st.jump) * desc + st.jump * jump) * vh;
-    const dx0 = st.slidePx * slide;
+    const dx0 = st.slidePx * slide - st.jPx * desc;   // (M step 3: the way on carries the middle layer, the arch with it)
     // a veil's reach: the solid core, the feather and the swell's tongues (CSS px); beside a block on a wide window the
     // painter widens it (up to 1.8x at 2592 px), above and below a block it keeps the 1440 reach
     const g1 = T.core * 0.8 + T.feather + T.swell * 0.85, g0 = g1 - T.feather * 0.6;
@@ -1486,12 +1800,44 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     st.curtX = -1;
     st.archPx = null;
     st.bands = [];
+    // (M step 3: the reading column's right edge, the widest text block's, and the footer's top: layout only)
+    {
+      // (the column that holds most of the reading: the right edge below which 85 % of the text's height lies, so one
+      // wide line of small print does not move the whole sky)
+      const rs: [number, number][] = [];
+      for (const el of new Set(veilEls.concat(keepEls))) {
+        if (!el.isConnected || el.closest?.('.strip') || el.closest?.('.site-footer')) continue;
+        const r = el.getBoundingClientRect();
+        if (r.width < 2) continue;
+        const tb = textBox(el, r, true);
+        if (tb) rs.push([r.left + tb.r - rect.left, Math.max(1, tb.b - tb.t)]);
+      }
+      rs.sort((a, b) => a[0] - b[0]);
+      const tot = rs.reduce((a, q) => a + q[1], 0);
+      let acc = 0, right = 0;
+      for (const [x, h] of rs) { acc += h; right = x; if (acc >= tot * 0.85) break; }
+      st.colR = right;
+      // (s3fix 10: and the right end of its row rules, a hairline that is not text: Writing's note runs to 800 px at
+      // 1440 while its words end at 593, and mid-lift the rule ran into the lake mountain's west foot)
+      let rr = 0;
+      for (const el of document.querySelectorAll('main .row, main hr')) {
+        if (el.closest?.('.strip')) continue;
+        const r = el.getBoundingClientRect();
+        if (r.width > 40 && r.height > 0) rr = Math.max(rr, r.right - rect.left);
+      }
+      st.ruleR = Math.round(rr);
+      const ft = document.querySelector('.site-footer');
+      const fr0 = ft ? ft.getBoundingClientRect() : null;
+      st.footDoc = fr0 && fr0.height > 0 ? fr0.top - rect.top + (window.scrollY || 0) : -1;
+    }
     if (T.slide >= 0) { st.slidePx = T.slide * cssW / 1440; return; }
     const sb = wins[0].box;
     if (!sb || !(T.anchor >= 0)) { st.slidePx = 0; return; }
     let right = 0;
     for (const el of new Set(veilEls.concat(keepEls))) {
-      if (!el.isConnected || el.closest?.('.strip')) continue;
+      // (M step 3, fix 2: the footer's rows are veiled on living pages now; its right-hand line ("Still the landscape")
+      // is not the reading column, and counting it put Work's curtain at 1412 px at 1440, hiding the town all the way down)
+      if (!el.isConnected || el.closest?.('.strip') || el.closest?.('.site-footer')) continue;
       const r = el.getBoundingClientRect();
       if (r.width < 2) continue;
       const tb = textBox(el, r, true);
@@ -1527,7 +1873,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     const els = new Set(veilEls.concat(keepEls));
     for (const el of veilEls) if (el.isConnected) for (const n of el.querySelectorAll('.margin-note')) els.add(n);
     for (const el of els) {
-      if (!el.isConnected) continue;
+      if (!el.isConnected || el.closest?.('.site-footer')) continue;   // (fix 2: as approved, the footer is not a text band)
       const r = el.getBoundingClientRect();
       if (r.width < 2 || r.height < 2) continue;
       for (const b of textBands(el, r)) {
@@ -1928,6 +2274,14 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     const u0 = fr.worldLeft, u1 = u0 + b.width / fr.scale;
     return u1 > r[0] && u0 < r[1];
   }
+  /** S1 (PART): the plane a window's front layer starts at, 0 when it is painted as one view (a page that is not living,
+   *  the stage, Canvas2D or a software rasteriser, reduced motion or Still, and while it moves: a pan, the bloom). */
+  function partSplit(w: Win, draft: boolean) {
+    if (!living() || !elementOn('cameraTravels') || stageOn() || fullMode || qaFrame || mode !== 'webgl' || software || quantized()) return 0;
+    if (draft || tween || forced !== null || w.doc || (w.kind === 'strip' && arriving)) return 0;
+    const k = Math.round(stretch);
+    return PART.split[k] ?? 0;
+  }
   /** Paint one window's scene (if its key changed, or it is in motion). Returns true when it painted. */
   function paintWin(w: Win, U0: SceneBase, slots: Slot[], force: boolean) {
     const fr = w.fr = framingOf(w);
@@ -1940,9 +2294,17 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     const fa = vis[0] ? figU(vis[0]) : null;
     const fb = vis[1] ? figU(vis[1]) : null;
     const fk = (f: FigureSlot | null) => (f ? `${f.id}@${f.k.toFixed(2)}` : '-');
-    const key = [fr.worldLeft.toFixed(5), fr.worldTop.toFixed(5), fr.scale.toFixed(2), bw, bh, palette, specKey(), w.keepR, String(w.note), fk(fa), fk(fb),
+    const key0 = [fr.worldLeft.toFixed(5), fr.worldTop.toFixed(5), fr.scale.toFixed(2), bw, bh, palette, specKey(), w.keepR, String(w.note), fk(fa), fk(fb),
       w.kind === 'strip' ? arrive.toFixed(3) : 'a', U0.draft ? 'd' : 'f', mode].join('|');
-    if (!remade && !force && key === w.key && !w.pending) return false;
+    // S1: at rest a living page's window is two depth layers (the back in its own view, the front in w.nid)
+    const split = partSplit(w, !!U0.draft);
+    const key = `${key0}|${split ? `b${split}` : 'a'}`;
+    const keyN = split ? `${key0}|n${split}` : '';
+    let needN = false;
+    if (split) needN = renderer!.view(w.nid, bw, bh, true) || force || keyN !== w.nkey || w.npending;
+    else if (w.nkey || w.npainted) { renderer!.dropView?.(w.nid); w.nkey = ''; w.npainted = false; w.npending = false; }
+    const needM = remade || force || key !== w.key || w.pending;
+    if (!needM && !needN) return false;
     const t0 = performance.now();
     let view: number[], P: Resolved, left: number, wvis: number, asp: number, hs: number;
     if (fr.full) {
@@ -1960,7 +2322,6 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     w.samples = samples;
     counts.ridgeMs = Math.round((performance.now() - t0) * 10) / 10;
     counts.ridges++;
-    renderer!.ridges(w.id, w.buf, samples);
     // keep-out, in box uv: the text's right edge, active, the mist ramp's half-width (140 px), the figure guard (+40 px)
     const keep = w.keepR !== null && w.keepR > 0
       ? new Float32Array([w.keepR / b.width, 1, 140 / b.width, (w.keepR + 40) / b.width]) : new Float32Array(4);
@@ -1971,15 +2332,29 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       ...U0, view: w.viewU, hs, feet: layerFeet(P), keep, note, figA: fa, figB: fb,
       arrive: w.kind === 'strip' ? arrive : 9, morn: w.kind === 'strip' ? mornNow() : 9, hz: hzZero, hzK: 0, lift: 0, P, box: b, fr,
     };
-    const t1 = performance.now();
-    const done = renderer!.scene(w.id, U) !== false;
-    counts.sceneMs = Math.round((performance.now() - t1) * 10) / 10;
-    counts.scenes++;
-    w.pending = !done;
-    w.key = done ? key : '';
-    w.painted = w.painted || done;
-    w.draft = !!U.draft;
-    if (done) { if (U.draft) { counts.drafts++; counts.draftAt = Math.round(performance.now()); } else counts.fullAt = Math.round(performance.now()); }
+    // (the front first, behind the one view still on show; then the back, and only then does the present part them)
+    if (needN) {
+      renderer!.ridges(w.nid, w.buf, samples);
+      const okN = renderer!.scene(w.nid, { ...U, planes: new Float32Array([split, LAYERS - 1, 1, 0]) }) !== false;
+      counts.scenes++;
+      w.npending = !okN;
+      w.nkey = okN ? keyN : '';
+      w.npainted = w.npainted || okN;
+    }
+    if (needM) {
+      renderer!.ridges(w.id, w.buf, samples);
+      const t1 = performance.now();
+      const done = renderer!.scene(w.id, split ? { ...U, planes: new Float32Array([0, split - 1, 0, 0]) } : U) !== false;
+      counts.sceneMs = Math.round((performance.now() - t1) * 10) / 10;
+      counts.scenes++;
+      w.pending = !done;
+      w.key = done ? key : '';
+      w.painted = w.painted || done;
+      w.draft = !!U.draft;
+      if (done) { if (U.draft) { counts.drafts++; counts.draftAt = Math.round(performance.now()); } else counts.fullAt = Math.round(performance.now()); }
+    }
+    w.split = split;
+    w.parted = !!split && w.key === key && w.nkey === keyN && w.npainted;
     return true;
   }
   /** Paint the horizon band's scene (full viewport, ink only, mist at rest). */
@@ -2024,12 +2399,17 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     for (const L of st.layers) { renderer!.dropView?.(L.id); L.key = ''; L.painted = false; L.pending = false; L.draft = false; L.px = [0, 0]; }
     st.ok = false; st.single = true; st.pendingSplit = false; st.alloc = false; st.geo = ''; st.buf = null;
     st.prog = st.progT = st.desc = st.descT = st.slideK = st.slideT = st.cloudK = st.cloudT = st.midK = st.midT = 0;
+    st.stairK = st.stairT = 0;
+    st.jK = st.jT = st.jPx = st.extF = 0;
     st.jumpK = st.jumpT = st.hideK = st.hideT = st.revK = st.revT = 0; st.partK = 1;
     st.glide = false; st.sepK = 1; st.curtH = 1; st.holdG = null;
   }
   /** Free 4a's views (entering the living ground: the stage stands in for the strip, the closing and the horizon). */
   function drop4a() {
-    for (const w of wins) { renderer!.dropView?.(w.id); w.key = ''; w.painted = false; w.pending = false; w.draft = false; w.buf = null; }
+    for (const w of wins) {
+      renderer!.dropView?.(w.id); w.key = ''; w.painted = false; w.pending = false; w.draft = false; w.buf = null;
+      renderer!.dropView?.(w.nid); w.nkey = ''; w.npainted = false; w.npending = false; w.parted = false; w.split = 0;
+    }
     renderer!.dropView?.(hzv.id); hzv.key = ''; hzv.painted = false; hzv.pending = false; hzv.draft = false; hzv.buf = null;
   }
   /**
@@ -2049,7 +2429,13 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     st.wvis = cssW / fr.scale;
     // (final review r1, item 2) a step to the left brings in what lies past the viewport's right edge at rest: the
     // middle and near layers are painted that much wider (st.ext CSS px), the far one (which never steps) is not
-    st.ext = !single && st.slidePx < 0 ? Math.ceil(-st.slidePx) + 8 : 0;
+    // (M step 3: and wider still for the way on east at the end: the near layer goes furthest, the far one least, and
+    // only the far one's own share is added to its view)
+    const jp = !single ? st.jPx || 0 : 0;
+    const left0 = Math.max(0, -st.slidePx * Math.max(T.slideL[1], T.slideL[2], 1)) + jp * Math.max(T.wayL[1], T.wayL[2]);
+    // (s3fix 3: every layer wider than its furthest travel by 64 px, so no crop's edge can come into view)
+    st.ext = !single && left0 > 0 ? Math.ceil(left0) + 64 : 0;
+    st.extF = !single && jp > 0 ? Math.ceil(jp * T.wayL[0]) + 64 : 0;
     const cssWX = cssW + st.ext;
     st.wvisX = cssWX / fr.scale;
     const top = fr.worldTop + (st.topDoc) * unit;     // scene height at the viewport's top while the page is at its top
@@ -2063,7 +2449,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     // the ridges (shared by the three layers: a crop reads them at its own columns) and the crops, per geometry
     const samples = mode === 'webgl' ? Math.min(1536, Math.max(320, Math.round((W * cssWX) / cssW / 1.25))) : Math.min(480, Math.max(200, Math.round(W / 3)));
     const geo = [st.view[0].toFixed(5), top.toFixed(5), fr.scale.toFixed(2), W, H, palette, specKey(), kr, samples, Math.round(st.bottomDoc),
-      T.sink.join(','), T.split.join(','), T.seaK, T.soft, T.billow, Math.round(stretch * 1000), st.ext].join('|');
+      T.sink.join(','), T.split.join(','), T.seaK, T.soft, T.billow, Math.round(stretch * 1000), st.ext, st.extF].join('|');
     if (geo !== st.geo || !st.buf) {
       const t0 = performance.now();
       st.buf = buildRidges(samples, { left: st.left, wvis: st.wvisX, aspect: cssWX * unit, palette, pigment: 1 }, P, st.buf);
@@ -2081,7 +2467,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     const jobs: { j: number; lo: number; hi: number; layer: number; fa: FigureSlot | null; fb: FigureSlot | null; key: string; c: number[]; bw: number; bh: number }[] = [];
     ranges.forEach(([lo, hi, layer], j) => {
       const L = st.layers[j];
-      const c = j === 0 ? [0, 0, cssW, cssH] : L.crop;
+      const c = j === 0 ? [0, 0, cssW + (single ? 0 : st.extF), cssH] : L.crop;
       const k = j === 0 && !single ? Math.min(1, Math.max(0.25, T.far)) : 1;
       const bw = Math.max(2, Math.round((c[2] - c[0]) * (W / cssW) * k)), bh = Math.max(2, Math.round((c[3] - c[1]) * (H / cssH) * k));
       const mine = vis.filter((s) => s.L.meta.plane >= lo && s.L.meta.plane <= hi);
@@ -2167,13 +2553,14 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       const R = st.rects;
       R.set([x0 / cssW, 1 - y1 / vh, cssWX / cssW, 1 - y0 / vh], (i + 1) * 4);
     });
-    st.rects.set([0, 0, 1, 1], 0);
+    st.rects.set([0, 0, 1 + (st.extF || 0) / (cssW || 1), 1], 0);   // (M step 3: the far layer's width, viewports)
   }
   /** The stage's present uniforms: each layer's step, sink, alpha and crop, the sea, the haze deck and the cloud. */
   function stageU(): StageU {
     const vh = cssH || 1;
     const g = st.holdG || st;                           // (during a pan's hold: the geometry the views on show were painted at)
-    const d = st.desc, pk = st.prog * (1 - d);
+    // (S1: the Résumé's stairs take their share of the descent step by step through the reading)
+    const d = T.stairs > 0 ? 1 - (1 - st.desc) * (1 - T.stairShare * st.stairK * (st.single ? 0 : 1)) : st.desc, pk = st.prog * (1 - d);
     // the end pose: the opening, framed lower. Round 4: the far layer ends as low as the speed limit allows (Ef); the
     // middle and near layers (Em) on the opening framing, a place with a cloud taking the rest of their drop inside it
     // (jumpK, only while they are under it); on a place without one every layer ends alike, as before
@@ -2184,8 +2571,11 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     const D = T.sink.map((v) => v * g.liftF);            // (a short page lifts less: see `still`)
     const single = st.single;
     const sep = single ? 0 : st.sepK;                   // (combined: every plane at the middle's depth and step)
+    const SL = T.slideL;
     for (let i = 0; i < 3; i++) {
-      st.offsets[i * 4] = i === 0 ? slide * (1 - sep) : slide;   // (the far ranges never step sideways)
+      // (the far ranges never step sideways on Home and Work; S1: each layer takes its own share, slideL)
+      st.offsets[i * 4] = (i === 0 ? slide * (SL[1] * (1 - sep) + SL[0] * sep) : slide * SL[i])
+        - ((st.jPx || 0) / (cssW || 1)) * st.jK * (single ? T.wayL[1] : T.wayL[i]);   // (M step 3: the way on, by depth)
       // (when the three layers take over from the combined one, the far AND the near layer glide from the middle's depth
       // to their own: round 3, the near layer used to jump there in one frame)
       // (round 4: the far layer's end parts from the middle's as the three layers take over, and a pan's hold joins them
@@ -2214,10 +2604,27 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     // bottom veil, or within one wheel tick)
     if (g.curtX >= 0 && T.curtain > 0) {
       const lift = st.revK;
-      st.curt.set([(g.curtX - lift * (g.curtSweep ?? cssW * 0.3)) / (cssW || 1), T.curtain * st.slideK * (1 - sstep(0.7, 1, lift)) * sep * st.curtH, 85 / (cssW || 1), 0]);
+      st.curt.set([(g.curtX - lift * (g.curtSweep ?? cssW * 0.3) - st.jPx * st.jK * T.wayL[1]) / (cssW || 1), T.curtain * st.slideK * (1 - sstep(0.7, 1, lift)) * sep * st.curtH, 85 / (cssW || 1), 0]);
+    }
+    else if (st.jPx > 0 && st.jK > 0 && T.wayC > 0 && T.wayL[1] > 0 && wins[0].keepR !== null && wins[0].box) {
+      // M step 3, the way on: what the travel brings out from under the keep-out's mist (the faded left of the place,
+      // painted for the rest frame beside the hero's words) goes into a billowing curtain of mist that travels with the
+      // middle layer, so the camera passes the place's west side into cloud instead of showing it faded
+      const kr = wins[0].keepR + wins[0].box.left;
+      st.curt.set([(kr + 150 - st.jPx * st.jK * T.wayL[1]) / (cssW || 1), T.wayC * sstep(0, 0.35, st.jK), 95 / (cssW || 1), 0]);
     }
     else st.curt.fill(0);
-    return { ids: STAGE_IDS, offsets: st.offsets, view: st.view, k: st.k, sea: st.sea, rects: st.rects, cloud: st.cloud, curt: st.curt };
+    // M step 3: an inner place's far sky as air (its column edge, its seed) and its stage clearing above the footer
+    const dbg = QA ? Number((globalThis as { __stDbg?: number }).__stDbg) || 0 : 0;
+    st.airU.set([T.air, T.botF, (st.colR || 0) / (cssW || 1), T.seed]);
+    const fy = st.footDoc >= 0 ? 1 - (st.footDoc - (window.scrollY || 0)) / vh : -9;
+    st.footU.set([fy, 110 / vh, T.foot, dbg]);
+    // (the window's inner grade on the stage: the hero box at the page's top and its words' keep-out, inner places only)
+    const kG = wins[0].keepR !== null && wins[0].keepR > 0 && wins[0].box ? (wins[0].keepR + wins[0].box.left) / (cssW || 1) : 0;
+    if (T.air > 0) st.gradeU.set([1 - g.bottomDoc / vh, 1 - st.topDoc / vh, kG, 140 / (cssW || 1)]); else st.gradeU.fill(0);
+    // (s3fix 10: an inner place's middle and near layers clear the end of the page's row rules as the camera lifts)
+    if (T.air > 0 && st.ruleR > 0) st.ruleU.set([st.ruleR / (cssW || 1), sstep(0.05, 0.4, st.prog * (1 - st.desc)), 0, 0]); else st.ruleU.fill(0);
+    return { ids: STAGE_IDS, offsets: st.offsets, view: st.view, k: st.k, sea: st.sea, rects: st.rects, cloud: st.cloud, curt: st.curt, air: st.airU, foot: st.footU, grade: st.gradeU, rule: st.ruleU };
   }
 
   function updateWake(dt: number, now: number) {
@@ -2313,12 +2720,12 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       // 4b: from a lifted pose the camera first comes down to the opening on the three layers (HOLD_MS, shorter for a
       // small pose), then the combined layer takes over exactly where they stand: never a jump while the old text shows
       // (round 4: and where the descent has parted the far layer from the middle one, it brings them together first)
-      const m = stageOn() && st.ok && !st.single && W > 0 && !quantized() ? Math.max(st.prog * (1 - st.desc), st.cloudK, st.curt[1], st.slideK * Math.min(1, Math.abs(st.slidePx) / 40),
+      const m = stageOn() && st.ok && !st.single && W > 0 && !quantized() ? Math.max(st.prog * (1 - st.desc), st.cloudK, st.stairK * (1 - st.desc), st.curt[1], st.slideK * Math.min(1, Math.abs(st.slidePx) / 40), st.jK * Math.min(1, st.jPx / 40),
         Math.min(1, (Math.abs(st.endMid - st.endSink) * st.desc * (cssH || 0)) / 120)) : 0;
       tween.hold = m > 0.02 ? HOLD_MS * Math.sqrt(Math.min(1, m)) : 0;
       tween.held = 0;
       if (tween.hold) {
-        st.holdP = st.prog; st.holdC = st.cloudK; st.holdS = st.slideK;
+        st.holdP = st.prog; st.holdC = st.cloudK; st.holdS = st.slideK; st.holdSt = st.stairK; st.holdJ = st.jK;
         st.holdG = st.holdG || { bottomDoc: st.bottomDoc, crest: st.crest, slidePx: st.slidePx, curtX: st.curtX, curtSweep: st.curtSweep, endSink: st.endSink, endMid: st.endMid, jump: st.jump, liftF: st.liftF };
       }
     }
@@ -2383,6 +2790,8 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     }
     // P3: the gust, Still settling and the stirred water ask for presents while they move
     if (fxFast(now) || stirs.length) need |= S_PRESENT;
+    // M step 3: the scroll's air settles at the display's rate (S3's settle at <= 30 fps looked stepped beside the scroll)
+    if (airStep(dt, now)) { need |= S_PRESENT; animating = true; }
 
     // the scenes: a window repaints when its framing, palette, keep-out or figures change, while it is in motion,
     // and once at full quality after motion stops. Never while the page merely scrolls (its key stays the same).
@@ -2395,7 +2804,16 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     const settleDue = !moving && performance.now() - counts.draftAt >= FULL_MS - 8;
     const staged = stageOn() && W > 0;
     for (const w of wins) {
-      if (staged || !w.box || !(w.vis || (w.want && scrollIdle))) continue;   // (the stage stands in for both windows)
+      // (s3fix 6: the closing is painted ahead, off screen, at idle or once it is within two viewports, and only when
+      // what it will show is ready, so scrolling it into view never paints a scene)
+      const near = !staged && w.kind !== 'strip' && !!w.box && w.box.top < (cssH || innerHeight) * 3 && !w.painted;
+      if (near) w.want = true;
+      if (staged || !w.box || !(w.vis || (w.want && (scrollIdle || near)))) continue;   // (the stage stands in for both windows)
+      if (!w.vis && w.kind !== 'strip') {
+        if (!aheadT) aheadT = now;
+        // (at most 6 s: a layer that never comes never keeps the loop awake)
+        if (now - aheadT < 6000 && !closingAhead()) { due = Math.min(due, now + 120); continue; }
+      } else if (w.kind !== 'strip') aheadT = 0;
       if (w.draft && !moving && !settleDue) due = Math.min(due, counts.draftAt + FULL_MS);
       if (paintWin(w, U0, slots, ((need & S_SCENE) !== 0 && w.vis) || (w.draft && settleDue))) {
         heavy = heavy || moving;
@@ -2421,12 +2839,16 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
         st.prog = st.holdP * h;
         st.cloudK = st.holdC * h;
         st.slideK = st.holdS * h;
+        st.stairK = st.holdSt * h;
+        st.jK = st.holdJ * h;
         st.curtH = h;
         st.partK = h;
       } else {
         st.prog = ease(st.prog, pan ? 0 : st.progT);
         st.cloudK = ease(st.cloudK, pan ? 0 : st.cloudT);
         st.slideK = ease(st.slideK, pan ? 0 : st.slideT);
+        st.stairK = ease(st.stairK, pan ? 0 : st.stairT);
+        st.jK = pan ? 0 : ease(st.jK, st.jT);   // (never under the one combined layer, which is not painted wider)
         st.holdG = null;
         if (pan) st.curtH = 0;
       }
@@ -2438,7 +2860,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       if (!holding) st.jumpK = ease(st.jumpK, pan ? 0 : st.jumpT);
       st.hideK = holding ? Math.min(st.hideK, st.cloudK) : ease(st.hideK, pan ? 0 : st.hideT);
       if (gl) {
-        const off = pan || st.prog !== st.progT || st.desc !== st.descT || st.slideK !== st.slideT || st.cloudK !== st.cloudT || st.midK !== st.midT
+        const off = pan || st.prog !== st.progT || st.desc !== st.descT || st.slideK !== st.slideT || st.stairK !== st.stairT || st.jK !== st.jT || st.cloudK !== st.cloudT || st.midK !== st.midT
           || st.jumpK !== st.jumpT || st.hideK !== st.hideT;
         if (off) animating = true; else st.glide = false;
       }
@@ -2534,7 +2956,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
 
   function lifeU(windows: PresentWindow[], stage: StageU | null): LifeTable | null {
     lifeN = 0; lifeKinds = []; lifeK[0] = 0;
-    lifeHit = null; plumLimbUV = null;
+    lifeHit = null; plumLimbUV = null; airLimb = null;
     if (mode !== 'webgl' || !figuresOn || fullMode || !W || !lastSlots.length) return null;   // (full mode: no figures)
     const vh = cssH || 1, phone = cls === 'phone';
     // the views on screen, each with its map from world to canvas uv, the planes it holds and its arrival (the strip and
@@ -2549,7 +2971,8 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
         // (a transparent layer holds nothing left of where the keep-out's mist has cleared it: 140 px left of its edge)
         const kr = wins[0].keepR !== null && wins[0].keepR > 0 && wins[0].box ? (wins[0].keepR + wins[0].box.left - 140) / (cssW || 1) : 0;
         const cx = j > 0 ? Math.max(st.rects[j * 4], kr) + ox : 0;
-        views.push({ t: 2 + j, lo, hi, clip: [cx, 0, 1, 1], bloom: true, vr: 'strip',
+        const jx = -((st.jPx || 0) / (cssW || 1)) * st.jK * (st.single ? T.wayL[1] : T.wayL[j]);
+        views.push({ t: 2 + j, lo, hi, clip: [cx, 0, 1, 1], bloom: true, vr: 'strip', jx,
           map: (w) => [(w[0] - M[0]) / M[3] + ox, 1 - (M[1] - w[1]) / M[2] - oy],
           inv: (u, v) => [M[0] + (u - ox) * M[3], M[1] - (1 - v - oy) * M[2]],
           col: (u) => Math.floor((u - ox) * (cssW / ((cssW + st.ext) || 1)) * st.samples), rid: () => ({ buf: st.buf, samples: st.samples }) });
@@ -2616,6 +3039,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
           let bx = box;
           if (bird && bloom < 1) { const s = (1 - bloom) * (1 - bloom) * (box[2] - box[0]); bx = [box[0] - s * 1.6, box[1] + s * 0.5, box[2] - s * 1.6, box[3] + s * 0.5]; }   // (along its heading, up from the left, clear of the peak and the header's paper)
           const p0 = v.map(lifeW(bx[0], bx[3])), p1 = v.map(lifeW(bx[2], bx[1]));   // (canvas uv is y up)
+          if (swing && v.jx) { p0[0] -= v.jx; p1[0] -= v.jx; }   // (M step 3: the plum hangs where it is on the way on)
           const rc = [Math.min(p0[0], p1[0]), Math.min(p0[1], p1[1]), Math.max(p0[0], p1[0]), Math.max(p0[1], p1[1])];
           const c = v.clip;
           if (rc[2] < Math.max(0, c[0]) || rc[0] > Math.min(1, c[2]) || rc[3] < Math.max(0, c[1]) || rc[1] > Math.min(1, c[3])) continue;
@@ -2632,7 +3056,10 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     // entry by priority. In practice there is only one: the stage's layer of the page's own set, or the window in which
     // its place shows (two windows both with life on screen at once: the strip keeps it).
     list.sort((p, q) => LIFE_ORDER[p.a.kind] - LIFE_ORDER[q.a.kind] || p.v.t - q.v.t || q.area - p.area);
-    const lv = list[0].v;
+    // (M step 3, S2's rule: a neighbour's layer coming in on the way on never takes life from the page's own place: the
+    // plum, the swallow and the page's own small life keep it)
+    const own = Math.round(tween ? tween.to : stretch);
+    const lv = (list.find((e) => e.L.stretch === own) || list[0]).v;
     const mine = list.filter((e) => e.v === lv).slice(0, LIFE).sort((p, q) => LIFE_KIND[p.a.kind] - LIFE_KIND[q.a.kind]);
     lifeR.fill(-1); lifeA.fill(0); lifeB.fill(0);
     for (let i = 0; i < LIFE; i++) lifeR[i * 4] = 2;
@@ -2687,7 +3114,8 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
         B = [e.k, lod, e.sprite.atlas[0], e.sprite.atlas[1]];
         amp = 1;
         if (a.params?.swing) {   // (P3 plumGust: the bough's limb, its line on the canvas)
-          plumLimbUV = Array.isArray(a.params.limb) ? a.params.limb.map((p) => v.map(lifeW(p[0], p[1]))) : null;
+          plumLimbUV = Array.isArray(a.params.limb) ? a.params.limb.map((p) => { const q = v.map(lifeW(p[0], p[1])); q[0] -= v.jx || 0; return q; }) : null;
+          if (v.bloom && Math.round(tween ? tween.to : stretch) === 0) airLimb = plumLimbUV;   // (M step 3: petals only off Home's hero plum)
         }
       }
       // (P3 contactLife: a clump that bends in the breeze gets 8 % more room each side, so its bent tips are never cut;
@@ -2777,7 +3205,10 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
         feather: new Float32Array([Math.max(1e-3, (ft * k) / b.height), Math.max(1e-3, (fb * k) / b.height), w.wakeOK ? 1 : 0, 1]),
         // (M n1: w = 1 marks the page's own hero window: the inner pages' sky grade stays inside it)
         keep: new Float32Array(w.keepU ? [w.keepU[0], w.keepU[1], w.keepU[2], w.kind === 'strip' ? 1 : 0] : [0, 0, 0, w.kind === 'strip' ? 1 : 0]),
-        sink: w.sink || 0,
+        sink: (w.parted ? w.sink : w.sinkP) || 0,
+        // S1: the front layer's view and [on, the back's sink, the mist between them, the front's drift]
+        near: w.parted ? w.nid : null,
+        part: w.parted ? new Float32Array([w.kind === 'closing' ? 2 : 1, w.sinkB || 0, w.rise || 0, w.dx || 0]) : null,
       });
     }
     const stage = stageOn() && st.ok ? stageU() : null;
@@ -2798,6 +3229,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       hold: xfT >= 0 ? 1 - sstep(0, xfMs(), xfT) : 0,
       sweepKeep: wins[0].keepR !== null && wins[0].keepR > 0 && wins[0].box ? (wins[0].keepR + wins[0].box.left) / (cssW || 1) : 0,
       stage,
+      air: airOn() && W ? { a: airU, b: airU2, c: airU3, petals: airP, petalsB: airQ } : null,
       live: liveU,
       live2: liveU2,
       px: cssW / W,
@@ -2975,6 +3407,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       if (has('horizon')) { horizonP = clamp01(num(o.horizon, 0.6)); hzv.key = ''; }
       if (has('veil')) veilEls = toList(o.veil);
       if (has('ground')) ground = o.ground === 'living' ? 'living' : '';
+      airReset();
       for (const L of st.layers) L.key = '';
       st.geo = '';
       observeEls(true);
@@ -3088,7 +3521,8 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       },
     } : {}),
     stats() {
-      const winStat = (w: Win) => (w.box ? { top: Math.round(w.box.top), height: Math.round(w.box.height), visible: w.vis } : { top: null, height: 0, visible: false });
+      // (M step 3: a parted window's state: its layers' sinks, the mist in it (the strip's bank, the closing's parting))
+      const winStat = (w: Win) => (w.box ? { top: Math.round(w.box.top), height: Math.round(w.box.height), visible: w.vis, parted: w.parted, sink: [r3(w.sinkB || 0), r3(w.sink || 0)], mist: r3(w.rise || 0) } : { top: null, height: 0, visible: false });
       const frStat = (w: Win) => (w.fr ? { worldLeft: r3(w.fr.worldLeft), worldTop: r3(w.fr.worldTop), scale: Math.round(w.fr.scale), focus: w.fr.focus.map(Math.round), keepoutRight: w.keepR } : null);
       const figs: Record<number, 'none' | 'pending' | 'ready'> = {};
       for (let k = 0; k < STRETCH_COUNT; k++) {
@@ -3147,6 +3581,8 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
         life: { n: lifeN, kinds: lifeKinds.slice(), k: r3(lifeK[0]), bitmaps: !!renderer?.bitmaps },
         // P3 (elements.ts): what answers the pointer now
         p3: { stirs: stirs.length, gust: !!gust, settling, fine: mqFine.matches },
+        // M step 3 (elements.ts air): the air now (speed vh/s, envelope, plum lean rad, ribbon bow, petals aloft, light)
+        air: { on: airOn(), live: air.live, v: r3(air.v), act: r3(air.act), plum: Math.round(air.plumA * 1e5) / 1e5, bow: Math.round(air.bow * 1e5) / 1e5, petals: air.petals.length, light: [r3(airU3[0]), r3(airU3[1])] },
         ...(QA ? { veils: [...Array(VEILS).keys()].filter((k) => veil[k * 4] > -0.5).map((k) => [veil[k * 4], veil[k * 4 + 1], veil[k * 4 + 2], veil[k * 4 + 3]].map((v, i) => Math.round(i % 2 ? (1 - v) * (cssH || 0) : v * (cssW || 0))).concat(r3(veilS[k]))) } : {}),
         // the living state (QA): `y` is the scroll the state was read at; `ready` = the three layers are painted at full
         // quality and shown; `phase` hero | lifting | settled | descending | end; `prog` the camera's progress (0 at the
@@ -3157,6 +3593,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
           single: st.single, glide: st.glide, sep: r3(st.sepK), hold: !!st.holdG, prog: r3(st.prog), lift: r3(st.prog), desc: r3(st.desc), settled: st.prog >= 0.999 && st.desc <= 0.001,
           end: st.desc >= 0.999, cloud: r3(st.cloudK), mid: r3(st.midK), step: r3(st.slideK), curtain: st.curtX >= 0 ? [Math.round(st.curtX), r3(st.curt[1])] : null,
           endSink: Math.round(st.endSink * (cssH || 0)), span: Math.round(st.span), liftF: r3(st.liftF), slide: Math.round(st.slidePx),
+          stair: r3(st.stairK), way: [st.jPx, r3(st.jK)], colR: Math.round(st.colR), grade: [...st.gradeU].map(r3), airU: [...st.airU].map(r3), k: [...st.k].map(r3),
           // (round 4) the descent's linear progress; the middle and near layers' end, the drop they take inside the cloud
           // (px) and how far (jump), how far they are under it (hide); the curtain's reveal and its target; the arch's points
           // where the scroll puts them and their clearance from the nearest text band (px)
