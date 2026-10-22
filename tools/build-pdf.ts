@@ -4,7 +4,7 @@
  *
  *   npm run build && npm start            (any server that serves the built site; default http://127.0.0.1:3100)
  *   npm run build:pdf                     print, gate, and write public/resume.pdf
- *   npm run build:pdf -- --check          print and gate only; fail if public/resume.pdf's text differs (CI)
+ *   npm run build:pdf -- --check          print and gate only; fail if public/resume.pdf's words differ (CI)
  *   npm run build:pdf -- --url http://127.0.0.1:3000/resume/
  *
  * PRIVACY GATE (DESIGN §2: no phone number anywhere; it fails loudly and nothing is written):
@@ -38,6 +38,27 @@ async function pdfText(bytes: Uint8Array) {
   return { pages: totalPages, text: String(text).replace(/\s+/g, ' ').trim() };
 }
 
+/**
+ * The text as compared: whitespace removed. pdf.js writes a space wherever a line ends or glyphs sit far enough
+ * apart, and CI's Linux Chromium lays the page out with other font metrics than the Mac's Chrome that printed the
+ * committed PDF, so the spaces can differ where the words do not. Every word, number and mark must still match.
+ */
+const comparable = (text: string) => text.replace(/\s+/g, '');
+
+/** Where two texts first differ once whitespace is set aside, quoted from each with some context, for the log. */
+function firstDifference(committed: string, printed: string) {
+  let [i, j] = [0, 0];
+  for (;;) {
+    while (/\s/.test(committed[i] ?? '')) i++;
+    while (/\s/.test(printed[j] ?? '')) j++;
+    if (i >= committed.length || j >= printed.length || committed[i] !== printed[j]) break;
+    i++;
+    j++;
+  }
+  const around = (text: string, k: number) => JSON.stringify(text.slice(Math.max(0, k - 40), k + 30));
+  return `the PDF has ${around(committed, i)} where the page has ${around(printed, j)}`;
+}
+
 function gate(what: string, text: string) {
   const m = text.match(PHONE);
   if (m) throw new Error(`${what} contains a phone-number pattern or tel: link: ${JSON.stringify(m[0])}`);
@@ -62,8 +83,8 @@ async function main() {
       if (!existsSync(OUT)) throw new Error('public/resume.pdf is missing: run npm run build:pdf');
       const committed = await pdfText(await readFile(OUT));
       gate('public/resume.pdf', committed.text);
-      if (committed.text !== text)
-        throw new Error('public/resume.pdf is stale: its text differs from the résumé page. Run npm run build:pdf');
+      if (comparable(committed.text) !== comparable(text))
+        throw new Error(`public/resume.pdf is stale: ${firstDifference(committed.text, text)}. Run npm run build:pdf`);
       console.log(`build-pdf --check: public/resume.pdf matches /resume/ (${pages} pages), no phone number`);
     } else {
       await writeFile(OUT, pdf);
