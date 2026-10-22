@@ -85,7 +85,6 @@ tests/e2e/               smoke, navigation and the DESIGN §6 budgets (Playwrigh
                          demo's own probe); scroll.spec.ts (the scroll motion: quiet modes, smoothness, seams,
                          memory); glimpse.spec.ts (the phone and tablet depth bands)
 design-demo/             the approved static demo, its notes and its QA tools: reference only, never deployed
-legacy-v1/               the old site, kept until its removal is approved
 ```
 
 **A page** is a route in `src/app/` that renders a feature component inside `PageMain`. `PageMain` reads the page's

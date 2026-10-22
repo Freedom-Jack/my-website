@@ -1,6 +1,5 @@
 .next
 node_modules
-legacy-v1
 design-demo
 public
 package-lock.json

@@ -523,7 +523,8 @@ reading below is the art lead's and is marked *confirm*):
   2. An old address without its trailing slash (`/about`) takes one 308 to `/about/` and then the 301. Next.js adds the
      slash first; a single hop would need middleware.
   3. Deleting `legacy-v1/` (the old app, moved there with `git mv`) and untracking the old `.next/` files the v1 repo
-     committed.
+     committed. **Done** (2026-10-22): `legacy-v1/` is removed (78 files) with its entries in the README's tree,
+     `tsconfig.json` and the ESLint and Prettier ignores; `0b3c25b` had already untracked the v1 `.next/` files.
   4. The Vercel project: Node 24 comes from `engines` in `package.json`; turn on Deployment Protection; a preview needs
      this branch pushed (public).
 - **The engine is strict TypeScript** (2026-10-16, `7923e2a`, from a side session; stills byte-identical).
