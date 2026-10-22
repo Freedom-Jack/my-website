@@ -39,12 +39,6 @@ describe('content/resume.json (the single source of the résumé, its PDF, resum
     const starts = raw.work.map((w) => w.startDate);
     expect([...starts].sort().reverse()).toEqual(starts);
   });
-  it('never attributes the 2026 award to a project (COPY §10.17)', () => {
-    const a2026 = raw.awards.find((a) => a.date === '2026');
-    expect(a2026).toBeDefined();
-    expect(a2026).not.toHaveProperty('summary');
-    expect(a2026).not.toHaveProperty('note');
-  });
   it('publishes a clean JSON Resume: no page-only fields, no markup, the site address', () => {
     const doc = publicResume([]);
     const text = JSON.stringify(doc);

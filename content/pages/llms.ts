@@ -9,14 +9,16 @@ export const llms = {
     'Qijin Xu, known as Jack, is a Lead AI/ML Architect at CGI’s AI Center of Excellence in Toronto, Canada. He designs and ships production AI for banks and insurers: LLM agents, retrieval-augmented generation (RAG) systems, and the data platforms beneath them. He has {{years+}} years of experience.',
   /** Every project and credential on the site, in the site's own words (the résumé and the case pages). */
   facts: [
-    'Two CGI Impact Awards: 2024, for architecting and shipping the LLM-powered enterprise RAG assistant, and 2026 (project not named on this site).',
+    'Two CGI Impact Awards: 2024, for architecting and shipping the LLM-powered enterprise RAG assistant, and 2026, for leading development of an LLM-powered email agent for enterprise email workflows (89% autonomous handling across 2,000+ emails per month).',
     'Architected an LLM-powered RAG assistant for insurance support (2023 – 2024; LangChain; Azure, AWS, GCP): about 90% of questions resolved without a person, for 50,000+ users; 525% ROI within 12 months.',
     'Leads an agent for a proprietary programming language (2025 – present; LangGraph, vLLM, RAG, EBNF structured outputs, PII filtering) that documents legacy code and extracts its business rules. Projected 50% less manual work; in progress.',
+    'Architected an agent evaluation pipeline (2025 – present): SME-adjudicated rubrics, reference cases, regression suites, and calibrated LLM-as-a-judge evaluators.',
+    'Drives technical direction across 13+ AI initiatives for TD Bank’s compliance SBU, with a cross-functional team of about 20 (2025 – present).',
     'Built an OpenLineage-based lineage tool with LLM-assisted root-cause suggestions, and automated AxiomSL rule updates at RBC with an LLM: 80% less manual updating (2023 – 2024).',
     'Managed Canada’s largest automobile-insurance policy-history database (2 TB, SQL Server): 99.9% uptime, median queries under 200 ms; built ETL/ELT pipelines for 22+ data marts (2021 – 2023).',
     'Shipped a fraud loss-ratio model: a 321% lift in recovered fraud losses versus a top-five bank benchmark (2021 – 2023).',
     'Research assistant in computer vision at York University’s Elder Laboratory (2020 – 2021): event detection on hockey broadcast video at mAP ≥ 70%.',
-    'B.Sc. Computer Science, Specialized Honours, York University, 2017 – 2021 (GPA 3.9/4.0, Dean’s List).',
+    'B.Sc. Computer Science, Specialized Honours, York University, 2017 – 2020 (GPA 3.9/4.0, First in Class, Dean’s List in all semesters).',
     'Microsoft Certified: Azure Solutions Architect Expert (2022). Google Cloud Professional Cloud Developer (2023).',
   ],
   pages: [

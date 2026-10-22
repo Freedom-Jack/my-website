@@ -19,8 +19,9 @@ import { ROUTES, settle, VIEWPORTS } from './support/pages';
  * OPEN (questions for Jack, reported but not failed):
  *   - a case page at 390 is over .10 (.28), because the case's long title is the page's h1 at title size (32 px, two
  *     or three lines). Options: accept, or set case titles at the section-heading size on phones;
- *   - the Résumé's first screen is short of words (104 / 150 at 1440, 92 / 120 at 1280) since round 5 gave it the shared
- *     hero and the polish round dropped the letterhead's explanatory note (22 words of busywork) and its own address.
+ *   - the Résumé's first screen is short of words (115 / 150 at 1440, 89 / 120 at 1280, with the career-kit summary
+ *     of 2026-10-22) since round 5 gave it the shared hero and the polish round dropped the letterhead's explanatory
+ *     note (22 words of busywork) and its own address.
  *     Options: accept (coherence first), or tighten its letterhead's spacing;
  *   - Writing at 390 is over .10 (.12): one note under a one-sentence intro (the intro's second sentence was not Jack's
  *     words and went in the polish round). It settles as notes are added.

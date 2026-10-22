@@ -428,6 +428,9 @@ reading below is the art lead's and is marked *confirm*):
    → "Yes" (a several-part question): the built defaults stand: honour wording as built, the 2026 award's project unnamed,
    OMITTED items stay out until he writes them, glossary notes kept. The dedicated case pages (answer 2) are the natural home
    for "The hard part" when he writes it. *Confirm the parts that matter to him.*
+   → **Superseded 22 Oct 2026** for the honours and the award: Jack made his career-kit résumé (`resume_ats.tex`) the
+   source of truth, so the 2026 award names the email agent, the honours read "First in Class · Dean’s List (all
+   semesters)" and education ends in 2020 (COPY.md, Résumé).
 5. **The launch-gate route:** a fresh v2 repo (Claude suggested this) vs a history rewrite (irreversible) vs making it private. Then make `job-application` private (§2).
    → "Just commit to the repo and rewrite the old version… Put the old version site into a branch archive/…". **Route:** the same
    repo; v2 replaces the old site on `master`; the old site lives on in a branch **`archive/v1-site`**. Because the repo is public and

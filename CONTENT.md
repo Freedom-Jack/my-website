@@ -22,6 +22,10 @@ file (the schemas, the hard rules, the counts below).
 - the PDF, `/resume.pdf`, which is printed from that page;
 - the machine-readable copy, `/resume.json`, and the Person data search engines read.
 
+Its facts follow Jack's own résumé, `resume_ats.tex` in [Freedom-Jack/career-kit](https://github.com/Freedom-Jack/career-kit):
+when that changes, bring the facts across here (titles, dates, figures, awards). Where the tex only condenses a role
+to fit one page, this file keeps its fuller wording. Never copy its phone number, and never link its PDF (DESIGN §2).
+
 After changing it, regenerate the PDF:
 
 ```bash
