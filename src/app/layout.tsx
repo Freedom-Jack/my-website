@@ -26,6 +26,7 @@ export const metadata: Metadata = {
   applicationName: site.name,
   authors: [{ name: site.name, url: `${site.url}/` }],
   formatDetection: { telephone: false, address: false, email: false },
+  appleWebApp: { title: site.name }, // the home-screen label (else the full title, cut short)
 };
 
 export const viewport: Viewport = {
@@ -33,7 +34,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: 'cover',
   themeColor: '#EFF1EE',
-  colorScheme: 'light',
+  colorScheme: 'only light', // cool paper by design (base.css too): never auto-darkened
 };
 
 /**

@@ -21,6 +21,8 @@ export const site = {
   goesBy: 'Jack',
   /** Search engines and AI agents only (titles, meta, JSON-LD), never visible text. */
   searchName: 'Qijin (Jack) Xu',
+  /** The author line under a note and a case (the colophon), third person; the name links home. */
+  bio: '[Qijin Xu](/) is a Lead AI/ML Architect at CGI’s AI Center of Excellence in Toronto. He designs and ships production AI for banks and insurers: LLM agents, RAG systems, and data platforms.',
   alternateNames: ['Jack Xu', 'Qijin (Jack) Xu'],
   jobTitle: resume.basics.label,
   email: resume.basics.email,
@@ -29,6 +31,7 @@ export const site = {
   country: resume.basics.location.countryCode,
   countryName: 'Canada',
   timeZone: 'Eastern Time',
+  timeZoneId: 'America/Toronto',
 
   /**
    * The canonical origin. The custom domain qijinxu.com is parked until launch (DESIGN §12): at launch this one
@@ -53,6 +56,9 @@ export const site = {
     { label: 'Contact', href: '/contact/' },
   ],
 
+  /** The footer's "Still the landscape": what the control does, for a tooltip and screen readers. */
+  stillHint: 'Stops the painting’s motion; remembered on this device.',
+
   /** "Updated October 2026" in the footer: the month of the last content change. Change it with the words. */
   updated: '2026-10',
 
@@ -66,7 +72,7 @@ export const site = {
   /** Person JSON-LD (COPY.md §8.2): third person, the same claims as the visible text. */
   seo: {
     description:
-      "Lead AI/ML Architect at CGI's AI Center of Excellence in Toronto. Designs and ships production AI for banks and insurers: LLM agents, retrieval-augmented generation (RAG) systems and the data platforms beneath them.",
+      'Lead AI/ML Architect at CGI’s AI Center of Excellence in Toronto. Designs and ships production AI for banks and insurers: LLM agents, retrieval-augmented generation (RAG) systems, and the data platforms beneath them.',
     employer: {
       name: 'CGI',
       legalName: 'CGI Inc.',

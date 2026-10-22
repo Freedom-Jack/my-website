@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!caseSlugs().includes(slug)) return {};
   const { meta } = await loadCase(slug);
   return pageMetadata(
-    { title: `${site.searchName} · ${plain(meta.title)}`, description: plain(meta.summary) },
+    { title: `${site.searchName} · ${plain(meta.title)}`, description: plain(meta.metaDescription ?? meta.summary) },
     meta.href,
   );
 }

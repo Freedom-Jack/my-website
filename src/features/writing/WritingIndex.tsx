@@ -37,6 +37,9 @@ export async function WritingIndex() {
             </li>
           ))}
         </ul>
+        <p className="more">
+          <InlineLink href="/writing/feed.xml">{writing.feed.link}</InlineLink>
+        </p>
       </section>
     </PageMain>
   );

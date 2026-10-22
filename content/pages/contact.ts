@@ -9,14 +9,16 @@ export const contact = {
   meta: {
     title: 'Qijin (Jack) Xu · Contact',
     description:
-      'Write to Qijin (Jack) Xu, Lead AI/ML Architect in Toronto, about collaborations on production AI or invitations to speak: qxjack@gmail.com.',
+      'Write to Qijin (Jack) Xu, Lead AI/ML Architect at CGI in Toronto, about collaborations on production AI or invitations to speak: qxjack@gmail.com.',
   },
   title: 'Contact',
   intro:
-    'I’m always glad to hear about collaborations on production AI, and invitations to speak or write about agents, retrieval and AI architecture.',
+    'I’m always glad to hear about collaborations on production AI, and invitations to speak or write about agents, retrieval, and AI architecture.',
   emailLabel: 'Email',
   copy: { label: 'Copy email', done: 'Copied' },
   ways: { github: 'GitHub', linkedin: 'LinkedIn', resume: 'Résumé' },
-  /** "Based in Toronto, Canada (Eastern Time)." */
-  where: 'Based in {city}, {country} ({timeZone}).',
+  /** "Based in Toronto, Canada (Eastern Time, 9:41 there).": {time} is the local time, filled in the browser. */
+  where: 'Based in {city}, {country} ({timeZone}{time}).',
+  /** ", 9:41 there" */
+  time: ', {time} there',
 } satisfies PageWords & Record<string, unknown>;

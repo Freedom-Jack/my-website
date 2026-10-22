@@ -101,6 +101,21 @@ export function profilePageLd() {
 }
 
 export const personRef = { '@id': PERSON };
+export const websiteRef = { '@id': WEBSITE };
+
+/** A subpage's trail (BreadcrumbList): Home › the section › the page, from the nav's own labels. */
+export function breadcrumbLd(trail: Array<{ name: string; path: string }>) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [{ name: 'Home', path: '/' }, ...trail].map((t, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: t.name,
+      item: absolute(t.path),
+    })),
+  };
+}
 
 /** <script type="application/ld+json">; "<" is escaped so no string can close the script. */
 export function JsonLd({ data }: { data: unknown }) {

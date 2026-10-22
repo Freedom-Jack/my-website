@@ -16,11 +16,17 @@ html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   background: var(--paper); /* the paper itself; the landscape canvas paints over it */
+  color-scheme: only light; /* cool paper by design: never auto-darkened by a browser */
   scrollbar-color: var(--ink-5) transparent;
   overflow-x: clip; /* the viewport never scrolls sideways: full-bleed art and blooms are clipped */
   /* the returning header (the returning-header effect) can sit over the top of the viewport: anchors and focused elements
      always land below it (WCAG 2.4.11) */
   scroll-padding-top: calc(var(--header-h) + 0.75rem);
+}
+a,
+button,
+summary {
+  -webkit-tap-highlight-color: transparent; /* a tap is answered in jade (jade.css :active), not by the system's box */
 }
 body {
   min-height: 100svh;

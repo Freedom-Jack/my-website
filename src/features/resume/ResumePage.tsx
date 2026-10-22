@@ -93,7 +93,8 @@ export function ResumePage() {
                 </a>
               </span>
             ) : null}
-            <span>
+            <span className={styles['cv-head__site']}>
+              {/* the PDF's letterhead only: on screen the reader is already here */}
               <a className="brush brush--rest" href={`${site.url}/`}>
                 {host}
               </a>
@@ -107,7 +108,6 @@ export function ResumePage() {
               {t.json}
             </a>
           </p>
-          <p className={`small ${styles['cv-head__note']}`}>{t.note}</p>
         </div>
 
         <section className={`sec ${styles['cv-sec']}`} aria-labelledby="cv-summary-title" data-veil="">
@@ -208,14 +208,14 @@ export function ResumePage() {
             {t.sections.certifications}
           </h2>
           <ul className={`rows rows--plain ${styles['cv-certs']}`} role="list">
-            {r.certificates.map((c) => (
-              <li key={c.name}>
-                {c.name} ({c.date.slice(0, 4)})
-              </li>
-            ))}
             {r.awards.map((a) => (
               <li key={`${a.title}-${a.date}`}>
                 {a.title} ({a.date.slice(0, 4)}){a.note ? `, ${a.note}` : ''}
+              </li>
+            ))}
+            {r.certificates.map((c) => (
+              <li key={c.name}>
+                {c.name} ({c.date.slice(0, 4)})
               </li>
             ))}
           </ul>

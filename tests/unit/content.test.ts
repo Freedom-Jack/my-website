@@ -5,6 +5,7 @@ import raw from '@content/resume.json';
 import { home } from '@content/pages/home';
 import { work } from '@content/pages/work';
 import { site } from '@content/site';
+import overrides from '@content/github/overrides.json';
 import { resumeSchema } from '@/features/resume/schema';
 import { publicResume } from '@/features/resume/resume';
 import { caseFrontmatter } from '@/features/work/cases';
@@ -128,4 +129,16 @@ describe('the hard rules, across every content file (DESIGN §2)', () => {
     expect(work.meta.description.length).toBeLessThanOrEqual(160);
   });
   it('the public email is the one Jack chose', () => expect(site.email).toBe('qxjack@gmail.com'));
+  it('the footer\'s "Updated" month (typed by hand) is no older than any content date', () => {
+    const notes = mdxFiles('content/writing').map((n) => n.data as { published: string; modified?: string });
+    const dates = [
+      home.meta.modified,
+      home.now.month,
+      raw.meta.lastModified,
+      overrides.updated,
+      ...notes.map((n) => n.modified ?? n.published),
+    ];
+    for (const d of dates)
+      expect(String(d).slice(0, 7) <= site.updated, `${d} is newer than "${site.updated}"`).toBe(true);
+  });
 });

@@ -1727,6 +1727,15 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     return true;
   }
 
+  /** Text folded away (inside a closed <details>, or any content-visibility: hidden subtree) still answers getClientRects
+   *  with boxes laid out below the fold: it is not on the page, so it veils nothing (Work's "Early work" fold once veiled
+   *  the whole closing on phones). */
+  function unrendered(pe: Element) {
+    const d = pe.closest('details');
+    if (d && !(d as HTMLDetailsElement).open && !pe.closest('summary')) return true;
+    const cv = (pe as Element & { checkVisibility?: (o: object) => boolean }).checkVisibility;
+    return typeof cv === 'function' && !cv.call(pe, { contentVisibilityAuto: true, visibilityProperty: true });
+  }
   // The union of an element's text lines (client rects of its text nodes), relative to its box; null if none.
   function textBox(el: Element, r: DOMRect, media = false) {
     const c = textBoxes.get(el);
@@ -1745,8 +1754,10 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     const range = document.createRange();
     for (let n = walk.nextNode(), i = 0; n && i < 400; n = walk.nextNode(), i++) {
       if (!(n as Text).data.trim()) continue;
+      const pe = n.parentElement;
+      if (!pe || unrendered(pe)) continue;
       // (living: a margin note in the rail is veiled on its own lines, so the column's veil keeps to the column)
-      if (media && n.parentElement?.closest('.margin-note') && el.matches?.(':not(.margin-note)')) continue;
+      if (media && pe.closest('.margin-note') && el.matches?.(':not(.margin-note)')) continue;
       range.selectNodeContents(n);
       for (const q of range.getClientRects()) {
         if (q.width < 2 || q.height < 2) continue;   // collapsed or visually hidden
@@ -1781,7 +1792,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     for (let n = walk.nextNode(), i = 0; n && i < 600; n = walk.nextNode(), i++) {
       if (!(n as Text).data.trim()) continue;
       const pe = n.parentElement;
-      if (pe?.closest('svg') || (pe?.closest('.margin-note') && !el.matches?.('.margin-note'))) continue;
+      if (!pe || pe.closest('svg') || (pe.closest('.margin-note') && !el.matches?.('.margin-note')) || unrendered(pe)) continue;
       range.selectNodeContents(n);
       for (const q of range.getClientRects()) if (q.width >= 2 && q.height >= 2 && inside(q)) items.push([q.left, q.top, q.right, q.bottom]);
     }

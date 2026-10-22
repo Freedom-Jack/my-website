@@ -7,7 +7,7 @@ import { Commissioner, Sofia_Sans_Condensed, Sofia_Sans_Extra_Condensed } from '
 
 /** Body, headings and UI: variable, with the FLAR flare axis (a hint of brush in the terminals). */
 export const bodyFace = Commissioner({
-  subsets: ['latin', 'latin-ext'],
+  subsets: ['latin'],
   axes: ['FLAR'],
   display: 'swap',
   adjustFontFallback: false,
@@ -15,14 +15,14 @@ export const bodyFace = Commissioner({
 
 /** Page titles (Sofia Sans Condensed ~780). */
 export const displayFace = Sofia_Sans_Condensed({
-  subsets: ['latin', 'latin-ext'],
+  subsets: ['latin'],
   display: 'swap',
   adjustFontFallback: false,
 });
 
 /** The name and figures (Sofia Sans Extra Condensed 900). */
 export const nameFace = Sofia_Sans_Extra_Condensed({
-  subsets: ['latin', 'latin-ext'],
+  subsets: ['latin'],
   weight: '900',
   display: 'swap',
   adjustFontFallback: false,

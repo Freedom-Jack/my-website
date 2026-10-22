@@ -44,7 +44,7 @@ main {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  column-gap: var(--space-s);
+  column-gap: var(--header-gap);
   min-height: var(--header-h);
 }
 .home-link {
@@ -119,8 +119,8 @@ main {
   text-decoration: none;
 }
 
-/* below 340 px: the nav takes a row of its own under the home link */
-@media (max-width: 21.1875rem) {
+/* below 357 px: the nav takes a row of its own under the home link (one row is the promise from 360, DESIGN 4.9) */
+@media (max-width: 22.25rem) {
   .site-header__inner {
     padding-block: 0.25rem;
   }
@@ -336,6 +336,8 @@ html.no-landscape .closing__art {
 } /* e.g. Work's "Six projects, newest first" */
 /* a date inside a heading: "Now · October 2026" */
 .sec__date {
+  margin-inline-start: 0.5em;
+  vertical-align: baseline;
   font-size: var(--fs-small);
   font-weight: var(--w-body);
   line-height: 1;
@@ -413,7 +415,10 @@ html.no-landscape .closing__art {
   inset-block: min(0px, 50% - 22px);
 }
 
-/* a row of actions: one .ink-btn at most, then quiet links (hero, 404, résumé) */
+/* a row of actions: one .ink-btn at most, then quiet links (hero, 404, résumé), all at the one UI weight */
+.actions > a.brush {
+  font-weight: var(--w-ui);
+}
 .actions {
   display: flex;
   flex-wrap: wrap;
@@ -481,8 +486,9 @@ html.no-landscape .closing__art {
    A two-column grid: the reading column (680) and the rail (300), 48 apart. Children sit in the reading
    column; margin notes in the rail beside the paragraph they follow; .wide blocks span both (capped at 960).
    Placement is in source order (sparse auto-flow, never `dense`, which would pile the notes at the top): a
-   note that follows a paragraph shares its row. Nested lists opt in by subgrid: a case's dl.case__body and
-   its dd elements (and any .rail-sub) carry the rail through, so a note inside a dd still reaches the rail. */
+   note that follows a paragraph shares its row. Nested lists opt in by subgrid: a case's .case__body and
+   its .case__part sections (and any .rail-sub) carry the rail through, so a note inside a part still reaches the
+   rail. */
 @media (min-width: 75rem) {
   .has-rail {
     display: grid;
@@ -491,7 +497,12 @@ html.no-landscape .closing__art {
     align-items: start;
   }
   /* zero specificity, so a margin note's own rule (components.css) puts it in the rail */
-  :where(.has-rail > *, .has-rail .rail-sub > *, .has-rail > .case__body > *, .has-rail > .case__body > dd > *) {
+  :where(
+    .has-rail > *,
+    .has-rail .rail-sub > *,
+    .has-rail > .case__body > *,
+    .has-rail > .case__body > .case__part > *
+  ) {
     grid-column: 1;
     min-width: 0;
     max-width: none;
@@ -504,20 +515,20 @@ html.no-landscape .closing__art {
   }
   .has-rail .rail-sub,
   .has-rail > .case__body,
-  .has-rail > .case__body > dd {
+  .has-rail > .case__body > .case__part {
     display: grid;
     grid-template-columns: subgrid;
     grid-column: 1 / -1;
     align-items: start;
   }
-  /* A group of notes inside a dd (MarginNotes groups two or more) would stretch its own dd's row and leave a
+  /* A group of notes inside a part (MarginNotes groups two or more) would stretch its own part's row and leave a
      hole under the paragraph; instead it is taken out of the row's height (absolute in its own grid area: the
-     rail beside the paragraph) and runs on down the rail beside the next terms (Outcome, Evidence, Stack).
-     The dd keeps display: grid (no display: contents), so its semantics are untouched. */
-  .has-rail > .case__body > dd {
+     rail beside the paragraph) and runs on down the rail beside the next parts (Outcome, Evidence, Stack).
+     The part keeps display: grid (no display: contents), so its semantics are untouched. */
+  .has-rail > .case__body > .case__part {
     position: relative;
   }
-  .has-rail > .case__body > dd > .margin-notes {
+  .has-rail > .case__body > .case__part > .margin-notes {
     position: absolute;
     grid-column: 2;
     grid-row: 1;
@@ -966,10 +977,17 @@ main:has(> .closing:last-child) + .site-footer {
    every link keeps the spacing between them even (a short word is centred in its 44 px) */
 .story-map__list a,
 .site-footer__links a,
-.still-toggle {
+.site-footer .still-toggle {
   --brush-y: calc(50% + 0.78em);
-  padding-bottom: 0;
+  padding-bottom: 0; /* (.site-footer .still-toggle: it outranks .brush's own padding, which loads later) */
   padding-inline: 0.25rem;
+}
+/* the labels are the site's one "next" (no "Next:" links): from 640 they speak in the header nav's voice */
+@media (min-width: 40rem) {
+  .story-map__list a {
+    font-size: var(--fs-nav);
+    font-weight: var(--w-ui);
+  }
 }
 @media (max-width: 23.4375rem) {
   /* tight phones: the five labels still share one row at 320 */
@@ -998,6 +1016,7 @@ main:has(> .closing:last-child) + .site-footer {
 .site-footer__copy {
   margin: 0;
   flex-basis: 100%;
+  padding-inline-end: 0.25rem; /* the links' own side padding: so the first dot is centred like the rest */
 }
 .site-footer__links {
   display: flex;

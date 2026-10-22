@@ -9,6 +9,6 @@ export async function GET() {
   const notes = await allNotes();
   const doc = publicResume(notes.map((n) => ({ name: n.title, releaseDate: n.published, url: absolute(n.href) })));
   return new Response(`${JSON.stringify(doc, null, 2)}\n`, {
-    headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    headers: { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' },
   });
 }

@@ -147,12 +147,13 @@
 /* ==========================================================================
    Cases (Work; SPEC-R4A §9.9, §10.2).
    Flagship: article.sec.case.case--flagship.has-rail#id > h2.sec__title, p.case__meta.small,
-     p.case__fig (b.fig + span.small), p.case__summary, figure.diagram.wide, dl.case__body.
+     p.case__fig (b.fig + span.small), p.case__summary, figure.diagram.wide, div.case__body.
    Compact: details.case.case--compact[data-collapse="always"][open]#id >
-     summary.case__summary (h3.case__title, p.case__fig, p.case__meta.small) + dl.case__body.
-   dl.case__body: dt "Context" · "What I did" · "The hard part" · "Outcome" · "Evidence" · "Stack", each
-   with its dd. Inside a .has-rail case the dl and every dd subgrid the rail, so a margin note right after
-   a dd's paragraph sits beside it (layout.css).
+     summary.case__summary (h3.case__title, p.case__fig, p.case__meta.small) + div.case__body.
+   div.case__body: a section.case__part per "Context" · "What I did" · "The hard part" · "Outcome" · "Evidence" ·
+   "Stack", each opening on its h2.case__label (at the body size: a label, not a section title). Inside a .has-rail
+   case the body and every part subgrid the rail, so a margin note right after a part's paragraph sits beside it
+   (layout.css).
    ========================================================================== */
 .case__fig {
   display: flex;
@@ -169,17 +170,21 @@
 .case > .case__body {
   margin-block-start: var(--space-m);
 }
-.case__body > dt {
+.case__label {
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
   font-weight: var(--w-strong);
+  letter-spacing: 0;
   color: var(--ink-1);
 }
-.case__body > dt:not(:first-child) {
+.case__part + .case__part {
   margin-block-start: var(--space-s);
 }
-.case__body > dd {
-  margin: 0.25rem 0 0;
+.case__part > .case__label + * {
+  margin-block-start: 0.25rem;
 }
-.case__body > dd > * + * {
+.case__part > * + * {
   margin-block-start: var(--space-para);
 }
 .case__body ul {
@@ -453,12 +458,20 @@ summary.case__summary:hover::after {
 /* figure.diagram[data-fold="phone"] (Work's two flagship cases): on phones the diagram folds behind its own
    "Read as steps", so the page stays short. The summary comes first; opened, it shows the steps, then the
    drawing and its caption. (How I build keeps its drawing in view: it is the page's one open diagram.) */
-@media (max-width: 39.99rem) {
+/* (the fold follows the drawing: wherever the tall drawing is the one shown, 640–959 px included) */
+@container (max-width: 59.99rem) {
   .diagram[data-fold='phone'] > .diagram__steps {
     order: -1;
   }
   .diagram[data-fold='phone']:not(:has(> .diagram__steps[open])) > :is(.diagram__art, .diagram__caption) {
     display: none;
+  }
+}
+
+/* tablets: the tall drawing at a phone's width, so its labels stay at body size */
+@media (min-width: 40rem) {
+  .diagram__art--tall {
+    max-width: min(100%, 24rem);
   }
 }
 
@@ -521,7 +534,8 @@ summary.case__summary:hover::after {
 .diagram__steps {
   max-width: var(--measure-read);
 }
-.diagram__steps > summary {
+.diagram__steps > summary,
+.fold > summary {
   display: inline-flex;
   align-items: center;
   gap: 0.45em;
@@ -533,11 +547,13 @@ summary.case__summary:hover::after {
   text-decoration: underline 1px var(--rule-rest);
   text-underline-offset: 0.3em;
 }
-.diagram__steps > summary::-webkit-details-marker {
+.diagram__steps > summary::-webkit-details-marker,
+.fold > summary::-webkit-details-marker {
   display: none;
 }
 /* a small brush chevron: points along the reading line when closed, down when open */
-.diagram__steps > summary::after {
+.diagram__steps > summary::after,
+.fold > summary::after {
   content: '';
   width: 0.42em;
   height: 0.42em;
@@ -546,14 +562,34 @@ summary.case__summary:hover::after {
   rotate: -45deg;
   transition: rotate var(--dur-hover) var(--ease-out);
 }
-.diagram__steps[open] > summary::after {
+.diagram__steps[open] > summary::after,
+.fold[open] > summary::after {
   rotate: 45deg;
 }
-.diagram__steps > summary:hover {
-  text-decoration-color: var(--ink-2);
+.diagram__steps > summary:hover,
+.diagram__steps > summary:focus-visible,
+.fold > summary:hover,
+.fold > summary:focus-visible,
+.margin-note__toggle:hover,
+.margin-note__toggle:focus-visible {
+  color: var(--jade-deep);
+  text-decoration-color: var(--jade-deep);
 }
-.diagram__steps > summary:focus-visible {
+/* the fold's heading keeps the summary's line, beside the chevron */
+.fold > summary > h3 {
+  margin: 0;
+}
+.diagram__steps > summary:focus-visible,
+.fold > summary:focus-visible {
   outline-offset: 2px;
+}
+/* details.fold: a block folded behind its own heading (Work's early repositories while nothing newer is listed);
+   the summary is the heading, with the diagram's brush chevron */
+.sec > .fold {
+  margin-block-start: var(--space-item);
+}
+.fold > summary + * {
+  margin-block-start: var(--space-head);
 }
 .diagram__steps ol {
   display: grid;
@@ -566,16 +602,21 @@ summary.case__summary:hover::after {
   font-variant-numeric: tabular-nums;
 }
 @media (prefers-reduced-motion: reduce) {
-  .diagram__steps > summary::after {
+  .diagram__steps > summary::after,
+  .fold > summary::after {
     transition: none;
   }
 }
 @media print {
-  /* print the steps, whatever the toggle says (the Diagram component also opens them on beforeprint) */
+  /* print the steps, whatever the toggle says (the diagram effect also opens every fold on beforeprint); a fold
+     keeps its heading */
   .diagram__steps > summary {
     display: none;
   }
-  .diagram__steps::details-content {
+  .fold > summary::after {
+    content: none;
+  }
+  :is(.diagram__steps, .fold)::details-content {
     content-visibility: visible;
     display: block;
   }
@@ -697,5 +738,55 @@ summary.case__summary:hover::after {
   }
   .margin-note__body {
     display: block !important;
+  }
+}
+
+/* ---------- folds ease open (Chrome 131+, Safari 18.4+; elsewhere they open at once, as before) ----------
+   "Read as steps", "Early work" and a compact case: the content's height eases over the route-enter beat, the
+   chevron turning with it. Reduced motion and "Still": at once. Print: open, whole. */
+details.diagram__steps,
+details.fold,
+details.case {
+  interpolate-size: allow-keywords;
+}
+:is(details.diagram__steps, details.fold, details.case)::details-content {
+  block-size: 0;
+  overflow: clip;
+  transition:
+    block-size var(--dur-route-enter) var(--ease-out),
+    content-visibility var(--dur-route-enter) allow-discrete;
+}
+:is(details.diagram__steps, details.fold, details.case)[open]::details-content {
+  block-size: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(details.diagram__steps, details.fold, details.case)::details-content {
+    transition: none;
+  }
+}
+html.is-still :is(details.diagram__steps, details.fold, details.case)::details-content {
+  transition: none;
+}
+@media print {
+  :is(details.diagram__steps, details.fold, details.case)::details-content {
+    block-size: auto;
+    transition: none;
+  }
+}
+
+/* ---------- print: a case's evidence carries its addresses, and the sheet gets the wide drawing ---------- */
+@media print {
+  .case__evidence a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-size: var(--fs-small);
+    color: var(--ink-3);
+  }
+}
+@media print and (min-width: 600px) {
+  .diagram__art--wide {
+    display: block;
+  }
+  .diagram__art--tall {
+    display: none;
   }
 }

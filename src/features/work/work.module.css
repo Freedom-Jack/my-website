@@ -5,20 +5,34 @@
      case:  strip (h1 the case + its meta) · the figure and summary · the diagram · the labelled body · closing */
 
 /* ---------- the index table ----------
-   From 48rem the columns are proportioned so the project and its outcome read as the two long lines, and the years
-   never wrap (components.css). Below 48rem every row restacks (components.css). */
+   Each project's role (its front matter) in small print under its title: the path from research assistant to lead,
+   at a glance (the whole table is already small print, so no new type size). */
+.role {
+  display: block;
+  margin-block-start: 0.125rem;
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  font-weight: var(--w-body);
+  color: var(--ink-3);
+}
+/* a row's public evidence: a quiet line under its outcome */
+.evidence {
+  display: block;
+  margin-block-start: 0.25rem;
+  color: var(--ink-3);
+}
+/* ---------- the index table ----------
+   From 48rem the three columns are proportioned so the project and its outcome read as the two long lines (the
+   evidence links in small print under the outcome), and the years never wrap (components.css). Below 48rem every row restacks (components.css). */
 @media (min-width: 48rem) {
   .index :global(thead) :global(th):nth-child(1) {
     width: 13%;
   }
   .index :global(thead) :global(th):nth-child(2) {
-    width: 33.5%;
+    width: 37%;
   }
   .index :global(thead) :global(th):nth-child(3) {
-    width: 33.5%;
-  }
-  .index :global(thead) :global(th):nth-child(4) {
-    width: 20%;
+    width: 50%;
   }
   /* 20 px between columns (24 in the shared table), so at 960 every project name and the short outcomes stay on
      one line */
@@ -36,28 +50,6 @@
 }
 .index :global(tbody) :global(td) {
   text-wrap: pretty;
-}
-/* the two evidence links of one row stack, one per line (the cell holds ONE wrapper: on phones a cell is a
-   two-column grid of its label and its value) */
-.cellLinks {
-  display: grid;
-  justify-items: start;
-  row-gap: 1.5rem;
-} /* stacked: 44 px targets that never overlap */
-.cellLinksSep {
-  display: none;
-}
-/* where the line fits, the two share it, "CGI product page · CGI article", so each keeps a full 44 px tap target:
-   restacked (phones, from 340 px) and from 64rem (the table at 960); they stack between 48 and 64rem and below
-   340 px */
-@media (max-width: 47.99rem) and (min-width: 21.25rem), (min-width: 64rem) {
-  .cellLinks {
-    display: block;
-    white-space: nowrap;
-  }
-  .cellLinksSep {
-    display: inline;
-  }
 }
 /* restacked, the last row's own padding would add to the section gap below it */
 @media (max-width: 47.99rem) {
@@ -79,16 +71,21 @@
 .open :global(tbody) :global(tr) {
   position: relative;
 }
+.index :global(tbody) :global(tr),
+.open :global(tbody) :global(tr) {
+  cursor: pointer;
+}
 .index :global(tbody) :global(th) :global(a)::before,
 .open :global(tbody) :global(th) :global(a)::before {
   content: '';
   position: absolute;
   inset: 0;
+  z-index: 1; /* above the restacked cells (positioned on phones), so the whole row is the target */
 }
 .index :global(td) :global(a),
 .open :global(.more) :global(a) {
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 .index :global(td) :global(a)::before,
 .open :global(.more) :global(a)::before {
@@ -131,6 +128,10 @@
 .case :global(.case__evidence) :global(li) + :global(li) {
   margin-block-start: 1.5rem;
 } /* hit areas never overlap */
+/* the colophon: whose work this is, then the way back */
+.case > .case__end {
+  margin-block-start: var(--space-section);
+}
 .case > :global(.more) {
   margin-block-start: var(--space-m);
 }

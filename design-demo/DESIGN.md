@@ -1,8 +1,8 @@
 # DESIGN.md: Qijin Xu personal site v2 (the single source of truth)
 
 **Start here.** Any session that continues this redesign reads this file first, then what it points to.
-Last updated **2026-10-19**, after Jack approved Round 5's style (Spring ink), its scroll motion and the phones' depth
-bands, and they were ported to the build (§12 "Round 5").
+Last updated **2026-10-22**, after the polish round (§12 "The polish round"): the audit, the link-preview cards, the
+copy, search and structure fixes, and the engine's veil fix, all uncommitted on `redesign/v2` for Jack's review.
 Branches: `redesign/v2` (the build to round 5 step 1 and the painting); `round5/spring-ink` (on top of it: Spring ink,
 scroll motion, phone depth bands; not merged, not pushed).
 
@@ -23,6 +23,8 @@ scroll motion, phone depth bands; not merged, not pushed).
   scroll motion on laptops, depth bands on phones and tablets (§4, §6, §7, §9 carry the new rules).
 - **Step 4 (content) has started:** the review doc for Jack
   (https://claude.ai/code/artifact/65a17a60-ad11-432d-a4dd-6cd2563a472d) waits for his answers.
+- **2026-10-20 to 22: the polish round** (§12 "The polish round"): Jack asked for "absolutely the best" with full
+  freedom; an eight-lens audit, then every fix that needs no new fact. Uncommitted on `redesign/v2`.
 - **Next:** Jack's content answers → drafts beside their pages → a Vercel preview and a real-phone check → launch on
   **qijinxu.com** through the §2 launch gate.
 - This order changes the earlier plan, in which the build started at 4a. On 2026-10-14 Jack accepted a short 4b round first ("Sure continue").
@@ -180,7 +182,10 @@ Where they disagree with this file, this file wins; fix them. Known stale bits e
     checks it: the name at 112 / 106 / 64 px (`--fs-name` × 1.55, × 1.42 up to 40 rem); Home's display-to-text ratio
     up to 0.40; 5 type sizes on Home, and on Work at 1280 × 720 (its section title, sub-heading, table head, text and
     caption share one short screen); Home at 1280 up to 2 words short. Work at 1280 was one of the four typography
-    misses in the question that answer settled, so it counts under it.
+    misses in the question that answer settled, so it counts under it;
+  - **the polish round (2026-10-22), reported as open questions, not failures:** the Résumé's first screen up to 50
+    words short (the shared hero, and its letterhead's explanatory note dropped), and Writing at 390 up to 0.12 (one
+    note under a one-sentence intro, until there are more notes).
 - **Removed for good:** the 100svh slides, the 294 px name, scroll fade-ins of text, the dark page-flood transition, `?transition=edge`. Mid-page vistas were removed in 4a; §11.A may bring back *composed* scenery between sections.
 
 ## 7. The painting (engine `assets/js/landscape/`; API = `mountLandscape()` JSDoc in `landscape/index.js`; palette in `landscape/palette.js`)
@@ -713,6 +718,97 @@ content" (https://claude.ai/code/artifact/65a17a60-ad11-432d-a4dd-6cd2563a472d):
 existing words only, 6 section ideas, housekeeping fixes, what we keep. **Waiting for Jack's answers.** Next: drafts
 shown beside their pages, then applied on the real branch with his OK.
 
+
+### The polish round (2026-10-20 to 22; Jack: "absolutely the best", "full freedom", no requirements)
+
+**The brief.** Jack (2026-10-20): the site must attract every employer who sees it and serve his future as an entrepreneur,
+"appealing even to Apple's CEO"; "you have full freedom". The content step (above) was still waiting on his 14 answers, so
+the rule of this round was: **nothing invents a fact, a number, an opinion or a habit; every change reuses words and facts
+already in `content/`, or adds structure, craft and plumbing.** The words at the root are now the build's `content/` files
+(CONTENT.md); COPY.md stays the demo's deck and the claims ledger.
+
+**How it was run.** An audit as a multi-agent workflow (eight lenses, each a fresh agent on the real GPU with the real
+screenshots: an Apple-calibre design critic, a mobile critic, a hiring manager / recruiter / CTO, a founder / investor, a
+copy editor, a web-platform engineer, an interaction reviewer, a first-time visitor), each finding scored by judges (rules
+and taste; visitor value; engineering risk), then a completeness critic. 124 findings; the ones below were done, the rest
+are recorded as open (needing Jack) or skipped (against an approved decision). The lenses agreed the site was already
+unusually honest and consistent; the misses were in what a visitor could not see or find.
+
+**Built, uncommitted on `redesign/v2`** (each line names what and why; the files: `git diff`):
+- **Link previews.** One 1200 × 630 card per page, cut from the page's own hero by `tools/build-og.ts`
+  (`npm run build:og`, against a QA build on :3100): the inner pages' strip cut 150 px taller and shifted up, the title
+  at the name's size, "Qijin Xu · Lead AI/ML Architect" above it; Home's card is a cover too (the name, one line, the
+  painting). `public/og/` + `manifest.json`; `src/lib/seo.ts` gives every page `og:image`, `twitter:card`
+  summary_large_image and the profile fields on Home; a case or a note without a card falls back to its section's.
+  Why: a shared link on LinkedIn, Slack or iMessage was bare text; it is the first impression a recruiter gets.
+- **The marks.** `src/app/apple-icon.png` (the seal on paper, 180), `public/favicon.ico` (16/32/48: the blind request
+  Safari, Slack and feed readers make), `src/app/manifest.ts` and `appleWebApp.title`, so a home-screen shortcut says
+  "Qijin Xu", not the cut-short title.
+- **Copy and search, from existing words only.** Case pages carry a `metaDescription` naming him and the result; Home's,
+  the Résumé's and Contact's snippets say CGI; llms.txt covers all six projects, the two awards without ambiguity
+  ("2026 (project not named on this site)"), a Now line built from Home's own lines, and links every case; the Writing
+  intro's second sentence (not Jack's words) is dropped and its taglines are one; "About 90%", "less manual work",
+  "dual-state dynamic", "RAG assistant" (not "chatbot"), the serial comma and lowercase "present" everywhere; the agent's
+  diagram steps and descriptions say "What comes out:"; the hockey summary names AttentiveVision; the note's two leftover
+  headings are gone and its byline says "Updated"; Home's "All writing →" shows only when Home cannot list every note;
+  the 2019 internship in two bullets; awards before certifications; Dean's List in `/resume.json`; the 404's one robots
+  tag; `Content-Disposition` names the PDF "Qijin-Xu-Resume.pdf".
+- **Structure.** The Work table shows each project's role under its title (his path at a glance) and its public evidence
+  as a quiet line under the outcome (the Evidence column was a dash in four rows of six). A **colophon**
+  (`src/components/page/Colophon.tsx`, `site.bio`) ends every case and the note: the seal and the author line, so a page
+  reached from a search says whose work it is. "In the open": Logic Foundry (public since 2026-10-13) is listed as a
+  prototype under Recent, from `overrides.json` and the refreshed `snapshot.json`; the 2019 – 2020 course work always
+  folds behind its heading (a real h3 in the summary). Case pages' sections are sections with h2 labels (a `dt` cannot
+  hold a heading; the Outcome is now one keystroke away for a screen reader), the same look. Breadcrumbs, images,
+  publisher and the site on the cases' and the note's structured data; the feed advertised on every page, a quiet
+  "RSS feed" link on Writing, `lastBuildDate`.
+- **Craft (the design and mobile lenses).** "Now · October 2026" breathes; the quiet action links share the one UI weight
+  (560); Home's second lead on the scale (18 px); the footer's dots centred and "Still the landscape" on its line; the
+  story map's labels in the nav's voice from 640 and its art 52 px on phones; the colophon's seal 36 px (was 44, the largest on the site);
+  Contact's labels on their values' baseline, the "Copied" stamp beside the words it used to cover; the table heads in
+  the deep jade; the Résumé's letterhead without its explanatory note and with its actions on the column, the site's own
+  address on the PDF only; the Work table's role line in small print on phones; the header one row down to 360 px, the
+  nav on its own row at 356 and under (`--header-gap`; `tests/e2e/header.spec.ts`); the flagship diagram folds wherever the tall drawing shows (tablets too),
+  the tall drawing capped at a phone's width there.
+- **Interaction.** Back and Forward return the reader to where they were (`Navigation.tsx`, per path for the session;
+  `tests/e2e/navigation.spec.ts`); the current nav item eases to the top; a Work row is one target on phones; the
+  folds ease open (`::details-content`, where supported); the summaries and note toggles answer in jade; a tap is
+  answered in jade, never the system's blue box; a folded diagram draws in when revealed; the returning header needs
+  24 px of a finger's travel, 8 of a wheel's; the note's reading stroke starts at scroll 0; a page title focused after a
+  page change keeps the announcer, not a jade frame; "Still the landscape" says what it does (a tooltip and a hidden
+  description); Contact shows his local time beside the time zone (`LocalTime`, nothing without JS).
+- **Platform.** Fonts in the latin subset only (66 KB of unused latin-ext preloads gone); the stills, the photo and the
+  cards cacheable for a day; `frame-ancestors 'none'` and `X-Frame-Options`; CORS on `/resume.json` and `/llms.txt`;
+  `color-scheme: only light` (Android's auto-dark could invert the paper under an un-inverted painting); print: a case's
+  evidence prints its addresses and the sheet gets the wide drawing.
+- **The engine (two framing changes; stills regenerated).** (1) **A veil follows rendered text only** (`textBands`,
+  engine/index.ts): text folded away in a closed `<details>` still answered `getClientRects` with boxes laid out below
+  the fold, so Work's last section veiled its own closing on phones and tablets (an empty band at the hub page's end:
+  the mobile lens's one must). (2) The river's wide closing looks a little east of the bridge (`Frame.closingU` 0.69,
+  compose.ts): a wide closing is 1.25 stretches wide, and centred on the bridge its left edge cut Home's east crag, the
+  darkest ink on every case page.
+
+**Open for Jack (needs his facts, his photo or his call; nothing built):**
+1. The "hard part" of the two flagship cases, what "Lead" covers (team, decisions, stakeholders), and the basis of the
+   headline numbers (90 %, 525 %, 321 %): the content doc's questions 2–5. Every hiring lens named these the biggest gap.
+2. A professional photo (§8: side daylight, eye level, a real smile, a plain top, air above the hair): the one element
+   below the rest of the page. One-file swap.
+3. LinkedIn's headline and the GitHub profile (name, company, location, bio, the placeholder repos' READMEs and the
+   "anounced" typo): the first off-site clicks contradict the site.
+4. Design questions to show side by side, not to decide here: the short pages' endings on wide screens (Writing's and
+   Contact's end pose parked in the right third; a taller end box recomposed centre-left would change an approved
+   round-5 ending), the brush button's hover (an approved 4 % lift that is below notice on the dry-brush texture), the
+   diagram's flow bead (approved, but too small to see), the resting underline on row titles, the Note's lake closing
+   showing 0.4 of the Résumé's terraces, hover states sticking after a tap on touch screens (a `(hover: hover)` guard
+   over ~32 rules), the sideways-phone strips (80 px), a real-device check (28svh of a real phone's viewport is ~199 px,
+   not the 236 reviewed), "prototype" in Now's Logic Foundry line, outside links in the same tab versus a new one.
+5. The pronunciation of "Qijin" and two sentences on why a Chinese handscroll and what the seal is: both in his voice.
+
+**Skipped (against an approved decision or not worth it):** a third hero line of proof (the hero is approved copy and
+the photo must start on the first screen); moving About's "I also build for myself" to Now; the statement line on Home
+(4a retired it to Work on purpose); flipping subpage titles to "<page> · Qijin (Jack) Xu" (§3 fixes the form); a
+wall-clock test on Now's month (a CI time bomb; the unit test compares it with the content dates instead); PDF Author
+metadata (a new dependency for a small gain); the photo through the image optimizer (its baked fade edge).
 
 ## 13. Running the demo and its tools
 

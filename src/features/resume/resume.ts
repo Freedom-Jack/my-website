@@ -52,12 +52,18 @@ export function publicResume(publications: Publication[]) {
       endDate: e.endDate,
       ...(e.score ? { score: e.score } : {}),
     })),
-    awards: r.awards.map((a) => ({
-      title: a.title,
-      date: a.date,
-      awarder: a.awarder,
-      ...(a.summary ? { summary: a.summary } : {}),
-    })),
+    awards: [
+      ...r.awards.map((a) => ({
+        title: a.title,
+        date: a.date,
+        awarder: a.awarder,
+        ...(a.summary ? { summary: a.summary } : {}),
+      })),
+      // an education honour (the page shows it under Education; the schema has no such field, so it is an award here)
+      ...r.education.flatMap((e) =>
+        (e.honors ?? []).map((h) => ({ title: h, date: e.endDate.slice(0, 4), awarder: e.institution })),
+      ),
+    ],
     certificates: r.certificates.map((c) => ({
       name: c.name,
       date: c.date,

@@ -1,15 +1,15 @@
 {
  "about": "Footer story-map stills, made by tools/build-stills.ts from the engine; regenerate after any engine or scene change. inputs = sha256 over inputList.",
- "inputs": "60988aee231ed9c9dd13b68ace336065175301d0a5ec21ac46aec6af551dad47",
+ "inputs": "be09fa5c388faf91809feee11675c334c618169ff4ebb653ae8516879c8fb1ad",
  "inputList": {
   "src/features/landscape/elements.ts": "3298555a9704297452e5c611f9b1fd572665ab918ffac8f9de982bf320eefc4a",
   "src/features/landscape/engine/canvas2d.ts": "71503547776b380a748347b916852dfd452cfa168ba572312d170450cd7b4f30",
-  "src/features/landscape/engine/compose.ts": "e4d637433fed477de54ef298765d50591bb7b1b6f1fb47041ff6f903fd84f1b6",
+  "src/features/landscape/engine/compose.ts": "42446f77cfbd113b03d1a2584ad4a310e30e3c558e80b56c42354f5ca6ec0b79",
   "src/features/landscape/engine/figure-source.ts": "2698ed8189c5a7f07b0f3f8cb31f58c95932e4833da55f52ba289181a4592ea7",
   "src/features/landscape/engine/figures.ts": "c8ec398e928ca3da15bf12d874f10140a8da7817850e621d1c09382b8047a7bd",
   "src/features/landscape/engine/figures.worker.ts": "6be28fa142007dc9b654e97c3c8931ec7c8f73a11f13669e7d6410cd94ca0c15",
   "src/features/landscape/engine/gl.ts": "3d33804eb0d701324e33490e3dc6850ab7c39c5120b9420b8bc06e3eaeaa729b",
-  "src/features/landscape/engine/index.ts": "0c30f5f0961d35715c7008dd9feeca1fbe14098282abf6b5ee87319ddd36c2a3",
+  "src/features/landscape/engine/index.ts": "178dea4ec34c4bcd8a3b5602f9f6e2f0a7a9ad14e85684a8846729ca8818341b",
   "src/features/landscape/engine/lights.ts": "f26290a4b74ea9a22216565d99735e6b3499b9dad567294060bcb7e83ca9f82f",
   "src/features/landscape/engine/palette.ts": "04dc105f264d504a623288cf9f368991ccfc38451265fa3fdf8b0cb503f585aa",
   "src/features/landscape/engine/renderer.ts": "ba9365e2ea4345ce973aa7a0adfdfd368efc2eb8756b995353e96c7b5e4059d0",
@@ -110,32 +110,32 @@
    ]
   },
   "home-lit@1x.webp": {
-   "bytes": 3418,
-   "sha256": "58cb7b5c021ab6699196609212399961314e039683bb287665d0c58ab120bef8",
+   "bytes": 3422,
+   "sha256": "5d0f48cd471401a96de33e36052dfc375ca25d7c471452c849882b95c2e369aa",
    "size": [
     334,
     70
    ]
   },
   "home-lit@2x.webp": {
-   "bytes": 7462,
-   "sha256": "c8a30286c390b234bc12bab064ac08434640f83ac2694286c10195ec02fb4dad",
+   "bytes": 7514,
+   "sha256": "1bcdadd8e5e7904fa139333c931b901e6f0d723e956acf145706e50a1ef73b11",
    "size": [
     668,
     140
    ]
   },
   "home@1x.webp": {
-   "bytes": 3610,
-   "sha256": "a19da461edd7bdf6cd219bc751ea587f517756f913658d01fcdef6eccc3973ef",
+   "bytes": 3614,
+   "sha256": "7e9f0515fa37455da5c15b65206ac10000c3e9333bc2c0b1e913f799b65a7a76",
    "size": [
     334,
     70
    ]
   },
   "home@2x.webp": {
-   "bytes": 7900,
-   "sha256": "c6c788b67585e27e017c10fb054a076caeb139c983e228e7eac5c74e0079de6e",
+   "bytes": 7924,
+   "sha256": "ccecd629ee230ea6cabaa784b76b2bac9662090a6945f5db19ab30946d4c7161",
    "size": [
     668,
     140
@@ -238,99 +238,99 @@
    ]
   }
  },
- "totalBytes": 77946,
+ "totalBytes": 78030,
  "glimpses": {
   "home-0@1x.webp": {
-   "bytes": 2096,
-   "sha256": "38f3aef07818689ce67684fd1ae123855c1679d77244455b715b254158f95fad",
+   "bytes": 2104,
+   "sha256": "70f34647ad8691c9617fbdc095940e9704da4575fd0dc0410e4ab5d0293220df",
    "size": [
     390,
     180
    ]
   },
   "home-0@2x.webp": {
-   "bytes": 5874,
-   "sha256": "c4c702505aa5d8fcc629fdd6e94c533280aca29c1aded2ee10482980ac0c1d97",
+   "bytes": 5684,
+   "sha256": "b738790e3fc179f8f272779323b3c6029d02083ea19992a7a44368ff8e2a1a05",
    "size": [
     780,
     360
    ]
   },
   "home-1@1x.webp": {
-   "bytes": 1958,
-   "sha256": "20756afdcb6deb8c9257a9ecebc5f0a03630c77ffdfd40ff65a515254e23877c",
+   "bytes": 1990,
+   "sha256": "fa40b77b8dbfe07f1b65f1a15ea04c151ca99acd8370834da968462a8529ba3c",
    "size": [
     390,
     180
    ]
   },
   "home-1@2x.webp": {
-   "bytes": 5426,
-   "sha256": "de845770044f5e4d32d65ec8756d16e0c1bf5183c24894ca38bf9f66e3901398",
+   "bytes": 5468,
+   "sha256": "bff9f5224ea3efaa837dbed4be431199833ecdf69966e24eea3436e6bbc14ff9",
    "size": [
     780,
     360
    ]
   },
   "resume-0@1x.webp": {
-   "bytes": 2272,
-   "sha256": "83635171fbfd7d8937412e4fac5802e140e3b73282c72bd933fc37e31cc1ed22",
+   "bytes": 2220,
+   "sha256": "0957bcaad7de1bf8d191df0c1effe958f38dabc27e076b7b4cc1d8b830eae503",
    "size": [
     390,
     180
    ]
   },
   "resume-0@2x.webp": {
-   "bytes": 6796,
-   "sha256": "9086e5a7dc2d4966eedf2784f0af695402a4ab85368ee2ee7cdc10e0f99a58bd",
+   "bytes": 6758,
+   "sha256": "bc462e602e350a26b63ff0990c497af9688e115d527137868dc9bb5c1608b088",
    "size": [
     780,
     360
    ]
   },
   "resume-1@1x.webp": {
-   "bytes": 2278,
-   "sha256": "b56383bf351f389c8375889862a20ed83272d295d5646af899d2c38760ff7c44",
+   "bytes": 2338,
+   "sha256": "0c47c26f716b2e9c57e9d886735f4c111c969ad4343b3a74cd5abb8b3b547c7f",
    "size": [
     390,
     180
    ]
   },
   "resume-1@2x.webp": {
-   "bytes": 6824,
-   "sha256": "41c282b5a0945aa6b7557535a51986aac36d3fb1ba4d5f884156c96ed3c303a0",
+   "bytes": 6566,
+   "sha256": "831303d4e99bcf2a3805c6a6b4851dc074a2a7ab6f1a0e74c2b3ba53c08825b7",
    "size": [
     780,
     360
    ]
   },
   "work-0@1x.webp": {
-   "bytes": 3000,
-   "sha256": "a6eab97f747f347445164a5b1d7375d04bf5356699aa8d26249caff0eeb61953",
+   "bytes": 3002,
+   "sha256": "95282778180704b3c997ea770ecb87d2c7056e2fa96791c16bd80e18ef7cfd99",
    "size": [
     390,
     180
    ]
   },
   "work-0@2x.webp": {
-   "bytes": 7960,
-   "sha256": "7dee651babb1aa2bb171420a027d4097c921eea149b495cfabdb38fc26ceaf18",
+   "bytes": 7954,
+   "sha256": "0ad1aaa4bf83dfee4cdf7d7da9d1e54f55ca689456c6680aa152142aedac7800",
    "size": [
     780,
     360
    ]
   },
   "work-1@1x.webp": {
-   "bytes": 3170,
-   "sha256": "867d7b062ac5023d6f080291643d48e90e8071cdc4d8e2d07f21832b66e1c99e",
+   "bytes": 3176,
+   "sha256": "d53a0a1bfaac2b45ecb78878d658c8846fa004a943d5f8ffebb7e2b955247513",
    "size": [
     390,
     180
    ]
   },
   "work-1@2x.webp": {
-   "bytes": 8120,
-   "sha256": "ab936da230efea7ebdc171200bb62d65fb5e488fa4da5e1569f80c4d1f0afdfe",
+   "bytes": 8122,
+   "sha256": "b85c0b8cf19a0a7614effec8819e36ddcf31886caa96e34ce9adee2af84357cc",
    "size": [
     780,
     360

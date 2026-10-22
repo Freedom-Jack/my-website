@@ -1,12 +1,12 @@
 import type { ReactNode } from 'react';
 import { site } from '@content/site';
 import { writing } from '@content/pages/writing';
+import { Colophon } from '@/components/page/Colophon';
 import { PageMain } from '@/components/page/PageMain';
 import { Strip } from '@/components/page/Strip';
-import { InkButton } from '@/components/ui/InkButton';
-import { SEAL_GLYPH, SEAL_STONE } from '@/components/ui/Seal';
 import { longDate } from '@/lib/dates';
 import { InlineLink } from '@/lib/inline';
+import { breadcrumbLd } from '@/lib/jsonld';
 import { blogPostingLd } from './jsonld';
 import { NoteEffects } from './NoteEffects';
 import type { Note } from './notes';
@@ -19,13 +19,23 @@ function Quote({ cite, children }: { cite?: string; children: ReactNode }) {
 
 /**
  * One note (/writing/<slug>/): the lake's hero with the title and the byline (the article's own header, the same
- * hero as every subpage), the note in the reading column, and at its end the author's seal, the author line and
- * the one ink button. It ends on the lake once more. Words: content/writing/<slug>.mdx and content/pages/writing.ts.
+ * hero as every subpage), the note in the reading column, and at its end the colophon (the seal and the author
+ * line) and the way home. It ends on the lake once more. Words: content/writing/<slug>.mdx and content/pages/writing.ts.
  */
 export function NotePage({ note }: { note: Note }) {
   const { meta, Body } = note;
   return (
-    <PageMain page="article" className={styles.page} ld={[blogPostingLd(meta)]}>
+    <PageMain
+      page="article"
+      className={styles.page}
+      ld={[
+        blogPostingLd(meta),
+        breadcrumbLd([
+          { name: writing.title, path: '/writing/' },
+          { name: meta.title, path: meta.href },
+        ]),
+      ]}
+    >
       <div className={styles['read-progress']} aria-hidden="true" />
       <article className="note" aria-labelledby="note-title">
         <Strip variant="sub" labelledBy="note-title">
@@ -56,24 +66,9 @@ export function NotePage({ note }: { note: Note }) {
           />
         </div>
         <footer className={styles.note__end} data-veil="">
-          <div className={styles.colophon}>
-            <svg className={styles.colophon__seal} viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-              <defs>
-                <mask id="colophon-carve" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
-                  <rect width="64" height="64" fill="#fff" />
-                  <path className="seal__glyph" d={SEAL_GLYPH} />
-                </mask>
-              </defs>
-              <g filter="url(#seal-stone)">
-                <path className="seal__stone" mask="url(#colophon-carve)" d={SEAL_STONE} />
-              </g>
-            </svg>
-            <p className={styles.colophon__line}>{writing.note.author}</p>
-          </div>
-          <p className={`actions ${styles.note__actions}`}>
-            <InkButton href={writing.note.more.href} arrow>
-              {writing.note.more.label}
-            </InkButton>
+          <Colophon />
+          <p className="more">
+            <InlineLink href={writing.note.more.href}>{writing.note.more.label}</InlineLink>
           </p>
         </footer>
       </article>

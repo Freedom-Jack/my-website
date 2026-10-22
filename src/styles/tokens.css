@@ -223,7 +223,7 @@
    Round 4a: space, the frame and the chrome (SPEC-R4A §2.2–§2.4, §6.2).
    Breakpoints: phone < 40rem (640) · tablet 40–74.99rem · wide ≥ 75rem (1200) ·
    short: max-height 31.25rem (500) and below 75rem wide · tight header ≤ 23.4375rem (375) ·
-   narrow gutter ≤ 22.5rem (360) · header wrap < 21.1875rem (340).
+   narrow gutter ≤ 22.5rem (360) · header wrap ≤ 22.25rem (356).
    -------------------------------------------------------------------------- */
 :root {
   /* the margin between sections: 42 @ ≤ 390 → 52 @ 640; 58 from 1200. This is the MARGIN; the visible gap
@@ -241,6 +241,7 @@
   --header-h: 3.5rem; /* 56 phone; 64 from 640; 48 on short screens */
   --seal-size: 28px; /* the header seal; 24 at ≤ 416 */
   --brand-gap: 10px; /* seal → "Qijin Xu"; 8 at ≤ 416 */
+  --header-gap: var(--space-s); /* home link → nav; 8 at ≤ 416 (one row down to 360) */
   --nav-gap: 14px; /* between the nav links; 28 from 640; 10 at ≤ 416; 8 at ≤ 360 */
 
   /* the painted strips and the closing scene (art boxes; the engine paints inside them) */
@@ -250,7 +251,7 @@
   --closing-h: 160px;
   --glimpse-h: 180px; /* a window into the painting at a section break: 40 px of paper and mist next to the words above and below, the painting ~100 px between */
   --glimpse-h-end: 250px; /* ...and a short page's closing, where the windows end on the place, near and large (Writing, Contact) */
-  --story-map-art: 2.75rem; /* the footer's map of the painting (its scene stills): 44; from 640 .37 of a map column
+  --story-map-art: 3.25rem; /* the footer's map of the painting (its scene stills): 52; from 640 .37 of a map column
                                  (56-74), so each scene's window lies inside its still (layout.css) */
 
   /* Fluid small spaces for paddings and gaps inside components (unchanged from round 3) */
@@ -272,6 +273,7 @@
     --nav-gap: 10px;
     --seal-size: 24px;
     --brand-gap: 8px;
+    --header-gap: var(--space-2xs);
   }
 }
 @media (max-width: 22.5rem) {

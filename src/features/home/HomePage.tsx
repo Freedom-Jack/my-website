@@ -91,7 +91,7 @@ export async function HomePage() {
       {now.lines.length ? (
         <section className="sec now" aria-labelledby="now-title" data-veil="">
           <h2 className="sec__title" id="now-title">
-            {now.title}{' '}
+            {now.title}
             <span className="sec__date small">
               · <time dateTime={now.month}>{monthYear(now.month)}</time>
             </span>
@@ -126,9 +126,11 @@ export async function HomePage() {
                 </li>
               ))}
             </ul>
-            <p className="more">
-              <InlineLink href={writing.more.href}>{writing.more.label}</InlineLink>
-            </p>
+            {notes.length > 3 ? (
+              <p className="more">
+                <InlineLink href={writing.more.href}>{writing.more.label}</InlineLink>
+              </p>
+            ) : null}
           </section>
         </>
       ) : null}

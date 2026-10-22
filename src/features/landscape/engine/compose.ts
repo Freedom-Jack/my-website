@@ -195,6 +195,9 @@ export interface Frame {
   closing?: Partial<Record<WidthClass, ClosingView>> & { twin?: Partial<Record<WidthClass, ClosingView>> };
   /** HERO places: where the twin closing (a short page's) looks instead of the focus (stretch-local u). */
   twinU?: number;
+  /** HERO places: where the closing looks instead of the focus (stretch-local u), when the centred focus would show a
+   *  neighbour's heaviest ink cut by the window's edge (the river: Home's east crag). */
+  closingU?: number;
 }
 /** A scene's brush technique, windowed over stretch-local `at`. */
 interface Tech {
@@ -275,7 +278,9 @@ export const SCENES: Scene[] = [
         30, 37, 37, 37, 37, 37, 39, 43, 46, 46, 46, 46, 46, 46, 46, 48, 48, 48, 48, 48, 49, 54, 59, 64, 64, 64, 64, 64, 64,
         64, 64, 64, 61, 60, 59, 48, 48, 48, 48, 48, 46, 45, 45, 45, 51, 51, 51, 51, 51, 51, 51, 51, 55, 58, 58, 58, 55, 48,
         39, 39, 39, 38, 28, 17, 17, 17, 31, 31, 31] } },
-    frame: { focus: [0.565, 0.272], keepU: 0.482 },
+    // (the closing looks a little east of the bridge: a wide closing is 1.25 stretches wide, and centred on the bridge its
+    // left edge would cut Home's east crag, the darkest ink on the page)
+    frame: { focus: [0.565, 0.272], keepU: 0.482, closingU: 0.69 },
     figures: 'market' },
   // Writing: a still lake, where the river opens out (its near bank sinks out of view between the town and the lake).
   // The low far shore and its whole reflection: the waterline the river's, the mirror below it (water.mirror: a still,
@@ -677,7 +682,7 @@ export function framingAt(stretch: number, cls: WidthClass = 'wide', box: Framin
     // landmark and figures are never shown twice (DESIGN 4.6)
     const twin = !!box.twin && F.twinU !== undefined;
     scale = nominal = heroScale(cls, width) * (twin ? HERO.twin : HERO.closing);
-    fu = twin ? F.twinU! : F.focus[0];
+    fu = twin ? F.twinU! : (F.closingU ?? F.focus[0]);
     fy = F.focus[1];
     left = k + fu - 0.5 * width / scale;
     top = heroTop(scale);

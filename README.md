@@ -37,17 +37,18 @@ The site is then at http://localhost:3000. `.env.local` may hold a `GITHUB_TOKEN
 for Work's "In the open" list. Without one the build uses GitHub's anonymous rate limit, and if GitHub cannot be
 reached it falls back to `content/github/snapshot.json`.
 
-| Command                      | What it does                                                                                   |
-| ---------------------------- | ---------------------------------------------------------------------------------------------- |
-| `npm run dev`                | the dev server                                                                                 |
-| `npm run build`, `npm start` | a production build, served on port 3000 (`-- -p 3100` for the tools below)                     |
-| `npm run ci`                 | type-check, lint, format check, unit tests, stills check: run before every push                |
-| `npm run test:e2e`           | Playwright against a built site on port 3100: smoke, navigation, budgets, scroll, phone bands  |
-| `npm run check:compliance`   | the hard rules over the sources and the built pages                                            |
-| `npm run check:links`        | crawls the built site: every link answers, every outside link is https and allowed             |
-| `npm run build:pdf`          | prints `/resume/` to `public/resume.pdf` (`-- --check` in CI)                                  |
-| `npm run build:stills`       | cuts the story map's stills and the phone bands' stills (needs a QA build; `-- --check` in CI) |
-| `npm run format`             | Prettier                                                                                       |
+| Command                      | What it does                                                                                      |
+| ---------------------------- | ------------------------------------------------------------------------------------------------- |
+| `npm run dev`                | the dev server                                                                                    |
+| `npm run build`, `npm start` | a production build, served on port 3000 (`-- -p 3100` for the tools below)                        |
+| `npm run ci`                 | type-check, lint, format check, unit tests, stills check: run before every push                   |
+| `npm run test:e2e`           | Playwright against a built site on port 3100: smoke, navigation, budgets, scroll, phone bands     |
+| `npm run check:compliance`   | the hard rules over the sources and the built pages                                               |
+| `npm run check:links`        | crawls the built site: every link answers, every outside link is https and allowed                |
+| `npm run build:pdf`          | prints `/resume/` to `public/resume.pdf` (`-- --check` in CI)                                     |
+| `npm run build:stills`       | cuts the story map's stills and the phone bands' stills (needs a QA build; `-- --check` in CI)    |
+| `npm run build:og`           | cuts the link-preview cards (`public/og/`) from each page's hero (needs a QA build; `-- --check`) |
+| `npm run format`             | Prettier                                                                                          |
 
 A **QA build** (`NEXT_PUBLIC_INK_QA=1 npm run build`) exposes the painting to the test tools as `window.__ink` and
 `window.__inkEngine`. Production builds leave both out, along with the engine's QA-only code.
@@ -60,7 +61,8 @@ src/app/                 thin routes: metadata, data loading, and one feature co
 src/components/          shared building blocks
   layout/                header, footer, the story map, "Still the landscape", the boot script, ink filters
   page/                  PageMain (every page's <main>), Strip (its opening scene), Closing (its end scene),
-                         Glimpse (an empty depth band at a section break, painted below 1200 px)
+                         Glimpse (an empty depth band at a section break, painted below 1200 px), Colophon (the
+                         seal and the author line that end a note and a case)
   ui/                    Seal, InkButton, MarginNote, Diagram
 src/features/            one folder per feature, each owning its components, logic and CSS Module
   landscape/             the painting: places.ts (where each page stands), Landscape.tsx (the one persistent
@@ -77,7 +79,7 @@ src/lib/                 typography, inline markup, dates, SEO and JSON-LD, redi
 src/styles/              the design system: tokens, base, layout, effects, components (global, from the demo);
                          jade.css (Spring ink's interface: jade name, titles, the one button, focus) and finish.css
                          (the interface elements, each behind its html.el-* class), loaded last
-tools/                   build-pdf, build-stills, compliance, linkcheck (TypeScript, run by Node 24 directly)
+tools/                   build-pdf, build-stills, build-og, compliance, linkcheck (TypeScript, run by Node 24 directly)
 tests/unit/              content schemas and counts, GitHub rules, the engine's pure parts (Vitest)
 tests/e2e/               smoke, navigation and the DESIGN §6 budgets (Playwright; support/measure.js is the
                          demo's own probe); scroll.spec.ts (the scroll motion: quiet modes, smoothness, seams,
@@ -130,7 +132,8 @@ CI (`.github/workflows/ci.yml`) runs on every push and pull request:
 3. a QA production build, then the built site's own checks: the résumé PDF matches the résumé and holds no phone
    number, the hard rules (no phone, no street address, no project-management credential, no link to the old
    résumé file, no CJK text but the seal), every link, and the Playwright suite (a smoke test per route, client
-   navigation, the DESIGN §6 budgets at 1440, 1280 and 390, the scroll motion, the depth bands).
+   navigation, the DESIGN §6 budgets at 1440, 1280 and 390, the scroll motion, the depth bands, Back's scroll
+   position, the header's one row at 375 and 360).
 
 ## Deploying
 

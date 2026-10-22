@@ -18,11 +18,31 @@ import { liftNavMark } from '@/features/effects/nav-mark';
  * from the places table before the page arrives, and its figures prepared off the main thread on hover), then
  * the router swaps the page. When the new <main> is in, the page is scrolled (to the top, or its #fragment),
  * the painting is rebound to its windows and veils, focus goes to its h1, the route announcer reads its title,
- * and its text condenses in. Back/forward: the content is there at once and the painting pans back behind it.
+ * and its text condenses in. Back/forward: the content is there at once, at the place the reader left it (the
+ * position is kept per path for the session), and the painting pans back behind it.
  * Not caught: modified clicks, new tabs, downloads, files (/resume.pdf, /resume.json), other origins.
  */
 
 const WATCHDOG_MS = 3000;
+
+// Where the reader was on each page (session only): Back and Forward return there (the content arrives at once, so
+// the browser's own restoration never sees the swap). Keyed by path: Next's history entries carry no key of their own.
+const posKey = (path: string) => `ink:y:${normPath(path)}`;
+const savePos = (path: string) => {
+  try {
+    sessionStorage.setItem(posKey(path), String(Math.round(scrollY)));
+  } catch {
+    /* private mode: nothing remembered */
+  }
+};
+const savedPos = (path: string) => {
+  try {
+    const v = sessionStorage.getItem(posKey(path));
+    return v === null ? null : Number(v) || 0;
+  } catch {
+    return null;
+  }
+};
 
 interface Pending {
   url: URL;
@@ -131,6 +151,7 @@ export function Navigation() {
       const href = url.pathname + url.search + url.hash;
       const p: Pending = { url, dest, dir, timer: 0, watchdog: 0, pushed: false, ctrl };
       pending.current = p;
+      savePos(location.pathname);
       router.prefetch(url.pathname + url.search);
       prepare(dest);
       if (!quiet()) travel(landscape.get(), dest, { dir });
@@ -157,7 +178,7 @@ export function Navigation() {
         }
         if (url.hash) return; // the fragment: the browser's (and Next's) own scroll
         e.preventDefault();
-        scrollTo({ top: 0, behavior: 'instant' });
+        if (scrollY > 0) scrollTo({ top: 0, behavior: quiet() ? 'instant' : 'smooth' });
         return;
       }
       e.preventDefault();
@@ -171,11 +192,17 @@ export function Navigation() {
       prepare(placeForPath(url.pathname));
     };
 
+    // Back/Forward: popstate fires before the page swaps, so the page being left is still the shown one
+    const onPop = () => {
+      if (shown.current) savePos(shown.current);
+    };
+    addEventListener('popstate', onPop);
     document.addEventListener('click', onClick, true);
     document.addEventListener('pointerover', onIntent, { passive: true });
     document.addEventListener('focusin', onIntent);
     document.addEventListener('pointerdown', onIntent, { passive: true });
     return () => {
+      removeEventListener('popstate', onPop);
       document.removeEventListener('click', onClick, true);
       document.removeEventListener('pointerover', onIntent);
       document.removeEventListener('focusin', onIntent);
@@ -202,12 +229,13 @@ export function Navigation() {
     }
     document.documentElement.classList.add('is-routed');
     const target = kind === 'push' ? hashTarget(p?.url.hash ?? '') : hashTarget(location.hash);
-    if (kind === 'push') {
+    {
       const html = document.documentElement;
       const prev = html.style.scrollBehavior;
       html.style.scrollBehavior = 'auto';
       if (target) target.scrollIntoView({ block: 'start', behavior: 'instant' });
-      else scrollTo({ top: 0, behavior: 'instant' });
+      else if (kind === 'push') scrollTo({ top: 0, behavior: 'instant' });
+      else scrollTo({ top: savedPos(pathname) ?? 0, behavior: 'instant' }); // (pop: where the reader left this page)
       html.style.scrollBehavior = prev;
     }
 

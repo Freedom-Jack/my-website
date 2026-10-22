@@ -9,7 +9,6 @@ import { InlineLink } from '@/lib/inline';
 export const metadata: Metadata = {
   title: notFoundPage.meta.title,
   description: notFoundPage.meta.description,
-  robots: { index: false, follow: true },
 };
 
 /**

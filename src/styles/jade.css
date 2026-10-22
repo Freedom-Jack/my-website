@@ -69,7 +69,7 @@
   position: relative;
   margin-block-start: 1.25rem;
   color: var(--ink-2); /* 11.8:1: a quieter note, set apart by space alone */
-  font-size: calc(var(--fs-lead) * 0.94);
+  font-size: var(--fs-body);
 }
 .strip--home .hero__actions {
   margin-block-start: 2rem;
@@ -176,7 +176,7 @@
 .ink-btn:not(.strip--home .ink-btn) .ink-btn__label {
   padding: 0.5em 0;
   color: var(--ink-1);
-  font-weight: 600;
+  font-weight: var(--w-ui);
   text-decoration: underline 1px var(--rule-rest);
   text-underline-offset: 0.3em;
   transition:
@@ -192,6 +192,15 @@
   background: currentColor;
 }
 
+/* a press (a tap, a mousedown): the same jade answer the hover gives, so a touch screen is never answered by the
+   system's own highlight (base.css turns that off) */
+.brush:active,
+.site-nav__list a:active,
+summary:active,
+.margin-note__toggle:active {
+  color: var(--jade-deep);
+}
+
 /* ---------- rows, table heads, the story map's ticks, focus ---------- */
 .ink-row:hover .row__title a,
 .ink-row:focus-within .row__title a {
@@ -204,7 +213,9 @@
   font-size: 0.75rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--jade-ink);
+  color: var(
+    --jade-deep
+  ); /* the deep jade of the titles: at 12 px uppercase the lighter jade was the site's lowest contrast */
 }
 .story-map__tick {
   background: var(--jade-hair);

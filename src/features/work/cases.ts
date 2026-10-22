@@ -22,6 +22,8 @@ export const caseFrontmatter = z
     role: z.string().min(1),
     figure: z.object({ lead: z.string().optional(), value: z.string().min(1), note: z.string().min(1) }).strict(),
     summary: z.string().min(1),
+    /** the search snippet, naming him and the result; the summary stands in without one */
+    metaDescription: z.string().min(1).max(160).optional(),
     /** the index table's Outcome cell */
     outcome: z.string().min(1),
     /** the index table's Evidence cell; none: "Client work, no public page" */
