@@ -262,6 +262,8 @@ test.describe('scroll: the footer on clean paper at the end of Writing, the Rés
   test.use({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
   for (const r of MAP.filter((x) => ['writing', 'resume', 'contact'].includes(x.id))) {
     test(r.id, async ({ page }) => {
+      // (reads the painting's own pixels behind the footer: judged on a real GPU, DESIGN §13)
+      test.skip(await isSoftware(page), 'the painting is judged on a hardware GPU');
       await page.goto(r.path);
       await settle(page);
       await jumpTo(page, 'end');

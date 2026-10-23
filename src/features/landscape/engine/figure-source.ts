@@ -4,7 +4,7 @@
 // part of the worker's own graph makes the worker's bundle reference itself, which a production Turbopack build never
 // finishes resolving.
 
-import { layerSize, paintSteps, premultiply, type LayerParams } from './figures';
+import { layerSize, paintSteps, premultiply, type Ctx2D, type LayerParams } from './figures';
 import type { FigureReply, FigureRequest, FigureResult } from './renderer';
 
 /** The figure layers' source (createFigureSource). */
@@ -76,7 +76,9 @@ function idleDraw(p: LayerParams) {
     } catch (err) { reject(err); return; }
     // (always CPU-backed here: 'bytes' and 'gpu' are read back below, and 'bitmap' is drawn into Canvas2D's own CPU-backed
     // canvases, where a GPU-backed one is read back on its first draw: see figures.worker.ts)
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    // (a 2d context by construction; the cast keeps older TypeScript's union overload — which admits
+    // ImageBitmapRenderingContext via getContext(string) — out of Ctx2D. Vercel's next build type-checks here.)
+    const ctx = canvas.getContext('2d', { willReadFrequently: true }) as Ctx2D | null;
     if (!ctx) { reject(new Error('no 2d context')); return; }
     const steps = paintSteps(ctx, p);
     let ms = 0;

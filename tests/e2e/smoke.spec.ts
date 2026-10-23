@@ -1,8 +1,13 @@
 import { expect, test } from '@playwright/test';
-import { ROUTES, settle } from './support/pages';
+import { isSoftware, ROUTES, settle } from './support/pages';
 
 // A smoke test per route: it answers, says what it is, holds one <main> and one h1, is marked as the page it is,
 // paints (or falls back), and logs no errors. Plus the hard rules on the rendered page (DESIGN §2).
+// (a software rasteriser repaints the ambient painting forever and stalls the page's main thread; the checks here
+// are DOM-only, so on software the painting runs still — reduced motion — and the page answers at once)
+test.beforeEach(async ({ page }) => {
+  if (await isSoftware(page)) await page.emulateMedia({ reducedMotion: 'reduce' });
+});
 const PHONE =
   /(?<![\w.#/-])(?:\+?1[\s.-]?)?\(?\d{3}\)?[\s.-]{0,2}\d{3}[\s.-]\d{4}(?![\w-])|(?<![\d\w])\+\d{1,3}[\s.-]?\(?\d{1,4}\)?(?:[\s.-]?\d{2,4}){2,4}(?!\d)|\btel:/i;
 const CJK = /[⺀-⿟　-〿぀-ヿ㐀-䶿一-鿿가-힯豈-﫿＀-￯]/u;

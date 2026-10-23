@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { isSoftware } from './support/pages';
 
 /**
  * The header keeps one row on the phone widths the budgets suite does not visit (DESIGN §4.9: one row at 360 px and
@@ -16,6 +17,9 @@ for (const [width, height] of [
       hasTouch: true,
     });
     const page = await ctx.newPage();
+    // (a software rasteriser repaints the ambient painting forever; the header's rows are DOM-only, so on software
+    // the painting runs still and the page answers at once)
+    if (await isSoftware(page)) await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/');
     await page.waitForFunction(() => document.fonts.status === 'loaded');
     const rows = await page.evaluate(() => {

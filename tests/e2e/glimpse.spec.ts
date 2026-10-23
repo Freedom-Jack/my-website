@@ -419,6 +419,7 @@ test.describe('glimpses: a phone held sideways', () => {
   test.use({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
   for (const p of PAGES)
     test(`${p.path}: no window mid-page`, async ({ page }) => {
+      test.skip(await isSoftware(page), 'a software rasteriser shows the stills');
       await noMorning(page);
       await page.goto(p.path);
       await settle(page);

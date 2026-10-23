@@ -3,6 +3,12 @@ import path from 'node:path';
 import { expect, test } from '@playwright/test';
 import { fontsReady, isSoftware, ROUTES, settle, VIEWPORTS } from './support/pages';
 
+// (the §6 budgets are DOM metrics; on a software rasteriser the painting runs still so the page's main thread
+// answers at once, not minutes in)
+test.beforeEach(async ({ page }) => {
+  if (await isSoftware(page)) await page.emulateMedia({ reducedMotion: 'reduce' });
+});
+
 /**
  * The DESIGN §6 budgets (SPEC-R4A §15.2), per page at 1440 / 1280 / 390, measured by the demo's own probe
  * (support/measure.js) and judged as design-demo/tools/qa/budget.py judged demo 4b, with its accepted exceptions:

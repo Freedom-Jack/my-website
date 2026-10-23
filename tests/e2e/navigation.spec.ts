@@ -1,5 +1,10 @@
 import { expect, test } from '@playwright/test';
-import { settle } from './support/pages';
+import { isSoftware, settle } from './support/pages';
+
+// (on a software rasteriser the painting runs still, so the DOM-only route checks answer at once, not minutes in)
+test.beforeEach(async ({ page }) => {
+  if (await isSoftware(page)) await page.emulateMedia({ reducedMotion: 'reduce' });
+});
 
 /**
  * Back returns the reader to where they were (features/navigation): the content arrives at once on a pop, so the
