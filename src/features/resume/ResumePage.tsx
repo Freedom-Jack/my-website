@@ -2,6 +2,7 @@ import { Fragment } from 'react';
 import { resumePage } from '@content/pages/resume';
 import { site } from '@content/site';
 import { PageMain } from '@/components/page/PageMain';
+import { Glimpse } from '@/components/page/Glimpse';
 import { Strip } from '@/components/page/Strip';
 import { InkButton } from '@/components/ui/InkButton';
 import { shortMonthYear } from '@/lib/dates';
@@ -92,7 +93,8 @@ export function ResumePage() {
                 </a>
               </span>
             ) : null}
-            <span>
+            <span className={styles['cv-head__site']}>
+              {/* the PDF's letterhead only: on screen the reader is already here */}
               <a className="brush brush--rest" href={`${site.url}/`}>
                 {host}
               </a>
@@ -106,7 +108,6 @@ export function ResumePage() {
               {t.json}
             </a>
           </p>
-          <p className={`small ${styles['cv-head__note']}`}>{t.note}</p>
         </div>
 
         <section className={`sec ${styles['cv-sec']}`} aria-labelledby="cv-summary-title" data-veil="">
@@ -118,6 +119,7 @@ export function ResumePage() {
           </p>
         </section>
 
+        <Glimpse still="resume-0" />
         <section className={`sec ${styles['cv-sec']}`} aria-labelledby="cv-exp-title" data-veil="">
           <h2 className="sec__title" id="cv-exp-title">
             {t.sections.experience}
@@ -162,6 +164,7 @@ export function ResumePage() {
           </ol>
         </section>
 
+        <Glimpse still="resume-1" />
         <section className={`sec ${styles['cv-sec']}`} aria-labelledby="cv-skills-title" data-veil="">
           <h2 className="sec__title" id="cv-skills-title">
             {t.sections.skills}
@@ -205,14 +208,14 @@ export function ResumePage() {
             {t.sections.certifications}
           </h2>
           <ul className={`rows rows--plain ${styles['cv-certs']}`} role="list">
-            {r.certificates.map((c) => (
-              <li key={c.name}>
-                {c.name} ({c.date.slice(0, 4)})
-              </li>
-            ))}
             {r.awards.map((a) => (
               <li key={`${a.title}-${a.date}`}>
                 {a.title} ({a.date.slice(0, 4)}){a.note ? `, ${a.note}` : ''}
+              </li>
+            ))}
+            {r.certificates.map((c) => (
+              <li key={c.name}>
+                {c.name} ({c.date.slice(0, 4)})
               </li>
             ))}
           </ul>

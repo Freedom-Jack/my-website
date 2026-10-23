@@ -10,7 +10,7 @@ file (the schemas, the hard rules, the counts below).
 | A page's own words (Home, Work's index, Contact, Writing, Résumé, 404)            | `content/pages/<page>.ts`                               |
 | A project (its page `/work/<slug>/` and its row in Work's table)                  | `content/work/<slug>.mdx`                               |
 | A note (`/writing/<slug>/`)                                                       | `content/writing/<slug>.mdx`                            |
-| The nav, the footer's "Updated", the site's address, what search engines read     | `content/site.ts`                                       |
+| The nav, the footer's "Updated", the author line, the site's address, search data | `content/site.ts`                                       |
 | The "In the open" repositories on Work                                            | `content/github/overrides.json`                         |
 | A project's brush diagram                                                         | `content/work/diagrams/<name>.wide.svg` and `.tall.svg` |
 
@@ -21,6 +21,10 @@ file (the schemas, the hard rules, the counts below).
 - the web résumé, `/resume/`;
 - the PDF, `/resume.pdf`, which is printed from that page;
 - the machine-readable copy, `/resume.json`, and the Person data search engines read.
+
+Its facts follow Jack's own résumé, `resume_ats.tex` in [Freedom-Jack/career-kit](https://github.com/Freedom-Jack/career-kit):
+when that changes, bring the facts across here (titles, dates, figures, awards). Where the tex only condenses a role
+to fit one page, this file keeps its fuller wording. Never copy its phone number, and never link its PDF (DESIGN §2).
 
 After changing it, regenerate the PDF:
 
@@ -65,6 +69,9 @@ compounds kept whole ("LLM-powered"). Use real punctuation: ’ “ ” – —.
    projects →" in `content/pages/work.ts`, and "All six projects →" in `content/pages/home.ts`. The unit tests fail
    until they match the number of files.
 
+6. Optional: give it its own link-preview card. Until then a shared link shows Work's. With a QA build served on
+   port 3100 (README, "After changing the engine…"), run `npm run build:og -- --pages work-<slug>`.
+
 Home's "What I work on" rows link to cases by address (`content/pages/home.ts`); add one there if the new project
 belongs on Home.
 
@@ -73,12 +80,13 @@ belongs on Home.
 1. Copy `content/writing/what-is-an-ai-agent.mdx` to `content/writing/<slug>.mdx` (the address is
    `/writing/<slug>/`).
 2. Set `title`, `published` (an ISO date such as `'2026-11-02'`), `description` (the Writing list's line) and
-   `metaDescription`. When you later change its words, set `modified` and say what changed in `modifiedNote`; the
-   byline and the search data follow.
+   `metaDescription`. When you later change its words, set `modified` and say what changed in `modifiedNote` (one
+   quiet word, such as "Updated": the byline prints it before the date); the byline and the search data follow.
 3. Write it in Markdown. Use `##` and `###` headings, tables, links, and `<Quote cite="https://…">…</Quote>` for a
    quotation from a source.
 
-The Writing list, the feed (`/writing/feed.xml`) and the sitemap pick it up on their own. `content/pages/llms.ts`
+The Writing list, the feed (`/writing/feed.xml`) and the sitemap pick it up on their own. Its link-preview card is
+Writing's until `npm run build:og -- --pages writing-<slug>` cuts its own (as for a project). `content/pages/llms.ts`
 describes Writing in words for AI agents, so mention the new note there if it matters.
 
 ## "In the open" (GitHub)
@@ -86,7 +94,9 @@ describes Writing in words for AI agents, so mention the new note there if it ma
 Work's "In the open" section lists public repositories, fetched from GitHub at build time and refreshed daily. It
 never runs in the visitor's browser. `content/github/overrides.json` gives a repository its year and its one line,
 or hides it (`"hidden": true`). Without an override, a repository shows its own GitHub description, as long as that
-reads as a proper sentence; placeholders and near-empty repositories are skipped. `snapshot.json` is the fallback when GitHub cannot be reached. Two
+reads as a proper sentence; placeholders and near-empty repositories are skipped. Older repositories fold behind
+"Early work". `snapshot.json` is the fallback when GitHub cannot be reached (refresh it with
+`python3 design-demo/tools/sync-projects.py --discover`, or add a repository's API record by hand). Two
 repositories are never shown until the launch gate is cleared (`src/features/github/rules.ts`).
 
 ## The rules every word follows

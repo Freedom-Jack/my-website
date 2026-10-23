@@ -1,0 +1,100 @@
+{
+  "cards": {
+    "contact": {
+      "file": "contact.jpg",
+      "width": 2400,
+      "height": 1260,
+      "alt": "Contact: Qijin Xu · Lead AI/ML Architect, beside an ink-wash painting of a ferry at the jetty on open water.",
+      "words": "873253b163316801aa005e6a8860c3f71a8c7fa7cb45f5ad7e79c7de24beedad",
+      "sha256": "fcf3d05e385c34520037889b504eca474eb5db3e32835ef83b77689028297315"
+    },
+    "home": {
+      "file": "home.jpg",
+      "width": 2400,
+      "height": 1260,
+      "alt": "Qijin Xu, Lead AI/ML Architect: his name and introduction beside an ink-wash painting of his mountain in spring: a plum bough, a swallow and the morning light over the peaks.",
+      "words": "ab9f4e8cb3cacbd74d45ed8e4f5b536cc051e96adf3d75986749acd0ff634d61",
+      "sha256": "d49039977329af09d773b4d53c801f8796988ff13d1cd23193c7031934f47109"
+    },
+    "resume": {
+      "file": "resume.jpg",
+      "width": 2400,
+      "height": 1260,
+      "alt": "Résumé: Qijin Xu · Lead AI/ML Architect, beside an ink-wash painting of terraced fields stepping down to the river.",
+      "words": "b949215301244c6bb1b532eb5613bcb4030243c8cc9c34f3f8271f4ad089d120",
+      "sha256": "3449daf864c81a05c3f4f6263ade15af9a1a4521d31c023561e5c81a1024fde5"
+    },
+    "work": {
+      "file": "work.jpg",
+      "width": 2400,
+      "height": 1260,
+      "alt": "Work: Qijin Xu · Lead AI/ML Architect, beside an ink-wash painting of a river town at its rainbow bridge.",
+      "words": "3b886ae664f33f47713c54600e137feca1f319a286b21e466b59070197858f41",
+      "sha256": "468ee9bfb4f99d06154580f3321072138871b1b4dd8b5bc8e454a7a72c08267c"
+    },
+    "work-data-operations": {
+      "file": "work-data-operations.jpg",
+      "width": 2400,
+      "height": 1260,
+      "alt": "Lineage and rule automation with LLMs: a project by Qijin Xu, beside an ink-wash painting of a river town at its rainbow bridge.",
+      "words": "a7c7a9df32fb2f4ae2d0bbfcd788c2765e28ab7b46fed513ea8e7fe07df195a3",
+      "sha256": "2016f264a7aa5a878c7db2a0f92ebf38674a4a693d11a931cceca4f108e45cff"
+    },
+    "work-fraud-model": {
+      "file": "work-fraud-model.jpg",
+      "width": 2400,
+      "height": 1260,
+      "alt": "Fraud loss-ratio model: a project by Qijin Xu, beside an ink-wash painting of a river town at its rainbow bridge.",
+      "words": "d2df0753c81dbb6453fed93ef328bad05d3d1c0c0e35ebc30a3df4becebc4af0",
+      "sha256": "88a1c7b1be8f39c41137332167876229ce9fb1f672dba60189e1657518ab0b62"
+    },
+    "work-hockey-vision": {
+      "file": "work-hockey-vision.jpg",
+      "width": 2400,
+      "height": 1260,
+      "alt": "Computer vision for hockey broadcast video: a project by Qijin Xu, beside an ink-wash painting of a river town at its rainbow bridge.",
+      "words": "48f0fae84813157bcd40b2d7654e10e0327b8d8a45b52d7c68270e27b6fc9dba",
+      "sha256": "a31baa9ab325aaae777b58070c658ad3e3d80516fd22626cd86ab5ecf87806ed"
+    },
+    "work-insurance-data-platform": {
+      "file": "work-insurance-data-platform.jpg",
+      "width": 2400,
+      "height": 1260,
+      "alt": "Insurance policy-history data platform: a project by Qijin Xu, beside an ink-wash painting of a river town at its rainbow bridge.",
+      "words": "3640e38ffa7581ac90a92006c5392a0b4db2207dd626e74ec5525d6ea846da0d",
+      "sha256": "2b87fbc7a29fd00fde55e85508b826c3079ab1175868663928956672666f088d"
+    },
+    "work-proprietary-language-agent": {
+      "file": "work-proprietary-language-agent.jpg",
+      "width": 2400,
+      "height": 1260,
+      "alt": "Agent for a proprietary programming language: a project by Qijin Xu, beside an ink-wash painting of a river town at its rainbow bridge.",
+      "words": "0e2a9a53d4bb05c43b4d2d5d9dbf2a833d7489a406224e56659360b48fca61c4",
+      "sha256": "f78a982fa7f32cec57dac11e970795f581fdcc742b3ed9fd8edaa5d7920d4641"
+    },
+    "work-rag-assistant": {
+      "file": "work-rag-assistant.jpg",
+      "width": 2400,
+      "height": 1260,
+      "alt": "Enterprise RAG assistant for insurance support: a project by Qijin Xu, beside an ink-wash painting of a river town at its rainbow bridge.",
+      "words": "8fe69a42425a4a174a7148421704439b3511a4e1b397635cc8c76fd7a0992757",
+      "sha256": "beb0f2f76fdbbf35f645cb0a217d00dcc92be4c614fe0e2aa176f82aa92182f0"
+    },
+    "writing": {
+      "file": "writing.jpg",
+      "width": 2400,
+      "height": 1260,
+      "alt": "Writing: Qijin Xu · Lead AI/ML Architect, beside an ink-wash painting of a still lake with a pavilion under a willow.",
+      "words": "3f6f8de6d32ca6cd499a06081a2bfd52cc6e1f4345b77a8885fd3050f917a3c9",
+      "sha256": "0558385bd4febb26f151de149c1e68885e40b3b69bab35803c8d35eaa832ebb4"
+    },
+    "writing-what-is-an-ai-agent": {
+      "file": "writing-what-is-an-ai-agent.jpg",
+      "width": 2400,
+      "height": 1260,
+      "alt": "“What is an AI agent?”, a note by Qijin Xu, beside an ink-wash painting of a still lake with a pavilion under a willow.",
+      "words": "5acc74c4fcac23c1a8c37a8bf6cbf69410de3b9f06ed291d19765d77083bc352",
+      "sha256": "27c83fb49d874448ab21ef7f2d015052ea72c904bdc40a963f1d32764eab9662"
+    }
+  }
+}

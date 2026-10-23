@@ -1,3 +1,4 @@
+import { rushes, willowTip, loosePetal, ripples } from './young';
 // sets/pavilion.ts — Writing and the Note (stretch 2): the still lake. One corner, in the manner of Ma Yuan and Xia
 // Gui: at the lower right a low rocky spit runs out from the shore (lost in mist) into the still water; on it an
 // open pavilion, four posts under one low pyramidal roof whose eave corners lift only a little (Song restraint: one
@@ -22,7 +23,7 @@ import { REF_PX, VH_PX, streams, vnoise, mix, mix3, wash, softWash, stroke, dryB
 
 /** The set's stretch: every world x below is K + its offset (move the place by changing K). */
 const K = 2;
-export const meta: FigureMeta = { rect: [K + 0.78, K + 1.22, 0.10, 0.37], plane: 2, phase: 1 };
+export const meta: FigureMeta = { rect: [K + 0.78, K + 1.22, 0.10, 0.7], plane: 2, phase: 1 };   // (up into the sky for the willow)
 interface Rock { key: string; top: Pt[]; k: number; P: Pt[] }
 
 const SEED = 31;
@@ -292,7 +293,7 @@ export function* draw(env: Env) {
   }
   ctx.restore();
   // life: the faintest shimmer, in the reflection only (open water below the spit's waterline)
-  anchor(env, 'shimmer', { x: reflBox.x, y: wy, w: reflBox.w, h: 46 * b }, { waterline: [at([-41, 0.5]), at([0, 0.8]), at([52, 0.6]), [xEnd, wy + 0.6]] });
+  anchor(env, 'shimmer', { x: reflBox.x, y: wy, w: reflBox.w, h: 46 * b }, { waterline: [at([-41, 0.5]), at([0, 0.8]), at([52, 0.6]), [xEnd, wy + 0.6]], rings: 3 });
   yield;
 
   // ---------------------------------------------------------------- the painting
@@ -311,6 +312,47 @@ export function* draw(env: Env) {
   for (let i = 0; i < 3; i++) {
     const y = wy + (3 + i * 3.6 + Rw() * 1.5) * b, x0 = cx - (62 + Rw() * 30) * b, L = (22 + Rw() * 26) * b;
     stroke(ctx, [[x0, y], [x0 + L * 0.5, y + 0.2 * b], [x0 + L, y]], { w: 0.55 * b, col: rgba(INK2, 0.14 + Rw() * 0.08), tin: 0.3, tout: 0.5, wob: 0.5, dry: 0.3, seed: i + 70 });
+  }
+  yield;
+  // ---- the framing element: reeds at the water's edge, thin ink-grey-green rushes (no pine bough over the moon: the
+  // lake is lovelier without it)
+  if (!env.still) rushes(env, X(K + 1.071), 705, 0.95, own('d5 reeds'), 18, 70);
+  yield;
+  // ---- Writing's one painted moment: the lake catching the spring morning. A willow comes in from the top-right
+  // corner and lets its long fresh-green strands down over the water toward the pavilion (the lake's willow: longer,
+  // looser than the river town's tip); a few petals that have drifted down lie on the still water, each with its own
+  // broken rings and their lit arcs; more petals fall through the air (life: the present pass).
+  // The light on the water is the shader's (a glassy glitter column under the low light).
+  if (!env.still) {
+    // (it comes in from the right, under the window's top feather, so the whole of it is seen)
+    willowTip(env, [[X(K + 1.13), Y(0.545)], [X(K + 1.09), Y(0.512)], [X(K + 1.045), Y(0.49)], [X(K + 1.0), Y(0.481)], [X(K + 0.968), Y(0.487)], [X(K + 0.95), Y(0.5)]],
+      [[X(K + 1.07), Y(0.5)], [X(K + 1.09), Y(0.474)], [X(K + 1.105), Y(0.466)]], 1.15 * b, Y(0.29), own('q3 willow'), -0.2, 140, 14);
+  }
+  yield;
+  {
+    // the lake catching the light: under the low light a column of glassy highlights on the water, over a faint clear
+    // cyan sheet (on pale water a white line shows only against a little colour), densest under the light, shorter and
+    // sparser toward the viewer
+    { const Rg = own('q3 glints'), lx = X(K + 0.85), y0 = Y(0.278);
+      softWash(env, [[lx - 46 * b, y0], [lx + 46 * b, y0], [lx + 84 * b, y0 + 60 * b], [lx - 84 * b, y0 + 60 * b]], rgba([160, 210, 226], 0.36), 9 * b);
+      for (let i = 0; i < 20; i++) {
+        const t = i / 19, y = y0 + (2 + t * t * 56 + Rg() * 2) * b, wdt = (20 + 60 * t) * b, L = (14 + 34 * (1 - t) * Rg() + 10 * Rg()) * b;
+        const x = lx + (Rg() - 0.5) * wdt;
+        stroke(ctx, [[x - L / 2, y], [x, y + 0.15 * b], [x + L / 2, y]], { w: (0.7 + 0.8 * (1 - t)) * b, col: rgba([255, 255, 255], 0.75 + 0.25 * Rg()), tin: 0.35, tout: 0.4, min: 0.1, wob: 0.3, seed: i + 400 });
+      }
+    }
+  }
+  yield;
+  // (the light on the water and the petals lying on it are part of the place: the story map's still keeps them; the
+  // willow, the framing, and the falling petals are left out of a still)
+  {
+    const Rq = own('q3 petals');
+    for (const [du, dy, r] of [[-0.062, 9, 5.2], [-0.035, 21, 4.4], [0.052, 27, 5.6], [-0.1, 31, 3.8], [0.008, 40, 4.8]] as const) {
+      const x = X(K + 0.925 + du), y = wy + dy * b;
+      ripples(env, x, y, (5 + r) * b, Rq, { n: 2, sq: 0.24, alpha: 0.75 });
+      loosePetal(env, x, y - 0.4 * b, r * b, Rq, 0.04);
+    }
+    if (!env.still) anchor(env, 'smoke', { x: X(K + 0.87), y: Y(0.56), w: 0.24 * REF_PX, h: Y(0.24) - Y(0.56) }, { petals: { n: 5, size: 4.6 * b, speed: 0.8 } });
   }
   yield;
 }

@@ -9,16 +9,16 @@ export const work = {
   meta: {
     title: 'Qijin (Jack) Xu · Work',
     description:
-      'Six projects by Qijin (Jack) Xu: a RAG assistant serving 50,000+ users, LLM agents, a fraud model and data platforms, with outcomes and sources.',
+      'Six projects by Qijin (Jack) Xu: a RAG assistant serving 50,000+ users, LLM agents, a fraud model, and data platforms, each with its outcome and stack.',
   },
   title: 'Work',
   intro:
-    'Most of what I build runs inside client systems, so the code is private. Here is what each project was, what I did, and what changed. Where a public page exists, it’s linked.',
+    'Most of what I build runs inside client systems, so the code is private. Each project has its own page: what it was, what I did, and what changed. Where a public page exists, it’s linked.',
 
   index: {
     title: 'Six projects, newest first',
-    columns: { years: 'Years', project: 'Project', outcome: 'Outcome', evidence: 'Evidence' },
-    /** A case with no public evidence says so. */
+    columns: { years: 'Years', project: 'Project', outcome: 'Outcome' },
+    /** A row with no public evidence (its links sit under the outcome): screen readers hear this. */
     noEvidence: 'Client work, no public page',
   },
 
@@ -28,8 +28,7 @@ export const work = {
     line: 'For {{years}} years I’ve built those systems: the data underneath, the retrieval in the middle, and the agents and guardrails on top.',
     diagram: {
       name: 'how-i-build',
-      caption:
-        'The generic shape of the systems I build: data underneath, retrieval in the middle, agents and guardrails on top. No client detail.',
+      caption: 'The generic shape, simplified. No client detail.',
       steps: [
         'Sources feed ETL/ELT pipelines.',
         'Lineage records where each piece of data came from and how it moved (OpenLineage).',
@@ -45,7 +44,7 @@ export const work = {
 
   open: {
     title: 'In the open',
-    intro: 'Most of my code belongs to clients. These are the public pieces.',
+    intro: 'These are the public pieces.',
     featured: 'Featured',
     recent: 'Recent',
     /** "{first}–{last}" are the rows' years; after 2020 the heading becomes "Earlier work, …". */

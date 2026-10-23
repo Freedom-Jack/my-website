@@ -1,0 +1,267 @@
+/* ==========================================================================
+   finish.css — the interface finish, loaded last (after jade.css). Its elements (sun and visited, focus, rowrule,
+   flow) each sit behind their own html.el-* class (src/features/landscape/elements.ts). One vocabulary, used
+   sparingly (no glints, no glows on the interface; jade lines and value only). Words never move, never glow, and
+   nothing new sits behind a letter. Reduced motion and "Still the landscape": nothing runs; the static parts stay.
+   ========================================================================== */
+
+/* ---------- sun: the story map's "you are here" ----------
+   Each place has two stills cut from the engine (tools/build-stills.ts): dim (no sun anywhere) and lit (its own sun,
+   held at least .85 of Home's). The lit one lies over the dim one inside the same multiplied window. Flag off:
+   Home's sun only. Flag on: the CURRENT place holds the sun; hovering or focusing another label raises
+   that place's light over 500 ms (a small sunrise), while the current one stays. Only those two are ever lit.
+   No tick marks the current place: its warmth and the label's underline do. */
+.story-map__scene img.story-map__lit {
+  opacity: 0;
+  transition: opacity 520ms var(--ease-out);
+}
+html:not(.el-sun) .story-map__scene[data-stretch='0'] .story-map__lit {
+  opacity: 1;
+}
+/* visited (elements.ts): the places visited this session keep a little of their light (where you
+   have travelled); the current place and a hovered one hold all of it (below). */
+html.el-visited.el-sun .story-map__scene.is-been:not(.is-here) img.story-map__lit {
+  opacity: 0.5;
+}
+html.el-sun .story-map__scene.is-here .story-map__lit,
+html.el-sun
+  .story-map:has(> .story-map__list > [data-stretch='0'] > a[aria-current])
+  .story-map__scene[data-stretch='0']
+  .story-map__lit,
+html.el-sun
+  .story-map:has(> .story-map__list > [data-stretch='1'] > a[aria-current])
+  .story-map__scene[data-stretch='1']
+  .story-map__lit,
+html.el-sun
+  .story-map:has(> .story-map__list > [data-stretch='2'] > a[aria-current])
+  .story-map__scene[data-stretch='2']
+  .story-map__lit,
+html.el-sun
+  .story-map:has(> .story-map__list > [data-stretch='3'] > a[aria-current])
+  .story-map__scene[data-stretch='3']
+  .story-map__lit,
+html.el-sun
+  .story-map:has(> .story-map__list > [data-stretch='4'] > a[aria-current])
+  .story-map__scene[data-stretch='4']
+  .story-map__lit,
+html.el-sun
+  .story-map:has(> .story-map__list > [data-stretch='0'] > a:is(:hover, :focus-visible))
+  .story-map__scene[data-stretch='0']
+  .story-map__lit,
+html.el-sun
+  .story-map:has(> .story-map__list > [data-stretch='1'] > a:is(:hover, :focus-visible))
+  .story-map__scene[data-stretch='1']
+  .story-map__lit,
+html.el-sun
+  .story-map:has(> .story-map__list > [data-stretch='2'] > a:is(:hover, :focus-visible))
+  .story-map__scene[data-stretch='2']
+  .story-map__lit,
+html.el-sun
+  .story-map:has(> .story-map__list > [data-stretch='3'] > a:is(:hover, :focus-visible))
+  .story-map__scene[data-stretch='3']
+  .story-map__lit,
+html.el-sun
+  .story-map:has(> .story-map__list > [data-stretch='4'] > a:is(:hover, :focus-visible))
+  .story-map__scene[data-stretch='4']
+  .story-map__lit {
+  opacity: 1;
+}
+/* the sun's bloom in the miniature: a soft light ABOVE the paper (plus-lighter), at the place's light, over its lit
+   still. The still alone can only clear the blue toward paper; this lets the light be brighter than the sheet. */
+.story-map__sun {
+  display: none;
+}
+html.el-sun .story-map__sun {
+  --still-w: calc(var(--story-map-art) * 4.771); /* a still's width at the art's height (334 x 70) */
+  display: block;
+  position: absolute;
+  left: calc(50% + (var(--fx) - 0.5) * var(--still-w));
+  top: calc(var(--fy) * 100%);
+  /* (wide and soft, so it is a warmth over the place, not a disc) */
+  width: calc(var(--story-map-art) * 1.9);
+  height: calc(var(--story-map-art) * 1.15);
+  translate: -50% -50%;
+  pointer-events: none;
+  mix-blend-mode: plus-lighter;
+  /* a long gaussian falloff, about +10 levels at its heart: the paper clears toward white there, the blue air lifts */
+  background: radial-gradient(
+    closest-side,
+    rgb(255 255 255 / 0.042) 0,
+    rgb(255 255 255 / 0.038) 14%,
+    rgb(250 255 255 / 0.029) 32%,
+    rgb(244 253 254 / 0.018) 52%,
+    rgb(240 252 253 / 0.008) 72%,
+    rgb(240 252 253 / 0.002) 88%,
+    transparent 100%
+  );
+  opacity: 0;
+  transition: opacity 620ms var(--ease-out) 80ms;
+}
+/* Home: its light stands behind the host peak, so the warmth sits above the summit and is flatter: it never lies over
+   the ink of the peak (only the sky round it lifts) */
+html.el-sun .story-map__sun[data-stretch='0'] {
+  height: calc(var(--story-map-art) * 0.8);
+  translate: -50% -78%;
+}
+html.el-sun .story-map__sun.is-here,
+html.el-sun .story-map:has(> .story-map__list > [data-stretch='0'] > a[aria-current]) .story-map__sun[data-stretch='0'],
+html.el-sun .story-map:has(> .story-map__list > [data-stretch='1'] > a[aria-current]) .story-map__sun[data-stretch='1'],
+html.el-sun .story-map:has(> .story-map__list > [data-stretch='2'] > a[aria-current]) .story-map__sun[data-stretch='2'],
+html.el-sun .story-map:has(> .story-map__list > [data-stretch='3'] > a[aria-current]) .story-map__sun[data-stretch='3'],
+html.el-sun .story-map:has(> .story-map__list > [data-stretch='4'] > a[aria-current]) .story-map__sun[data-stretch='4'],
+html.el-sun
+  .story-map:has(> .story-map__list > [data-stretch='0'] > a:is(:hover, :focus-visible))
+  .story-map__sun[data-stretch='0'],
+html.el-sun
+  .story-map:has(> .story-map__list > [data-stretch='1'] > a:is(:hover, :focus-visible))
+  .story-map__sun[data-stretch='1'],
+html.el-sun
+  .story-map:has(> .story-map__list > [data-stretch='2'] > a:is(:hover, :focus-visible))
+  .story-map__sun[data-stretch='2'],
+html.el-sun
+  .story-map:has(> .story-map__list > [data-stretch='3'] > a:is(:hover, :focus-visible))
+  .story-map__sun[data-stretch='3'],
+html.el-sun
+  .story-map:has(> .story-map__list > [data-stretch='4'] > a:is(:hover, :focus-visible))
+  .story-map__sun[data-stretch='4'] {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .story-map__scene img.story-map__lit,
+  .story-map__sun {
+    transition: none;
+  }
+}
+html.is-still .story-map__scene img.story-map__lit,
+html.is-still .story-map__sun {
+  transition: none;
+}
+
+/* ---------- focus: a plain jade ring; selection in glow-tinted paper; a jade scrollbar ---------- */
+html.el-focus {
+  scrollbar-color: var(--jade-hair) transparent;
+}
+/* (a plain 2 px jade ring 3 px off the control's own box, no glow and no paper spread: 8.8:1 on paper) */
+html.el-focus :focus-visible {
+  outline: 2px solid var(--jade-deep);
+  outline-offset: 3px;
+  box-shadow: none;
+}
+/* a page title focused after a page change (Navigation): the announcer reads it; no frame round the words */
+html.el-focus h1[tabindex='-1']:focus-visible {
+  outline: none;
+}
+html.el-focus .brush--rest:focus-visible {
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+html.el-focus .ink-btn:focus-visible {
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+/* Home's brush button: its stroke overhangs the control's box (--ink-dx/-dy/-tail), so the ring is drawn round the
+   stroke's own box instead, 3 px off it (an outline on the button would cut through the brush's head) */
+html.el-focus .strip--home .ink-btn:focus-visible {
+  outline: none;
+}
+html.el-focus .strip--home .ink-btn:focus-visible::before {
+  content: '';
+  position: absolute;
+  inset: calc(var(--ink-dy) * -1 - 5px) calc(var(--ink-tail) * -1 - 5px) calc(var(--ink-dy) * -1 - 5px)
+    calc(var(--ink-dx) * -1 - 5px);
+  border: 2px solid var(--jade-deep);
+  border-radius: 10px;
+  pointer-events: none;
+}
+@media (forced-colors: active) {
+  html.el-focus .strip--home .ink-btn:focus-visible {
+    outline: 2px solid CanvasText;
+  }
+  html.el-focus .strip--home .ink-btn:focus-visible::before {
+    display: none;
+  }
+}
+html.el-focus ::selection {
+  background: color-mix(in oklab, var(--glow) 55%, var(--paper)); /* ink-1 on it: ~14:1 */
+  color: var(--ink-1);
+}
+
+/* ---------- rowrule: the rule under a row is drawn in from the left ----------
+   In place of the pale wash behind the row's text: nothing behind the text. On hover/focus a 1.5 px jade line at 0.7
+   lies exactly on the row's bottom border, drawn from the row's left edge to its right over 260 ms; leaving fades
+   it. No brush taper, no centre-out reveal, no heavier stroke than the table's own rules. */
+html.el-rowrule .ink-row::before {
+  display: none;
+}
+html.el-rowrule :is(.ink-row, .rule-row)::after {
+  --b: var(--bleed, 0px);
+  content: '';
+  position: absolute;
+  left: var(--b);
+  right: var(--b);
+  bottom: -0.75px;
+  height: 1.5px;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--jade);
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition:
+    opacity 240ms var(--ease-out),
+    transform 0s linear 240ms;
+}
+html.el-rowrule :is(.ink-row, .rule-row):is(:hover, :focus-within)::after {
+  opacity: 0.7;
+  transform: scaleX(1);
+  transition:
+    opacity 90ms var(--ease-out),
+    transform 260ms cubic-bezier(0.3, 0.6, 0.25, 1);
+}
+html.el-rowrule .rule-row {
+  position: relative;
+}
+
+/* ---------- flow: light runs through the diagrams (features/effects/finish.ts clones each edge) ---------- */
+.diagram__flow {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+  opacity: 0;
+}
+/* a small ink dot with a short tapering tail (three stacked dashes: 1, 2 and 3 px wide), dark jade, no
+   glow, no blur; the arrowhead it reaches does not light */
+.diagram__flow--tail,
+.diagram__flow--body,
+.diagram__flow--core {
+  stroke: #082726; /* a wetter, darker jade than the arrows (--jade-deep), so the dot reads on its own line */
+}
+.diagram__flow--tail {
+  stroke-width: 1;
+}
+.diagram__flow--body {
+  stroke-width: 2;
+}
+.diagram__flow--core {
+  stroke-width: 3.5;
+}
+@media (prefers-reduced-motion: reduce) {
+  html.el-rowrule :is(.ink-row, .rule-row):is(:hover, :focus-within)::after {
+    transition: none;
+  }
+}
+html.is-still.el-rowrule :is(.ink-row, .rule-row):is(:hover, :focus-within)::after {
+  transition: none;
+}
+@media (forced-colors: active) {
+  .diagram__flow,
+  html.el-rowrule :is(.ink-row, .rule-row)::after {
+    display: none !important;
+  }
+}
+@media print {
+  .diagram__flow {
+    display: none;
+  }
+}

@@ -17,6 +17,7 @@
 // (below): ribbons resampled every 1-3 px on a noise table, each figure a handful of shapes, back rows simplified
 // (the shader dissolves them anyway), and a layer rect cut to what any window can see.
 
+import { willowTip, swallowInk, reflectIn, ripples } from './young';
 import {
   REF_PX, VH_PX, SCENE_FIELDS, sceneField, streams, rng, vnoise, resample, mix, mix3, smooth, D, anchor, bounds, ownSprite,
   stroke, wash, ellipse,
@@ -27,7 +28,7 @@ import {
 // of the countryside under his mountain's foot and goes back into it before the lake), and from scene height 0.10 (the
 // near bank's land fades out above it) up to 0.42 (above the back rows' roofs and the masts; the town's highest point
 // is about 0.38).
-export const meta: FigureMeta = { rect: [1.0, 2.12, 0.10, 0.42], plane: 2, phase: 1 };
+export const meta: FigureMeta = { rect: [1.0, 2.12, 0.10, 0.95], plane: 2, phase: 1 };   // (up into the sky for the willow and the swallows)
 
 const SEED = 11;
 
@@ -323,14 +324,20 @@ function donkey(B: Ink, env: Env, x: number, y: number, s: number, R: Rng, o: { 
 /** Paleness and the colours a house uses at depth `far` (0 front .. 1 back row). o.k (round 5): the town's key there,
  *  1 at the focus (the bridge, the landmark, the big boat), lighter away from it: the town stands on the far bank, so
  *  away from the focus its line and tile step back a breath (the paper reserve stays whole). */
-function houseInk(env: Env, far: number, R: Rng, o: BuildingOptions) {
+function houseInk(env: Env, far: number, R: Rng, o: BuildingOptions, x = 0) {
   const { C, rgba } = env.ink;
   const A = 1 - 0.45 * far;
   const kk = o.k ?? 1;
   const wall = mix3(C.wall, C.ink2, (o.wall ?? 0) + 0.04 + R() * 0.12 + far * 0.08);
-  const tile0 = o.thatch ? mix3(mix3(C.timber, C.ink2, 0.5), C.white, 0.15 + far * 0.2) : mix3(C.tile, C.white, 0.06 + R() * 0.16 + far * 0.25);
-  const tile = mix3(tile0, C.paper, (1 - kk) * 0.8);
-  return { C, rgba, A, wall, tile, side: mix3(mix3(wall, C.ink2, 0.26), C.paper, (1 - kk) * 0.6), line: (a: number) => rgba(C.ink, a * A * kk) };
+  // (atmospheric perspective toward ice: the front row crisp slate-blue, the back rows dissolving into the air)
+  const ICE: RGB = [206, 226, 238];
+  const tile0 = o.thatch ? mix3(mix3(C.timber, C.ink2, 0.5), C.white, 0.15 + far * 0.2) : mix3(C.tile, C.white, 0.02 + R() * 0.12);
+  // (glazed jade-slate roofs, gathered in one or two groups along the front rows (by x, no extra random draws, so the
+  // town's streams and the bridge's identity hold): the young colour in the town itself)
+  const gl = o.thatch ? 0 : Math.pow(Math.max(0, Math.sin(x * 0.0041 + 4.69)), 2.5) * (1 - far * 0.7) * 0.85;
+  const tile = mix3(mix3(mix3(tile0, [52, 122, 128], gl), ICE, far * 0.62), C.paper, (1 - kk) * 0.8);
+  const lineC = mix3(mix3(C.navy, C.ink, 0.4), [120, 150, 172], far * 0.8);
+  return { C, rgba, A, wall: mix3(wall, ICE, far * 0.3), tile, side: mix3(mix3(mix3(wall, C.ink2, 0.26), ICE, far * 0.4), C.paper, (1 - kk) * 0.6), line: (a: number) => rgba(lineC, a * A * kk), far };
 }
 
 /**
@@ -341,7 +348,7 @@ function houseInk(env: Env, far: number, R: Rng, o: BuildingOptions) {
 function hall(env: Env, x: number, y: number, w: number, h: number, R: Rng, o: HallOptions = {}) {
   const B = new Ink(env.ctx);
   const far = o.far ?? 0;
-  const K = houseInk(env, far, R, o);
+  const K = houseInk(env, far, R, o, x);
   const { C, rgba, A } = K;
   const d = o.d ?? w * (0.4 + R() * 0.25);
   const ox = D[0] * d, oy = D[1] * d;
@@ -417,6 +424,15 @@ function hall(env: Env, x: number, y: number, w: number, h: number, R: Rng, o: H
   }
   const rr: Pt[] = gable ? [[rL[0] - 1.0, rL[1] - 0.6], rL, [rR[0] + ov * 0.6, rR[1]], [rR[0] + ov * 0.6 + 1.0, rR[1] - 0.6]] : [[rL[0] - 1.3, rL[1] - 1.1], rL, rR, [rR[0] + 1.3, rR[1] - 1.1]];
   rib(B, K.line(o.thatch ? 0.7 : 0.9), rr, { w: o.thatch ? 1.2 : 1.6, tin: 0.12, tout: 0.12, wob: 0.25, seed: x + 11 }, 6);
+  if (!o.thatch && far < 0.5) {
+    // the light catches the ridge and the upper slope: a white line just over the ridge, a pale band under it
+    wsh(B, rgba(C.light, 0.28 * A), [rL, rR, [mix(rR[0], eF[0], 0.22), mix(rR[1], eF[1], 0.22)], [mix(rL[0], eave[0][0], 0.22), mix(rL[1], eave[0][1], 0.22)]], 0.2, x + 12, 6);
+    rib(B, rgba(C.light, 0.9 * A), rr.map(([px, py]): Pt => [px, py - 1.15]), { w: 0.7, tin: 0.15, tout: 0.15, wob: 0.15, dry: 0.15, seed: x + 13 }, 6);
+  }
+  if (far < 0.5 && R() < 0.3) {   // a lit window or two, pale cyan
+    const nw = 1 + Math.floor(R() * 2);
+    for (let i = 0; i < nw; i++) { const lx = x + w * (0.2 + R() * 0.6), ly = y - h * (0.5 + R() * 0.2); B.fill(rgba([196, 238, 246], 0.92 * A), oval(lx, ly, 1.1, 0.9, 6), 7); }
+  }
   if (o.awning && far < 0.4) {   // a cloth shade on two poles over the street
     const a0 = x + w * 0.08, a1 = x + w * 0.8, ay = y - h * 0.8, fy = y + h * 0.42, fx = -w * 0.03;
     const cl = R() < 0.5 ? C.white : mix3(C.indigoP, C.white, 0.3);
@@ -437,7 +453,7 @@ function hall(env: Env, x: number, y: number, w: number, h: number, R: Rng, o: H
 function gableEnd(env: Env, x: number, y: number, w: number, h: number, R: Rng, o: GableEndOptions = {}) {
   const B = new Ink(env.ctx);
   const far = o.far ?? 0;
-  const K = houseInk(env, far, R, o);
+  const K = houseInk(env, far, R, o, x);
   const { C, rgba, A } = K;
   const d = o.d ?? w * (1.1 + R() * 0.6);
   const ox = D[0] * d, oy = D[1] * d;
@@ -484,7 +500,7 @@ function wallGate(env: Env, x: number, y: number, w: number, h: number, R: Rng, 
   const far = o.far ?? 0;
   if (far < 0.6) dotTreeT(env, x + w * (0.3 + R() * 0.4), y - 1 + D[1] * 8, 0.62 + R() * 0.2, R, { green: true, clusters: 4 });   // the courtyard's tree
   const B = new Ink(env.ctx);
-  const K = houseInk(env, far, R, o);
+  const K = houseInk(env, far, R, o, x);
   const { C, rgba, A } = K;
   const d = 2.4;
   B.fill(rgba(C.paper, A), [[x, y + 0.5], [x + w, y + 0.5], [x + w + D[0] * d, y + D[1] * d], [x + w + D[0] * d, y - h - 1 + D[1] * d], [x, y - h - 1]], 0);
@@ -934,6 +950,10 @@ function rainbow(env: Env, A: Pt, span: number, Hb: number, R: Rng, o: RainbowOp
   const deckN = ts.map((t) => deckAt(t, 1));
   const rail = deckN.map(([px, py]): Pt => [px, py - 5]);
   for (let i = 0; i <= N; i++) N2.line(rgba(C.ink, 0.7), 0.5, [deckN[i], rail[i]], 0);
+  for (let i = 0; i < N; i++) for (const f of [0.33, 0.66]) {   // fine balusters between the posts, as on a long bridge
+    const a = deckN[i], b = deckN[i + 1], px = mix(a[0], b[0], f), py = mix(a[1], b[1], f);
+    N2.line(rgba(C.ink, 0.45), 0.3, [[px, py - 0.4], [px, py - 4.6]], 0);
+  }
   N2.line(rgba(C.ink, 0.45), 0.4, deckN.map(([px, py]) => [px, py - 2.4]), 0);
   rib(N2, rgba(C.ink, 0.86), rail, { w: 0.9, tin: 0.04, tout: 0.04, wob: 0.15, seed: 51 }, 1);
   for (const i of [0, N]) N2.line(rgba(C.ink, 0.85), 1.1, [[deckN[i][0], deckN[i][1]], [rail[i][0], rail[i][1] - 1.4]], 1);   // the rail's end posts
@@ -1015,6 +1035,11 @@ export function* draw(env: Env) {
   const bc = X(1.565);
   const span = (nearB(bc) - farB(bc) + 4) / -BD[1];
   const bA: Pt = [bc - BD[0] * span * 0.5, nearB(bc - BD[0] * span * 0.5) + 1.5];
+  const BRIDGE_O: RainbowOptions = {
+    dir: BD, bw: 17, ramp: 0.12, T: 11, people: 30, fs: 0.84, skew: 0.75,
+    railKnot: [[0.7, 0.9], [0.74, 0.93], [0.77, 0.88], [0.8, 0.92], [0.84, 0.9], [0.88, 0.93], [0.66, 0.91]],
+    stalls: [[-0.08, 0.5], [1.08, 0.5]],
+  };
   const bB: Pt = [bA[0] + BD[0] * span, bA[1] + BD[1] * span];
 
   // ---- the town. Rows back to front, each left to right (a house covers the right side of the one before it).
@@ -1191,20 +1216,39 @@ export function* draw(env: Env) {
   // calls up, the people on the bridge lean over to watch
   const fb = (u: number) => farB(X(u));
   const hulls: { x: number; y: number; w: number; h: number }[] = [];
-  for (const b of [
+  const BOATS = [
     { key: 'moored 1', x: X(1.205), y: fb(1.22) + 12, L: 74, o: { s: 0.9, mast: 'up', crew: [[0.9, 0.4, { flip: true, hat: 'cone' }]] } },
     { key: 'moored 2', x: X(1.33), y: fb(1.35) + 15, L: 90, o: { s: 0.95, mast: 'up', c0: 0.22, c1: 0.62, dir: -1 } },
     { key: 'moored 3', x: X(1.832), y: fb(1.84) + 12, L: 60, o: { s: 0.82, mast: 'down' } },
     { key: 'moored 4', x: X(1.885), y: fb(1.9) + 13, L: 70, o: { s: 0.86, mast: 'up', c0: 0.3, c1: 0.66 } },
-  ] satisfies MooredBoat[]) {
+  ] satisfies MooredBoat[];
+  const BIG_L = 136, BIG_X = X(1.645) + BIG_L, BIG_Y = mix(fb(1.69), nearB(X(1.69)), 0.6);
+  const BIG_O = { s: 1.1, dir: -1 as const, mast: 'aframe' as const, mastAngle: 38, mastLen: 0.4, c0: 0.2, c1: 0.5 };
+  // glassy water: the bridge's arch and the boats mirrored in the river first, softened, torn by the ripples into level
+  // rows and fading with depth, so they stand on the water
+  {
+    const river: Pt[] = [];
+    for (let x = x0; x <= x1; x += 6) river.push([x, farB(x) + 1.2]);
+    for (let x = x1; x >= x0; x -= 6) river.push([x, nearB(x) - 1]);
+    const Rm = own('reflections');
+    // (the arch is mirrored per column about the water under it, the line through its two feet (y' = 2 wl(x) - y), so
+    // the arch mirrors as an arch: a level copy of a diagonal span reads as wrong-way diagonal stripes; reflectIn still
+    // tears it into level ripple rows)
+    const mB = BD[1] / (Math.abs(BD[0]) > 1e-3 ? BD[0] : 1e-3);
+    reflectIn(env, river, [bA[0], bA[1] + 1.5], () => { rainbow(env, bA, span, 74, own('bridge'), BRIDGE_O); }, Rm, { alpha: 0.5, blur: 2.0, fade: 70, m: mB });
+    for (const b of BOATS) reflectIn(env, river, [b.x, b.y + 0.8], () => { craft(env, b.x, b.y, b.L, own('boat', b.key), b.o); }, Rm, { alpha: 0.85, blur: 0.9, fade: 50, box: [b.x - b.L * 1.2, b.y, b.x + b.L * 1.2, b.y + 60] });
+    reflectIn(env, river, [BIG_X, BIG_Y + 0.8], () => { craft(env, BIG_X, BIG_Y, BIG_L, own('boat', 'lowering'), BIG_O); }, Rm, { alpha: 0.9, blur: 1.0, fade: 70, box: [BIG_X - BIG_L * 1.3, BIG_Y, BIG_X + 20, BIG_Y + 80] });
+  }
+  yield;
+  for (const b of BOATS) {
     const r = craft(env, b.x, b.y, b.L, own('boat', b.key), b.o);
     hulls.push(r.box);
     if (b.o.crew) { const Bc = new Ink(ctx); b.o.crew.forEach(([u, w, opt], i) => { const p = r.P(b.L * u, r.sheer(u), r.beam * w); folk(Bc, env, p[0], p[1], b.o.s * 0.92, own('crew', b.key, i), { ...opt, shadow: false }); }); Bc.flush(); }
   }
   yield;
   {
-    const L = 136, bx = X(1.645) + L, by = mix(fb(1.69), nearB(X(1.69)), 0.6);
-    const r = craft(env, bx, by, L, own('boat', 'lowering'), { s: 1.1, dir: -1, mast: 'aframe', mastAngle: 38, mastLen: 0.4, c0: 0.2, c1: 0.5 });
+    const L = BIG_L, bx = BIG_X, by = BIG_Y;
+    const r = craft(env, bx, by, L, own('boat', 'lowering'), BIG_O);
     hulls.push(r.box);
     const Bc = new Ink(ctx);
     const at = (u: number, w: number) => r.P(L * u, r.sheer(u), r.beam * w);
@@ -1270,13 +1314,19 @@ export function* draw(env: Env) {
     Bw.flush();
   }
   yield;
+  // a few broken ripple rings where the boats sit in the water, of unequal size, thick-thin, never closed, each with a
+  // lit arc on the side toward the light (upper right, Work's glow)
+  {
+    const Rr = own('rain rings');
+    // (rings only where a hull or a pole meets the water: never in open water under the swallows, where they read
+    // as logo arcs)
+    for (const b of BOATS.slice(0, 3)) ripples(env, b.x + b.L * 0.42, b.y + 2.5, 7 + Rr() * 3, Rr, { n: 2, alpha: 1.4, lightDir: Math.PI * 1.68 });
+    ripples(env, BIG_X - BIG_L * 0.08, BIG_Y + 3, 11, Rr, { n: 2, alpha: 1.5, lightDir: Math.PI * 1.68 });
+  }
+  yield;
 
   // ---- the bridge
-  const bridge = rainbow(env, bA, span, 74, own('bridge'), {
-    dir: BD, bw: 17, ramp: 0.12, T: 11, people: 30, fs: 0.84, skew: 0.75,
-    railKnot: [[0.7, 0.9], [0.74, 0.93], [0.77, 0.88], [0.8, 0.92], [0.84, 0.9], [0.88, 0.93], [0.66, 0.91]],
-    stalls: [[-0.08, 0.5], [1.08, 0.5]],
-  });
+  const bridge = rainbow(env, bA, span, 74, own('bridge'), BRIDGE_O);
   yield;
 
   // ---- life: one slow walker crossing the bridge mid-deck, from the near bank's stall over the crown to the far one,
@@ -1406,6 +1456,21 @@ export function* draw(env: Env) {
     const t = pollard(env, x, y, s, own('willow', i), { sway: 1.3, lean });
     if (sway) anchor(env, 'willow', t.box, { foot: [x, y], s, sway: 1.3 });   // life: sway
   });
+  yield;
+  // ---- a willow tip out of the top edge (young.ts willowTip: brown-ink bough, spring yellow-green strands, their tips
+  // above the roofline), and a pair of swallows low over the river (no sprite repeated from Home)
+  if (!env.still) {
+    // (in the windows too: the first shows its tip as the tuft by the swallow; the second window is framed west of it,
+    // on the town's lower bank, so it never floats there like a sticker)
+    willowTip(env, [[2672, 340], [2635, 409], [2575, 454], [2515, 479], [2458, 489]], [[2635, 411], [2685, 439], [2728, 449]], 1.1, 574, own('d5 willow'));
+    yield;
+    const sx = 2300, sy = 505, path: Pt[] = [];   // (in the open sky over the town, clear of the boat's mast and the willow)
+    for (let k = 0; k <= 30; k++) { const u = k / 30; path.push([sx + 160 - 300 * u, sy + 6 - 22 * u + 14 * Math.sin(u * 4.2)]); }
+    // (Home's painted swallow, large enough to show its white belly and paler hand; the pair apart, at different
+    // headings, never two black hooks side by side)
+    ownSprite(env, 'walker', { x: sx - 50, y: sy - 42, w: 100, h: 84 }, { path, home: [sx, sy], speed: 13, bird: true }, (e) => swallowInk(e, sx, sy, 58, 0.12, own('d5 swallow', 0), { bank: 0.4, lift: 0.3 }));
+    swallowInk(env, 2398, 548, 40, -0.38, own('d5 swallow', 1), { bank: 0.8, lift: 0.55, mist: 0.15 });
+  }
   yield;
   // (the town's mist, its back rows dissolving and the banks drifting across it, and the melting of both ends of the
   // layer, are painted by the scene shader as it lays the layer in: no per-pixel work here)

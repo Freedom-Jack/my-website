@@ -54,7 +54,9 @@
   .read-progress {
     animation: readProgress linear both;
     animation-timeline: --prose;
-    animation-range: cover 0% contain 100%;
+    /* 0 % at scroll 0 (the prose starts a hero below the fold, so "cover 0 %" is already past at the top) */
+    animation-range-start: cover calc(100svh - var(--header-h) - var(--strip-sub) - var(--space-m));
+    animation-range-end: contain 100%;
   }
 }
 @keyframes readProgress {
@@ -201,71 +203,6 @@
   margin-block-start: var(--space-section);
   max-width: var(--measure-read);
 }
-.colophon {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-s);
-}
-.colophon__seal {
-  flex: none;
-  width: clamp(2.25rem, 2.05rem + 0.8vw, 2.75rem);
-  height: auto;
-  aspect-ratio: 1;
-  margin-block-start: 0.3em; /* its top on the line's cap height */
-  overflow: visible;
-  transform-origin: 50% 55%;
-}
-.colophon__line {
-  color: var(--ink-2);
-}
-.note__end > .note__actions {
-  margin-block-start: var(--space-m);
-  margin-inline-start: -2px; /* the swash's loaded start sits on the text edge */
-}
-
-/* the stamp (NoteEffects adds the classes; without JS the seal simply sits there) */
-:global(html.js) .colophon__seal.isPending {
-  opacity: 0;
-}
-.colophon__seal.isStamping {
-  animation: stamp 680ms var(--ease-stamp) 240ms both;
-}
-@media (prefers-reduced-motion: reduce) {
-  .colophon__seal.isStamping {
-    animation: fadeIn 240ms ease both;
-  }
-}
-@keyframes stamp {
-  0% {
-    opacity: 0;
-    scale: 1.22;
-    rotate: -5deg;
-    filter: blur(1.2px);
-  }
-  45% {
-    opacity: 1;
-    scale: 0.95;
-    rotate: 0.6deg;
-    filter: blur(0);
-  }
-  70% {
-    scale: 1.015;
-  }
-  100% {
-    opacity: 1;
-    scale: 1;
-    rotate: 0deg;
-    filter: none;
-  }
-}
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
 
 /* ---------- forced colours: system colours, no ink layers ---------- */
 @media (forced-colors: active) {
@@ -274,22 +211,14 @@
   .prose :global(blockquote)::before {
     display: none;
   }
-  html.js .colophon__seal.is-pending {
-    opacity: 1;
-  }
 }
 
 /* ---------- print: the text only ---------- */
 @media print {
-  .read-progress,
-  .note__actions {
+  .read-progress {
     display: none !important;
   }
   .prose {
     max-width: none;
   }
-  .colophon__seal {
-    opacity: 1 !important;
-    animation: none !important;
-  } /* printed stamped, even if never scrolled to */
 }

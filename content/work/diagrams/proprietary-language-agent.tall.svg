@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" class="diagram__art diagram__art--tall" viewBox="0 0 400 732" role="img" aria-labelledby="dg-agent-t2 dg-agent-d2" data-draw="">
 <title id="dg-agent-t2">How the agent works</title>
-<desc id="dg-agent-d2">Legacy scripts in a proprietary language go into a LangGraph workflow, which coordinates vLLM-served models with retrieval. Guardrails keep personal information out and keep every output well-formed. Out come documentation, business rules and code prepared for migration.</desc>
+<desc id="dg-agent-d2">Legacy scripts in a proprietary language go into a LangGraph workflow, which coordinates vLLM-served models with retrieval. Guardrails keep personal information out and constrain every output to what the grammar allows. What comes out: documentation, business rules and code prepared for migration.</desc>
 <g class="diagram__bands">
 <path class="diagram__band diagram__band--2" d="M2,163C19,141 70,158 104,158C139,158 187,154 210,164C232,174 232,201 238,218C244,235 233,258 246,267C260,275 292,270 318,271C343,273 385,263 399,278C413,292 402,332 401,358C401,385 414,422 397,438C380,454 338,451 300,452C262,454 212,448 170,447C129,447 80,456 51,451C23,446 8,444 0,417C-8,390 1,331 1,289C1,247 -15,185 2,163Z"/>
 </g>

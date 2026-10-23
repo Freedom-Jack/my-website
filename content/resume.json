@@ -4,14 +4,18 @@
     "name": "Qijin Xu",
     "label": "Lead AI/ML Architect",
     "email": "qxjack@gmail.com",
-    "summary": "Lead AI/ML Architect with {{years+}} years building production AI and the data systems beneath it. Architected an LLM-powered RAG assistant that resolved about 90% of questions on its own for 50,000+ users and returned 525% ROI within 12 months (CGI Impact Award 2024). Now leading a LangGraph agent for a proprietary programming language, projected to cut manual work by 50%. Earlier, built a fraud loss-ratio model with a 321% lift over a top-five bank benchmark.",
+    "summary": "Lead AI/ML Architect and Tech Lead at CGI’s AI Center of Excellence with {{years+}} years delivering LLM agents, RAG platforms, and ML systems to enterprise production for major banks and insurers. Two-time CGI Impact Award winner spanning agent architecture, evaluation, technical leadership, and multi-cloud AI delivery. Built an LLM-powered RAG assistant that resolved about 90% of questions on its own for 50,000+ users and returned 525% ROI within 12 months. Now leading a LangGraph agent for a proprietary programming language, projected to cut manual work by 50%.",
     "location": {
       "city": "Toronto",
       "region": "ON",
       "countryCode": "CA"
     },
     "profiles": [
-      { "network": "GitHub", "username": "Freedom-Jack", "url": "https://github.com/Freedom-Jack" },
+      {
+        "network": "GitHub",
+        "username": "Freedom-Jack",
+        "url": "https://github.com/Freedom-Jack"
+      },
       {
         "network": "LinkedIn",
         "username": "qijin-x-4899671a9",
@@ -24,10 +28,13 @@
       "name": "CGI Inc.",
       "location": "Toronto, ON",
       "url": "https://www.cgi.com/",
-      "position": "Lead AI/ML Architect, AI Center of Excellence",
+      "position": "Lead AI/ML Architect & Tech Lead, AI Center of Excellence",
       "startDate": "2025-01",
       "highlights": [
-        "Lead an AI agent for a proprietary programming language: LangGraph dual-state dynamic workflow, vLLM-served LLMs with RAG, EBNF structured outputs and PII filtering. It writes documentation, extracts business rules, maintains legacy scripts and prepares for migration. Projected 50% labour reduction."
+        "CGI Impact Award 2026: led development of an LLM-powered email agent for enterprise email workflows. 89% autonomous handling across 2,000+ emails per month.",
+        "Lead an AI agent for a proprietary programming language: LangGraph dual-state dynamic workflow, vLLM-served LLMs with RAG, EBNF structured outputs, and PII filtering. It writes documentation, extracts business rules, maintains legacy scripts, and prepares them for migration. Projected 50% less manual work.",
+        "Architected a scalable agent evaluation pipeline with SME-adjudicated rubrics, reference cases, regression suites, and calibrated LLM-as-a-judge evaluators, for decision tasks with noisy and conflicting human labels.",
+        "Drive technical direction across 13+ AI initiatives for TD Bank’s compliance SBU, guiding architecture and delivery across a cross-functional team of about 20."
       ]
     },
     {
@@ -38,7 +45,7 @@
       "startDate": "2023-08",
       "endDate": "2024-12",
       "highlights": [
-        "CGI Impact Award 2024: architected and shipped an LLM-powered enterprise RAG chatbot (LangChain; Azure, AWS, GCP). About 90% autonomous resolution for a 50,000+ user base; 525% ROI within 12 months. Product page: [cgi.com/canada/en-ca/insurance-chatbot](https://www.cgi.com/canada/en-ca/insurance-chatbot)",
+        "CGI Impact Award 2024: architected and shipped an LLM-powered enterprise RAG assistant for insurance support (LangChain; Azure, AWS, GCP). About 90% autonomous resolution for a 50,000+ user base; 525% ROI within 12 months. Product page: [cgi.com/canada/en-ca/insurance-chatbot](https://www.cgi.com/canada/en-ca/insurance-chatbot)",
         "Built an OpenLineage-based lineage tool that auto-documents multi-source data flows, with LLM-assisted root-cause suggestions. Reduced investigation time across about 3 incidents per month.",
         "Automated AxiomSL rule updates at RBC with an LLM: 80% less manual updating, governance controls preserved."
       ]
@@ -52,7 +59,7 @@
       "endDate": "2023-07",
       "highlights": [
         "Managed Canada’s largest automobile-insurance policy-history database (2 TB, SQL Server): 99.9% uptime, median queries under 200 ms.",
-        "Built production ETL/ELT pipelines for 22+ micro data marts (under 6 tables each, monthly SLAs) for finance, analytics and delivery teams. Report runtime cut from 30 to 5 minutes.",
+        "Built production ETL/ELT pipelines for 22+ micro data marts (under 6 tables each, monthly SLAs) for finance, analytics, and delivery teams. Report runtime cut from 30 to 5 minutes.",
         "Shipped a gradient-boosting and logistic-regression loss-ratio model, batch-scored in a Python/T-SQL pipeline: 321% lift in recovered fraud losses versus a top-five bank benchmark."
       ]
     },
@@ -65,7 +72,7 @@
       "highlights": [
         "Worked on AttentiveVision’s computer-vision pipeline for hockey broadcast video (PyTorch, TensorFlow, OpenCV). Trained a CNN-LSTM stack reaching mAP ≥ 70% on event detection across 18 hours of game video.",
         "Built real-time player tracking with a Kalman filter and OpenPose: under 100 ms latency at 30 FPS, for live speed and heat-map analytics.",
-        "Built an event-detection annotation loop (goals, timeouts, penalties) with active learning, raising label reliability to Cohen’s kappa ≥ 0.92."
+        "Built an event-detection annotation loop (goals, timeouts, and penalties) with active learning, raising label reliability to Cohen’s kappa ≥ 0.92."
       ]
     },
     {
@@ -74,8 +81,7 @@
       "startDate": "2019-05",
       "endDate": "2019-08",
       "highlights": [
-        "Built features in React, TypeScript and Node.js, including major parts of the company homepage rewrite.",
-        "Shipped TELUS product pages with UX, QA and DevOps, design to deploy in 7 days.",
+        "Built features in React, TypeScript, and Node.js, including major parts of the company homepage rewrite, and shipped TELUS product pages with UX, QA, and DevOps, design to deploy in 7 days.",
         "Introduced visual-regression testing (Nightwatch.js, Puppeteer), removing about 90% of manual QA checks."
       ]
     }
@@ -87,11 +93,11 @@
       "area": "Computer Science",
       "studyType": "Bachelor of Science, Specialized Honours",
       "startDate": "2017-09",
-      "endDate": "2021",
+      "endDate": "2020",
       "score": "3.9/4.0",
       "location": "Toronto, ON",
       "degree": "B.Sc. Computer Science, Specialized Honours",
-      "honors": ["Dean’s List"]
+      "honors": ["First in Class", "Dean’s List (all semesters)"]
     }
   ],
   "awards": [
@@ -99,13 +105,15 @@
       "title": "CGI Impact Award",
       "date": "2024",
       "awarder": "CGI",
-      "summary": "For architecting and shipping an LLM-powered enterprise RAG chatbot.",
+      "summary": "For architecting and shipping an LLM-powered enterprise RAG assistant.",
       "note": "for the enterprise RAG assistant"
     },
     {
       "title": "CGI Impact Award",
       "date": "2026",
-      "awarder": "CGI"
+      "awarder": "CGI",
+      "summary": "For leading development of an LLM-powered email agent for enterprise email workflows.",
+      "note": "for the email agent"
     }
   ],
   "certificates": [
@@ -143,7 +151,10 @@
         "Pinecone"
       ]
     },
-    { "name": "Data and streaming", "keywords": ["Apache Spark", "Kafka", "Airflow", "OpenLineage", "Redis"] },
+    {
+      "name": "Data and streaming",
+      "keywords": ["Apache Spark", "Kafka", "Airflow", "OpenLineage", "Redis"]
+    },
     {
       "name": "Cloud and systems",
       "keywords": ["Azure", "GCP", "AWS", "Docker", "Kubernetes", "Terraform", "microservices", "gRPC", "CI/CD"]
@@ -151,6 +162,6 @@
   ],
   "meta": {
     "version": "v1.0.0",
-    "lastModified": "2026-10-10"
+    "lastModified": "2026-10-22"
   }
 }

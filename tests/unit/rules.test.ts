@@ -5,6 +5,7 @@ import { choose, denied, group, lineErrors, parseOverrides, repoSchema, type Rep
 import { CJK, findBreaches, PHONE } from '@/lib/compliance';
 import { redirects } from '@/lib/redirects';
 import { normPath, PLACES, placeForPath, STORY_MAP } from '@/features/landscape/places';
+import { ELEMENTS } from '@/features/landscape/elements';
 import { careerYears, fillTokens, typeset } from '@/lib/typography';
 import { plain } from '@/lib/markup';
 import { longDate, monthYear, shortMonthYear } from '@/lib/dates';
@@ -138,12 +139,12 @@ describe('places (features/landscape/places)', () => {
     // the story map: the places in the painting's order, one per stretch, the 404 off it
     expect(STORY_MAP.map((p) => p.stretch)).toEqual([0, 1, 2, 3, 4]);
   });
-  it('lives on Home and Work only; every page on the road ends on its closing scene (round 5)', () => {
+  it('lives on the five map pages with cameraTravels (Home and Work without it); every page on the road ends on its closing scene', () => {
     expect(
       Object.values(PLACES)
         .filter((p) => p.ground === 'living')
         .map((p) => p.page),
-    ).toEqual(['home', 'work']);
+    ).toEqual(ELEMENTS.cameraTravels ? ['home', 'work', 'writing', 'resume', 'contact'] : ['home', 'work']);
     expect(
       Object.values(PLACES)
         .filter((p) => !p.closing)

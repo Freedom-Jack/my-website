@@ -4,12 +4,9 @@ import { useEffect } from 'react';
 import styles from './article.module.css';
 
 /**
- * A note's two reading aids (SPEC-R4A §10.6):
- * 1. Reading progress: only where CSS scroll-driven animations are missing, sets --read on the stroke from the
- *    note's position (the CSS draws it; the same range as the CSS: cover 0% → contain 100%).
- * 2. The author's seal at the end is stamped once as it comes into view (its top past 90% of the viewport).
- *    Already on screen at load, under "Still the landscape", or without IntersectionObserver: it simply sits there.
- * Nothing here hides text.
+ * A note's reading progress (SPEC-R4A §10.6): only where CSS scroll-driven animations are missing, sets --read on
+ * the stroke from the note's position (the CSS draws it; the same range as the CSS: cover 0% → contain 100%).
+ * The seal at the end is the colophon's (components/page/Colophon). Nothing here hides text.
  */
 export function NoteEffects() {
   useEffect(() => {
@@ -24,7 +21,8 @@ export function NoteEffects() {
       const progress = () => {
         raf = 0;
         const r = prose.getBoundingClientRect();
-        const p = Math.min(1, Math.max(0, (innerHeight - r.top) / Math.max(1, r.height)));
+        // (0 at scroll 0, 1 when the prose's end reaches the bottom of the screen: the CSS timeline's own range)
+        const p = Math.min(1, Math.max(0, scrollY / Math.max(1, r.bottom + scrollY - innerHeight)));
         bar.style.setProperty('--read', `${(p * 100).toFixed(2)}%`);
       };
       const update = () => {
@@ -36,36 +34,6 @@ export function NoteEffects() {
       offs.push(() => {
         cancelAnimationFrame(raf);
         bar.style.removeProperty('--read');
-      });
-    }
-    const seal = document.querySelector<SVGElement>(`.${styles.colophon__seal}`);
-    const still = document.documentElement.classList.contains('is-still');
-    if (seal && !still && 'IntersectionObserver' in window && seal.getBoundingClientRect().top >= innerHeight * 0.9) {
-      seal.classList.add(styles.isPending!);
-      const io = new IntersectionObserver(
-        (entries) => {
-          for (const e of entries) {
-            if (!e.isIntersecting) continue;
-            io.disconnect();
-            seal.classList.remove(styles.isPending!);
-            seal.classList.add(styles.isStamping!);
-          }
-        },
-        { rootMargin: '0px 0px -10% 0px' },
-      );
-      io.observe(seal);
-      document.addEventListener(
-        'ink:still',
-        (e) => {
-          if (!(e as CustomEvent<{ on: boolean }>).detail?.on) return;
-          io.disconnect();
-          seal.classList.remove(styles.isPending!);
-        },
-        { signal },
-      );
-      offs.push(() => {
-        io.disconnect();
-        seal.classList.remove(styles.isPending!, styles.isStamping!);
       });
     }
     return () => {

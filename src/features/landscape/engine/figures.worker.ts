@@ -102,13 +102,15 @@ self.onmessage = (e) => {
     const canvas = new OffscreenCanvas(width, height);
     // CPU-backed for every consumer but WebGL's ImageBitmap path: 'bytes' reads the pixels back, and 'bitmap' is drawn
     // into Canvas2D's own canvases, which are all CPU-backed (canvas2d.ts createCanvas2D): a GPU-backed bitmap there is
-    // read back on its first draw, a multi-second raster flush on load in the fallback (final review r1, item 7)
+    // read back on its first draw, a multi-second raster flush on load in the fallback
     const ctx = canvas.getContext('2d', { willReadFrequently: p.out !== 'gpu' });
     if (!ctx) throw new Error('no 2d context in the worker');
-    const own: OwnSprite[] | null = p.out === 'gpu' ? [] : null;   // the set's own sprites: painted apart (buildSprites), not into the layer
+    // the set's own sprites: painted apart (buildSprites), not into the layer (a window's layer, inlay, keeps
+    // them all in it, still: its present slides the layer and has no life pass)
+    const own: OwnSprite[] | null = p.out === 'gpu' && !p.inlay ? [] : null;
     const life = drawFigures(ctx, p, own);
     if (p.out === 'gpu') {
-      const sprites = buildSprites(canvas, ctx, life, width, height, own!);
+      const sprites = own ? buildSprites(canvas, ctx, life, width, height, own) : [];
       const bitmap = canvas.transferToImageBitmap();
       self.postMessage({ id: p.id, width, height, bitmap, sprites, ms: performance.now() - t0, life }, [bitmap, ...sprites.map((s) => s.bitmap)]);
     } else if (p.out === 'bitmap') {

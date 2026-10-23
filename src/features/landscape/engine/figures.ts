@@ -152,9 +152,14 @@ export interface LayerParams {
   distance?: string;
   presence?: number;
   cls?: WidthClass | null;
+  /** A story-map still (the QA frame hook): the sets leave out their near framing elements and moving life. */
+  still?: boolean;
   /** 'gpu': an ImageBitmap with its sprites cut apart (WebGL, 4b); 'bytes': premultiplied RGBA (WebGL, 4a);
    *  'bitmap': the layer as drawn (Canvas2D). */
   out?: 'gpu' | 'bytes' | 'bitmap';
+  /** Drawn for a window into the painting (index.ts GLIMPSE), a still view: its sprites are painted in, never
+   *  cut apart (the window's present has no life pass), and the sets leave out what hangs from the strip's top edge. */
+  inlay?: boolean;
 }
 
 /** The palette's inks (inks()): its colours, rgba() and its strength. */
@@ -180,6 +185,10 @@ export interface Env {
   life: LifeAnchor[];
   softOK: boolean;
   cls: WidthClass | null;
+  /** Drawn for a story-map still: no near framing elements, no moving life (LayerParams.still). */
+  still: boolean;
+  /** Drawn for a window into the painting (LayerParams.inlay): no element that hangs from the strip's edge. */
+  inlay: boolean;
   /** The set's own sprites (ownSprite), when the worker paints them apart; null: painted into the layer. */
   sprites: { a: LifeAnchor; paint: (env: Env) => void; box: Box }[] | null;
 }
@@ -219,6 +228,24 @@ export interface LifeParams {
   /** walker: its path, its home (its feet, where it is drawn) and speed. */
   path?: Pt[];
   home?: Pt;
+  /** Smoke's box as falling petals instead: how many, their size (world px) and speed. */
+  petals?: { n: number; size: number; speed?: number };
+  /** A walker that is a bird: its wings beat as it glides (the present pass squashes it in time). */
+  bird?: boolean;
+  /** Shimmer: expanding ripple rings on the water too. */
+  rings?: number;
+  /** A sprite that swings slowly about its root (the plum: ~0.5 deg at ~0.08 Hz; the present pass turns it). */
+  swing?: boolean;
+  /** (elements.ts waterfall) Smoke's box as a falling stream instead: its x, its lip's and its foot's y, its
+   *  half-width (world px); the present pass slides lights down what the layer painted white there. */
+  fall?: { x: number; y0: number; y1: number; hw: number };
+  /** (elements.ts plumGust) The plum sprite: its main limb (world px), where the pointer touches the bough. */
+  limb?: Pt[];
+  /** (elements.ts contactLife) A sprite that bends from its foot in a breeze (a clump of rushes). */
+  bend?: boolean;
+  /** (elements.ts contactLife) Shimmer: points (world px) where a ring set falls now and then by itself (a pole,
+   *  a bow). */
+  drops?: Pt[];
 }
 /** A life anchor as a set marks it (anchor, ownSprite). */
 export interface LifeAnchor extends Box {
@@ -321,7 +348,7 @@ export function* paintSteps(ctx: Ctx2D, p: LayerParams, own: OwnSprite[] | null 
   const env: Env = {
     ctx, P, ink: inks(p.palette), k, scale: p.scale, dpr: p.dpr, palette: paletteName(p.palette), stretch: set.stretch,
     rect: m.rect.slice() as FigureMeta['rect'], plane: m.plane, phase: m.phase, life: [], softOK: false, cls: p.cls || null,
-    sprites: own ? [] : null,
+    sprites: own ? [] : null, still: !!p.still, inlay: !!p.inlay,
   };
   // (a set with a meta always has a draw: sets() turns one without into a stub)
   const run = set.draw!(env);
@@ -450,11 +477,13 @@ export function mix3(A: RGB, B: RGB, t: number): RGB { return [mix(A[0], B[0], t
 // which would read as beige). Under 'ink' the colours become greys of the same value.
 const BASE: Record<InkName, RGB> = {
   ink: [20, 24, 27], ink2: [42, 48, 52], wall: [236, 238, 235], white: [246, 247, 244], paper: [239, 241, 238], mist: [233, 237, 236],
-  tile: [74, 82, 88], timber: [107, 84, 68], timberM: [143, 128, 120], indigo: [62, 86, 100], indigoP: [150, 166, 176],
-  mal: [141, 181, 164], malD: [58, 128, 106], az: [127, 159, 184], earth: [128, 124, 120],
+  tile: [56, 78, 98], timber: [76, 96, 128], timberM: [140, 168, 200], indigo: [44, 78, 104], indigoP: [150, 180, 204],
+  mal: [139, 200, 196], malD: [36, 128, 132], az: [156, 196, 224], earth: [120, 128, 134],
+  // the young palette's figure inks (navy ink for near accents, jade, the one blossom accent)
+  navy: [27, 40, 60], jade: [64, 160, 160], jadeD: [24, 98, 104], blossom: [244, 190, 212], blossomD: [206, 120, 158], light: [251, 254, 255],
 };
 /** The inks' names (Inks.C). */
-export type InkName = 'ink' | 'ink2' | 'wall' | 'white' | 'paper' | 'mist' | 'tile' | 'timber' | 'timberM' | 'indigo' | 'indigoP' | 'mal' | 'malD' | 'az' | 'earth';
+export type InkName = 'ink' | 'ink2' | 'wall' | 'white' | 'paper' | 'mist' | 'tile' | 'timber' | 'timberM' | 'indigo' | 'indigoP' | 'mal' | 'malD' | 'az' | 'earth' | 'navy' | 'jade' | 'jadeD' | 'blossom' | 'blossomD' | 'light';
 export function inks(palette: string): Inks {
   const strength = PALETTES[paletteName(palette)].figures;   // 0 ink, 1 misted, 1.25 rich
   const grey = (c: RGB): RGB => { const l = 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]; return [l - 2, l, l + 2]; };

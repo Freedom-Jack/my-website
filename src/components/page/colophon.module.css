@@ -1,0 +1,79 @@
+/* The colophon (components/page/Colophon): the author's seal beside the author line, at the end of a note and of a
+   case. Type and ink come from the shared tokens; this places the two and stamps the seal once (ColophonEffects adds
+   the classes; without JS the seal simply sits there). Nothing here moves text. */
+.colophon {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-s);
+  max-width: var(--measure-read);
+}
+.colophon__seal {
+  flex: none;
+  width: 2.25rem;
+  height: auto;
+  aspect-ratio: 1;
+  margin-block-start: 0.2em; /* its top on the first line's cap height */
+  overflow: visible;
+  transform-origin: 50% 55%;
+}
+.colophon__line {
+  color: var(--ink-2);
+}
+
+/* the stamp */
+:global(html.js) .colophon__seal.isPending {
+  opacity: 0;
+}
+.colophon__seal.isStamping {
+  animation: stamp 680ms var(--ease-stamp) 240ms both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .colophon__seal.isStamping {
+    animation: fadeIn 240ms ease both;
+  }
+}
+@keyframes stamp {
+  0% {
+    opacity: 0;
+    scale: 1.22;
+    rotate: -5deg;
+    filter: blur(1.2px);
+  }
+  45% {
+    opacity: 1;
+    scale: 0.95;
+    rotate: 0.6deg;
+    filter: blur(0);
+  }
+  70% {
+    scale: 1.015;
+  }
+  100% {
+    opacity: 1;
+    scale: 1;
+    rotate: 0deg;
+    filter: none;
+  }
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* forced colours: the seal is drawn in system colours by Seal's own rules; it is never hidden */
+@media (forced-colors: active) {
+  :global(html.js) .colophon__seal.isPending {
+    opacity: 1;
+  }
+}
+/* print: stamped, even if never scrolled to */
+@media print {
+  .colophon__seal {
+    opacity: 1 !important;
+    animation: none !important;
+  }
+}

@@ -57,7 +57,7 @@
   flex: none;
   display: flex;
   align-items: center;
-  margin-inline-start: -2px; /* the swash's loaded start sits on the text edge when it wraps */
+  padding-inline-end: 4.5rem; /* the stamp's room, so the row never wraps under it */
 }
 :global(html:not(.js)) .contact__copy {
   display: none;
@@ -67,7 +67,10 @@
    is always present (empty at rest), so screen readers hear the word on every copy. */
 .contact__stamp {
   position: absolute;
-  left: calc(100% - 2.5rem);
+  left: calc(
+    100% - 3rem
+  ); /* just right of the words: 4.5rem is the row's room for it, less the stone's own 0.7em
+     bleed and a 0.75rem gap; never over them */
   top: 50%;
   translate: 0 -50%;
   white-space: nowrap;
@@ -145,7 +148,7 @@
   display: grid;
   grid-template-columns: 5.5rem minmax(0, 1fr);
   column-gap: var(--space-s);
-  align-items: center;
+  align-items: baseline;
   border-top: 1px solid var(--rule);
 }
 .contact__way:last-child {

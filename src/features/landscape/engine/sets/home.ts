@@ -9,11 +9,13 @@
 //
 // A figure set (figures.ts, THE SET API): meta + draw(env), in world px.
 
-import { REF_PX, VH_PX, planeTop, streams, vnoise, mix, mix3, runs, stroke, wash, softWash, dotTree, ellipse, anchor, type Env, type FigureMeta, type Pt, type Rng } from '../figures';
+import { plumFrame, plumLine, swallowInk, farBird } from './young';
+import { el } from '../../elements';
+import { ownSprite, REF_PX, VH_PX, planeTop, streams, vnoise, mix, mix3, runs, stroke, wash, softWash, dotTree, ellipse, anchor, type Env, type FigureMeta, type Pt, type Rng } from '../figures';
 
 // u1 reaches past the crag (1.06, not 0.9): on phones the hut is drawn larger and must stay clear of the right end's
 // melt (the last 13 % of the rect's width), and the fall in the crag's cleft (u 0.94) stands clear of it too
-export const meta: FigureMeta = { rect: [0.64, 1.06, 0.06, 0.42], plane: 3, phase: 1 };
+export const meta: FigureMeta = { rect: [0.50, 1.10, 0.06, 0.87], plane: 3, phase: 1 };   // (up into the sky for the bough and the swallows)
 
 const SEED = 5;
 const OB: Pt = [0.72, -0.48];   // the Song oblique (figures.ts D, copied: a set's top level runs before figures.ts's own)
@@ -181,50 +183,87 @@ export function* draw(env: Env) {
   // ---- the fall in the cleft between the near crag's summits: where the river begins
   waterfall(env, X(0.942), crestY, 1 + (big - 1) * 0.7, own('fall'));
   yield;
+  // ---- the young elements. A plum bough framing the scene hard from its top-right corner (young.ts plumFrame:
+  // a near-camera element, its limbs running out of the frame, blossoms in three size classes), petals falling from it
+  // (life: the petals kind, drawn by the present pass), a swallow in colour gliding up across the light (a bird: its
+  // wings beat), two far ones misted
+  // (it enters from the top-right corner, out of the paper under the header, and arcs down and left across the
+  // sky above the right crag; its lowest blossom stays above the crag's shoulder, right of the fall; the hut, the
+  // cleft and the host peak stay clear. On phones it is drawn larger, from the same corner.)
+  const bs0 = 1.28 + (big - 1) * 0.6;
+  // (phones: the bough is smaller and tucked into the strip's top-right corner, so the host peak and its light stay
+  // clear)
+  const phoneK = big > 1.5;
+  const bs = phoneK ? bs0 * 0.6 : bs0;
+  // (a story-map still leaves the near framing out: one continuous strip; so does a window into the painting, inlay,
+  // where the bough would hang from no edge, a sticker in the sky)
+  if (!env.still && !env.inlay) {
+    // (drawn as its own sprite so it can swing about its root, ~0.5 deg at ~0.08 Hz, in the present pass; a painting
+    // without sprites paints it into the layer)
+    const ex = 1478 + (big - 1) * 14, ey = phoneK ? 150 : Math.max(196, 286 - (big - 1) * 30), Rb = own('d5 bough');
+    // (plumGust: the limb's line rides along, so the pointer can find the bough)
+    const limb = el('plumGust') ? { limb: plumLine(ex, ey, bs, big > 1.5 ? 0.8 : 1) } : {};
+    ownSprite(env, 'boat', { x: ex - 400 * bs, y: ey - 70 * bs, w: 460 * bs, h: 260 * bs }, { swing: true, range: [ex - 4000, ex + 4000], ...limb }, (e) => { plumFrame(e, ex, ey, bs, Rb, { trim: big > 1.5 ? 0.8 : 1 }); });
+    anchor(env, 'smoke', { x: ex - 400 * bs, y: ey + 64 * bs, w: 300 * bs, h: 220 * bs }, { petals: { n: 8, size: 5.5 * bs, speed: 1 } });
+  }
+  yield;
+  if (!env.still) {
+    // one swallow in the open sky left of the peak (never over the light), gliding on a curving line; two tiny far ones
+    const sx = big > 1.5 ? 730 : 812, sy = big > 1.5 ? 470 : 470, path: Pt[] = [];   // (on phones too, left of the peak inside the tighter frame)
+    for (let k = 0; k <= 30; k++) { const u = k / 30; path.push([sx + 150 - 330 * u, sy + 40 - 70 * u - 46 * Math.sin(u * Math.PI)]); }
+    // (a window into the painting, inlay, keeps only the far birds: the strip's large swallow, magnified there, crowded it)
+    if (!env.inlay) ownSprite(env, 'walker', { x: sx - 48 * bs0 / 1.28, y: sy - 42 * bs0 / 1.28, w: 96 * bs0 / 1.28, h: 84 * bs0 / 1.28 }, { path, home: [sx, sy], speed: 10, bird: true }, (e) => swallowInk(e, sx, sy, 62 * bs0, -0.3, own('d5 swallow', 0), { bank: 0.7, lift: 0.35 }));
+    // (the far birds are tiny thick-thin open V glides, hazed by the mist, never grey crescents)
+    farBird(env, 1184, 552, 9, -0.12, own('d5 swallow', 1), 0.5);
+    farBird(env, 1203, 540, 6.5, 0.18, own('d5 swallow', 2), 0.6);
+    farBird(env, 1226, 548, 7.5, -0.05, own('d5 swallow', 3), 0.55);
+  }
 }
 
 /**
  * A thin fall in a cleft of the crag (round 5: the source of the one river), as the painters leave one: unpainted paper
- * framed by dark rock. Out of the notch at x (a world px column) it drops in three short tiers that step down and aside
- * the cleft, each ribbon uneven and broken where a rock lip crosses it, the lips dark against it; its foot is lost in a
- * bank of mist (the river comes out of the mist, beyond the crag). s: scale (phones draw it larger).
+ * in a shaded cleft. Out of the notch at x (a world px column) it drops in broken strands that step a little aside where
+ * the rock steps; its foot is lost in a plume of mist (the river comes out of the mist, beyond the crag). s: scale
+ * (phones draw it larger).
  */
 function waterfall(env: Env, x: number, crestY: (x: number) => number, s: number, R: Rng) {
+  // no lips, no ledges, no spray bars, no ruled rock rails (with them the fall reads as a white stick with crossbars:
+  // a pole, a ladder, an antenna). Two or three broken vertical strands of different widths, dry-brushed and tapered, stepping
+  // a little aside where the rock steps; a faint shaded cleft behind them; a plume of mist at the foot that melts into
+  // the plane's own mist.
   const { ctx, ink } = env;
   const { C, rgba } = ink;
-  let y = crestY(x) + 14 * s;                                    // under the notch: the fall comes out of the cleft
-  let cx = x;
-  const tiers: [len: number, w: number, dx: number][] = [[30, 1.7, -2.5], [42, 2.3, 3], [34, 2.8, -1.5]];
-  tiers.forEach(([len, w, dx], i) => {
-    const n = 8, pts: Pt[] = [];
-    for (let j = 0; j <= n; j++) {
-      const t = j / n;
-      pts.push([cx + (vnoise(t * 2.2 + i, 7.1, 91) - 0.5) * 1.4 * s + t * 0.8 * s, y + t * len * s]);
+  const y0 = crestY(x) + 13 * s, H = 104 * s;
+  const step = (t: number) => 2.4 * s * smoothstep01((t - 0.3) / 0.06) - 1.6 * s * smoothstep01((t - 0.63) / 0.06);   // where the rock steps
+  // the cleft: a soft, narrow shade behind the water (one wash, fading down into the mist)
+  const cl: Pt[] = [];
+  for (let i = 0; i <= 10; i++) { const t = i / 10; cl.push([x - (3.2 - 0.6 * t) * s + step(t), y0 + t * H * 0.85]); }
+  for (let i = 10; i >= 0; i--) { const t = i / 10; cl.push([x + (4.4 - 0.8 * t) * s + step(t), y0 + t * H * 0.85]); }
+  softWash(env, cl, rgba(mix3(C.ink, C.indigo, 0.45), 0.14), 2.2 * s);
+  const strands: [dx: number, w: number, t0: number, t1: number, al: number][] = [[0, 2.1, 0, 0.92, 0.88], [1.5, 1.1, 0.08, 0.78, 0.7], [-1.3, 0.75, 0.2, 0.62, 0.55]];
+  strands.forEach(([dx, w, t0, t1, al], k) => {
+    // each strand broken into two or three runs where the water parts on the rock
+    let t = t0;
+    while (t < t1) {
+      const len = Math.min(t1 - t, 0.16 + R() * 0.3);
+      const pts: Pt[] = [];
+      for (let j = 0; j <= 10; j++) {
+        const u = t + (len * j) / 10;
+        pts.push([x + dx * s + step(u) + (vnoise(u * 5 + k, 3.1, 17) - 0.5) * 0.9 * s, y0 + u * H]);
+      }
+      stroke(ctx, pts, { w: w * s * (0.8 + R() * 0.4), col: rgba(C.white, al * (1 - 0.35 * t)), tin: 0.25, tout: 0.4, min: 0.15, wob: 0.5, dry: 0.4, seed: 51 + k * 7 + t * 31 });
+      t += len + 0.03 + R() * 0.07;
     }
-    // the rock on each side first (a wash of the crag's ink, darker on the shaded right), then the paper left for the
-    // water over it: so the fall sits IN the rock, not on it
-    const side = (k: number) => pts.map(([px, py]): Pt => [px + k * (w * 0.5 + 1.6) * s, py]);
-    stroke(ctx, side(-1), { w: 1.6 * s, col: rgba(mix3(C.ink, C.indigo, 0.4), 0.28), tin: 0.3, tout: 0.3, wob: 0.7, dry: 0.35, seed: 31 + i });
-    stroke(ctx, side(1), { w: 2.2 * s, col: rgba(mix3(C.ink, C.indigo, 0.4), 0.4), tin: 0.25, tout: 0.3, wob: 0.7, dry: 0.3, seed: 41 + i });
-    // the lip it falls from: a boss of dark rock at one side of the cleft (the water runs on in front of it)
-    if (i > 0) {
-      const k = dx > 0 ? -1 : 1, [px, py] = pts[0];
-      stroke(ctx, [[px + k * (w * 0.4) * s, py - 1.5 * s], [px + k * (w * 0.5 + 4.5) * s, py + 0.5 * s], [px + k * (w * 0.5 + 5.5) * s, py + 3 * s]], { w: 1.4 * s, col: rgba(C.ink, 0.45), tin: 0.1, tout: 0.5, wob: 0.5, dry: 0.3, seed: 71 + i });
-    }
-    // the water: one ribbon, uneven, paler as it falls into the mist (never a ruled line)
-    stroke(ctx, pts, { w: w * s, col: rgba(C.white, 0.8 - i * 0.14), tin: 0.3, tout: 0.25, wob: 0.6, seed: 51 + i });
-    // a faint streak of falling water in it
-    stroke(ctx, pts.slice(1, -1).map(([px, py]): Pt => [px + (R() - 0.5) * w * 0.4 * s, py]), { w: 0.3 * s, col: rgba(C.indigoP, 0.28), tin: 0.3, tout: 0.5, dry: 0.4, seed: 61 + i });
-    // a breath of spray where it lands on the next lip
-    const end = pts[pts.length - 1];
-    if (i < tiers.length - 1) softWash(env, ellipse(end[0] + dx * 0.4 * s, end[1] + 1.5 * s, 3.5 * s, 1.4 * s, 12), rgba(C.white, 0.4), 1.2 * s);
-    cx = end[0] + dx * s;
-    y = end[1] + 1.5 * s;
   });
-  // its foot in the mist: the fall thins away into a long, low bank of it (laid over its last tier)
-  softWash(env, ellipse(cx + 4 * s, y - 6 * s, 30 * s, 6 * s, 18), rgba(C.mist, 0.36), 8 * s);
-  softWash(env, ellipse(cx + 14 * s, y + 3 * s, 52 * s, 8 * s, 18), rgba(C.mist, 0.32), 12 * s);
+  // its foot: a plume of mist rising off the pool, laid in two soft washes that run on into the plane's mist band
+  const fy = y0 + H * 0.9;
+  softWash(env, ellipse(x + 2 * s, fy - 4 * s, 16 * s, 9 * s, 18), rgba(C.white, 0.34), 7 * s);
+  softWash(env, ellipse(x + 8 * s, fy + 4 * s, 44 * s, 9 * s, 18), rgba(C.mist, 0.36), 12 * s);
+  softWash(env, ellipse(x + 18 * s, fy + 12 * s, 70 * s, 10 * s, 18), rgba(C.mist, 0.28), 16 * s);
+  // life (elements.ts waterfall): lights slide down the strands, the spray at the foot breathes
+  if (el('waterfall') && !env.still) anchor(env, 'smoke', { x: x - 46 * s, y: y0 - 8 * s, w: 104 * s, h: H + 44 * s }, { fall: { x: x + 0.3 * s, y0, y1: y0 + H * 0.9, hw: 7 * s } });
 }
+const smoothstep01 = (t: number) => { const c = Math.min(1, Math.max(0, t)); return c * c * (3 - 2 * c); };
 
 /**
  * The traveller, walking up a path to the right: a broad shallow hat, sloped shoulders, a white robe flaring at the

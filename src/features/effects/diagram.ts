@@ -5,7 +5,7 @@
  * over --dur-draw each, --draw-step apart; strokes sharing a data-order draw together), and everything is drawn by
  * the time it is 60% up the viewport, or at once if it was jumped past. Anything on screen at init is drawn at rest.
  * Drawn at rest: reduced motion, Still, no JS, print, forced colours. Labels, nodes and bands never move.
- * Print: every "Read as steps" list prints, open or closed (components.css + printSteps below).
+ * Print: every "Read as steps" list and every fold prints, open or closed (components.css + printSteps below).
  */
 import { cssTime } from '@/lib/css-time';
 
@@ -13,7 +13,8 @@ const TRIGGER = 0.9;
 const SETTLE = 0.4;
 const bound = new WeakSet<Element>();
 
-const reached = (el: Element) => el.getBoundingClientRect().top < innerHeight;
+// (an element with no box, a drawing folded behind "Read as steps", is not reached: it is observed and draws in when shown)
+const reached = (el: Element) => el.getClientRects().length > 0 && el.getBoundingClientRect().top < innerHeight;
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const still = () => document.documentElement.classList.contains('is-still');
 // (lib/css-time: a minified ".52s" is 520 ms, not 0.52)
@@ -58,7 +59,7 @@ function draw(el: Element) {
 const animations = (el: Element) => [el, ...el.querySelectorAll('[data-order]')].flatMap((n) => n.getAnimations());
 
 function printSteps(root: ParentNode): () => void {
-  const steps = [...root.querySelectorAll<HTMLDetailsElement>('details.diagram__steps')];
+  const steps = [...root.querySelectorAll<HTMLDetailsElement>('details.diagram__steps, details.fold')];
   if (!steps.length) return () => {};
   let opened: HTMLDetailsElement[] = [];
   const before = () => {

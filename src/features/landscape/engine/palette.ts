@@ -7,7 +7,7 @@
 //              misted values, near planes approach the deep ones; the mist always lies over the colour.
 //   figures    light colour over ink (the Qingming scroll's manner): grey tile, timber brown on wood, pale
 //              indigo clothes, white robes, willows in misted malachite. No red, yellow, gold or beige.
-// Strength 0 is ink only (round 3's painting, unchanged). Pans interpolate strength between scenes.
+// Strength 0 is ink only (the ink painting, unchanged). Pans interpolate strength between scenes.
 
 /** Mineral pigments, 0..255 sRGB: [deep, misted]. */
 export const PIGMENTS = Object.freeze({
@@ -24,17 +24,17 @@ export const PIGMENTS = Object.freeze({
  */
 export const PALETTES = Object.freeze({
   ink: Object.freeze({ scenes: Object.freeze([0, 0, 0, 0, 0, 0]), figures: 0 }),
-  // (fixer, 10 Oct: the Résumé's malachite and Contact's indigo at .25 / .20 did not read at all under their mist; the
-  // terraces and the crossing's water now carry them at .55 / .50, so every place has its own colour)
-  // (round 5: the lake keeps a breath of the blue-green and the lone peak a trace, so the colour runs along the whole
+  // (the Résumé's malachite and Contact's indigo at .25 / .20 do not read at all under their mist; the terraces and
+  // the crossing's water carry them at .55 / .50, so every place has its own colour)
+  // (the lake keeps a breath of the blue-green and the lone peak a trace, so the colour runs along the whole
   // scroll and only fades, never stops)
-  misted: Object.freeze({ scenes: Object.freeze([0.55, 0.40, 0.14, 0.55, 0.50, 0.08]), figures: 1 }),
+  misted: Object.freeze({ scenes: Object.freeze([0.85, 0.70, 0.36, 0.70, 0.75, 0.32]), figures: 1 }),   // the young palette, re-indexed to the six places
   rich: Object.freeze({ scenes: Object.freeze([0.75, 0.60, 0.22, 0.75, 0.70, 0.12]), figures: 1.25 }),
 });
 
 export const PALETTE_NAMES = Object.freeze(Object.keys(PALETTES));
 export const DEFAULT_PALETTE = 'misted';
-/** A palette's name: 'ink' (round 3's painting), 'misted' (the site's) or 'rich'. */
+/** A palette's name: 'ink' (the ink painting, no colour), 'misted' (the site's) or 'rich'. */
 export type PaletteName = keyof typeof PALETTES;
 
 /** A palette name, or the default when it is not one. */
@@ -57,7 +57,7 @@ export const LEAN = Object.freeze([
 
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 const smooth = (a: number, b: number, x: number) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
-const SEAM = 0.34;   // round 5: wide, so the colour shifts gradually along the scroll (never a band's edge at a seam)
+const SEAM = 0.34;   // wide, so the colour shifts gradually along the scroll (never a band's edge at a seam)
 
 /**
  * Pigment strength and lean at world x `u` (stretches), smoothly windowed across the seams, so a pan

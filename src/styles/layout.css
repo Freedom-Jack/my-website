@@ -44,7 +44,7 @@ main {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  column-gap: var(--space-s);
+  column-gap: var(--header-gap);
   min-height: var(--header-h);
 }
 .home-link {
@@ -119,8 +119,8 @@ main {
   text-decoration: none;
 }
 
-/* below 340 px: the nav takes a row of its own under the home link */
-@media (max-width: 21.1875rem) {
+/* below 357 px: the nav takes a row of its own under the home link (one row is the promise from 360, DESIGN 4.9) */
+@media (max-width: 22.25rem) {
   .site-header__inner {
     padding-block: 0.25rem;
   }
@@ -336,6 +336,8 @@ html.no-landscape .closing__art {
 } /* e.g. Work's "Six projects, newest first" */
 /* a date inside a heading: "Now · October 2026" */
 .sec__date {
+  margin-inline-start: 0.5em;
+  vertical-align: baseline;
   font-size: var(--fs-small);
   font-weight: var(--w-body);
   line-height: 1;
@@ -413,7 +415,10 @@ html.no-landscape .closing__art {
   inset-block: min(0px, 50% - 22px);
 }
 
-/* a row of actions: one .ink-btn at most, then quiet links (hero, 404, résumé) */
+/* a row of actions: one .ink-btn at most, then quiet links (hero, 404, résumé), all at the one UI weight */
+.actions > a.brush {
+  font-weight: var(--w-ui);
+}
 .actions {
   display: flex;
   flex-wrap: wrap;
@@ -481,8 +486,9 @@ html.no-landscape .closing__art {
    A two-column grid: the reading column (680) and the rail (300), 48 apart. Children sit in the reading
    column; margin notes in the rail beside the paragraph they follow; .wide blocks span both (capped at 960).
    Placement is in source order (sparse auto-flow, never `dense`, which would pile the notes at the top): a
-   note that follows a paragraph shares its row. Nested lists opt in by subgrid: a case's dl.case__body and
-   its dd elements (and any .rail-sub) carry the rail through, so a note inside a dd still reaches the rail. */
+   note that follows a paragraph shares its row. Nested lists opt in by subgrid: a case's .case__body and
+   its .case__part sections (and any .rail-sub) carry the rail through, so a note inside a part still reaches the
+   rail. */
 @media (min-width: 75rem) {
   .has-rail {
     display: grid;
@@ -491,7 +497,12 @@ html.no-landscape .closing__art {
     align-items: start;
   }
   /* zero specificity, so a margin note's own rule (components.css) puts it in the rail */
-  :where(.has-rail > *, .has-rail .rail-sub > *, .has-rail > .case__body > *, .has-rail > .case__body > dd > *) {
+  :where(
+    .has-rail > *,
+    .has-rail .rail-sub > *,
+    .has-rail > .case__body > *,
+    .has-rail > .case__body > .case__part > *
+  ) {
     grid-column: 1;
     min-width: 0;
     max-width: none;
@@ -504,20 +515,20 @@ html.no-landscape .closing__art {
   }
   .has-rail .rail-sub,
   .has-rail > .case__body,
-  .has-rail > .case__body > dd {
+  .has-rail > .case__body > .case__part {
     display: grid;
     grid-template-columns: subgrid;
     grid-column: 1 / -1;
     align-items: start;
   }
-  /* A group of notes inside a dd (MarginNotes groups two or more) would stretch its own dd's row and leave a
+  /* A group of notes inside a part (MarginNotes groups two or more) would stretch its own part's row and leave a
      hole under the paragraph; instead it is taken out of the row's height (absolute in its own grid area: the
-     rail beside the paragraph) and runs on down the rail beside the next terms (Outcome, Evidence, Stack).
-     The dd keeps display: grid (no display: contents), so its semantics are untouched. */
-  .has-rail > .case__body > dd {
+     rail beside the paragraph) and runs on down the rail beside the next parts (Outcome, Evidence, Stack).
+     The part keeps display: grid (no display: contents), so its semantics are untouched. */
+  .has-rail > .case__body > .case__part {
     position: relative;
   }
-  .has-rail > .case__body > dd > .margin-notes {
+  .has-rail > .case__body > .case__part > .margin-notes {
     position: absolute;
     grid-column: 2;
     grid-row: 1;
@@ -545,6 +556,90 @@ html.no-landscape .closing__art {
 }
 @media print {
   .closing {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   Windows into the painting (components/page/Glimpse; elements.ts glimpses): below 1200 px, at a page's major
+   breaks, a short box the engine paints with the page's own place, each one further along the place and higher in
+   one climb through it (a handscroll unrolled down the page). It takes the section's gap (the section after it sits
+   directly under it), so a break costs the reader about one window's height; its top and bottom 40 px are mist and
+   paper (the painting keeps 40 px off the words on either side). Phones: a full-bleed 180 px box; tablets: the
+   column's width (at most 40 rem) with paper on either side; a phone held sideways: none (its 390 px tall screen
+   keeps only the strip and the closing; a 110 px sliver of a window adds little there). Until the engine paints a
+   window, and wherever it cannot (no JavaScript, no WebGL, a software rasteriser, the governor's veto), the window's
+   own still stands in it (--glimpse-still, cut by build:stills at its rest pose), cross-fading to the painting over
+   300 ms ([data-live]): never an empty hole. The short pages (Writing, Contact) have none: their closing ends on the
+   place, near and large.
+     <div class="glimpse bleed" data-landscape="glimpse" aria-hidden="true" style="--glimpse-still: …"></div>
+   ========================================================================== */
+.glimpse {
+  display: none;
+}
+@media (max-width: 74.99rem) {
+  html.el-glimpses .glimpse {
+    display: block;
+    position: relative;
+    height: var(--glimpse-h);
+    pointer-events: none; /* art only: never over a link's hit area (the brush links' 44 px reach into the gap) */
+  }
+  html.el-glimpses .glimpse + :is(.sec, section) {
+    margin-block-start: 0;
+  }
+  /* (the still: the window's own rest pose, between the 40 px margins, melting into the paper) */
+  html.el-glimpses .glimpse::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--glimpse-still, none) center / cover no-repeat;
+    opacity: 1;
+    transition: opacity 0.3s linear;
+  }
+  html.el-glimpses .glimpse[data-live]::before {
+    opacity: 0;
+  }
+  html.is-still.el-glimpses .glimpse::before {
+    transition: none;
+  }
+  /* a short page's closing: a little taller, the place settled in it, near and large */
+  html.el-glimpses .closing__art[data-glimpse='end'] {
+    min-height: var(--glimpse-h-end);
+  }
+}
+/* tablets: the window is the column's width, with paper on either side (a 768 px band of mist read as a stripe) */
+@media (min-width: 40rem) and (max-width: 74.99rem) {
+  html.el-glimpses .glimpse {
+    width: min(100%, 40rem);
+    margin-inline: auto;
+  }
+  /* (a tablet's column is shorter: one window fewer, Home's second) */
+  html.el-glimpses .glimpse--phone {
+    display: none;
+  }
+  html.el-glimpses .glimpse--phone + :is(.sec, section) {
+    margin-block-start: var(--space-section);
+  }
+}
+/* a phone held sideways (a 390 px tall screen): no window mid-page; only the strip and the closing */
+@media (max-height: 31.25rem) and (max-width: 74.99rem) {
+  html.el-glimpses .glimpse {
+    display: none;
+  }
+  html.el-glimpses .glimpse + :is(.sec, section) {
+    margin-block-start: var(--space-section);
+  }
+  html.el-glimpses .closing__art[data-glimpse='end'] {
+    min-height: var(--closing-h);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html.el-glimpses .glimpse::before {
+    transition: none;
+  }
+}
+@media print {
+  .glimpse {
     display: none !important;
   }
 }
@@ -582,9 +677,9 @@ main:has(> .closing:last-child) + .site-footer {
    - phones whose labels do not fit one row (large text, WCAG 1.4.4; the footer frame is narrower than 20.3em of
      its own text, the labels' width plus their .5rem gaps), and browsers without subgrid or container queries:
      the art keeps the geography and the labels wrap in a flex row (Contact goes to a second line).
-   Each label's hit area also covers its column of the art (not in the wrapping row). Ticks mark every place;
-   "you are here" (the aria-current label, from the route) gets its
-   brush mark and a taller ink tick (by :has() below, and StoryMap's .is-here where :has() is missing). */
+   Each label's hit area also covers its column of the art (not in the wrapping row). Ticks mark every place, all
+   alike; "you are here" (the aria-current label, from the route) gets its brush mark (and, with the sun element,
+   its place holds the sun: finish.css). */
 .site-footer > .frame {
   container: story-map / inline-size;
 } /* the map's width: its windows' unit, its labels' fit */
@@ -682,7 +777,17 @@ main:has(> .closing:last-child) + .site-footer {
   --ra3: 0.844;
   /* a slanted (8deg) gradient's stop for a boundary at x across the window's middle row: x cos 8 + h sin 8 / 2 */
   --mask:
-    linear-gradient(to bottom, transparent, #000 7%, #000 calc(100% - var(--fade-b)), transparent),
+    /* (the sky band feathers into paper over its top 35 % and its foot over 25 %: never a ruled band) */
+    linear-gradient(
+      to bottom,
+      transparent,
+      rgb(0 0 0 / 0.25) 12%,
+      rgb(0 0 0 / 0.7) 24%,
+      #000 35%,
+      #000 calc(100% - max(var(--fade-b), 25%)),
+      rgb(0 0 0 / 0.45) calc(100% - max(var(--fade-b), 25%) / 2),
+      transparent
+    ),
     linear-gradient(
       var(--tl),
       transparent calc(var(--h) * 0.0696),
@@ -842,22 +947,6 @@ main:has(> .closing:last-child) + .site-footer {
   margin-left: -0.5px;
   background: var(--rule-rest);
 }
-.story-map__tick.is-here {
-  width: 2px;
-  height: 14px;
-  margin-left: -1px;
-  background: var(--ink-1);
-}
-.story-map:has(> .story-map__list > [data-stretch='0'] > a[aria-current]) .story-map__tick[data-stretch='0'],
-.story-map:has(> .story-map__list > [data-stretch='1'] > a[aria-current]) .story-map__tick[data-stretch='1'],
-.story-map:has(> .story-map__list > [data-stretch='2'] > a[aria-current]) .story-map__tick[data-stretch='2'],
-.story-map:has(> .story-map__list > [data-stretch='3'] > a[aria-current]) .story-map__tick[data-stretch='3'],
-.story-map:has(> .story-map__list > [data-stretch='4'] > a[aria-current]) .story-map__tick[data-stretch='4'] {
-  width: 2px;
-  height: 14px;
-  margin-left: -1px;
-  background: var(--ink-1);
-}
 
 /* the labels */
 .story-map__list {
@@ -888,10 +977,17 @@ main:has(> .closing:last-child) + .site-footer {
    every link keeps the spacing between them even (a short word is centred in its 44 px) */
 .story-map__list a,
 .site-footer__links a,
-.still-toggle {
+.site-footer .still-toggle {
   --brush-y: calc(50% + 0.78em);
-  padding-bottom: 0;
+  padding-bottom: 0; /* (.site-footer .still-toggle: it outranks .brush's own padding, which loads later) */
   padding-inline: 0.25rem;
+}
+/* the labels are the site's one "next" (no "Next:" links): from 640 they speak in the header nav's voice */
+@media (min-width: 40rem) {
+  .story-map__list a {
+    font-size: var(--fs-nav);
+    font-weight: var(--w-ui);
+  }
 }
 @media (max-width: 23.4375rem) {
   /* tight phones: the five labels still share one row at 320 */
@@ -920,6 +1016,7 @@ main:has(> .closing:last-child) + .site-footer {
 .site-footer__copy {
   margin: 0;
   flex-basis: 100%;
+  padding-inline-end: 0.25rem; /* the links' own side padding: so the first dot is centred like the rest */
 }
 .site-footer__links {
   display: flex;

@@ -4,6 +4,7 @@ import { PageMain } from '@/components/page/PageMain';
 import { Strip } from '@/components/page/Strip';
 import { Inline } from '@/lib/inline';
 import { CopyEmail } from './CopyEmail';
+import { LocalTime } from './LocalTime';
 import styles from './contact.module.css';
 
 /**
@@ -14,12 +15,13 @@ import styles from './contact.module.css';
  */
 export function ContactPage() {
   const [user, domain] = site.email.split('@');
-  const where = contact.where
+  const [whereA, whereB] = contact.where
     .replace('{city}', site.city)
     .replace('{country}', site.countryName)
-    .replace('{timeZone}', site.timeZone);
+    .replace('{timeZone}', site.timeZone)
+    .split('{time}');
   return (
-    <PageMain page="contact">
+    <PageMain page="contact" glimpseEnd>
       <Strip variant="sub" labelledBy="contact-title">
         <h1 className="page-title" id="contact-title">
           {contact.title}
@@ -88,7 +90,11 @@ export function ContactPage() {
             </dd>
           </div>
         </dl>
-        <p className={`small ${styles.contact__where}`}>{where}</p>
+        <p className={`small ${styles.contact__where}`}>
+          {whereA}
+          <LocalTime zone={site.timeZoneId} text={contact.time} />
+          {whereB}
+        </p>
       </section>
     </PageMain>
   );

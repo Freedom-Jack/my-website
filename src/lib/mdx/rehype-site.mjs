@@ -10,8 +10,9 @@
 //    phones), its contents in one span, and the table labelled by the heading just above it.
 // 3. A paragraph that is only a bold label and a colon ("**Core components**:") introduces the list below it:
 //    .note__list-title, so the list follows it closely.
-// 4. A Work case (content/work/*.mdx): its "## Label" sections become the case's labelled body (dl.case__body:
-//    Context · What I did · Outcome · Evidence · Stack); Evidence and Stack are small print, the Evidence list
+// 4. A Work case (content/work/*.mdx): its "## Label" sections become the case's labelled body (div.case__body >
+//    section.case__part > h2.case__label + content: Context · What I did · Outcome · Evidence · Stack); Evidence and
+//    Stack are small print, the Evidence list
 //    plain lines; two or more <Note>s in a row share one cell of the margin rail (div.margin-notes).
 import { toString } from 'hast-util-to-string';
 import { visit, SKIP } from 'unist-util-visit';
@@ -110,21 +111,23 @@ const slug = (s) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
 
-/** content/work/*.mdx: "## Label" + content → dl.case__body > dt + dd (the demo's flagship case body). */
+/** content/work/*.mdx: "## Label" + content → div.case__body > section.case__part > h2.case__label + the part's content
+ *  (the demo's flagship case body; a heading per part, so the Outcome is one keystroke away for a screen reader). */
 function caseBody(tree) {
   const kids = tree.children.filter((n) => !blank(n));
   const first = kids.findIndex((n) => n.type === 'element' && n.tagName === 'h2');
   if (first < 0) return;
   const before = kids.slice(0, first);
-  const dl = el('dl', { className: ['case__body'] }, []);
+  const dl = el('div', { className: ['case__body'] }, []);
   let dd = null;
   let part = '';
   for (const n of kids.slice(first)) {
     if (n.type === 'element' && n.tagName === 'h2') {
       const label = toString(n).trim();
       part = slug(label);
-      dl.children.push(el('dt', { id: n.properties?.id }, n.children));
-      dd = el('dd', { dataPart: part }, []);
+      dd = el('section', { className: ['case__part'], dataPart: part }, [
+        el('h2', { className: ['case__label'], id: n.properties?.id }, n.children),
+      ]);
       dl.children.push(dd);
       continue;
     }
@@ -136,7 +139,7 @@ function caseBody(tree) {
   }
   // two or more notes in a row share one rail cell
   for (const d of dl.children) {
-    if (d.tagName !== 'dd') continue;
+    if (d.tagName !== 'section') continue;
     const out = [];
     for (let i = 0; i < d.children.length; i += 1) {
       if (isNote(d.children[i]) && isNote(d.children[i + 1])) {

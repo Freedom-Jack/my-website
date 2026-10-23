@@ -1,8 +1,20 @@
 {
-  "fetched": "2026-10-10T03:14:19Z",
+  "fetched": "2026-10-21T00:00:00Z",
   "source": "https://api.github.com/users/Freedom-Jack/repos?per_page=100&sort=pushed",
-  "note": "Build-time snapshot of the public candidates for Work's \"In the open\" (tools/sync-projects.py --discover). Never fetched by the browser.",
+  "note": "Build-time snapshot of the public candidates for Work's \"In the open\" (design-demo/tools/sync-projects.py --discover; logic-foundry added by hand from the API on 2026-10-21). Never fetched by the browser.",
   "repos": [
+    {
+      "name": "logic-foundry",
+      "description": null,
+      "size": 44,
+      "fork": false,
+      "archived": false,
+      "private": false,
+      "pushed_at": "2026-10-14T13:12:34Z",
+      "created_at": "2026-10-13T14:16:24Z",
+      "topics": [],
+      "html_url": "https://github.com/Freedom-Jack/logic-foundry"
+    },
     {
       "name": "ai-stock-insight",
       "description": "A ticker-driven “watch everything important” news agent for stocks",

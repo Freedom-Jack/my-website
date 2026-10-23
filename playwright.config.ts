@@ -5,6 +5,8 @@ import { defineConfig, devices } from '@playwright/test';
  * DESIGN §6 budgets. They run against the production build (`npm run build` with NEXT_PUBLIC_INK_QA=1, which adds
  * only the painting's read-only debug handle), served by `next start`.
  * Locally the system Chrome is used (no browser download); in CI, Playwright's own Chromium.
+ * An already running server is reused, locally and in CI, where the workflow serves the build before the PDF, hard
+ * rules and links steps; the tests start one themselves only when nothing answers on the port.
  */
 const PORT = Number(process.env.PORT || 3100);
 const ci = !!process.env.CI;
@@ -34,7 +36,7 @@ export default defineConfig({
   webServer: {
     command: `node node_modules/next/dist/bin/next start -p ${PORT}`,
     url: `http://127.0.0.1:${PORT}/`,
-    reuseExistingServer: !ci,
+    reuseExistingServer: true,
     timeout: 60_000,
   },
 });

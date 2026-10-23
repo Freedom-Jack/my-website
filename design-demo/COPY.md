@@ -510,16 +510,21 @@ Single source of truth for every word on the redesigned site. Builders paste tex
 
 - **h2:** Summary
 
-Lead AI/ML Architect with 5+ years building production AI and the data systems beneath it. Architected an LLM-powered RAG assistant that resolved about 90% of questions on its own for 50,000+ users and returned 525% ROI within 12 months (CGI Impact Award 2024). Now leading a LangGraph agent for a proprietary programming language, projected to cut manual work by 50%. Earlier, built a fraud loss-ratio model with a 321% lift over a top-five bank benchmark.
+Lead AI/ML Architect and Tech Lead at CGI’s AI Center of Excellence with 5+ years delivering LLM agents, RAG platforms, and ML systems to enterprise production for major banks and insurers. Two-time CGI Impact Award winner spanning agent architecture, evaluation, technical leadership, and multi-cloud AI delivery. Built an LLM-powered RAG assistant that resolved about 90% of questions on its own for 50,000+ users and returned 525% ROI within 12 months. Now leading a LangGraph agent for a proprietary programming language, projected to cut manual work by 50%.
+*[22 Oct 2026: Jack made his career-kit résumé (`resume_ats.tex` in Freedom-Jack/career-kit) the source of truth. Its facts win; where it only condenses a role, the site keeps its fuller wording. The first two sentences are the tex's summary, opening "Architect" (the tex said "Engineer" until Jack changed it); the last two are the site's earlier summary, kept at Jack's word so the first screen meets DESIGN §6 (115 / 150 words at 1440, display ÷ readable .07). Phone stays off the site.]*
 
 ### Experience
 
 - **h2:** Experience
 - *[The vertical brush timeline (moved from the old About page), drawn still: newest first. Each entry: its start year at the left rail (a visual index only, `aria-hidden`; the full dates are in the text), then the role (h3), then organisation · place · dates in small print, then the bullets. The rail years are: 2025, 2023, 2021, 2020, 2019.]*
 
-#### Lead AI/ML Architect, AI Center of Excellence
+#### Lead AI/ML Architect & Tech Lead, AI Center of Excellence
 - **Organisation · place · dates:** CGI Inc. · Toronto, ON · Jan 2025 – Present
+- CGI Impact Award 2026: led development of an LLM-powered email agent for enterprise email workflows. 89% autonomous handling across 2,000+ emails per month.
 - Lead an AI agent for a proprietary programming language: LangGraph dual-state dynamic workflow, vLLM-served LLMs with RAG, EBNF structured outputs and PII filtering. It writes documentation, extracts business rules, maintains legacy scripts and prepares for migration. Projected 50% labour reduction.
+- Architected a scalable agent evaluation pipeline with SME-adjudicated rubrics, reference cases, regression suites, and calibrated LLM-as-a-judge evaluators, for decision tasks with noisy and conflicting human labels.
+- Drive technical direction across 13+ AI initiatives for TD Bank’s compliance SBU, guiding architecture and delivery across a cross-functional team of about 20.
+  *[The first, third and fourth bullets are from the career-kit résumé (22 Oct 2026), in its order. TD Bank is the second client the site names, after RBC (DESIGN §11.E 3).]*
 
 #### Data Architect & Engineering Lead, Senior Consultant
 - **Organisation · place · dates:** CGI Inc. · Toronto, ON · Aug 2023 – Dec 2024
@@ -557,9 +562,9 @@ Lead AI/ML Architect with 5+ years building production AI and the data systems b
 ### Education
 
 - **h2:** Education
-- **Entry:** **York University**, Toronto, ON. B.Sc. Computer Science, Specialized Honours, 2017 – 2021.
-- **Detail:** GPA 3.9/4.0 · Dean’s List
-  *[Jack, 10 Oct 2026: graduated 2021. The honour's wording is still pending (10.1): add nothing beyond these two items.]*
+- **Entry:** **York University**, Toronto, ON. B.Sc. Computer Science, Specialized Honours, 2017 – 2020.
+- **Detail:** GPA 3.9/4.0 · First in Class · Dean’s List (all semesters)
+  *[Jack, 22 Oct 2026, from the career-kit résumé: graduated 2020 (replaces 2021 of 10 Oct); First in Class and "all semesters" added.]*
 
 ### Certifications and awards
 
@@ -567,8 +572,8 @@ Lead AI/ML Architect with 5+ years building production AI and the data systems b
 - Microsoft Certified: Azure Solutions Architect Expert (2022)
 - Google Cloud Professional Cloud Developer (2023)
 - CGI Impact Award (2024), for the enterprise RAG assistant
-- CGI Impact Award (2026)
-  *[Per Jack and his LinkedIn (10 Oct 2026). Never attribute the 2026 award to a project.]*
+- CGI Impact Award (2026), for the email agent
+  *[Per Jack and his LinkedIn (10 Oct 2026). Until 22 Oct the project was left unnamed; the career-kit résumé, Jack's source of truth, names the email agent.]*
 
 ### Print footer (print only)
 
@@ -982,7 +987,8 @@ Key facts (details and sources on the linked pages):
 | ~90% autonomous resolution, 50,000+ users | Home (What I work on), Work, Résumé, llms.txt | Résumé PDF; old about.ts | The product is public (CGI product page). The figures are not on any public page. |
 | 525% ROI within 12 months | Work, Résumé, llms.txt | Résumé PDF; old about.ts | No |
 | CGI Impact Award 2024 (the RAG assistant) | Work, Résumé, JSON-LD, resume.json, llms.txt | Résumé PDF; old about.ts | No public page found |
-| CGI Impact Award 2026 (no project named) | Résumé, JSON-LD, resume.json, llms.txt | Per Jack and his LinkedIn (10 Oct 2026) | No public page found |
+| CGI Impact Award 2026 (the email agent: 89% autonomous handling, 2,000+ emails a month) | Résumé, JSON-LD, resume.json, llms.txt | Per Jack and his LinkedIn (10 Oct 2026); the project and figures from his career-kit résumé (22 Oct 2026) | His public career-kit résumé |
+| Agent evaluation pipeline; 13+ AI initiatives for TD Bank's compliance SBU, a team of about 20 | Résumé, llms.txt | Jack's career-kit résumé (22 Oct 2026) | His public career-kit résumé |
 | "two CGI Impact Awards" | Home (About me) | Jack's own words; the two rows above | Follows from the two rows above |
 | "for banks and insurers" | Home (hero), Person description, llms.txt | Jack's own words; the cases: RBC (a bank), the insurance assistant and the insurance policy-history database | Follows from the cases |
 | Projected 50% labour reduction (proprietary-language agent) | Home (What I work on), Work, Résumé, llms.txt | Résumé PDF | No. A projection, labelled as one. |

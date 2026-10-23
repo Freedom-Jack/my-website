@@ -50,6 +50,10 @@ export interface SceneBase {
   draft: boolean;
   draftScale: number;
   aspect: number;
+  /** A story-map still (QA frame): only Home's light keeps its heart and bloom. */
+  stillL?: number;
+  /** Seconds into Home's once-a-session morning (>= 9: none, at rest). */
+  morn?: number;
 }
 /** What scene() paints: one view's framing, composition, figures and arrival. */
 export interface SceneU extends SceneBase {
@@ -79,6 +83,8 @@ export interface SceneU extends SceneBase {
   /** 4b depth layers: [first plane, last plane, 1 = over transparent paper, 0], and the crop [x0, width] (view uv). */
   planes?: Float32Array;
   crop?: Float32Array;
+  /** Paint into the lower (0) or upper (1) half of the view's buffer (a window's two depth layers). */
+  half?: number;
 }
 
 /** A window as present() lays it: its view at its live box. */
@@ -93,6 +99,30 @@ export interface PresentWindow {
   keep: Float32Array | null;
   /** How far its painting has sunk inside its box (0..1 of its height). */
   sink: number;
+  /** The front depth layer's view (index.ts PART; the window's own view is then its back), or null. */
+  near?: string | null;
+  /** [on, the back's sink, the mist between the layers (box fraction), the front's sideways drift (box widths)]. */
+  part?: Float32Array | null;
+}
+/** The windows into the painting on screen (elements.ts glimpses), below 1200 px (index.ts glimpseU), at most
+ *  two (shaders.ts GLN). Each has its own view: two depth layers painted for its own framing, the back in the lower half
+ *  of the view's buffer and the front (premultiplied, over transparent paper) in the upper half. */
+export interface PresentGlimpse {
+  /** Each window's view. */
+  ids: string[];
+  /** Per window (GLN x vec4): its box (canvas uv, y up); [the back's and the front's drop, their pans] (view uv); [the
+   *  view's uv offset and scale for the box's uv: x0, sx, y0, sy]; [the box's height (CSS px), the words' margin (CSS
+   *  px), the box's width (CSS px), seed (negative: a short page's end)]. */
+  rects: Float32Array;
+  a: Float32Array;
+  b: Float32Array;
+  f: Float32Array;
+  /** [the camera's height 0..1 (cooler, paler air), the light's bloom kept 0..1, the front's ink deepened 0..1, the
+   *  painting's fade-in 0..1]; [the sea of cloud's surface (box uv, < -0.5 none), the mist between the layers (box uv,
+   *  < -0.5 none), a sideways phone's slim window 0/1, 0]; the view's world mapping (as a window's view). */
+  c: Float32Array;
+  d: Float32Array;
+  m: Float32Array;
 }
 /** 4b: the living ground's three depth layers and the mist between them (index.ts stageU). */
 export interface StageU {
@@ -106,6 +136,15 @@ export interface StageU {
   rects: Float32Array;
   cloud: Float32Array;
   curt: Float32Array;
+  /** [the inner place's far-sky air 0..1, its layers' soft foot (crop fraction), the column's edge (uv x), a
+   *  seed] and [the footer's top (uv y, up), its feather (uv), on 0/1, unused]. */
+  air?: Float32Array;
+  foot?: Float32Array;
+  /** The inner places' grade on the stage: [hero box y0, y1 (uv, up, at the page's top), keep-out x, ramp]. */
+  grade?: Float32Array;
+  /** [the right end of the page's row rules (uv x; 0 none), how far the lifted middle and near layers clear it
+   *  (0..1: the lift)]. */
+  rule?: Float32Array;
 }
 /** 4b small life on show (index.ts lifeU): a small table the present shader works out once per pixel. */
 export interface LifeTable {
@@ -120,10 +159,20 @@ export interface LifeTable {
   ridge: string | null;
   sprite: string | null;
   fig: string | null;
+  /** The stirred water's ring sets (elements.ts; 4 x [uv x, y, age s, 2 x kind + seed]) and their strength; the
+   *  plum's gust ([age s, lean, strength, nudge rad]) and its petals ([origin uv x, y, size uv x, 0]). */
+  stir: Float32Array;
+  stirK: Float32Array;
+  gust: Float32Array;
+  gust2: Float32Array;
 }
 /** What present() lays on screen. */
 export interface PresentU {
   aspect: number;
+  /** A story-map still (QA frame): only Home's light keeps its heart and bloom. */
+  stillL?: number;
+  /** Seconds into Home's once-a-session morning (>= 9: none, at rest). */
+  morn?: number;
   windows: PresentWindow[];
   life: LifeTable | null;
   horizon: { id: string; k: number; view: Float32Array } | null;
@@ -141,10 +190,23 @@ export interface PresentU {
   wakeR: number;
   sweep: Float32Array;
   sweepSeed: number;
+  /** The silk veil: the text keep-out's right edge, screen uv x (0 = none). */
+  sweepKeep?: number;
+  /** The silk veil's mist dissolve: copy this frame after drawing it (a long jump before its splice). */
+  grab?: boolean;
+  /** How much of the grabbed frame still shows over this one (a long jump after its splice), 1 -> 0. */
+  hold?: number;
   stage: StageU | null;
+  /** The windows into the painting on screen (null: none). */
+  glimpse?: PresentGlimpse | null;
+  /** A pixel outside every painted rect is written as paper at once (below 1200 px with the windows on). */
+  paperOut?: boolean;
   /** 4b living veils (shaders.ts PRESENT: uLive, uLive2). */
   live: Float32Array;
   live2: Float32Array;
+  /** The scroll's air (elements.ts air): [on, speed, drift, envelope], [plum lean, ribbon bow, strength, 0],
+   *  [light swell, warmth, 0, 0], the petals aloft (3 x 2 vec4). null = none (the approved scroll). */
+  air?: { a: Float32Array; b: Float32Array; c: Float32Array; petals: Float32Array; petalsB: Float32Array } | null;
   /** CSS px per buffer px, the pan in CSS px, the grain's strength and its texel. */
   px: number;
   panPx: number;

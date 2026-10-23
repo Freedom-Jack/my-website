@@ -43,5 +43,5 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "legacy-v1", "design-demo", ".next/cache"]
+  "exclude": ["node_modules", "design-demo", ".next/cache"]
 }

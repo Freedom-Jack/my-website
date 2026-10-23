@@ -29,6 +29,12 @@ export async function GET() {
     <link>${absolute('/writing/')}</link>
     <description>${esc(writing.feed.description)}</description>
     <language>en-CA</language>
+    <lastBuildDate>${rfc822(
+      notes
+        .map((n) => n.modified ?? n.published)
+        .sort()
+        .at(-1) ?? '2026-01-01',
+    )}</lastBuildDate>
     <managingEditor>${site.email} (${esc(site.name)})</managingEditor>
     <atom:link href="${absolute('/writing/feed.xml')}" rel="self" type="application/rss+xml"/>
 ${items}

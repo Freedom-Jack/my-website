@@ -1,6 +1,7 @@
 /**
  * The footer story map's five scene stills, cut at build time from the real engine (DESIGN 11.B), so the map is
- * the painting itself in miniature. public/scenes/<place>@1x|2x.webp + manifest.json, read by StoryMap.
+ * the painting itself in miniature. public/scenes/<place>[-lit]@1x|2x.webp (each place dim and lit) + manifest.json,
+ * read by StoryMap; and the windows' stills (public/scenes/glimpse/, below).
  *
  *   NEXT_PUBLIC_INK_QA=1 npm run build && npm start     a QA build (it exposes the engine as window.__inkEngine)
  *   npm run build:stills                                cut all five; needs Google Chrome (headless, SwiftShader)
@@ -40,6 +41,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { chromium, type Page } from '@playwright/test';
 import { PLACES as SITE_PLACES, STORY_MAP, type PageId } from '../src/features/landscape/places.ts';
+import { LIGHTS } from '../src/features/landscape/engine/lights.ts';
 
 const ROOT = process.cwd();
 const args = process.argv.slice(2);
@@ -110,7 +112,7 @@ const PALETTE = 'misted'; // the site's default palette
 const PAPER = [239, 241, 238]; // --paper and the shader's PAPER (#EFF1EE); divided out to white
 const STABLE_MS = 1500; // two captures this far apart must match before a still is cut
 const CAP_FILE = 16 * 1024; // bytes, any one still
-const CAP_TOTAL = 60 * 1024; // bytes, all ten
+const CAP_TOTAL = 110 * 1024; // bytes, all twenty (each place dim and lit, at 1x and 2x)
 const CHROME_ARGS = [
   '--use-angle=swiftshader',
   '--enable-unsafe-swiftshader',
@@ -119,6 +121,47 @@ const CHROME_ARGS = [
 ];
 const OUT_DIR = path.join(ROOT, 'public', 'scenes');
 const MANIFEST = path.join(OUT_DIR, 'manifest.json');
+
+// ------------------------------------------------------------------------------------------------ the windows' stills
+// The windows (elements.ts glimpses): each window into the painting has its own still, its rest pose ("Still the
+// landscape" on), cut from the page at 390 x 844 (DPR 2) with the words hidden: public/scenes/glimpse/<id>@1x|2x.webp.
+// The window shows it until the engine paints it (and wherever it cannot), then cross-fades to the painting (layout.css
+// .glimpse[data-live]). Recorded in the manifest's `glimpses` (inputs: the same as the map's).
+const GLIMPSE_PAGES = [
+  { page: 'home', route: '/', n: 2 },
+  { page: 'work', route: '/work/', n: 2 },
+  { page: 'resume', route: '/resume/', n: 2 }, // (before Experience and before Skills; never in the timeline)
+] as const;
+const GLIMPSE_VP = { width: 390, height: 844, dpr: 2 };
+const GLIMPSE_DIR = path.join(OUT_DIR, 'glimpse');
+const GLIMPSE_Q = 0.8;
+const CAP_GLIMPSE = 40 * 1024; // bytes, any one window's still
+const CAP_GLIMPSE_TOTAL = 260 * 1024; // all of them (12 files)
+const glimpseName = (page: string, j: number, d: number) => `${page}-${j}@${d}x.webp`;
+// (the box holds no words: only the header, which may return over it, is hidden)
+const GLIMPSE_HIDE = `.site-header, .skip-link, .seal { visibility: hidden !important; }`; // (the seal too: it would leave a red row on Home's first window)
+// window j of the page's laid-out ones painted and shown, at rest, and the loop quiet
+const GLIMPSE_SETTLE_JS = `(async ([n, j]) => {
+  await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  const h = window.__ink; if (!h) return false;
+  const s = h.stats();
+  if (s.arriving || s.pending || s.sweeping || s.deferred || !s.still) return false;
+  const l = (s.glimpses && s.glimpses.list || []).filter((g) => !g.end && Number.isFinite(g.doc) && g.doc > 0);
+  return l.length === n && l[j] && l[j].painted && l[j].live ? 'settled' : false;
+})`;
+const GLIMPSE_ENCODE_JS = `(async ([b64, sizes, quality]) => {
+  const img = new Image(); img.src = 'data:image/png;base64,' + b64; await img.decode();
+  const out = {};
+  for (const [d, w, h] of sizes) {
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const x = c.getContext('2d'); x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
+    x.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, 0, 0, w, h);
+    const url = c.toDataURL('image/webp', quality);
+    if (!url.startsWith('data:image/webp;base64,')) return { error: 'this Chrome cannot encode WebP' };
+    out[d] = url.slice('data:image/webp;base64,'.length);
+  }
+  return out;
+})`;
 
 // ------------------------------------------------------------------------------------------------ in the page
 const HIDE_CSS = `
@@ -198,10 +241,29 @@ const PROCESS_JS = `(async ([b64, sizes, paper, quality]) => {
   return out;
 })`;
 
+/** Where each place's light sits across / down its still (0..1), from the one light table (engine/lights.ts): the
+ *  story map lays its "you are here" warmth there (StoryMap reads it from the manifest). */
+function sunsOf(): Record<string, [number, number]> {
+  const r4 = (v: number) => Math.round(v * 1e4) / 1e4;
+  return Object.fromEntries(
+    PLACES.map((s) => {
+      const [u0, u1, y0, y1] = s.rect;
+      const L = LIGHTS[s.stretch]!;
+      return [s.name, [r4((L[0] - u0) / (u1 - u0)), r4((y1 - L[1]) / (y1 - y0))]];
+    }),
+  );
+}
+
 // ------------------------------------------------------------------------------------------------ inputs and hashes
 const rel = (p: string) => path.relative(ROOT, p).split(path.sep).join('/');
 const sha = (data: string | Uint8Array) => createHash('sha256').update(data).digest('hex');
-const outName = (s: Still, d: number) => `${s.name}@${d}x.webp`;
+// Every place is cut twice (elements.ts sun): dim (no sun anywhere; '') and lit (its own sun only; '-lit'). The footer
+// shows the current place lit and crossfades a hovered place's lit still in (StoryMap, layout.css).
+const VARIANTS = [
+  { suffix: '', light: () => -1 },
+  { suffix: '-lit', light: (s: Still) => s.stretch },
+] as const;
+const outName = (s: Still, d: number, suffix = '') => `${s.name}${suffix}@${d}x.webp`;
 
 function walk(dir: string): string[] {
   return readdirSync(dir).flatMap((f) => {
@@ -215,22 +277,27 @@ function inputs(): [string, string][] {
   const items: [string, string][] = [];
   for (const p of walk(path.join(ROOT, 'src', 'features', 'landscape', 'engine')))
     if (p.endsWith('.ts')) items.push([rel(p), sha(readFileSync(p))]);
+  // (the element switches decide what the engine and the figure sets paint)
+  const elements = path.join(ROOT, 'src', 'features', 'landscape', 'elements.ts');
+  items.push([rel(elements), sha(readFileSync(elements))]);
   // only the place's config, not its words: what <main data-*> tells the engine, and the strip's kind (its height)
   for (const s of PLACES) {
     const { stretch, distance, presence, horizon, ground, strip } = SITE_PLACES[s.page];
     const config = { stretch, distance, presence, horizon, ground, strip };
     items.push([`src/features/landscape/places.ts#${s.page}`, sha(JSON.stringify(config))]);
   }
-  // the strip heights size the windows, hence their framings: each --strip-* / --closing-* line with its media query
+  // the strip heights size the windows, hence their framings: each --strip-* / --closing-* / --glimpse-* line with its
+  // media query
   let media = '';
   const lines: string[] = [];
   for (const l of readFileSync(path.join(ROOT, 'src', 'styles', 'tokens.css'), 'utf8').split('\n')) {
     if (l.includes('@media')) media = l.trim();
-    else if (/^\s*--(strip|closing)-/.test(l)) lines.push(`${media} | ${l.trim()}`);
+    else if (/^\s*--(strip|closing|glimpse)-/.test(l)) lines.push(`${media} | ${l.trim()}`);
   }
   items.push(['src/styles/tokens.css#strip-heights', sha(lines.join('\n'))]);
   const settings = {
     places: PLACES,
+    variants: VARIANTS.map((v) => v.suffix),
     tile: TILE_H,
     densities: DENSITIES,
     webp: WEBP_Q,
@@ -241,6 +308,7 @@ function inputs(): [string, string][] {
     scale: STILL_SCALE,
     chrome: CHROME_ARGS,
     js: [HIDE_CSS, REMOUNT_JS, SETTLE_JS, PROCESS_JS],
+    glimpses: [GLIMPSE_PAGES, GLIMPSE_VP, GLIMPSE_Q, GLIMPSE_HIDE, GLIMPSE_SETTLE_JS, GLIMPSE_ENCODE_JS],
   };
   items.push(['tools/build-stills.ts#settings', sha(JSON.stringify(settings))]);
   return items.sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
@@ -282,8 +350,10 @@ interface Manifest {
   inputs?: string;
   inputList?: Record<string, string>;
   tiles?: Record<string, [number, number]>;
+  suns?: Record<string, [number, number]>;
   files?: Record<string, { bytes: number; sha256: string; size: [number, number] }>;
   totalBytes?: number;
+  glimpses?: Record<string, { bytes: number; sha256: string; size: [number, number] }>;
 }
 function readManifest(): Manifest | null {
   try {
@@ -345,20 +415,40 @@ function check(): number {
     const tile = man.tiles?.[s.name];
     if (!tile || tile[0] !== s.w || tile[1] !== TILE_H)
       problems.push(`manifest tiles.${s.name} is ${JSON.stringify(tile)}, the crop table says [${s.w}, ${TILE_H}]`);
-    for (const d of DENSITIES) {
-      const f = outName(s, d);
-      const p = path.join(OUT_DIR, f);
-      if (!existsSync(p)) {
-        problems.push(`missing: ${rel(p)}`);
-        continue;
+    for (const v of VARIANTS)
+      for (const d of DENSITIES) {
+        const f = outName(s, d, v.suffix);
+        const p = path.join(OUT_DIR, f);
+        if (!existsSync(p)) {
+          problems.push(`missing: ${rel(p)}`);
+          continue;
+        }
+        const data = readFileSync(p);
+        total += data.length;
+        if (man.files?.[f]?.sha256 !== sha(data))
+          problems.push(`${rel(p)} differs from the manifest (edited by hand?)`);
+        if (data.length > CAP_FILE) problems.push(`${rel(p)} is ${data.length} bytes (cap ${CAP_FILE})`);
       }
-      const data = readFileSync(p);
-      total += data.length;
-      if (man.files?.[f]?.sha256 !== sha(data)) problems.push(`${rel(p)} differs from the manifest (edited by hand?)`);
-      if (data.length > CAP_FILE) problems.push(`${rel(p)} is ${data.length} bytes (cap ${CAP_FILE})`);
-    }
   }
   if (total > CAP_TOTAL) problems.push(`the stills weigh ${total} bytes together (cap ${CAP_TOTAL})`);
+  let gTotal = 0;
+  for (const g of GLIMPSE_PAGES)
+    for (let j = 0; j < g.n; j++)
+      for (const d of DENSITIES) {
+        const f = glimpseName(g.page, j, d);
+        const p = path.join(GLIMPSE_DIR, f);
+        if (!existsSync(p)) {
+          problems.push(`missing: ${rel(p)}`);
+          continue;
+        }
+        const data = readFileSync(p);
+        gTotal += data.length;
+        if (man.glimpses?.[f]?.sha256 !== sha(data))
+          problems.push(`${rel(p)} differs from the manifest (edited by hand?)`);
+        if (data.length > CAP_GLIMPSE) problems.push(`${rel(p)} is ${data.length} bytes (cap ${CAP_GLIMPSE})`);
+      }
+  if (gTotal > CAP_GLIMPSE_TOTAL)
+    problems.push(`the windows' stills weigh ${gTotal} bytes together (cap ${CAP_GLIMPSE_TOTAL})`);
   problems.push(...consistency());
   if (problems.length) {
     for (const p of problems) console.log('STALE:', p);
@@ -366,7 +456,7 @@ function check(): number {
     return 1;
   }
   console.log(
-    `stills: up to date (${PLACES.length * DENSITIES.length} files, ${total} bytes; inputs ${man.inputs!.slice(0, 12)})`,
+    `stills: up to date (${PLACES.length * DENSITIES.length * VARIANTS.length} files, ${total} bytes; inputs ${man.inputs!.slice(0, 12)})`,
   );
   return 0;
 }
@@ -425,6 +515,7 @@ async function build(): Promise<number> {
   await mkdir(OUT_DIR, { recursive: true });
   const man = readManifest() ?? {};
   const files = { ...man.files };
+  const glimpseFiles = { ...man.glimpses };
   const report: Record<string, unknown>[] = [];
 
   const browser = await chromium.launch({ ...(process.env.CI ? {} : { channel: 'chrome' }), args: CHROME_ARGS });
@@ -433,91 +524,170 @@ async function build(): Promise<number> {
       viewport: { width: VIEWPORT.width, height: VIEWPORT.height },
       deviceScaleFactor: VIEWPORT.dpr,
     });
-    for (const s of PLACES.filter((p) => names.includes(p.name))) {
-      const t0 = Date.now();
-      const page = await ctx.newPage();
-      const errors: string[] = [];
-      page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
-      page.on('pageerror', (e) => errors.push(String(e)));
-      const res = await page.goto(new URL(s.route, base).toString(), { waitUntil: 'load' });
-      if (!res?.ok()) throw new Error(`${s.route}: HTTP ${res?.status()}`);
-      await page.evaluate(() => document.fonts.ready);
-      await waitFor(page, SETTLE_JS, '__ink', `${s.name} (the page's own mount)`, timeout);
-      await page.addStyleTag({ content: HIDE_CSS });
-      const frame = { left: s.rect[0], top: s.rect[3], scale: STILL_SCALE };
-      const mode = await page.evaluate(`${REMOUNT_JS}(${JSON.stringify([ENGINE_QUALITY, PALETTE, frame])})`);
-      if (mode !== 'webgl') throw new Error(`${s.name}: the engine mounted as ${String(mode)}, not webgl`);
-      await waitFor(page, SETTLE_JS, '__stillsHandle', s.name, timeout);
-      await page.evaluate(
-        () =>
-          new Promise((r) => {
-            let k = 12;
-            const f = () => (--k <= 0 ? r(1) : requestAnimationFrame(f));
-            requestAnimationFrame(f);
-          }),
-      ); // let any late fade or upload land, then settle again
-      await waitFor(page, SETTLE_JS, '__stillsHandle', s.name, timeout);
-      const st = (await page.evaluate('window.__stillsHandle.stats()')) as {
-        stretch?: number;
-        quality?: number;
-        figures?: Record<string, string>;
-        framing?: { strip?: Framing };
-      };
-      const fig = st.figures?.[String(s.stretch)];
-      if (fig !== 'ready' && fig !== 'none') throw new Error(`${s.name}: figure layer ${JSON.stringify(st.figures)}`);
-      if (Number(st.stretch) !== s.stretch)
-        throw new Error(`${s.name}: the page sits at stretch ${st.stretch}, the table says ${s.stretch}`);
-      const box = (await page.evaluate(BOX_JS)) as Box | null;
-      const fr = st.framing?.strip;
-      if (!box || !fr) throw new Error(`${s.name}: no strip window on ${s.route}`);
-      const clip = cropPx(s.rect, fr, box);
-      if (!clip)
-        throw new Error(
-          `${s.name}: crop ${JSON.stringify(s.rect)} leaves the strip window ${JSON.stringify(windowOf(fr, box))} (u0, u1, y0, y1); is this a QA build (the engine's frame hook)?`,
-        );
-      // Stable: two captures 1.5 s apart must match, byte for byte (round 5: once, a settled engine was caught before
-      // Writing's pavilion had come in; a third capture never differed). Retried, then refused.
-      const shot = () =>
-        page.screenshot({
-          clip: { x: clip[0], y: clip[1], width: clip[2], height: clip[3] },
-          scale: 'device',
-          animations: 'allow',
-          caret: 'initial',
-        });
-      let png = await shot();
-      for (let tries = 0; ; tries++) {
-        await page.waitForTimeout(STABLE_MS);
+    for (const s of PLACES.filter((p) => names.includes(p.name)))
+      for (const v of VARIANTS) {
+        const t0 = Date.now();
+        const page = await ctx.newPage();
+        const errors: string[] = [];
+        page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
+        page.on('pageerror', (e) => errors.push(String(e)));
+        const res = await page.goto(new URL(s.route, base).toString(), { waitUntil: 'load' });
+        if (!res?.ok()) throw new Error(`${s.route}: HTTP ${res?.status()}`);
+        await page.evaluate(() => document.fonts.ready);
+        await waitFor(page, SETTLE_JS, '__ink', `${s.name} (the page's own mount)`, timeout);
+        await page.addStyleTag({ content: HIDE_CSS });
+        const frame = { left: s.rect[0], top: s.rect[3], scale: STILL_SCALE, light: v.light(s) };
+        const mode = await page.evaluate(`${REMOUNT_JS}(${JSON.stringify([ENGINE_QUALITY, PALETTE, frame])})`);
+        if (mode !== 'webgl') throw new Error(`${s.name}: the engine mounted as ${String(mode)}, not webgl`);
         await waitFor(page, SETTLE_JS, '__stillsHandle', s.name, timeout);
-        const again = await shot();
-        if (again.equals(png)) break;
-        if (tries >= 3) throw new Error(`${s.name}: the painting kept changing between captures; nothing written`);
-        png = again;
+        await page.evaluate(
+          () =>
+            new Promise((r) => {
+              let k = 12;
+              const f = () => (--k <= 0 ? r(1) : requestAnimationFrame(f));
+              requestAnimationFrame(f);
+            }),
+        ); // let any late fade or upload land, then settle again
+        await waitFor(page, SETTLE_JS, '__stillsHandle', s.name, timeout);
+        const st = (await page.evaluate('window.__stillsHandle.stats()')) as {
+          stretch?: number;
+          quality?: number;
+          figures?: Record<string, string>;
+          framing?: { strip?: Framing };
+        };
+        const fig = st.figures?.[String(s.stretch)];
+        if (fig !== 'ready' && fig !== 'none') throw new Error(`${s.name}: figure layer ${JSON.stringify(st.figures)}`);
+        if (Number(st.stretch) !== s.stretch)
+          throw new Error(`${s.name}: the page sits at stretch ${st.stretch}, the table says ${s.stretch}`);
+        const box = (await page.evaluate(BOX_JS)) as Box | null;
+        const fr = st.framing?.strip;
+        if (!box || !fr) throw new Error(`${s.name}: no strip window on ${s.route}`);
+        const clip = cropPx(s.rect, fr, box);
+        if (!clip)
+          throw new Error(
+            `${s.name}: crop ${JSON.stringify(s.rect)} leaves the strip window ${JSON.stringify(windowOf(fr, box))} (u0, u1, y0, y1); is this a QA build (the engine's frame hook)?`,
+          );
+        // Stable: two captures 1.5 s apart must match, byte for byte (round 5: once, a settled engine was caught before
+        // Writing's pavilion had come in; a third capture never differed). Retried, then refused.
+        const shot = () =>
+          page.screenshot({
+            clip: { x: clip[0], y: clip[1], width: clip[2], height: clip[3] },
+            scale: 'device',
+            animations: 'allow',
+            caret: 'initial',
+          });
+        let png = await shot();
+        for (let tries = 0; ; tries++) {
+          await page.waitForTimeout(STABLE_MS);
+          await waitFor(page, SETTLE_JS, '__stillsHandle', s.name, timeout);
+          const again = await shot();
+          if (again.equals(png)) break;
+          if (tries >= 3) throw new Error(`${s.name}: the painting kept changing between captures; nothing written`);
+          png = again;
+        }
+        if (preview) await writeFile(path.join(preview, `${s.name}${v.suffix}-crop.png`), png);
+        const sizes = DENSITIES.map((d) => [d, s.w * d, TILE_H * d]);
+        const out = (await page.evaluate(
+          `${PROCESS_JS}(${JSON.stringify([png.toString('base64'), sizes, PAPER, WEBP_Q])})`,
+        )) as Record<string, unknown> & { error?: string; src: [number, number] };
+        if (out.error) throw new Error(`${s.name}: ${out.error}`);
+        if (errors.length) console.log(`  ${s.name}: console errors:\n    ${errors.join('\n    ')}`);
+        for (const d of DENSITIES) {
+          const data = plainWebp(Buffer.from(String(out[String(d)]), 'base64'));
+          const f = outName(s, d, v.suffix);
+          await writeFile(path.join(OUT_DIR, f), data);
+          files[f] = { bytes: data.length, sha256: sha(data), size: [s.w * d, TILE_H * d] };
+          if (preview) await writeFile(path.join(preview, f), data);
+        }
+        report.push({
+          place: s.name + v.suffix,
+          'capture px': out.src.join('x'),
+          '1x bytes': files[outName(s, 1, v.suffix)]!.bytes,
+          '2x bytes': files[outName(s, 2, v.suffix)]!.bytes,
+          'paper @2x': out.paper2,
+          'strip window u0 u1 y0 y1': windowOf(fr, box).join(' '),
+          'engine q': st.quality,
+          s: Math.round((Date.now() - t0) / 100) / 10,
+        });
+        await page.close();
       }
-      if (preview) await writeFile(path.join(preview, `${s.name}-crop.png`), png);
-      const sizes = DENSITIES.map((d) => [d, s.w * d, TILE_H * d]);
-      const out = (await page.evaluate(
-        `${PROCESS_JS}(${JSON.stringify([png.toString('base64'), sizes, PAPER, WEBP_Q])})`,
-      )) as Record<string, unknown> & { error?: string; src: [number, number] };
-      if (out.error) throw new Error(`${s.name}: ${out.error}`);
-      if (errors.length) console.log(`  ${s.name}: console errors:\n    ${errors.join('\n    ')}`);
-      for (const d of DENSITIES) {
-        const data = plainWebp(Buffer.from(String(out[String(d)]), 'base64'));
-        const f = outName(s, d);
-        await writeFile(path.join(OUT_DIR, f), data);
-        files[f] = { bytes: data.length, sha256: sha(data), size: [s.w * d, TILE_H * d] };
-        if (preview) await writeFile(path.join(preview, f), data);
-      }
-      report.push({
-        place: s.name,
-        'capture px': out.src.join('x'),
-        '1x bytes': files[outName(s, 1)]!.bytes,
-        '2x bytes': files[outName(s, 2)]!.bytes,
-        'paper @2x': out.paper2,
-        'strip window u0 u1 y0 y1': windowOf(fr, box).join(' '),
-        'engine q': st.quality,
-        s: Math.round((Date.now() - t0) / 100) / 10,
+    // the windows' stills: each window's rest pose, at a phone's width
+    if (!only || flag('--glimpses')) {
+      await mkdir(GLIMPSE_DIR, { recursive: true });
+      const gctx = await browser.newContext({
+        viewport: { width: GLIMPSE_VP.width, height: GLIMPSE_VP.height },
+        deviceScaleFactor: GLIMPSE_VP.dpr,
+        isMobile: true,
+        hasTouch: true,
       });
-      await page.close();
+      await gctx.addInitScript(() => {
+        try {
+          localStorage.setItem('ink:still', '1');
+          sessionStorage.setItem('ink:morning', '1');
+          sessionStorage.setItem('ink:swash', '1');
+        } catch {
+          /* private mode */
+        }
+        Object.assign(window, { __glimSoft: true });
+      });
+      for (const g of GLIMPSE_PAGES) {
+        const t0 = Date.now();
+        const page = await gctx.newPage();
+        const res = await page.goto(new URL(g.route, base).toString(), { waitUntil: 'load' });
+        if (!res?.ok()) throw new Error(`${g.route}: HTTP ${res?.status()}`);
+        await page.evaluate(() => document.fonts.ready);
+        await page.addStyleTag({ content: GLIMPSE_HIDE });
+        const boxes = (await page.evaluate(
+          `[...document.querySelectorAll('[data-landscape="glimpse"]')].map((e) => { const b = e.getBoundingClientRect(); return [b.top + scrollY, b.height, b.left, b.width]; }).filter((b) => b[1] > 0)`,
+        )) as number[][];
+        if (boxes.length !== g.n)
+          throw new Error(`${g.page}: ${boxes.length} windows laid out at 390, the table says ${g.n}`);
+        for (const [j, [top, h, left, width]] of boxes.entries()) {
+          await page.evaluate(
+            (y) => window.scrollTo({ top: y, behavior: 'instant' as ScrollBehavior }),
+            Math.max(0, top! + h! / 2 - GLIMPSE_VP.height / 2),
+          );
+          await waitFor(page, GLIMPSE_SETTLE_JS, [g.n, j], `${g.page} window ${j}`, timeout);
+          const y = (await page.evaluate('scrollY')) as number;
+          const shot = () =>
+            page.screenshot({
+              clip: { x: left!, y: top! - y, width: width!, height: h! },
+              scale: 'device',
+              animations: 'allow',
+              caret: 'initial',
+            });
+          let png = await shot();
+          for (let tries = 0; ; tries++) {
+            await page.waitForTimeout(STABLE_MS);
+            const again = await shot();
+            if (again.equals(png)) break;
+            if (tries >= 3)
+              throw new Error(`${g.page} window ${j}: the painting kept changing between captures; nothing written`);
+            png = again;
+          }
+          if (preview) await writeFile(path.join(preview, `glimpse-${g.page}-${j}-crop.png`), png);
+          const sizes = DENSITIES.map((d) => [d, Math.round(width! * d), Math.round(h! * d)]);
+          const out = (await page.evaluate(
+            `${GLIMPSE_ENCODE_JS}(${JSON.stringify([png.toString('base64'), sizes, GLIMPSE_Q])})`,
+          )) as Record<string, string> & { error?: string };
+          if (out.error) throw new Error(`${g.page} window ${j}: ${out.error}`);
+          for (const [d, w2, h2] of sizes) {
+            const data = plainWebp(Buffer.from(String(out[String(d)]), 'base64'));
+            const f = glimpseName(g.page, j, d!);
+            await writeFile(path.join(GLIMPSE_DIR, f), data);
+            glimpseFiles[f] = { bytes: data.length, sha256: sha(data), size: [w2!, h2!] };
+          }
+          report.push({
+            place: `window ${g.page}-${j}`,
+            'capture px': `${Math.round(width! * 2)}x${Math.round(h! * 2)}`,
+            '1x bytes': glimpseFiles[glimpseName(g.page, j, 1)]!.bytes,
+            '2x bytes': glimpseFiles[glimpseName(g.page, j, 2)]!.bytes,
+            s: Math.round((Date.now() - t0) / 100) / 10,
+          });
+        }
+        await page.close();
+      }
+      await gctx.close();
     }
   } finally {
     await browser.close();
@@ -539,8 +709,19 @@ async function build(): Promise<number> {
     inputs: digest,
     inputList: Object.fromEntries(items),
     tiles: Object.fromEntries(PLACES.map((s) => [s.name, [s.w, TILE_H]])),
+    suns: sunsOf(),
     files: Object.fromEntries(Object.entries(files).sort(([a], [b]) => (a < b ? -1 : 1))),
     totalBytes: total,
+    // (only the windows the table lays out: a window removed from a page leaves no entry behind)
+    glimpses: Object.fromEntries(
+      Object.entries(glimpseFiles)
+        .filter(([f]) =>
+          GLIMPSE_PAGES.some((g) =>
+            Array.from({ length: g.n }, (_, j) => DENSITIES.some((d) => glimpseName(g.page, j, d) === f)).some(Boolean),
+          ),
+        )
+        .sort(([a], [b]) => (a < b ? -1 : 1)),
+    ),
   };
   await writeFile(MANIFEST, `${JSON.stringify(next, null, 1)}\n`);
   console.table(report);

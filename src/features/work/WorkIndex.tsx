@@ -1,6 +1,7 @@
 import { Fragment } from 'react';
 import { work } from '@content/pages/work';
 import { PageMain } from '@/components/page/PageMain';
+import { Glimpse } from '@/components/page/Glimpse';
 import { Strip } from '@/components/page/Strip';
 import { Diagram } from '@/components/ui/Diagram';
 import { InTheOpen } from '@/features/github/InTheOpen';
@@ -12,7 +13,8 @@ import styles from './work.module.css';
 
 /**
  * Work (/work/): a concise index (DESIGN §11.E answer 2). The market-town strip with the title and intro in its
- * mist; "Six projects, newest first", each row leading to its own case page; How I build (the statement, its
+ * mist; "Six projects, newest first", each row (its years, the project with his role under it, the outcome with
+ * its public evidence under it) leading to its own case page; How I build (the statement, its
  * line, the brush diagram and its steps); In the open (Jack's public repositories, read on the server at build
  * time and daily). It ends on the town once more. Words: content/pages/work.ts and content/work/*.mdx.
  */
@@ -47,9 +49,6 @@ export async function WorkIndex() {
                 <th scope="col" role="columnheader">
                   {index.columns.outcome}
                 </th>
-                <th scope="col" role="columnheader">
-                  {index.columns.evidence}
-                </th>
               </tr>
             </thead>
             <tbody role="rowgroup">
@@ -63,26 +62,23 @@ export async function WorkIndex() {
                     <InlineLink href={c.href}>
                       <Inline text={c.title} />
                     </InlineLink>
+                    <span className={styles.role}>{c.role}</span>
                   </th>
                   <td role="cell" data-label={index.columns.outcome}>
                     <span>
                       <Inline text={c.outcome} />
                     </span>
-                  </td>
-                  <td role="cell" data-label={index.columns.evidence}>
-                    {c.evidence.length === 0 ? (
-                      index.noEvidence
-                    ) : c.evidence.length === 1 ? (
-                      <InlineLink href={c.evidence[0]!.url}>{c.evidence[0]!.label}</InlineLink>
-                    ) : (
-                      <span className={styles.cellLinks}>
+                    {c.evidence.length ? (
+                      <span className={styles.evidence}>
                         {c.evidence.map((e, i) => (
                           <Fragment key={e.url}>
-                            {i > 0 ? <span className={styles.cellLinksSep}> · </span> : null}
+                            {i > 0 ? ' · ' : null}
                             <InlineLink href={e.url}>{e.label}</InlineLink>
                           </Fragment>
                         ))}
                       </span>
+                    ) : (
+                      <span className="visually-hidden">{index.noEvidence}</span>
                     )}
                   </td>
                 </tr>
@@ -92,6 +88,7 @@ export async function WorkIndex() {
         </div>
       </section>
 
+      <Glimpse still="work-0" />
       <section className="sec" aria-labelledby="build-title" data-veil="">
         <h2 className="sec__title" id="build-title">
           {build.title}
@@ -105,6 +102,7 @@ export async function WorkIndex() {
         <Diagram name={build.diagram.name} caption={build.diagram.caption} steps={build.diagram.steps} />
       </section>
 
+      <Glimpse still="work-1" />
       <section className={`sec ${styles.open}`} id="open" aria-labelledby="open-title" data-veil="0.9">
         <h2 className="sec__title" id="open-title">
           {open.title}

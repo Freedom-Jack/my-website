@@ -1,6 +1,11 @@
 {
-  "updated": "2026-10-09",
+  "updated": "2026-10-20",
   "repos": [
+    {
+      "name": "logic-foundry",
+      "year": 2026,
+      "line": "A prototype agent that turns logic buried in old materials into reusable artifacts: docs for people, rubrics for AI agents, even model weights."
+    },
     {
       "name": "world_qlearning",
       "year": 2020,

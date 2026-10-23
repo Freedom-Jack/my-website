@@ -3,22 +3,24 @@ title: Agent for a proprietary programming language
 order: 1
 years: 2025 – present
 org: CGI AI Center of Excellence
-role: Lead
+role: Lead architect
 figure:
   value: Projected 50%
-  note: less manual work for the support team
+  note: less manual work
+# The search snippet (≤ 160 characters): who did it and the result. Without one, the summary is used.
+metaDescription: 'Qijin (Jack) Xu leads an agent that reads legacy code in a proprietary language, documents it and extracts its business rules. Projected 50% less manual work.'
 summary: An agent that reads legacy code in a proprietary language, documents it, and extracts the business rules inside.
-outcome: Projected 50% less manual work. In progress.
+outcome: Projected 50% less manual work; in progress
 diagram:
   name: proprietary-language-agent
   caption: The generic shape of the agent, simplified. No client detail.
   steps:
     - Legacy scripts written in the proprietary language come in.
-    - A LangGraph dual-state, dynamic workflow coordinates the work.
-    - It coordinates vLLM-served models with retrieval.
+    - A LangGraph dual-state dynamic workflow coordinates the work.
+    - It calls vLLM-served models, with retrieval finding the relevant context.
     - PII filtering keeps personal information out.
     - EBNF grammars constrain every output, so it is always well-formed.
-    - Out come documentation, extracted business rules and code prepared for migration.
+    - 'What comes out: documentation, extracted business rules and code prepared for migration.'
 ---
 
 ## Context
@@ -27,7 +29,7 @@ A client’s business rules live in legacy scripts written in a proprietary prog
 
 ## What I did
 
-I lead the agent’s design and delivery. A LangGraph dual-state, dynamic workflow coordinates vLLM-served models with retrieval. EBNF grammars constrain outputs so they are always well-formed, and PII filtering keeps personal information out. The agent writes documentation, extracts business rules and supports migration readiness.
+I lead the agent’s design and delivery. A LangGraph dual-state dynamic workflow coordinates vLLM-served models with retrieval. EBNF grammars constrain every output to what the grammar allows, and PII filtering keeps personal information out. The agent writes documentation, extracts business rules, and prepares the code for migration.
 
 <Note term="LangGraph">An open-source library for building agents as graphs of steps that share state.</Note>
 
@@ -39,7 +41,7 @@ I lead the agent’s design and delivery. A LangGraph dual-state, dynamic workfl
 
 ## Outcome
 
-Projected **50%** reduction in manual work for the support team. In progress.
+Projected **50%** less manual work. In progress.
 
 ## Evidence
 

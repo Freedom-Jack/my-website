@@ -11,6 +11,12 @@
  * prepare the destination's painting before the new page arrives, so the two never disagree.
  */
 
+// (with its extension: tools/build-stills.ts loads this file in Node's own TypeScript, which resolves no bare paths)
+import { ELEMENTS } from './elements.ts';
+
+/** The camera travels (elements.ts cameraTravels): every page on the map is a living ground; off, only Home and Work are. */
+const TRAVEL: 'living' | '' = ELEMENTS.cameraTravels ? 'living' : '';
+
 export type Distance = 'level' | 'high' | 'deep';
 export type PageId = 'home' | 'work' | 'case' | 'writing' | 'article' | 'resume' | 'contact' | 'not-found';
 
@@ -81,7 +87,7 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
     distance: 'level',
     presence: 1,
     horizon: 0.5,
-    ground: '',
+    ground: TRAVEL,
     strip: 'sub',
     closing: true,
   },
@@ -101,7 +107,7 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
     distance: 'level',
     presence: 1,
     horizon: 0.35,
-    ground: '',
+    ground: TRAVEL,
     strip: 'sub',
     closing: true,
   },
@@ -111,7 +117,7 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
     distance: 'level',
     presence: 1,
     horizon: 0.5,
-    ground: '',
+    ground: TRAVEL,
     strip: 'sub',
     closing: true,
   },

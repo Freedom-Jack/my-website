@@ -190,16 +190,6 @@
 .ink-btn:hover .ink-btn__arrow {
   translate: 0.22em 0;
 }
-/* press: two or three diminishing rings (WAAPI, inside the stroke's mask) */
-.ink-btn__ring {
-  position: absolute;
-  width: 200px;
-  height: 200px;
-  margin: -100px 0 0 -100px;
-  border-radius: 50%;
-  pointer-events: none;
-  background: radial-gradient(circle, transparent 52%, var(--ring, rgb(var(--paper-rgb) / 0.55)) 61%, transparent 70%);
-}
 
 /* ==========================================================================
    Ink row (the ink-button effect: the entry point and the reach): a row's wash wicks out
@@ -391,8 +381,7 @@ html.js [data-draw].is-pending:not(svg):not(:has([data-order])) {
    ========================================================================== */
 @media (forced-colors: active) {
   .ink-btn__ink,
-  .ink-row::before,
-  .ink-btn__ring {
+  .ink-row::before {
     display: none;
   }
   .ink-btn {

@@ -69,6 +69,9 @@
     min-inline-size: 0;
   }
 }
+.cv-head__contact > .cv-head__site {
+  display: none;
+} /* the site's own address: the PDF's letterhead only (print, below) */
 .cv-head__contact :global(a) {
   --brush-y: calc(50% + 0.78em);
   display: inline-flex;
@@ -80,8 +83,7 @@
 
 .cv-head__actions {
   margin-block-start: 0.5rem;
-  margin-inline-start: -2px; /* the swash's loaded start sits on the text edge */
-  column-gap: 0.25rem; /* phones: the swash's dry tail is the gap, so both share a row at 390 */
+  column-gap: 0.75rem; /* phones: still one row at 360 */
 }
 @media (min-width: 40rem) {
   .cv-head__actions {
@@ -95,35 +97,6 @@
   align-items: center;
   min-block-size: 44px;
   padding-bottom: 0;
-  margin-inline-start: 2px;
-  font-weight: var(--w-ui);
-}
-.cv-head__note {
-  max-width: 36em;
-  margin-block-start: 0.5rem;
-}
-/* Wide: the note stands beside the actions as their caption, set off by a hairline, so the letterhead
-   keeps to four lines and the first role reaches the first screen. */
-@media (min-width: 75rem) {
-  .cv-head {
-    display: grid;
-    grid-template-columns: auto minmax(0, 30em);
-    justify-content: start;
-    column-gap: 2.5rem;
-  }
-  .cv-head > * {
-    grid-column: 1 / -1;
-  }
-  .cv-head > .cv-head__actions {
-    grid-column: 1;
-  }
-  .cv-head > .cv-head__note {
-    grid-column: 2;
-    align-self: center;
-    margin-block-start: 0.5rem;
-    padding-inline-start: 1.25rem;
-    border-inline-start: 1px solid var(--rule);
-  }
 }
 
 /* ---------- the document: a hanging indent from 640 ---------- */
@@ -302,8 +275,7 @@
   .page :global(.strip),
   .page :global(.closing),
   .page :global(.print-name),
-  .cv-head__actions,
-  .cv-head__note {
+  .cv-head__actions {
     display: none !important;
   }
   .page *,
@@ -371,6 +343,9 @@
   }
   .cv-head__contact > span {
     min-block-size: 0;
+  }
+  .cv-head__contact > .cv-head__site {
+    display: inline-flex;
   }
   .cv-head__contact > span::before {
     content: none;

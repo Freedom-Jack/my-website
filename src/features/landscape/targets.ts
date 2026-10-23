@@ -1,3 +1,4 @@
+import { elementOn } from './elements';
 import type { Distance } from './places';
 import type { LandscapeTargets } from './types';
 
@@ -31,7 +32,15 @@ export function targetsOf(main: HTMLElement): LandscapeTargets {
     strip: main.querySelector('[data-landscape="strip"]'),
     closing: main.querySelector('[data-landscape="closing"]'),
     keepout: main.querySelectorAll('[data-landscape="keepout"]'),
-    veil: main.querySelectorAll('[data-veil]'),
+    // (the windows into the painting at the page's section breaks; none when the flag is off)
+    glimpse: elementOn('glimpses') ? main.querySelectorAll('[data-landscape="glimpse"], [data-glimpse="end"]') : [],
+    // (with the camera travelling, the footer's lines are veiled too: on a short living page the sea of mist reaches under them)
+    veil: [
+      ...main.querySelectorAll('[data-veil]'),
+      ...(elementOn('cameraTravels')
+        ? document.querySelectorAll('.site-footer .story-map__list, .site-footer__base')
+        : []),
+    ],
     wake: main.querySelectorAll('[data-wake]'),
     horizon: place.horizon,
     ground: place.ground,

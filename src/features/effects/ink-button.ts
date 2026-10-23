@@ -2,19 +2,12 @@
  * Ink blooms from where the pointer enters a button (or a row), and drains out where it leaves.
  * CSS does the bloom (effects.css: the registered --ink-r on a radial gradient, feathered by #ink-feather,
  * masked by the swash stroke). This only moves the bloom's origin (--x/--y), sizes its reach (--rmax), keeps the
- * arrow's label colour in register (--ax/--ay), blooms keyboard focus from the centre, and drops 2–3 decaying
- * rings on press (WAAPI). Without JS the bloom grows from the centre. A button's ink reaches past its farthest
- * corner; a row's wash comes to rest ~80% of the way to the row's far edge, so its tide line stays in view.
+ * arrow's label colour in register (--ax/--ay) and blooms keyboard focus from the centre. Without JS the bloom
+ * grows from the centre. A button's ink reaches past its farthest corner; a row's wash comes to rest ~80% of the way
+ * to the row's far edge, so its tide line stays in view.
  * Idempotent; returns its undo.
  */
 const bound = new WeakSet<Element>();
-const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-const RINGS = [
-  { delay: 0, dur: 720, to: 1.05, alpha: 0.9 },
-  { delay: 110, dur: 860, to: 0.78, alpha: 0.55 },
-  { delay: 230, dur: 980, to: 0.56, alpha: 0.3 },
-];
 
 function place(el: HTMLElement, clientX: number, clientY: number) {
   const r = el.getBoundingClientRect();
@@ -49,38 +42,6 @@ function centre(el: HTMLElement) {
   place(el, r.left + r.width / 2, r.top + r.height / 2);
 }
 
-function rings(btn: HTMLElement, clientX: number, clientY: number) {
-  if (reduced()) return;
-  const ink = btn.querySelector('.ink-btn__ink');
-  if (!ink) return;
-  const r = ink.getBoundingClientRect();
-  // paper rings on a bloomed (dark) stroke, ink rings on the pale resting wash (e.g. a touch tap)
-  const dark = btn.matches(':hover, :focus-visible');
-  for (const ring of RINGS) {
-    const el = document.createElement('span');
-    el.className = 'ink-btn__ring';
-    el.style.left = `${clientX - r.left}px`;
-    el.style.top = `${clientY - r.top}px`;
-    if (!dark) el.style.setProperty('--ring', 'rgb(17 20 22 / .38)');
-    ink.append(el);
-    el.animate(
-      [
-        { transform: 'scale(.08)', opacity: ring.alpha },
-        { transform: `scale(${ring.to})`, opacity: 0 },
-      ],
-      {
-        duration: ring.dur,
-        delay: ring.delay,
-        easing: 'cubic-bezier(.2, .7, .1, 1)',
-        fill: 'both',
-      },
-    ).finished.then(
-      () => el.remove(),
-      () => el.remove(),
-    );
-  }
-}
-
 export function initInkButtons(root: ParentNode, selector = '.ink-btn, .ink-row'): () => void {
   const els = [...root.querySelectorAll<HTMLElement>(selector)].filter((el) => !bound.has(el));
   const ctrl = new AbortController();
@@ -96,24 +57,6 @@ export function initInkButtons(root: ParentNode, selector = '.ink-btn, .ink-row'
       },
       { signal },
     );
-    if (el.classList.contains('ink-btn')) {
-      el.addEventListener(
-        'pointerdown',
-        (e) => {
-          if (e.button === 0) rings(el, e.clientX, e.clientY);
-        },
-        { signal },
-      );
-      el.addEventListener(
-        'keydown',
-        (e) => {
-          if (e.key !== 'Enter' && e.key !== ' ') return;
-          const r = el.getBoundingClientRect();
-          rings(el, r.left + r.width / 2, r.top + r.height / 2);
-        },
-        { signal },
-      );
-    }
   }
   return () => {
     ctrl.abort();

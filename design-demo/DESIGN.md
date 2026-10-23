@@ -1,8 +1,10 @@
 # DESIGN.md: Qijin Xu personal site v2 (the single source of truth)
 
 **Start here.** Any session that continues this redesign reads this file first, then what it points to.
-Last updated **2026-10-16**, after Jack reviewed demo 4b and answered §11.E (the 4b record: `_notes/r4b/RECORD.md`).
-Branch: `redesign/v2`.
+Last updated **2026-10-22**, after the polish round (§12 "The polish round"): the audit, the link-preview cards, the
+copy, search and structure fixes, and the engine's veil fix, all uncommitted on `redesign/v2` for Jack's review.
+Branches: `redesign/v2` (the build to round 5 step 1 and the painting); `round5/spring-ink` (on top of it: Spring ink,
+scroll motion, phone depth bands; not merged, not pushed).
 
 **Status:**
 - **Demo 4a** (static HTML/CSS/JS in `design-demo/`) is done. Jack: "overall it looks great".
@@ -16,9 +18,15 @@ Branch: `redesign/v2`.
   the content files, CI and the stills tool are in. How it is organised: the root `README.md`; where the words live:
   `CONTENT.md`; what is left and what waits for Jack: §12 "Build status" below.
 - **Round 5 (the macro pass) is under way:** Jack's five inputs and the agreed order are in §12 "Round 5". Step 1 (one
-  order, one hero system, one ending) is committed. Step 2 (the painting as one handscroll, the hero scenes aligned) is
-  built on `claude/practical-faraday-79b0df` and shown to Jack as before/after panoramas and hero sheets.
-- **Next:** steps 2–4 of round 5 → a Vercel preview → launch on **qijinxu.com** through the §2 launch gate.
+  order, one hero system, one ending) and the painting as one handscroll are committed on `redesign/v2`.
+  **Steps 2, 3 and 3b are approved and committed on `round5/spring-ink`:** the style "Spring ink" and its elements,
+  scroll motion on laptops, depth bands on phones and tablets (§4, §6, §7, §9 carry the new rules).
+- **Step 4 (content) has started:** the review doc for Jack
+  (https://claude.ai/code/artifact/65a17a60-ad11-432d-a4dd-6cd2563a472d) waits for his answers.
+- **2026-10-20 to 22: the polish round** (§12 "The polish round"): Jack asked for "absolutely the best" with full
+  freedom; an eight-lens audit, then every fix that needs no new fact. Uncommitted on `redesign/v2`.
+- **Next:** Jack's content answers → drafts beside their pages → a Vercel preview and a real-phone check → launch on
+  **qijinxu.com** through the §2 launch gate.
 - This order changes the earlier plan, in which the build started at 4a. On 2026-10-14 Jack accepted a short 4b round first ("Sure continue").
 
 **Authority:**
@@ -88,13 +96,19 @@ Where they disagree with this file, this file wins; fix them. Known stale bits e
 2. **One giant painting, a story-scroll.** One continuous Chinese handscroll (like *Along the River During the Qingming Festival*). Each page is a **place** that pictures what the page is about, and moving between pages pans along the painting. It must look beautiful.
 3. **Keep today's landscape.** Jack: "current background looks nice, don't get it wrong". Keep the engine, his mountain's shape and crags, the mist, the cool paper and grain, the pan, and the reduced-motion and no-3D fallbacks. **Keep the mist**: it drifts and parts around the cursor; Jack likes both.
 4. **The painting is composed with the page, not wallpaper** (Jack, 2026-10-14; §11.A).
-5. **Colour, restrained:** misted blue-green on the mountains (in the style of *A Thousand Li of Rivers and Mountains*) and light colour over ink on the town. **The paper is cool: never yellow, gold, beige or cream.** Cinnabar is for the seal only. Text never sits on colour.
+5. **Colour, restrained:** misted blue-green on the mountains (in the style of *A Thousand Li of Rivers and Mountains*) and light colour over ink on the town. **The paper is cool: never yellow, gold, beige or cream.** Cinnabar is for the seal only. Text never sits on colour, save the one brush button's label (pale on deep jade, 9.5:1).
+   Round 5, Spring ink (Jack, 2026-10-18: "Approve Spring ink with these elements and the rule changes"):
+   - **The painting's air is not the paper's colour:** an ice-blue morning sky and a light brighter than the paper,
+     with a bloom (light needs blue round it to read as light). The paper under text stays cool paper.
+   - **Jade is the one UI accent beside the seal:** the Home name (#0F3D36, 10.6:1), page titles (#134A47, 8.8:1), the
+     one brush button, the nav's current-page tick, focus rings, selection and the scrollbar. Never a glow on words.
+   - **Pink only in small painted accents:** Home's plum, the Résumé's blossom tree, Writing's petals.
 6. **Figures inside the painting only:** small, in Song-period forms. Kitsch guards:
    - no red lanterns, pagodas, dragons or gold;
    - blank shop signs;
    - no clip-art repetition (seeded variety, broken dry lines, mist swallowing half the town);
    - nothing figurative within 40 px of text.
-7. **Layout bans:** no boxy cards, bordered frames, bento grids, glassmorphism, emoji, or a generic "text left, picture right" split. Personality lives in the details: brush underlines, the ink button, the seal.
+7. **Layout bans:** no boxy cards, bordered frames, bento grids, glassmorphism, emoji, or a generic "text left, picture right" split. Personality lives in the details: brush underlines, the one brush button, the seal.
 8. **Page roles:** Home must not read like a CV (its three "What I work on" teasers are the one deliberate repeat). An About page returns only if Jack writes a 300+ word story. "Now" shows only when there is real content.
 9. **Mobile-first and excellent:** 360 px and up, 44 px tap targets, nothing scrolling sideways, and the header in one row at 360 px (wrapping below 340). **Never a hamburger or bottom tab bar.**
 
@@ -102,7 +116,7 @@ Where they disagree with this file, this file wins; fix them. Known stale bits e
 
 | Route | Role | Opens with | Then |
 |---|---|---|---|
-| `/` | **Home = Jack's "about me"** | Greeting hero: name (72 px), role sentence, "right now" line, *See the work →* · *Résumé* | Colour photo beside **About me** (signed "— Jack" + seal) · *What I work on* (3 problems with proof) · *Now · October 2026* · *Writing* · *Say hello* · the closing scene · *Next: Work →* |
+| `/` | **Home = Jack's "about me"** | Greeting hero: name (about 112 px at 1440, §6), role sentence, "right now" line, *See the work →* · *Résumé* | Colour photo beside **About me** (signed "— Jack" + seal) · *What I work on* (3 problems with proof) · *Now · October 2026* · *Writing* · *Say hello* · the closing scene · *Next: Work →* |
 | `/work/` | What he built, how, how well | Market-town strip; "Six projects, newest first" table on the first screen | *How I build* (diagram + "Read as steps") · 2 flagship cases (diagrams fold on phones) · *More work* (4 compact cases, **fold at every width**) · *In the open* (GitHub, auto) · *Next: Résumé →* |
 | `/resume/` | Career facts | Terraced-fields strip (low, the "doc" strip); a document header ("Qijin Xu", title, contact line with "Goes by Jack") | Summary · Experience (vertical brush timeline) · Skills · Education · Certifications; **View résumé (PDF)** opens `/resume.pdf` in a new tab; JSON Resume |
 | `/contact/` | Who should write, about what | The crossing | Aimed at **collaboration and speaking** (no "hiring" language; his employer can read it): email + Copy, LinkedIn, GitHub, PDF, time zone. Optional later: "For organisers" bios. |
@@ -133,14 +147,17 @@ Where they disagree with this file, this file wins; fix them. Known stale bits e
   - **Commissioner** for body and UI, weights 400 / 560 / 700 only;
   - Noto Serif SC, subset to 徐, for the seal only.
 - **Sizes (phone → wide):** body 17→18 · lead 18→20 · item titles 18→20 · h2 22→26 · page titles 32→40 · name `clamp(44px, 35px + 2.6vw, 72px)` · small print 14 · **figures 22→26** (equal to h2, so a figure never adds a type size).
+  - **Round 5: Home's name stays big:** 1.55 × that clamp (1.42 on phones) in `jade.css`: about 112 px at 1440, 106 at
+    1280, 64 at 390. Jack, 2026-10-19: "keep Home's big name and relax the budget".
 - **Widths:** a 1200 frame · 680 reading column · 960 wide blocks · title-in-strip ≤ 580 · margin rail 300. Gutters: 16/20 on phones, 32 on tablets, 40 on wide screens. Header 56 / 64 (48 on short screens).
 - **Breakpoints:** phone < 640 · tablet 640–1199 · wide ≥ 1200 · short = under 500 tall **and** under 1200 wide.
 - **Strip heights (phone / tablet / wide):**
-  - home 96–120 / 220 / 440–540 (≈522 at 900 tall);
+  - home 190–240 (28svh; round 5, was 96–120) / 220 / 440–540 (≈522 at 900 tall);
   - sub 110–170 / 220 / 300–360;
   - doc 88–110 / 160 / 180;
   - short screens 80 / 80 / 64;
-  - closing scene 160 / 200 / 240 (96 short).
+  - closing scene 160 / 200 / 240 (96 short);
+  - round 5, below 1200 px only: a depth band (§7) 180 / 232; Writing's and Contact's closing 250 / 290.
 - **Budgets (1440 / 1280 / 390), SPEC §15.2:**
 
   | Row | Target |
@@ -160,7 +177,15 @@ Where they disagree with this file, this file wins; fix them. Known stale bits e
   - 5 type sizes on Home (the demo-only "Draft art" label), the Résumé, Contact and Writing;
   - short pages (Contact, Writing, the Note, the 404) over 0.10 on wide screens;
   - short pages whose whole content fits the first screen report low word counts;
-  - the strip → first section and the closing band are not "gaps".
+  - the strip → first section and the closing band are not "gaps";
+  - **round 5: Home's big name** (Jack: "keep Home's big name and relax the budget"), as `tests/e2e/budgets.spec.ts`
+    checks it: the name at 112 / 106 / 64 px (`--fs-name` × 1.55, × 1.42 up to 40 rem); Home's display-to-text ratio
+    up to 0.40; 5 type sizes on Home, and on Work at 1280 × 720 (its section title, sub-heading, table head, text and
+    caption share one short screen); Home at 1280 up to 2 words short. Work at 1280 was one of the four typography
+    misses in the question that answer settled, so it counts under it;
+  - **the polish round (2026-10-22), reported as open questions, not failures:** the Résumé's first screen up to 50
+    words short (the shared hero, and its letterhead's explanatory note dropped), and Writing at 390 up to 0.12 (one
+    note under a one-sentence intro, until there are more notes).
 - **Removed for good:** the 100svh slides, the 294 px name, scroll fade-ins of text, the dark page-flood transition, `?transition=edge`. Mid-page vistas were removed in 4a; §11.A may bring back *composed* scenery between sections.
 
 ## 7. The painting (engine `assets/js/landscape/`; API = `mountLandscape()` JSDoc in `landscape/index.js`; palette in `landscape/palette.js`)
@@ -196,7 +221,43 @@ Where they disagree with this file, this file wins; fix them. Known stale bits e
   another part of the place. The story map's stills are cut from the same world at one height and one scale.
 - **Colour** shifts gradually: pigment seams 0.34 wide (were 0.18). No new pigments.
 
-- **Pigments:** azurite #2C5C8A (misted #7F9FB8) · malachite #3A806A (#8DB5A4) · timber brown #6B5444 (#8F8078), small areas only · ink grey #2A3034 · indigo wash #3E5664 · cinnabar #B1362B, seal only · paper #EFF1EE. Rejected: ochre glaze #CDB096 (reads beige). In the rich palette the figures run at 1.25.
+**Round 5: Spring ink** (the style; record: §12 "Round 5", steps 2, 3, 3b; where it differs from the 4a/4b bullets
+below, this wins). Every place, the river, the town and the ferry stay as approved; the style changes (and Home's
+phone strip is taller and framed tighter on the peak and its light).
+- **What it paints:** a clear spring morning. High-key ice-blue air; one light per place (one table, `engine/lights.ts`,
+  read by the shaders, the stills and the story map): Home, Writing and Contact a white light with a heart and a
+  bloom (Home's the strongest; Writing's and Contact's also lie on the water as a glitter column), Work, the Résumé
+  and the 404 a sky glow only; one brush stroke of thick-thin dry-brush ink along the near crests (crisp near, soft
+  far; thinner and slate-indigo on the lake and the crossing); the inner pages' sky graded only inside their own hero
+  window, never left of the words.
+- **Each place's spring moment:** Home: a hand-painted plum bough (white and pink blossoms), a swallow, the fall in
+  its crag, and **one translucent silk ribbon** through the light (Home only: the one Wuthering Waves gesture). Work:
+  fresh willows, a pair of swallows in open sky, the bridge and boats mirrored in the river, broken ripple rings.
+  Writing: a lake willow, light on the water, petals on it. The Résumé: flooded treads holding the sky, a blossom
+  tree, a swallow. Contact: a road of light across the water to the ferry.
+- **What moves** (each element one flag in `elements.ts`; all stop under reduced motion and Still; ambient ≤ 15 fps,
+  asleep after 45 s): the plum's ~0.5° sway; the ribbon's drift; the morning opening on the first Home load of a
+  session (the cloud parts from the light, the plum's ink blooms, the swallow glides in; about 2.3 s, 1.6 s on phones;
+  the words on paper from the first frame); the waterfall's lights; Contact's rushes and the ferry's drops; "Still"
+  settling over ~0.8 s; the page change as a 340 ms mist dissolve (a long jump dissolves the old place into the new).
+  The pointer gets two answers only: one small broken ring on water after a 450 ms rest or a tap (at most two), and
+  the plum's gust of 3–5 petals (at most once per 8 s). Nothing follows the mouse.
+- **The scroll on laptops (≥ 1200 px; step 3):** every page on the map is a living ground. The camera rises through
+  the mist, the place settles beside the words and stays all the way down, and at the end it comes back to the
+  opening. Home and Work as in 4b; Writing lifts and drifts 56 px east (its mountain clears the note's rule); the
+  Résumé comes down the terraces in four short steps; Contact's ferry and reeds pass faster than the far shore. The
+  scroll is a breeze, one wind per place (Home's plum and ribbon, Work's and Writing's willows, Contact's rushes; half
+  strength and no petals on phones), and the light swells a little (at most +0.25, barely on short pages).
+- **Phones and tablets (< 1200 px; steps 3 and 3b):** the strip parts into two depth layers and sinks into cloud as
+  it leaves; the closing comes out of parting mist and ends exactly as approved. At a page's major breaks a **depth
+  band** opens (`<Glimpse>`): a full-width band of the ice-blue morning with a piece of the page's own place, each
+  further along the place and higher up one climb; as it moves up the screen the near hills sink and the sea of cloud
+  climbs. Home 2 (tablets 1), Work 2, the Résumé 2 (before Experience and before Skills, never inside the timeline);
+  Writing and Contact none mid-page, their closing (250 / 290 px) rising out of the cloud at the page's end; a phone
+  held sideways none. The words never move and keep 40 px of paper round them; nothing in a band is lighter than the
+  paper; bands never share a screen. Where the painting cannot draw, a band shows its own still.
+
+- **Pigments:** azurite #2C5C8A (misted #7F9FB8) · malachite #3A806A (#8DB5A4) · timber brown #6B5444 (#8F8078), small areas only · ink grey #2A3034 · indigo wash #3E5664 · cinnabar #B1362B, seal only · paper #EFF1EE. Rejected: ochre glaze #CDB096 (reads beige). In the rich palette the figures run at 1.25. Round 5 adds the ice-blue air (toward #CFE3EE) and the plum's pinks, in small accents only.
 - **Behaviour in 4a:**
   - Each page opens with its strip; wide screens put the title in the strip's mist.
   - The strip scrolls away.
@@ -247,13 +308,26 @@ Where they disagree with this file, this file wins; fix them. Known stale bits e
 
 ## 9. Components kept
 
-- Brush-swatch **ink button** (it blooms from the pointer).
-- Dry-brush **link underline** (a resting mark on every link).
+- **One brush button on the whole site** (round 5): Home's "See the work", a deep-jade loaded stroke whose tail breaks
+  into dry brush. No shadow at rest; hover a soft glow and 4 % brighter; press 6 % darker and 1 px down; no bloom, no
+  rings, no gloss. Every other action (the Résumé's PDF, Contact's Copy email, a note's "more") is a quiet ink link:
+  ink text, the resting underline, jade on hover and focus.
+- Dry-brush **link underline** (a resting mark on every link; round 5: a jade-tinted grey, #5D8987).
+- **The nav mark** (round 5): the current page's brush tick is jade; at the click it lifts off the old word and is laid
+  wet under the new one, inside the pan (back/forward: after the commit). Still when quiet.
+- **Focus** (round 5): a plain 2 px deep-jade ring (#134A47, 8.8:1), no glow; on the brush button it sits 3 px off the
+  stroke's own box. Selection a pale tint; the scrollbar jade.
+- **The name's swash** (round 5): a jade stroke under Home's name, laid after the name settles; one warm sheen runs
+  along it once per session when the morning's light is up.
+- **Rows and diagrams** (round 5): on hover a 1.5 px jade rule draws in from the left on a row's bottom border; a small
+  dark ink dot runs once along a diagram's arrows in flow order. No glow on the interface.
 - **Seal**, stamped once per visit; the signature seal is static.
 - Indigo **margin notes** (in the rail on wide screens, tap-to-open on phones).
 - Brush **diagrams** with "Read as steps".
 - **"Still the landscape"** pause.
-- The returning header.
+- The returning header, with a paper band under it on every page (round 5: the sky never sits behind the nav).
+- **The story map** (round 5): each place has a dim and a lit still; the current place holds its sun (a warmth, no tick
+  bar), a hovered place's light rises. "Visited" places keeping a little light is built but off (a question for Jack).
 - A demo-only same-document router with the painting pan. The build uses client navigation and a persistent canvas.
 
 **Demo-only URL switches** (never ported to production):
@@ -354,6 +428,9 @@ reading below is the art lead's and is marked *confirm*):
    → "Yes" (a several-part question): the built defaults stand: honour wording as built, the 2026 award's project unnamed,
    OMITTED items stay out until he writes them, glossary notes kept. The dedicated case pages (answer 2) are the natural home
    for "The hard part" when he writes it. *Confirm the parts that matter to him.*
+   → **Superseded 22 Oct 2026** for the honours and the award: Jack made his career-kit résumé (`resume_ats.tex`) the
+   source of truth, so the 2026 award names the email agent, the honours read "First in Class · Dean’s List (all
+   semesters)" and education ends in 2020 (COPY.md, Résumé).
 5. **The launch-gate route:** a fresh v2 repo (Claude suggested this) vs a history rewrite (irreversible) vs making it private. Then make `job-application` private (§2).
    → "Just commit to the repo and rewrite the old version… Put the old version site into a branch archive/…". **Route:** the same
    repo; v2 replaces the old site on `master`; the old site lives on in a branch **`archive/v1-site`**. Because the repo is public and
@@ -449,7 +526,8 @@ reading below is the art lead's and is marked *confirm*):
   2. An old address without its trailing slash (`/about`) takes one 308 to `/about/` and then the 301. Next.js adds the
      slash first; a single hop would need middleware.
   3. Deleting `legacy-v1/` (the old app, moved there with `git mv`) and untracking the old `.next/` files the v1 repo
-     committed.
+     committed. **Done** (2026-10-22): `legacy-v1/` is removed (78 files) with its entries in the README's tree,
+     `tsconfig.json` and the ESLint and Prettier ignores; `0b3c25b` had already untracked the v1 `.next/` files.
   4. The Vercel project: Node 24 comes from `engines` in `package.json`; turn on Deployment Protection; a preview needs
      this branch pushed (public).
 - **The engine is strict TypeScript** (2026-10-16, `7923e2a`, from a side session; stills byte-identical).
@@ -565,6 +643,176 @@ After a second, adversarial review (which caught a regression on Home, since put
   are unchanged (pixel diff at most a few levels). Verified as above, plus contrast on Work, Home and Writing and the
   reduced-motion / Still stops.
 
+(The painting's commits are named "step 2" and "2b"; in the agreed order they finish step 1, and the style is step 2.)
+
+**Steps 2, 3 and 3b: approved and committed on `round5/spring-ink`** (2026-10-19; on top of `redesign/v2`, not
+pushed). Designed as mockups in a side session (multi-agent: designers, judges, adversarial
+reviewers), then ported. The full record (every fix, proof and rejected option): the mockup's `NOTES.md` and the
+side session's `HANDOVER.md`, in session folders that may be wiped; this section is the condensed record. Jack, on
+2026-10-19: "put the approved Spring ink look, its elements, the scroll motion and the phone depth bands onto
+redesign/v2 on top of the latest commits, run the full checks and commit."
+
+- **Step 2, the style "Spring ink"** (§4.5, §7, §9). Round 1's three directions were rejected ("B and C looks
+  absolutely cheap"). Round 2 studied 23 official Wuthering Waves frames (Chinese chapters only; its own site is
+  blocked by CGI's filter and was not bypassed) and built five directions in the real engine; the judges' mix,
+  "Spring ink", won 3/3. Jack, 2026-10-18: "Go with Spring ink. Do the polish round on the listed weak points. Also
+  dont focus on existing arts/background, think for all the elements you can add to make it feel younger and maybe
+  more 'Wuthering Waves'". A polish round (the painted plum, the ribbon, a spring moment per inner page, Work's
+  swallows in open sky, a clean phone strip foot), then 38 element ideas, 20 prototyped, 11 kept after an adversarial
+  round that cut the "game launcher" finish. Jack, 2026-10-18: "Approve Spring ink with these elements and the rule
+  changes. Move on to step 3, scroll motion, in this style."
+- **Step 3, scroll motion on laptops** (§7). Three systems prototyped; "The camera travels" won 3/3, with grafts (one
+  wind per place, the light's swell, parting mist for phone closings); then 11 fixes. Jack, 2026-10-18: "Approve on
+  laptops, but phones should do more: give them a longer depth effect while reading."
+- **Step 3b, depth bands on phones and tablets** (§7). "Windows into the painting" won 3/3; then a reviewer's 13
+  fixes and two last-fix rounds. Jack, 2026-10-19: "Approve the phone scroll as built: no band on phones held
+  sideways, one Home band on tablets, keep Home's big name and relax the budget. Move on to step 4, the content."
+- **Where it lives:** `src/features/landscape/elements.ts` is the one switch table (17 flags; off = that element's
+  engine paths and CSS gone, and for `silkVeil`, `air` and `glimpses` its shader code too, by GLSL `#define`s; the
+  others' shader code stays compiled in, skipped by its uniforms; `visited` off); `engine/lights.ts` the one light
+  table; `engine/sets/young.ts` the plum, swallow, willow and ripples; `components/page/Glimpse.tsx` the bands;
+  `styles/jade.css` and `finish.css` the interface; `effects/finish.ts`, `nav-mark.ts`, `swash.ts`; e2e
+  `scroll.spec.ts` and `glimpse.spec.ts`.
+- **The rule changes, as approved** (numbered as in the mockup's notes):
+  1. jade as the UI accent (the name, the one button, the nav tick); 8. page titles in deep jade; 20. focus, selection
+     and scrollbar in jade, no glow;
+  2, 12. pink in small painted accents only (Home's plum, the Résumé's blossom tree, Writing's petals);
+  3. ice-blue air and a light brighter than the paper; the paper under text stays cool;
+  4, 10. Home's phone strip twice as tall (28svh) and framed tighter on the peak and its light;
+  5. a paper band under the header on every page;
+  6. one brush button on the site; the other actions are quiet ink links;
+  7. dry-brush ink along the near summits;
+  9, 15. one silk ribbon, at Home's light only;
+  11. the plum sways (~0.5°); 13. a third swallow (the Résumé); 14. a lake willow on Writing;
+  16. the page change as a 340 ms mist dissolve;
+  17. the first Home visit of a session opens on cloud (~2.3 s, 1.6 s on phones);
+  18. the pointer answered only by one ring on water and the plum's gust; nothing follows the mouse;
+  19. the story map's stills dim and lit (cap 60 → 110 KB, lazy below the fold);
+  21, 22. Writing, the Résumé and Contact become living grounds on wide screens, ending on the stage's own end pose;
+  23. below 1200 px the strip parts and sinks into cloud as it leaves, the closing comes out of parting mist;
+  24. the Résumé comes down in four short steps; 25. Contact travels sideways, Writing drifts 56 px east;
+  26. on living pages the footer's rows sit on paper veils;
+  28. the scroll is a breeze, one wind per place; 29. one curve of light (at most +0.25), a glow only;
+  30. the story map's "visited" light: built, off by default;
+  31–36. below 1200 px, a depth band of the page's own place at its major breaks (Home 2, tablets 1; Work 2; the Résumé
+     2), 180 px on phones (its outer 40 px paper and mist), column-wide on tablets, the sky a full-width ice-blue band
+     on phones; none inside a section; none on a phone held sideways; Writing and Contact end on their place rising
+     out of the cloud; a band without the painting shows its own still;
+  and §6: Home's name stays big, its budget relaxed.
+- **Tried and cut:** the silk thread through every page, the silk-curtain page wipe (now the plain mist dissolve), the
+  lit wake edge, pointer parallax, the light shafts through the saddle (Home's bloom keeps its three soft shafts), the
+  page-change swallow, section dividers, the button's gloss and
+  press rings, the story map's caret tick, the waterfall glint; "the way on" (Home's and the Résumé's sideways ending,
+  rule 27, withdrawn); on phones, a third Home band ("Now"), a band inside the Résumé's timeline, and a slim 110 px
+  band on sideways phones (the alternative, the place in the right margin, kept only as a still).
+- **Known open:**
+  - **No real-device test yet** (iOS Safari, Android Chrome: the URL bar's resizes, a mid-range GPU at DPR 3, battery).
+    Every number so far is this Mac's GPU with a phone emulated.
+  - **The Canvas2D fallback paints Spring ink's figure sets and misted palette, without the shader work** (no
+    ice-blue air or light, no dry-brush ink, none of the painting's elements, no scroll motion; the bands keep their
+    stills), and software GL keeps the approved strips and closings, with no parting and no air.
+  - **Memory on phones is 4–9 MB more per page** at DPR 3 (each band's own view and figure layer; Work +8.2 MB).
+  - For Jack: the story map's "visited" light (built, off: on or off?); the bands' views are taste (numbers in the
+    engine's `GLIMPSE.at`).
+
+**Step 4, the content: started** (2026-10-19). A review by five reader lenses, an editor, and provenance and value
+critics; nothing invents a fact or Jack's voice, and nothing in the repo is edited yet. The doc for Jack, "Step 4, the
+content" (https://claude.ai/code/artifact/65a17a60-ad11-432d-a4dd-6cd2563a472d): 14 questions (1–5 first:
+"Canada's largest", the two hard parts, what "Lead" means, what the 90% / 321% / 525% mean), 14 DRAFT edits from
+existing words only, 6 section ideas, housekeeping fixes, what we keep. **Waiting for Jack's answers.** Next: drafts
+shown beside their pages, then applied on the real branch with his OK.
+
+
+### The polish round (2026-10-20 to 22; Jack: "absolutely the best", "full freedom", no requirements)
+
+**The brief.** Jack (2026-10-20): the site must attract every employer who sees it and serve his future as an entrepreneur,
+"appealing even to Apple's CEO"; "you have full freedom". The content step (above) was still waiting on his 14 answers, so
+the rule of this round was: **nothing invents a fact, a number, an opinion or a habit; every change reuses words and facts
+already in `content/`, or adds structure, craft and plumbing.** The words at the root are now the build's `content/` files
+(CONTENT.md); COPY.md stays the demo's deck and the claims ledger.
+
+**How it was run.** An audit as a multi-agent workflow (eight lenses, each a fresh agent on the real GPU with the real
+screenshots: an Apple-calibre design critic, a mobile critic, a hiring manager / recruiter / CTO, a founder / investor, a
+copy editor, a web-platform engineer, an interaction reviewer, a first-time visitor), each finding scored by judges (rules
+and taste; visitor value; engineering risk), then a completeness critic. 124 findings; the ones below were done, the rest
+are recorded as open (needing Jack) or skipped (against an approved decision). The lenses agreed the site was already
+unusually honest and consistent; the misses were in what a visitor could not see or find.
+
+**Built, uncommitted on `redesign/v2`** (each line names what and why; the files: `git diff`):
+- **Link previews.** One 1200 × 630 card per page, cut from the page's own hero by `tools/build-og.ts`
+  (`npm run build:og`, against a QA build on :3100): the inner pages' strip cut 150 px taller and shifted up, the title
+  at the name's size, "Qijin Xu · Lead AI/ML Architect" above it; Home's card is a cover too (the name, one line, the
+  painting). `public/og/` + `manifest.json`; `src/lib/seo.ts` gives every page `og:image`, `twitter:card`
+  summary_large_image and the profile fields on Home; a case or a note without a card falls back to its section's.
+  Why: a shared link on LinkedIn, Slack or iMessage was bare text; it is the first impression a recruiter gets.
+- **The marks.** `src/app/apple-icon.png` (the seal on paper, 180), `public/favicon.ico` (16/32/48: the blind request
+  Safari, Slack and feed readers make), `src/app/manifest.ts` and `appleWebApp.title`, so a home-screen shortcut says
+  "Qijin Xu", not the cut-short title.
+- **Copy and search, from existing words only.** Case pages carry a `metaDescription` naming him and the result; Home's,
+  the Résumé's and Contact's snippets say CGI; llms.txt covers all six projects, the two awards without ambiguity
+  ("2026 (project not named on this site)"), a Now line built from Home's own lines, and links every case; the Writing
+  intro's second sentence (not Jack's words) is dropped and its taglines are one; "About 90%", "less manual work",
+  "dual-state dynamic", "RAG assistant" (not "chatbot"), the serial comma and lowercase "present" everywhere; the agent's
+  diagram steps and descriptions say "What comes out:"; the hockey summary names AttentiveVision; the note's two leftover
+  headings are gone and its byline says "Updated"; Home's "All writing →" shows only when Home cannot list every note;
+  the 2019 internship in two bullets; awards before certifications; Dean's List in `/resume.json`; the 404's one robots
+  tag; `Content-Disposition` names the PDF "Qijin-Xu-Resume.pdf".
+- **Structure.** The Work table shows each project's role under its title (his path at a glance) and its public evidence
+  as a quiet line under the outcome (the Evidence column was a dash in four rows of six). A **colophon**
+  (`src/components/page/Colophon.tsx`, `site.bio`) ends every case and the note: the seal and the author line, so a page
+  reached from a search says whose work it is. "In the open": Logic Foundry (public since 2026-10-13) is listed as a
+  prototype under Recent, from `overrides.json` and the refreshed `snapshot.json`; the 2019 – 2020 course work always
+  folds behind its heading (a real h3 in the summary). Case pages' sections are sections with h2 labels (a `dt` cannot
+  hold a heading; the Outcome is now one keystroke away for a screen reader), the same look. Breadcrumbs, images,
+  publisher and the site on the cases' and the note's structured data; the feed advertised on every page, a quiet
+  "RSS feed" link on Writing, `lastBuildDate`.
+- **Craft (the design and mobile lenses).** "Now · October 2026" breathes; the quiet action links share the one UI weight
+  (560); Home's second lead on the scale (18 px); the footer's dots centred and "Still the landscape" on its line; the
+  story map's labels in the nav's voice from 640 and its art 52 px on phones; the colophon's seal 36 px (was 44, the largest on the site);
+  Contact's labels on their values' baseline, the "Copied" stamp beside the words it used to cover; the table heads in
+  the deep jade; the Résumé's letterhead without its explanatory note and with its actions on the column, the site's own
+  address on the PDF only; the Work table's role line in small print on phones; the header one row down to 360 px, the
+  nav on its own row at 356 and under (`--header-gap`; `tests/e2e/header.spec.ts`); the flagship diagram folds wherever the tall drawing shows (tablets too),
+  the tall drawing capped at a phone's width there.
+- **Interaction.** Back and Forward return the reader to where they were (`Navigation.tsx`, per path for the session;
+  `tests/e2e/navigation.spec.ts`); the current nav item eases to the top; a Work row is one target on phones; the
+  folds ease open (`::details-content`, where supported); the summaries and note toggles answer in jade; a tap is
+  answered in jade, never the system's blue box; a folded diagram draws in when revealed; the returning header needs
+  24 px of a finger's travel, 8 of a wheel's; the note's reading stroke starts at scroll 0; a page title focused after a
+  page change keeps the announcer, not a jade frame; "Still the landscape" says what it does (a tooltip and a hidden
+  description); Contact shows his local time beside the time zone (`LocalTime`, nothing without JS).
+- **Platform.** Fonts in the latin subset only (66 KB of unused latin-ext preloads gone); the stills, the photo and the
+  cards cacheable for a day; `frame-ancestors 'none'` and `X-Frame-Options`; CORS on `/resume.json` and `/llms.txt`;
+  `color-scheme: only light` (Android's auto-dark could invert the paper under an un-inverted painting); print: a case's
+  evidence prints its addresses and the sheet gets the wide drawing.
+- **The engine (two framing changes; stills regenerated).** (1) **A veil follows rendered text only** (`textBands`,
+  engine/index.ts): text folded away in a closed `<details>` still answered `getClientRects` with boxes laid out below
+  the fold, so Work's last section veiled its own closing on phones and tablets (an empty band at the hub page's end:
+  the mobile lens's one must). (2) The river's wide closing looks a little east of the bridge (`Frame.closingU` 0.69,
+  compose.ts): a wide closing is 1.25 stretches wide, and centred on the bridge its left edge cut Home's east crag, the
+  darkest ink on every case page.
+
+**Open for Jack (needs his facts, his photo or his call; nothing built):**
+1. The "hard part" of the two flagship cases, what "Lead" covers (team, decisions, stakeholders), and the basis of the
+   headline numbers (90 %, 525 %, 321 %): the content doc's questions 2–5. Every hiring lens named these the biggest gap.
+2. A professional photo (§8: side daylight, eye level, a real smile, a plain top, air above the hair): the one element
+   below the rest of the page. One-file swap.
+3. LinkedIn's headline and the GitHub profile (name, company, location, bio, the placeholder repos' READMEs and the
+   "anounced" typo): the first off-site clicks contradict the site.
+4. Design questions to show side by side, not to decide here: the short pages' endings on wide screens (Writing's and
+   Contact's end pose parked in the right third; a taller end box recomposed centre-left would change an approved
+   round-5 ending), the brush button's hover (an approved 4 % lift that is below notice on the dry-brush texture), the
+   diagram's flow bead (approved, but too small to see), the resting underline on row titles, the Note's lake closing
+   showing 0.4 of the Résumé's terraces, hover states sticking after a tap on touch screens (a `(hover: hover)` guard
+   over ~32 rules), the sideways-phone strips (80 px), a real-device check (28svh of a real phone's viewport is ~199 px,
+   not the 236 reviewed), "prototype" in Now's Logic Foundry line, outside links in the same tab versus a new one.
+5. The pronunciation of "Qijin" and two sentences on why a Chinese handscroll and what the seal is: both in his voice.
+
+**Skipped (against an approved decision or not worth it):** a third hero line of proof (the hero is approved copy and
+the photo must start on the first screen); moving About's "I also build for myself" to Now; the statement line on Home
+(4a retired it to Work on purpose); flipping subpage titles to "<page> · Qijin (Jack) Xu" (§3 fixes the form); a
+wall-clock test on Now's month (a CI time bomb; the unit test compares it with the content dates instead); PDF Author
+metadata (a new dependency for a small gain); the photo through the image optimizer (its baked fade edge).
 
 ## 13. Running the demo and its tools
 
@@ -603,3 +851,6 @@ That serves http://localhost:4173 with the designed 404. In the Claude desktop a
 - **Round 4:** researched 31 real personal sites, leading to the readable layout, Home as "about me", the narrative painting, colour and the colour photo.
 - **Demo 4a** implemented that. Jack: "looks great", plus the two points in §11.A–B, and he agreed to finish with a short 4b round in a fresh session.
 - **Demo 4b** (2026-10-15, one long session run as multi-agent workflows): two prototypes of the scroll-following background ("settle", "depth") judged by three lenses; depth won and was refined in three adversarially reviewed rounds; six figure-set artists painted the places in parallel; the closings and the story map now show each page's own place; small life; the QA probes rebuilt; a final real-GPU review with two fix rounds. Record: `_notes/r4b/RECORD.md`.
+- **Round 5** (2026-10-16 to 19, on the Next.js build): one order, one hero, one ending; the painting as one
+  handscroll; the style "Spring ink" with its elements; scroll motion on laptops; depth bands on phones; then the
+  content (§12 "Round 5").

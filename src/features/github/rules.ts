@@ -151,7 +151,7 @@ export interface Groups {
   featured: Entry[];
   recent: Entry[];
   early: Entry[];
-  /** "Early work, 2019–2020" (or "Earlier work, …" once the newest is after 2020); null when empty */
+  /** "Early work, 2019 – 2020" (or "Earlier work, …" once the newest is after 2020); null when empty */
   earlyRange: { first: number; last: number } | null;
 }
 

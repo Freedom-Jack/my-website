@@ -29,9 +29,24 @@ const config: NextConfig = {
   async headers() {
     return [
       {
+        // the résumé opens in the tab (DESIGN §5) and saves under his name, not as "resume.pdf"
+        source: '/resume.pdf',
+        headers: [{ key: 'Content-Disposition', value: 'inline; filename="Qijin-Xu-Resume.pdf"' }],
+      },
+      {
+        // the stills, the photo and the link-preview cards: a day in the browser, refreshed behind the scenes
+        source: '/:dir(scenes|images|og)/:path*',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' }],
+      },
+      {
         source: '/:path*',
         headers: [
           { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          {
+            key: 'Content-Security-Policy',
+            value: "frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'",
+          },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), browsing-topics=()' },
         ],
