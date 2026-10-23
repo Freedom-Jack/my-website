@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { settle } from './support/pages';
+import { isSoftware, settle } from './support/pages';
 
 /**
  * Windows into the painting (elements.ts glimpses), below 1200 px: the hard rules on the rendered pages.
@@ -24,10 +24,6 @@ const PAGES = [
 ];
 const PHONE = { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true };
 const stats = (page: Page) => page.evaluate(() => (window as unknown as { __ink: { stats(): S } }).__ink.stats());
-const hardware = async (page: Page) => {
-  const s = await stats(page);
-  return s.mode === 'webgl' && !s.software;
-};
 const boxes = (page: Page, sel = '[data-landscape="glimpse"]') =>
   page.evaluate(
     (q) =>
@@ -238,8 +234,16 @@ test.describe('glimpses: laptops are the approved page', () => {
     { width: 1440, height: 900 },
     { width: 1280, height: 720 },
   ]) {
-    test(`${vp.width}: no window, flag on = flag off`, async ({ browser }) => {
-      for (const p of PAGES) {
+    for (const p of PAGES) {
+      test(`${vp.width} ${p.path}: no window, flag on = flag off`, async ({ browser }) => {
+        test.slow();
+        const probe = await browser.newContext();
+        const probePage = await probe.newPage();
+        const sw = await isSoftware(probePage);
+        await probe.close();
+        // (DESIGN §13 judges the approved page on a real GPU; a software rasteriser paints less, and at 1440 it can
+        // hold the main thread long enough that the page cannot be measured at all)
+        test.skip(sw, 'the approved page is judged on a real GPU');
         const shots: Buffer[] = [];
         const heights: number[] = [];
         for (const off of [false, true]) {
@@ -263,8 +267,8 @@ test.describe('glimpses: laptops are the approved page', () => {
         const page = await ctx.newPage();
         expect(await diffFrac(page, shots[0], shots[1], 8)).toBeLessThan(0.005);
         await ctx.close();
-      }
-    });
+      });
+    }
   }
 });
 
@@ -272,10 +276,10 @@ test.describe('glimpses: phones', () => {
   test.use(PHONE);
   for (const p of PAGES) {
     test(`${p.path}: every window painted, and no scene while scrolling past them`, async ({ page }) => {
+      test.skip(await isSoftware(page), 'a software rasteriser shows the stills');
       await noMorning(page);
       await page.goto(p.path);
       await settle(page);
-      test.skip(!(await hardware(page)), 'a software rasteriser shows the stills');
       const bx = (await boxes(page)).filter((b) => b.h > 0);
       expect(bx.length).toBe(p.n);
       await paintAll(page, 844);
@@ -296,10 +300,10 @@ test.describe('glimpses: phones', () => {
     test(`${p.path}: the words keep 40 px; nothing lighter than the paper; nothing at the screen's sides`, async ({
       page,
     }) => {
+      test.skip(await isSoftware(page), 'a software rasteriser shows the stills');
       await noMorning(page);
       await page.goto(p.path);
       await settle(page);
-      test.skip(!(await hardware(page)), 'a software rasteriser shows the stills');
       await paintAll(page, 844);
       const n = (await boxes(page)).filter((x) => x.h > 0).length;
       for (let i = 0; i < n; i++)
@@ -329,10 +333,10 @@ test.describe('glimpses: phones', () => {
     });
   }
   test('reduced motion: a window is its rest pose wherever it stands', async ({ page }) => {
+    test.skip(await isSoftware(page), 'a software rasteriser shows the stills');
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/');
     await settle(page);
-    test.skip(!(await hardware(page)), 'a software rasteriser shows the stills');
     await paintAll(page, 844);
     const [b] = (await boxes(page)).filter((x) => x.h > 0);
     const crop = async (q: number) => {
@@ -377,10 +381,10 @@ test.describe('glimpses: a short page ends on its place, uncovered', () => {
           hasTouch: vp.mobile,
         });
         const page = await ctx.newPage();
+        test.skip(await isSoftware(page), 'a software rasteriser shows the stills');
         await noMorning(page);
         await page.goto(path);
         await settle(page);
-        test.skip(!(await hardware(page)), 'a software rasteriser shows the stills');
         const H = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
         await jumpTo(page, H);
         await settle(page);

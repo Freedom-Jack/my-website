@@ -4,7 +4,10 @@
 name: CI
 
 on:
+  # (a PR branch matches both events; running it on push as well doubled every PR build and one copy hit the job
+  # timeout. Pushes to master still build, and every PR is checked once.)
   push:
+    branches: [master]
   pull_request:
 
 permissions:
@@ -17,7 +20,7 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 35
     env:
       NEXT_TELEMETRY_DISABLED: '1'
       # the QA build: the painting's read-only debug handle for the browser tests (never in the Vercel build)

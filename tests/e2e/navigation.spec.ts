@@ -12,7 +12,8 @@ test('Back returns to the row you left', async ({ page }) => {
   await page.waitForTimeout(200);
   // (a reader clicks the returning header where they are; Playwright's own click would scroll the link into view first)
   await page.evaluate(() => document.querySelector<HTMLAnchorElement>(".site-nav a[href='/resume/']")!.click());
-  await expect(page).toHaveURL(/\/resume\/$/);
+  // (a CI runner busy with two software-rendered workers can take a few seconds to finish the route change)
+  await expect(page).toHaveURL(/\/resume\/$/, { timeout: 15_000 });
   await settle(page);
   expect(await page.evaluate(() => scrollY)).toBe(0);
   await page.goBack();

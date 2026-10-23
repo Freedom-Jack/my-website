@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { expect, test } from '@playwright/test';
-import { ROUTES, settle, VIEWPORTS } from './support/pages';
+import { fontsReady, isSoftware, ROUTES, settle, VIEWPORTS } from './support/pages';
 
 /**
  * The DESIGN §6 budgets (SPEC-R4A §15.2), per page at 1440 / 1280 / 390, measured by the demo's own probe
@@ -50,7 +50,9 @@ for (const [vp, v] of Object.entries(VIEWPORTS) as Array<
     for (const r of ROUTES) {
       test(r.id, async ({ page }) => {
         await page.goto(r.path);
-        await settle(page);
+        // (the §6 budgets are DOM metrics: they wait for the fonts they measure, not for the painting, which a
+        // software rasteriser may take minutes to settle)
+        await fontsReady(page);
         const m = (await page.evaluate(`(${MEASURE})({ taps: true })`)) as M;
         const wide = v.width >= 1200;
         const fail: string[] = [];
@@ -130,6 +132,8 @@ test.describe('colour off text: the column left of the text is paper', () => {
   test.use({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
   for (const r of ROUTES.filter((x) => ['writing', 'resume', 'contact'].includes(x.id))) {
     test(r.id, async ({ page }) => {
+      // (reads the painting's own pixels: judged on a real GPU, DESIGN §13)
+      test.skip(await isSoftware(page), 'the painting is judged on a hardware GPU');
       await page.goto(r.path);
       await settle(page);
       const box = await page.evaluate(() => {

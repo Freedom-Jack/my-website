@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { ROUTES, settle } from './support/pages';
+import { isSoftware, ROUTES, settle } from './support/pages';
 
 /**
  * The scroll (elements.ts cameraTravels + air): the hard rules on the rendered pages.
@@ -19,10 +19,6 @@ import { ROUTES, settle } from './support/pages';
 type S = Record<string, any>;
 const MAP = ROUTES.filter((r) => ['home', 'work', 'writing', 'resume', 'contact'].includes(r.id));
 const stats = (page: Page) => page.evaluate(() => (window as unknown as { __ink: { stats(): S } }).__ink.stats());
-const hardware = async (page: Page) => {
-  const s = await stats(page);
-  return s.mode === 'webgl' && !s.software;
-};
 /** Wheel the page down to y in ticks of `tick` px (a scroll in progress), without waiting for it to settle. */
 async function wheelTo(page: Page, y: number, tick = 120) {
   for (let i = 0; i < 40; i++) {
@@ -84,6 +80,9 @@ for (const quiet of ['reduced motion', 'Still the landscape'] as const) {
         });
         for (const r of MAP) {
           test(r.id, async ({ page }) => {
+            // (the two screenshots must be the same frame, judged on a real GPU: a software rasteriser paints so
+            // slowly that no frame finishes within the test's time)
+            test.skip(await isSoftware(page), 'the painting is judged on a hardware GPU');
             if (quiet === 'reduced motion') await page.emulateMedia({ reducedMotion: 'reduce' });
             else await page.addInitScript(() => localStorage.setItem('ink:still', '1'));
             await page.goto(r.path);
@@ -150,9 +149,9 @@ test.describe('scroll: the air settles within 1.5 s and the loop sleeps', () => 
   test.use({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
   for (const r of MAP.filter((x) => ['home', 'work', 'contact'].includes(x.id))) {
     test(r.id, async ({ page }) => {
+      test.skip(await isSoftware(page), 'the air runs on a hardware GPU only');
       await page.goto(r.path);
       await settle(page);
-      test.skip(!(await hardware(page)), 'the air runs on a hardware GPU only');
       await page.mouse.move(720, 450);
       for (let i = 0; i < 8; i++) {
         await page.mouse.wheel(0, 120);
@@ -187,9 +186,9 @@ test.describe('scroll: frame time while wheel-scrolling (hardware GPU)', () => {
       });
       for (const r of MAP) {
         test(r.id, async ({ page }) => {
+          test.skip(await isSoftware(page), 'timed on a hardware GPU only');
           await page.goto(r.path);
           await settle(page);
-          test.skip(!(await hardware(page)), 'timed on a hardware GPU only');
           const H = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
           await page.evaluate(() => {
             const R = ((window as unknown as { __qaF: S }).__qaF = { iv: [] as number[], on: true, s0: 0 });
@@ -234,9 +233,9 @@ test.describe('scroll: the parted windows below 1200 px', () => {
   test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
   for (const r of MAP) {
     test(r.id, async ({ page }) => {
+      test.skip(await isSoftware(page), 'the parting runs on a hardware GPU only');
       await page.goto(r.path);
       await settle(page);
-      test.skip(!(await hardware(page)), 'the parting runs on a hardware GPU only');
       const s0 = await stats(page);
       const h = s0.windows.strip.height as number;
       await jumpTo(page, Math.round(h * 0.6));
@@ -354,6 +353,11 @@ test.describe("scroll: Work keeps its approved poses (1440, the scroll's flags o
   // Work's curtain at 1412 px at 1440 and hide the river town and its willow for most of the read)
   test.use({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
   test('work', async ({ browser }) => {
+    const probe = await browser.newContext();
+    const probePage = await probe.newPage();
+    const sw = await isSoftware(probePage);
+    await probe.close();
+    test.skip(sw, 'the stage runs on a hardware GPU only');
     const shots: Buffer[][] = [];
     for (const off of [[], SCROLL_FLAGS]) {
       const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
@@ -361,10 +365,6 @@ test.describe("scroll: Work keeps its approved poses (1440, the scroll's flags o
       await page.addInitScript((o) => ((window as unknown as { __elOff: string[] }).__elOff = o), off);
       await page.goto(MAP.find((x) => x.id === 'work')!.path);
       await settle(page);
-      if (!(await hardware(page))) {
-        await ctx.close();
-        test.skip(true, 'the stage runs on a hardware GPU only');
-      }
       const H = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
       const row: Buffer[] = [];
       for (const f of [0.3, 0.45, 0.6, 0.75]) {
@@ -388,9 +388,9 @@ test.describe('scroll: no straight seam in the sky at the end of a living page (
   test.use({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
   for (const r of MAP) {
     test(r.id, async ({ page }) => {
+      test.skip(await isSoftware(page), 'the stage runs on a hardware GPU only');
       await page.goto(r.path);
       await settle(page);
-      test.skip(!(await hardware(page)), 'the stage runs on a hardware GPU only');
       await restAt(page, await page.evaluate(() => document.documentElement.scrollHeight));
       const x0 = Math.max(720, Math.round(((await stats(page)).stage?.colR ?? 720) + 60));
       await page.addStyleTag({ content: '*{color:transparent!important;text-decoration-color:transparent!important}' });
@@ -476,9 +476,9 @@ test.describe('scroll: Home stays in its memory budget at DPR 2', () => {
   // (stats().memory.total, the engine's views and figure layers in bytes; with the scroll's flags off: 42.4 MB)
   test.use({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 });
   test('home', async ({ page }) => {
+    test.skip(await isSoftware(page), 'the stage runs on a hardware GPU only');
     await page.goto(MAP.find((x) => x.id === 'home')!.path);
     await settle(page);
-    test.skip(!(await hardware(page)), 'the stage runs on a hardware GPU only');
     for (const f of [0, 0.5, 1]) {
       const H = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
       await restAt(page, Math.round(H * f));
