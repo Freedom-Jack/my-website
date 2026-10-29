@@ -60,6 +60,10 @@ export interface LandscapeStats {
 export interface LandscapeHandle {
   readonly mode: Mode;
   panTo(stretch: number, o?: PanOptions): Promise<void>;
+  /** The camera under the hand (the scroll mode): sets the position at once (level composition), one governed scene
+   *  per call; drag and wheel call it once per animation frame, keys and the stops use panTo. A cut under reduced
+   *  motion and Still. */
+  hold(stretch: number): void;
   sweep(o?: { dir?: 1 | -1; duration?: number }): Promise<void>;
   prepare(stretch: number, o?: { distance?: Distance; presence?: number }): Promise<void>;
   rebind(o: Partial<LandscapeTargets>): void;

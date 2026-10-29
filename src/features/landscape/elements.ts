@@ -70,6 +70,10 @@ export const ELEMENTS = {
   focus: true,
   /** Rows: a 1.5 px jade rule drawn in from the left on the row's bottom border (no wash behind the text). */
   rowrule: true,
+  /** The scroll, held (src/features/scroll): after the words, one quiet link in the footer opens the handscroll in the
+   *  hero's own band and the hand moves the painting (drag, wheel, the arrow keys, a tap on a place); every walk returns
+   *  to the one composition; at rest a place may be seen high or deep. Off: no opener, no sheet, no CSS, no hold. */
+  scroll: true,
   /** The story map keeps a little light on the places visited this session (sessionStorage, this tab only; no
    *  words). Off by default: it is not scroll motion, so it stays a choice of its own. */
   visited: false,

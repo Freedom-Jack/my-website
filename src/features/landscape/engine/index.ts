@@ -108,6 +108,7 @@ const IDLE_MS = 45000;    // no pointer / scroll / key / visibility input for th
 const EASE_OUT_MS = 2000; // ...eases to a stop over ~2 s (the loop then sleeps)
 const EASE_IN_MS = 800;   // and eases back in on the next input
 const FULL_MS = 150;      // motion stopped: one full-quality scene follows the draft frames
+const HELD_MS = 120;      // the scroll mode's hand (hold): a held frame counts as motion for this long after the call
 const GPU_WAIT_MAX = 400; // a frame waits at most this long for the GPU to finish the previous one
 const GOV_N = 12;         // governor window: heavy frames sampled...
 const SLOW_MS = 45;       // ...and their mean interval that counts as slow
@@ -533,6 +534,7 @@ const QA = typeof process !== 'undefined' && process.env.NEXT_PUBLIC_INK_QA === 
  *
  * @returns {{ mode: 'webgl'|'canvas2d'|'static',
  *            panTo(stretch:number, o?:{duration?:number, distance?:string, presence?:number, ease?:'whip'|'cubic-out', cloud?:boolean}):Promise<void>,
+ *            hold(stretch:number):void,
  *            sweep(o?:{dir?:1|-1, duration?:number}):Promise<void>,
  *            setPalette(p:'ink'|'misted'|'rich'):void,
  *            prepare(stretch:number, o?:{distance?:string, presence?:number}):Promise<void>,
@@ -545,6 +547,9 @@ const QA = typeof process !== 'undefined' && process.env.NEXT_PUBLIC_INK_QA === 
  *     than 2 stretches travels 1.6 on screen and splices out the middle under a thick mist; `cloud: false`
  *     (back/forward) travels the whole way. Reduced motion and still: it cuts. The old figure layer fades out over
  *     the first 30% of the pan, the new one in over the last 40% (or within 300 ms of becoming ready).
+ *   `hold(x)`: the camera under the hand (the scroll mode, src/features/scroll): the position is set at once, level
+ *     composition, one governed scene per call (drafts while the hand moves, a full-quality scene once it rests); drag
+ *     and wheel call it once per animation frame, keys and the stops use panTo. A cut under reduced motion and Still.
  *   `sweep`: a pale mist bank (never darker than #D5DCD9) that travels with the scenery across the view.
  *     WebGL only; none under reduced motion, still, or Canvas2D (resolves at once).
  *   `setPalette`: one governed redraw per window; figure layers redrawn for it (cached per palette). Dispatches a
@@ -579,6 +584,7 @@ function inert(): EngineHandle {
   return {
     mode: 'static',
     panTo: () => Promise.resolve(),
+    hold() {},
     sweep: () => Promise.resolve(),
     setPalette() {},
     prepare: () => Promise.resolve(),
@@ -1109,6 +1115,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     if (typeof l !== 'number' || !Number.isFinite(l)) return 1;
     return l < 0 ? 2 : 3 + Math.round(l);
   };
+  let heldAt = 0;            // hold(): when the hand last set the camera (performance.now ms); 0 = never
   let time = 40;             // ambient clock, seconds (never jumps after a pause)
   let driftT = 1;            // 0..1: the drift eases out after IDLE_MS without input, and back in
   let lastInput = performance.now();
@@ -2912,7 +2919,8 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
 
     // the scenes: a window repaints when its framing, palette, keep-out or figures change, while it is in motion,
     // and once at full quality after motion stops. Never while the page merely scrolls (its key stays the same).
-    const moving = (panning && !holding) || arriving;
+    const held = heldAt > 0 && now - heldAt < HELD_MS;   // (the scroll mode's hand: governed like a pan)
+    const moving = (panning && !holding) || arriving || held;
     const draft = mode === 'webgl' ? moving && draftScale < 1 : panning && !holding;
     const U0 = { tide, draft, draftScale, aspect, stillL: stillLight() };
     const slots = lastSlots = figSlots();
@@ -3618,6 +3626,23 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     tween = null;
     t.resolve();
   }
+  /** The camera under the hand (the scroll mode, src/features/scroll): the position is set at once, the one level
+   *  composition, one scene per call (governed: drafts while the hand moves, a full-quality scene FULL_MS after it
+   *  rests). No tween, so figSlots() takes its rest branch (the rounded place's layer and a ready neighbour the window
+   *  sees): nothing pops, nothing restarts a fade. Drag and wheel call it once per animation frame; keys and the stops
+   *  use panTo. Under reduced motion and Still it is the same cut. */
+  function hold(x: number) {
+    if (destroyed || !renderer) return;
+    const dest = Math.min(STRETCH_COUNT - 1, Math.max(0, num(x, stretch)));
+    finishPanAt();
+    stretch = dest;
+    // the one composition under the hand: from a place seen high or deep it blends back over a few held frames, never a cut
+    const level = spec('level');
+    curSpec = specName(curSpec) === 'level' && Math.abs(curSpec.presence - 1) < 1e-3 ? level : blendSpec(curSpec, level, 0.35);
+    heldAt = performance.now();
+    need |= S_SCENE | S_PRESENT;
+    request(S_SCENE);
+  }
   function specName(s: Spec): Distance {
     let best: Distance = 'level', w = -1;
     for (const k in s.w) if (s.w[k as Distance] > w) { w = s.w[k as Distance]; best = k as Distance; }
@@ -3704,6 +3729,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
   const handle: EngineHandle = {
     get mode() { return mode; },
     panTo,
+    hold,
     sweep,
     setPalette(p) {
       const next = paletteName(p);
@@ -3890,6 +3916,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
         trail: trail.length,
         still,
         sweeping: !!sw,
+        held: heldAt > 0 && performance.now() - heldAt < HELD_MS,
         arriving,
         morning: mornNow(),
         ambient: ambientOn(),

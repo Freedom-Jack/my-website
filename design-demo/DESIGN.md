@@ -814,6 +814,89 @@ the photo must start on the first screen); moving About's "I also build for myse
 wall-clock test on Now's month (a CI time bomb; the unit test compares it with the content dates instead); PDF Author
 metadata (a new dependency for a small gain); the photo through the image optimizer (its baked fade edge).
 
+### The scroll, held (2026-10-22 to 29; Jack: "take my personal website far beyond its current state")
+
+**The brief.** Jack asked for genuinely new components, interactions or experience architectures, not polish: "discover
+what I haven't imagined yet", preserve the identity and the hard rules, build a working prototype separate from
+production and explain what makes it fundamentally different. Run as workflows: six code readers mapped the engine and
+the site, thirteen research lenses (handscroll practice, garden and game space, ink physics, browser retrieval, sound,
+exceptional sites and the platform, time and season, explorable craft, a challenger, then the phone, shipping AI
+honestly, accessibility and co-presence) and a completeness critic; four designer directions ("Hold the scroll", "Ask the
+work", "His hour, kept", "Run the drawing") judged by three lenses each, the top two refuted adversarially, one
+synthesis. The durable record (every lens, the directions, the brief, the screenshots) is outside the repo in
+`~/.claude/projects/-Users-jackxu-Personal-Projects-my-website/beyond/`.
+
+**The finding.** The site's stated subject, the river that "brings you across to meet him", was never enacted: the
+painting was looked at from the page and never travelled; the visitor had one verb, scroll. A handscroll is not looked
+at that way: it stays rolled until someone opens it, and it is unrolled by hand, an arm's span at a time, at the
+viewer's own pace (Guo Xi's 可行可望可游可居: a landscape to walk, look at, wander and dwell in; the engine was built as
+one continuous world in x exactly so that "panning between stretches unrolls the scroll"). Verified first on the real
+GPU: the engine can be a free camera over the whole scroll with one rebind and fractional pans, and its three authored
+compositions (level, high, deep: `compose.ts Distance`) exist and read well, shown by no page since round 5.
+
+**Built on `prototype/hold-the-scroll`** (off `redesign/v2`; committed 2026-10-29 at Jack's "Yes, commit it", not pushed;
+`src/features/scroll/`, `src/styles/scroll.css`; one flag `scroll` in `elements.ts`: off means gone):
+- **The opener:** after the words, one quiet brush link in the footer line after "Still the landscape" (DRAFT words in
+  `content/site.ts` `scroll.*` until Jack writes his). Hidden without JS and without the painting.
+- **The sheet:** the page's words sink into the paper (the route exit's own way, `<main>` inert) and the painting stands
+  in the hero's own band under the header (`--scroll-band`: the inner hero's 360 px at 1440 × 900, Home's 236 px on
+  phones, 200 px on a sideways phone), bound as the strip window with no veils, keep-out or stage (`rebind`), so from
+  Work, Writing, the Résumé and Contact it opens cut-free; a mist sweep covers the one scene Home or a phone costs.
+- **The hand:** drag (pointer capture, `touch-action: none`) and wheel move the painting through a new engine method
+  **`hold(x)`** (beside `panTo`: the position set at once, the one level composition, one governed scene per call, no
+  tween, so the figure slots take their rest branch and nothing pops), once per animation frame. Let go while still
+  moving and the scroll goes on to the next place (a flick, ≥ 0.5 px/ms); let go near a place and it settles there
+  (the detent: within 0.3 of a stretch, 0.5 on phones, 300 ms); let go between places after resting the hand and the
+  scroll rests where the hand left it. The arrow keys, Home and End and the five stops walk with the engine's own pan at
+  a walking pace (1.1 s per stretch, cubic-out, never the long-jump cut); every walk returns to level.
+- **The inscription:** under the band, the place's name (a link) and what its page holds, every line an existing string
+  and a real link (Home's section titles, the six projects, the notes, the résumé's five sections, Contact's line and
+  the email): travelling the scroll is browsing the site's structure. Any link is the way in: the site's own navigation
+  catches it and the page arrives with the camera already there (no pan, the mist dissolve); the sheet closes itself.
+- **The three distances at rest:** Up and Down on the band, or the two DRAFT words under the inscription, re-lay the
+  place high (the host peak towering) or deep (three receding ranges); the next walk returns to level. Pages never
+  change composition (rules.test.ts keeps them level).
+- **The stops:** the footer's story map lifted into the sheet (`StoryMapArt`, the same stills and mist seams), the
+  place the camera stands at holding its light, five 44 px buttons that walk there.
+- **Esc or the close:** the page's windows are rebound, the camera pans back to the page's own place (a cut when quiet),
+  the words return where they were, focus returns to the opener. The last position is kept for this tab
+  (sessionStorage `ink:at`), so the scroll opens where the hand left it.
+- **Quiet forms:** reduced motion and "Still the landscape" make every walk a cut and a drag a step to the next place;
+  nothing moves but by the hand. The sheet is a modal dialog with a focus trap; the band is a slider (value text = the
+  place) with every drag having a single-pointer and keyboard alternative (WCAG 2.5.7); a polite region names the place
+  at rest; 44 px targets throughout.
+- **Measured on this Mac's GPU** (Chrome, Metal): a 20 s continuous drag paints a scene every frame at the display's
+  rate (rAF p95 16.8 ms, no drafts, quality 1) at 1440 × 900 DPR 2 and 390 × 844; engine memory 51 MB with the band
+  open at 1440 DPR 2 (above the pages' 45 MB budget: the figure layers of three places stay cached), 15 MB on the phone.
+  The stills were regenerated (the engine hash changed; the story map's ten are byte-identical).
+
+- **Reviewed and tested.** An adversarial review (three lenses, every finding verified by a second agent) confirmed ten
+  defects, all fixed: a drag or wheel that began mid-walk jumped the camera to the walk's end (the hand now takes
+  over from where the camera is); a link to the page the sheet was opened from never closed it (it closes first, then
+  the fragment jump or the scroll to the top happens on the restored page); the unfaded footer showed through the band
+  and keys could scroll the page behind the sheet (the chrome is hidden and inert, the document locked, while the
+  sheet is open); Escape only worked with focus inside the sheet (it works from anywhere); a 4 px wobble under Still
+  stepped a whole place (a step needs 24 px, more across than down); a high or deep place cut to level on the first
+  held frame (it blends back over a few frames); a rest before letting go still counted as a flick (the release's own
+  time counts); the sheet's first frame named Home before the band was bound (the opening place is known before the
+  first render); the stops lost the story map's 44 px hit area and hover light (the map's rules now serve links and
+  buttons alike); a phone's slow drag could never reach the next place (a drag past a third of a stretch carries).
+  Tests: 15 unit tests (`tests/unit/scroll.test.ts`: the hand's arithmetic, the index of what each place holds, the
+  DRAFT strings) and 6 browser tests (`tests/e2e/scroll-mode.spec.ts`: open and walk by the keys, arrival with the
+  camera already there, Escape, Still as cuts, the phone's band, stops and swipe, the flag off); the existing 124
+  browser tests stay green; `npm run ci` green (ESLint and Prettier now ignore `.claude/`, where another session's worktree
+  held a build they were checking).
+
+**What it changes** (for Jack to confirm; nothing else moves): the pace of travel is no longer only the page's; the
+mode alone shows the high and deep compositions; the footer line gains a third link; the engine's contract gains
+`hold(x)`; a sideways phone gets a 200 px band inside the mode only (the page's own strips keep the approved rule).
+
+**Open for Jack:** the words (opener, close, hint, the three distance labels: DRAFT); the band's height on wide screens
+(the inner hero's 360 px, cut-free, or Home's 522 px); the flick and the detent as felt on a real phone (emulated only);
+the walker in step (the bridge walker and Home's traveller moving with the hand: deferred to its own demo); "Ask the
+work" (lexical retrieval over his own sentences, the answer as a place in the painting) as the next door; the memory
+above the page budget while the scroll is open.
+
 ## 13. Running the demo and its tools
 
 ```bash

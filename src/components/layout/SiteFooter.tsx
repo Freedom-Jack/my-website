@@ -1,12 +1,14 @@
 import { site } from '@content/site';
 import { monthYear } from '@/lib/dates';
+import { elementOn } from '@/features/landscape/elements';
+import { ScrollOpener } from '@/features/scroll/ScrollOpener';
 import { StillToggle } from './StillToggle';
 import { StoryMap } from './StoryMap';
 
 /**
  * The footer, on paper: the story map of the whole painting (each place links to its page), then
  * "© 2026 Qijin Xu · Toronto" with Email · LinkedIn · GitHub · View résumé (PDF), then
- * "Updated October 2026 · Still the landscape". After an in-site page change the route announcer reads the
+ * "Updated October 2026 · Still the landscape · Open the scroll" (the scroll, held: features/scroll). After an in-site page change the route announcer reads the
  * new page's title (features/navigation).
  */
 export function SiteFooter() {
@@ -58,6 +60,12 @@ export function SiteFooter() {
               {' · '}
               <StillToggle />
             </span>
+            {elementOn('scroll') ? (
+              <span className="scroll-opener-wrap">
+                {' · '}
+                <ScrollOpener />
+              </span>
+            ) : null}
           </p>
         </div>
         <p className="visually-hidden" id="route-announcer" aria-live="polite" aria-atomic="true" />

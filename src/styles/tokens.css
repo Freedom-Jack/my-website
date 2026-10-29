@@ -176,6 +176,7 @@
   --z-landscape: -3;
   --z-paper: -1;
   --z-header: 10;
+  --z-scroll: 20; /* the scroll, held: its sheet, over the page and under the skip link */
   --z-skip: 50;
 }
 
@@ -246,6 +247,7 @@
 
   /* the painted strips and the closing scene (art boxes; the engine paints inside them) */
   --strip-home: clamp(190px, 28svh, 240px); /* 236 @ 390 × 844 (at half that, the young look shrinks to a thumbnail) */
+  --scroll-band: var(--strip-home); /* the scroll, held: its band is Home's hero on phones, the inner hero from 640 */
   --strip-sub: clamp(110px, 20svh, 170px); /* 169 @ 844 */
   --strip-doc: clamp(88px, 12svh, 110px);
   --closing-h: 160px;
@@ -293,6 +295,7 @@
     --header-h: 4rem;
     --strip-home: 220px;
     --strip-sub: 220px;
+    --scroll-band: var(--strip-sub);
     --strip-doc: 160px;
     --closing-h: 200px;
     --glimpse-h: 232px;
@@ -307,6 +310,7 @@
     --gutter: 2.5rem;
     --strip-home: clamp(440px, 58svh, 540px); /* 522 @ 900 */
     --strip-sub: clamp(300px, 40svh, 360px); /* 360 @ 900 */
+    --scroll-band: var(--strip-sub); /* (opens cut-free from the inner heroes) */
     --strip-doc: 180px; /* the low end of SPEC-R4A's 180–220: documents open on their text */
     --closing-h: 240px;
     --story-map-art: clamp(3.5rem, (100vw - 5rem) * 0.0617, 4.625rem); /* 69 @ 1200, 74 from 1280 */
@@ -318,6 +322,7 @@
     --header-h: 3rem;
     --strip-home: 80px;
     --strip-sub: 80px;
+    --scroll-band: 200px; /* a sideways phone: inside the scroll only, a stretch and a half at once (Jack's question) */
     --strip-doc: 64px;
     --closing-h: 96px;
   }
