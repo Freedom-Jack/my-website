@@ -1,8 +1,8 @@
 {
  "about": "The windows' stills, made by tools/build-stills.ts from the engine; regenerate after any engine or scene change. inputs = sha256 over inputList.",
- "inputs": "8e52f12e54ede6160b8d1ceb1d658dbcec55db51fc4fbbbe4f56d4eb437d7bd0",
+ "inputs": "11b84f7f76e7f3943c2425cf449a2dc381175ef18459d6df78e9c317827ddaf9",
  "inputList": {
-  "src/features/landscape/elements.ts": "862bc33b172d837e623d1e6ee6bced2243a1c85c0fd616c3bab60c3e19cd04cf",
+  "src/features/landscape/elements.ts": "b400aa60d54d593b0460d37914d47589b12d85813ec66a21b17d33f447dcec9a",
   "src/features/landscape/engine/canvas2d.ts": "71503547776b380a748347b916852dfd452cfa168ba572312d170450cd7b4f30",
   "src/features/landscape/engine/compose.ts": "d610acb703ae2c52e0f8536e1db8c3b258246576fcd3296085fdfce8c2bb1380",
   "src/features/landscape/engine/figure-meta.ts": "0303cc789e8eea9851971fe47566ed540acc2e6f588f4c4dd3e470984c715234",
@@ -10,7 +10,7 @@
   "src/features/landscape/engine/figures.ts": "928344905e30b9ee292d9f1596b7bf5429df27d87d6f77bc4a5b6cb0930a9cc8",
   "src/features/landscape/engine/figures.worker.ts": "74385beb99e3c596ca6690635a9f05ad2296a3c6cd6279b945b7d2b28bf3c79e",
   "src/features/landscape/engine/gl.ts": "c265e5ba30b485d23d57b87bed7c4fc5d492ccaf6a339b7b9d0bf462d983d0b2",
-  "src/features/landscape/engine/index.ts": "0a14a0ce8b0b6edadc2b750c566b47f06512488b62cd360140927642f571e747",
+  "src/features/landscape/engine/index.ts": "759ac5e4bb54d64f5b29b44fc1f2af3d4d14ab0bf99413791ee787fd112cea7b",
   "src/features/landscape/engine/lights.ts": "f26290a4b74ea9a22216565d99735e6b3499b9dad567294060bcb7e83ca9f82f",
   "src/features/landscape/engine/marks.ts": "ea92fa2b3c0d811eb4e285bde912cb3224ba71b47da26e7aa960f3079ce73cf3",
   "src/features/landscape/engine/palette.ts": "04dc105f264d504a623288cf9f368991ccfc38451265fa3fdf8b0cb503f585aa",

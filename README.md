@@ -91,6 +91,9 @@ src/features/            one folder per feature, each owning its components, log
                          record token by token, the lineage; three of them also stand on the project page they are
                          tied to
   qa/                    the preview's switch panel (QA builds only)
+  scroll/                the scroll, held (prototype): the tail's opener, the sheet with the painting in the hero's
+                         band under the hand (drag, wheel, keys, the five stops on the tail's ScrollMap), the
+                         inscription of what each place holds, the three distances at rest; walk.ts the arithmetic
   navigation/            route changes as pans along the painting under a plain crossfade of the words
   chrome/                current page, the returning header, Still, the 404's lost mark
   effects/               diagram draw-in, row rules and the diagram's flow dot (finish.ts)
@@ -101,7 +104,7 @@ src/styles/              the design system: tokens, base, layout, effects, compo
                          effects.css holds the interface elements, each behind its html.el-* class (focus, the row
                          rule, the flow dot); plates.css the stage's layers and the mist; body.css (round 7)
                          everything below the first screen: the twelve-column grid, the name-face titles, the ink
-                         numerals, the pointer's wash, the seal pressed, the ending, the tail
+                         numerals, the pointer's wash, the seal pressed, the ending, the tail; scroll.css the scroll, held (behind html.el-scroll), loaded last
 tools/                   build-pdf, build-stills, build-heroes, build-og, build-ask (the ask line's index, with the
                          same model the browser runs), compliance, linkcheck (TypeScript, run by Node 24 directly);
                          glsl-loader.cjs (the build's loader for the engine's shaders: comments out)
