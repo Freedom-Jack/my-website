@@ -25,43 +25,43 @@ html.el-visited.el-sun .story-map__scene.is-been:not(.is-here) img.story-map__li
 }
 html.el-sun .story-map__scene.is-here .story-map__lit,
 html.el-sun
-  .story-map:has(> .story-map__list > [data-stretch='0'] > a[aria-current])
+  .story-map:has(> .story-map__list > [data-stretch='0'] > :is(a, button)[aria-current])
   .story-map__scene[data-stretch='0']
   .story-map__lit,
 html.el-sun
-  .story-map:has(> .story-map__list > [data-stretch='1'] > a[aria-current])
+  .story-map:has(> .story-map__list > [data-stretch='1'] > :is(a, button)[aria-current])
   .story-map__scene[data-stretch='1']
   .story-map__lit,
 html.el-sun
-  .story-map:has(> .story-map__list > [data-stretch='2'] > a[aria-current])
+  .story-map:has(> .story-map__list > [data-stretch='2'] > :is(a, button)[aria-current])
   .story-map__scene[data-stretch='2']
   .story-map__lit,
 html.el-sun
-  .story-map:has(> .story-map__list > [data-stretch='3'] > a[aria-current])
+  .story-map:has(> .story-map__list > [data-stretch='3'] > :is(a, button)[aria-current])
   .story-map__scene[data-stretch='3']
   .story-map__lit,
 html.el-sun
-  .story-map:has(> .story-map__list > [data-stretch='4'] > a[aria-current])
+  .story-map:has(> .story-map__list > [data-stretch='4'] > :is(a, button)[aria-current])
   .story-map__scene[data-stretch='4']
   .story-map__lit,
 html.el-sun
-  .story-map:has(> .story-map__list > [data-stretch='0'] > a:is(:hover, :focus-visible))
+  .story-map:has(> .story-map__list > [data-stretch='0'] > :is(a, button):is(:hover, :focus-visible))
   .story-map__scene[data-stretch='0']
   .story-map__lit,
 html.el-sun
-  .story-map:has(> .story-map__list > [data-stretch='1'] > a:is(:hover, :focus-visible))
+  .story-map:has(> .story-map__list > [data-stretch='1'] > :is(a, button):is(:hover, :focus-visible))
   .story-map__scene[data-stretch='1']
   .story-map__lit,
 html.el-sun
-  .story-map:has(> .story-map__list > [data-stretch='2'] > a:is(:hover, :focus-visible))
+  .story-map:has(> .story-map__list > [data-stretch='2'] > :is(a, button):is(:hover, :focus-visible))
   .story-map__scene[data-stretch='2']
   .story-map__lit,
 html.el-sun
-  .story-map:has(> .story-map__list > [data-stretch='3'] > a:is(:hover, :focus-visible))
+  .story-map:has(> .story-map__list > [data-stretch='3'] > :is(a, button):is(:hover, :focus-visible))
   .story-map__scene[data-stretch='3']
   .story-map__lit,
 html.el-sun
-  .story-map:has(> .story-map__list > [data-stretch='4'] > a:is(:hover, :focus-visible))
+  .story-map:has(> .story-map__list > [data-stretch='4'] > :is(a, button):is(:hover, :focus-visible))
   .story-map__scene[data-stretch='4']
   .story-map__lit {
   opacity: 1;
@@ -104,25 +104,35 @@ html.el-sun .story-map__sun[data-stretch='0'] {
   translate: -50% -78%;
 }
 html.el-sun .story-map__sun.is-here,
-html.el-sun .story-map:has(> .story-map__list > [data-stretch='0'] > a[aria-current]) .story-map__sun[data-stretch='0'],
-html.el-sun .story-map:has(> .story-map__list > [data-stretch='1'] > a[aria-current]) .story-map__sun[data-stretch='1'],
-html.el-sun .story-map:has(> .story-map__list > [data-stretch='2'] > a[aria-current]) .story-map__sun[data-stretch='2'],
-html.el-sun .story-map:has(> .story-map__list > [data-stretch='3'] > a[aria-current]) .story-map__sun[data-stretch='3'],
-html.el-sun .story-map:has(> .story-map__list > [data-stretch='4'] > a[aria-current]) .story-map__sun[data-stretch='4'],
 html.el-sun
-  .story-map:has(> .story-map__list > [data-stretch='0'] > a:is(:hover, :focus-visible))
+  .story-map:has(> .story-map__list > [data-stretch='0'] > :is(a, button)[aria-current])
   .story-map__sun[data-stretch='0'],
 html.el-sun
-  .story-map:has(> .story-map__list > [data-stretch='1'] > a:is(:hover, :focus-visible))
+  .story-map:has(> .story-map__list > [data-stretch='1'] > :is(a, button)[aria-current])
   .story-map__sun[data-stretch='1'],
 html.el-sun
-  .story-map:has(> .story-map__list > [data-stretch='2'] > a:is(:hover, :focus-visible))
+  .story-map:has(> .story-map__list > [data-stretch='2'] > :is(a, button)[aria-current])
   .story-map__sun[data-stretch='2'],
 html.el-sun
-  .story-map:has(> .story-map__list > [data-stretch='3'] > a:is(:hover, :focus-visible))
+  .story-map:has(> .story-map__list > [data-stretch='3'] > :is(a, button)[aria-current])
   .story-map__sun[data-stretch='3'],
 html.el-sun
-  .story-map:has(> .story-map__list > [data-stretch='4'] > a:is(:hover, :focus-visible))
+  .story-map:has(> .story-map__list > [data-stretch='4'] > :is(a, button)[aria-current])
+  .story-map__sun[data-stretch='4'],
+html.el-sun
+  .story-map:has(> .story-map__list > [data-stretch='0'] > :is(a, button):is(:hover, :focus-visible))
+  .story-map__sun[data-stretch='0'],
+html.el-sun
+  .story-map:has(> .story-map__list > [data-stretch='1'] > :is(a, button):is(:hover, :focus-visible))
+  .story-map__sun[data-stretch='1'],
+html.el-sun
+  .story-map:has(> .story-map__list > [data-stretch='2'] > :is(a, button):is(:hover, :focus-visible))
+  .story-map__sun[data-stretch='2'],
+html.el-sun
+  .story-map:has(> .story-map__list > [data-stretch='3'] > :is(a, button):is(:hover, :focus-visible))
+  .story-map__sun[data-stretch='3'],
+html.el-sun
+  .story-map:has(> .story-map__list > [data-stretch='4'] > :is(a, button):is(:hover, :focus-visible))
   .story-map__sun[data-stretch='4'] {
   opacity: 1;
 }

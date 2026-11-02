@@ -15,6 +15,7 @@ const config = [
       'playwright-report/**',
       // the demo's own probe, copied verbatim and evaluated in the page as a string (one bare function expression)
       'tests/e2e/support/measure.js',
+      '.claude/**',
     ],
   },
   ...nextVitals,

@@ -9,6 +9,7 @@ import { Effects } from '@/features/effects/Effects';
 import { elementClasses } from '@/features/landscape/elements';
 import { Landscape } from '@/features/landscape/Landscape';
 import { Navigation } from '@/features/navigation/Navigation';
+import { ScrollMount } from '@/features/scroll/ScrollMount';
 import { JsonLd, personLd } from '@/lib/jsonld';
 import { fontFaces } from './fonts';
 // The design system, in order (each feature's CSS Module adds its own layout after these).
@@ -19,6 +20,7 @@ import '@/styles/effects.css';
 import '@/styles/components.css';
 import '@/styles/jade.css'; // the jade interface, Spring ink (after components.css)
 import '@/styles/finish.css'; // the interface finish (each element behind its el-* class: features/landscape/elements.ts)
+import '@/styles/scroll.css'; // the scroll, held (elements.ts scroll; features/scroll)
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -59,6 +61,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <SiteFooter />
         <JsonLd data={personLd()} />
         <Navigation />
+        <ScrollMount />
         <Effects />
       </body>
     </html>

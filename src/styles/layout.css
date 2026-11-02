@@ -958,7 +958,7 @@ main:has(> .closing:last-child) + .site-footer {
   display: flex;
   justify-content: center;
 }
-.story-map__list a {
+.story-map__list :is(a, button) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -966,8 +966,8 @@ main:has(> .closing:last-child) + .site-footer {
   min-inline-size: 44px;
   white-space: nowrap;
 }
-/* the label's hit area: its own 44 px row and its column of the art above it */
-.story-map__list a::before {
+/* the label's hit area: its own 44 px row and its column of the art above it (the scroll's stops are buttons) */
+.story-map__list :is(a, button)::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -975,23 +975,24 @@ main:has(> .closing:last-child) + .site-footer {
 }
 /* footer targets are 44 px boxes: the brush sits just under the word, and the same small side padding on
    every link keeps the spacing between them even (a short word is centred in its 44 px) */
-.story-map__list a,
+.story-map__list :is(a, button),
 .site-footer__links a,
-.site-footer .still-toggle {
+.site-footer .still-toggle,
+.site-footer .scroll-opener {
   --brush-y: calc(50% + 0.78em);
   padding-bottom: 0; /* (.site-footer .still-toggle: it outranks .brush's own padding, which loads later) */
   padding-inline: 0.25rem;
 }
 /* the labels are the site's one "next" (no "Next:" links): from 640 they speak in the header nav's voice */
 @media (min-width: 40rem) {
-  .story-map__list a {
+  .story-map__list :is(a, button) {
     font-size: var(--fs-nav);
     font-weight: var(--w-ui);
   }
 }
 @media (max-width: 23.4375rem) {
   /* tight phones: the five labels still share one row at 320 */
-  .story-map__list a {
+  .story-map__list :is(a, button) {
     padding-inline: 0.0625rem;
   }
 }
@@ -1026,7 +1027,8 @@ main:has(> .closing:last-child) + .site-footer {
   color: var(--ink-2);
 }
 .site-footer__links a,
-.still-toggle {
+.still-toggle,
+.scroll-opener {
   display: inline-flex;
   align-items: center;
   justify-content: center;

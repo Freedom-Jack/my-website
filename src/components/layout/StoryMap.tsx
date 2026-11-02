@@ -66,55 +66,66 @@ function useBeen(): number[] {
   return ELEMENTS.visited ? beenParse(raw) : [];
 }
 
+/**
+ * The map's art alone (the scenes, their suns and ticks), for the footer and for the scroll's sheet (features/scroll):
+ * `here` is the stretch that holds its light (the current place; in the sheet, the place the camera stands at).
+ */
+export function StoryMapArt({ here, been = [] }: { here: number | null; been?: number[] }) {
+  const tiles = manifest.tiles as Tiles;
+  return (
+    <div className="story-map__art" aria-hidden="true">
+      {STORY_MAP.map((p) => {
+        const [w = 300, h = 70] = tiles[p.still] ?? [];
+        return (
+          <span
+            key={p.still}
+            className={`story-map__scene${here === p.stretch ? ' is-here' : ''}${been.includes(p.stretch) ? ' is-been' : ''}`}
+            data-stretch={p.stretch}
+          >
+            {/* A decorative still at its own pixel sizes (1x, 2x): next/image would re-encode it. Two (sun): the dim
+                still (no sun) under the lit one (its own sun); CSS shows the lit one for the current place and
+                raises it for a hovered or focused label (layout.css / finish.css). */}
+            {(['', '-lit'] as const).map((v) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={v}
+                className={v ? 'story-map__lit' : 'story-map__dim'}
+                src={`/scenes/${p.still}${v}@1x.webp`}
+                srcSet={`/scenes/${p.still}${v}@1x.webp 1x, /scenes/${p.still}${v}@2x.webp 2x`}
+                width={w}
+                height={h}
+                alt=""
+                loading="lazy"
+                decoding="async"
+              />
+            ))}
+          </span>
+        );
+      })}
+      {STORY_MAP.map((p) => (
+        <span
+          key={`sun-${p.still}`}
+          className={here === p.stretch ? 'story-map__sun is-here' : 'story-map__sun'}
+          data-stretch={p.stretch}
+          style={
+            { '--fx': (SUNS[p.still] ?? [0.5, 0.3])[0], '--fy': (SUNS[p.still] ?? [0.5, 0.3])[1] } as CSSProperties
+          }
+        />
+      ))}
+      {STORY_MAP.map((p) => (
+        <span key={p.still} className="story-map__tick" data-stretch={p.stretch} />
+      ))}
+    </div>
+  );
+}
+
 export function StoryMap() {
   const current = useCurrent();
   const been = useBeen();
-  const tiles = manifest.tiles as Tiles;
+  const here = STORY_MAP.find((p) => current(p.href))?.stretch ?? null;
   return (
     <nav className="story-map" aria-label="All pages">
-      <div className="story-map__art" aria-hidden="true">
-        {STORY_MAP.map((p) => {
-          const [w = 300, h = 70] = tiles[p.still] ?? [];
-          return (
-            <span
-              key={p.still}
-              className={`story-map__scene${current(p.href) ? ' is-here' : ''}${been.includes(p.stretch) ? ' is-been' : ''}`}
-              data-stretch={p.stretch}
-            >
-              {/* A decorative still at its own pixel sizes (1x, 2x): next/image would re-encode it. Two (sun): the dim
-                  still (no sun) under the lit one (its own sun); CSS shows the lit one for the current place and
-                  raises it for a hovered or focused label (layout.css / finish.css). */}
-              {(['', '-lit'] as const).map((v) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  key={v}
-                  className={v ? 'story-map__lit' : 'story-map__dim'}
-                  src={`/scenes/${p.still}${v}@1x.webp`}
-                  srcSet={`/scenes/${p.still}${v}@1x.webp 1x, /scenes/${p.still}${v}@2x.webp 2x`}
-                  width={w}
-                  height={h}
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                />
-              ))}
-            </span>
-          );
-        })}
-        {STORY_MAP.map((p) => (
-          <span
-            key={`sun-${p.still}`}
-            className={current(p.href) ? 'story-map__sun is-here' : 'story-map__sun'}
-            data-stretch={p.stretch}
-            style={
-              { '--fx': (SUNS[p.still] ?? [0.5, 0.3])[0], '--fy': (SUNS[p.still] ?? [0.5, 0.3])[1] } as CSSProperties
-            }
-          />
-        ))}
-        {STORY_MAP.map((p) => (
-          <span key={p.still} className="story-map__tick" data-stretch={p.stretch} />
-        ))}
-      </div>
+      <StoryMapArt here={here} been={been} />
       <ol className="story-map__list" role="list">
         {STORY_MAP.map((p) => (
           <li key={p.still} data-stretch={p.stretch}>

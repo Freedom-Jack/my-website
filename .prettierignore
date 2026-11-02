@@ -7,3 +7,4 @@ src/features/landscape/engine
 content/work/diagrams
 *.mdx
 tests/e2e/support/measure.js
+.claude

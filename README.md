@@ -70,6 +70,9 @@ src/features/            one folder per feature, each owning its components, log
                          engine/ (the WebGL2 engine; types.ts is its contract, lights.ts the one table of each
                          place's light, sets/ the places' figures, sets/young.ts the plum, swallow and willow)
   navigation/            route changes as pans along the painting: exit, travel, arrival, focus, announce
+  scroll/                the scroll, held (prototype): the footer's opener, the sheet with the painting in the hero's
+                         band under the hand (drag, wheel, keys, the five stops), the inscription of what each place
+                         holds, the three distances at rest; walk.ts is the pure arithmetic
   chrome/                current page, the returning header, Still, the 404's lost mark
   effects/               brush links, ink buttons, diagram draw-in, the seal, arrival, the name's swash (swash.ts),
                          the nav's mark (nav-mark.ts), row rules and the diagram's flow dot (finish.ts)
@@ -78,7 +81,8 @@ src/lib/                 typography, inline markup, dates, SEO and JSON-LD, redi
                          the MDX plugin (mdx/rehype-site.mjs)
 src/styles/              the design system: tokens, base, layout, effects, components (global, from the demo);
                          jade.css (Spring ink's interface: jade name, titles, the one button, focus) and finish.css
-                         (the interface elements, each behind its html.el-* class), loaded last
+                         (the interface elements, each behind its html.el-* class), scroll.css (the scroll, held, behind
+                         html.el-scroll), loaded last
 tools/                   build-pdf, build-stills, build-og, compliance, linkcheck (TypeScript, run by Node 24 directly)
 tests/unit/              content schemas and counts, GitHub rules, the engine's pure parts (Vitest)
 tests/e2e/               smoke, navigation and the DESIGN §6 budgets (Playwright; support/measure.js is the
