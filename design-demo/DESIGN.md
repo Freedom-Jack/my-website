@@ -834,8 +834,9 @@ one continuous world in x exactly so that "panning between stretches unrolls the
 GPU: the engine can be a free camera over the whole scroll with one rebind and fractional pans, and its three authored
 compositions (level, high, deep: `compose.ts Distance`) exist and read well, shown by no page since round 5.
 
-**Built on `prototype/hold-the-scroll`** (off `redesign/v2`; committed 2026-10-29 at Jack's "Yes, commit it", not pushed;
-`src/features/scroll/`, `src/styles/scroll.css`; one flag `scroll` in `elements.ts`: off means gone):
+**Built on `prototype/hold-the-scroll`** (off `redesign/v2`; committed 2026-10-29 at Jack's "Yes, commit it", rebased onto
+`redesign/v2` and pushed by Jack on 2026-11-02 as PR #26, whose base is `master`: merged there it would deploy with the
+DRAFT words, so the words come first, or the base moves to `redesign/v2`; `src/features/scroll/`, `src/styles/scroll.css`; one flag `scroll` in `elements.ts`: off means gone):
 - **The opener:** after the words, one quiet brush link in the footer line after "Still the landscape" (DRAFT words in
   `content/site.ts` `scroll.*` until Jack writes his). Hidden without JS and without the painting.
 - **The sheet:** the page's words sink into the paper (the route exit's own way, `<main>` inert) and the painting stands
@@ -885,7 +886,11 @@ compositions (level, high, deep: `compose.ts Distance`) exist and read well, sho
   DRAFT strings) and 6 browser tests (`tests/e2e/scroll-mode.spec.ts`: open and walk by the keys, arrival with the
   camera already there, Escape, Still as cuts, the phone's band, stops and swipe, the flag off); the existing 124
   browser tests stay green; `npm run ci` green (ESLint and Prettier now ignore `.claude/`, where another session's worktree
-  held a build they were checking).
+  held a build they were checking). CI's runners paint with a software rasteriser (DESIGN §13 judges the painting on a
+  real GPU): there the painting runs still, every walk is the engine's cut, and the scene a cut paints takes seconds a
+  frame, the figures' quick fade a scene a frame, so the browser tests judge the cut's position and the sheet there
+  and the paint's own timing (settled within 300 ms of the key) on the GPU; the hand's own test (the phone's swipe)
+  runs on the GPU only (2026-11-04, after PR #26's first CI run failed on that timing).
 
 **What it changes** (for Jack to confirm; nothing else moves): the pace of travel is no longer only the page's; the
 mode alone shows the high and deep compositions; the footer line gains a third link; the engine's contract gains
