@@ -77,3 +77,5 @@ logs/
 # Note: Be careful with this - you might want to exclude specific files instead
 # *.txt
 ideas.txt
+# the budgets gate's report (npm run check:budgets)
+/budgets-report/

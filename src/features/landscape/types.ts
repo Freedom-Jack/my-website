@@ -24,8 +24,11 @@ export interface LandscapeTargets {
   wake: Iterable<Element>;
   /** 0..1: the desktop ink horizon's presence. */
   horizon: number;
-  /** 'living': the page's scene is its ground (Home, Work). */
+  /** 'living': the page's scene is its ground (every page on the map under the unroll; Home and Work without it). */
   ground: 'living' | '';
+  /** (the vanguard round) the page opens inside its place: its hero framed closer and further along it (compose.ts
+   *  `inside`); a number is the page's own stretch-local u (A2's sub-anchors). */
+  inside?: boolean | number;
 }
 
 export interface MountOptions extends Partial<LandscapeTargets> {
@@ -35,6 +38,10 @@ export interface MountOptions extends Partial<LandscapeTargets> {
   palette?: Palette;
   still?: boolean;
   arrival?: 'bloom' | 'none';
+  /** 'complete': the first frame waits for the page's own figure layer and, on the living ground, its three depth
+   *  layers, so the strip's still (components/page/Strip) hands over to a finished painting; 'now' (default): the
+   *  first scene is presented as soon as it is painted and the figures fade in when they come. */
+  firstFrame?: 'complete' | 'now';
   ambient?: boolean;
   quality?: 'auto' | number;
 }
@@ -59,6 +66,9 @@ export interface LandscapeStats {
 
 export interface LandscapeHandle {
   readonly mode: Mode;
+  /** The camera travels to `stretch`, which may be fractional: a position within a place (the vanguard round, A2:
+   *  compose.ts `cameraFor(k, u)` gives the one that brings world x k + u to the hero's focus column; the search pans
+   *  there and back). Under the unroll a pan starts from where the page's slide left the painting. */
   panTo(stretch: number, o?: PanOptions): Promise<void>;
   sweep(o?: { dir?: 1 | -1; duration?: number }): Promise<void>;
   prepare(stretch: number, o?: { distance?: Distance; presence?: number }): Promise<void>;

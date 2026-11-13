@@ -4,14 +4,12 @@ import { useEffect, useRef, useState } from 'react';
 import styles from './contact.module.css';
 
 /**
- * "Copy email": copies the address, then stamps the confirmation in ink on the button's dry tail (SPEC-R4A §10.4).
- * The stamp is also the live region: empty at rest, the word written into it on every copy, so screen readers hear
- * it each time. It lands, rests ~2.4 s, then lifts back into the mist and empties. If the clipboard is unavailable
- * the address is selected instead, so it can be copied by hand (and nothing claims it was copied).
- * Hidden without JS (contact.module.css): the address stays a mailto link.
+ * "Copy email": copies the address and says "Copied" beside the button, plainly, in mono (no stamp). The word is also
+ * the live region: empty at rest, written on every copy, so screen readers hear it each time; it rests 2.4 s and
+ * empties. If the clipboard is unavailable the address is selected instead, so it can be copied by hand (and nothing
+ * claims it was copied). Hidden without JS (contact.module.css): the address stays a mailto link.
  */
 const REST_MS = 2400;
-const LIFT_MS = 640;
 
 async function writeClipboard(text: string): Promise<boolean> {
   try {
@@ -42,14 +40,9 @@ async function writeClipboard(text: string): Promise<boolean> {
 }
 
 export function CopyEmail({ email, label, done }: { email: string; label: string; done: string }) {
-  const [phase, setPhase] = useState<'rest' | 'stamped' | 'lifting'>('rest');
   const [word, setWord] = useState('');
-  const timers = useRef<number[]>([]);
-  const clear = () => {
-    timers.current.forEach((t) => clearTimeout(t));
-    timers.current = [];
-  };
-  useEffect(() => clear, []);
+  const timer = useRef(0);
+  useEffect(() => () => clearTimeout(timer.current), []);
 
   const onClick = async () => {
     const ok = await writeClipboard(email);
@@ -58,41 +51,21 @@ export function CopyEmail({ email, label, done }: { email: string; label: string
       if (a) getSelection()?.selectAllChildren(a);
       return;
     }
-    clear();
-    setPhase('rest');
+    clearTimeout(timer.current);
     setWord('');
-    // next frame: a fresh text node (announced again) and a fresh animation (stamped again)
+    // next frame: a fresh text node, so it is announced again
     requestAnimationFrame(() => {
       setWord(done);
-      setPhase('stamped');
-      timers.current.push(
-        window.setTimeout(() => {
-          setPhase('lifting');
-          timers.current.push(
-            window.setTimeout(() => {
-              setPhase('rest');
-              setWord('');
-            }, LIFT_MS),
-          );
-        }, REST_MS),
-      );
+      timer.current = window.setTimeout(() => setWord(''), REST_MS);
     });
   };
 
-  const stampClass = [
-    styles.contact__stamp,
-    phase === 'stamped' ? styles.isStamped : '',
-    phase === 'lifting' ? styles.isLifting : '',
-  ]
-    .filter(Boolean)
-    .join(' ');
   return (
     <p className={styles.contact__copy}>
-      <button className="ink-btn" type="button" onClick={onClick}>
-        <span className="ink-btn__ink" aria-hidden="true" />
-        <span className="ink-btn__label">{label}</span>
+      <button className="action action--button" type="button" onClick={onClick}>
+        {label}
       </button>
-      <span className={stampClass} role="status">
+      <span className={`mono ${styles.contact__done}`} role="status">
         {word}
       </span>
     </p>

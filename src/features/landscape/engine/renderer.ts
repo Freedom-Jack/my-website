@@ -228,7 +228,11 @@ export interface Renderer {
   software: boolean;
   rendererName: string;
   maxTexture?: number;
+  /** The painter can paint: WebGL, once every program has linked (poll) and after a lost context is restored. */
   readonly ready: boolean;
+  /** WebGL: advance the build (the programs link on the driver's threads: gl.ts poll). True once `ready`. The
+   *  engine polls it from a timer until then (index.ts whenReady); a painter without it is ready at once. */
+  poll?(): boolean;
   /** WebGL, 4b: an ImageBitmap uploads premultiplied here (else the worker sends premultiplied bytes). */
   readonly bitmaps?: boolean;
   /** Resize the drawing buffer. */

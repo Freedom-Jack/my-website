@@ -14,8 +14,11 @@
 // (with its extension: tools/build-stills.ts loads this file in Node's own TypeScript, which resolves no bare paths)
 import { ELEMENTS } from './elements.ts';
 
-/** The camera travels (elements.ts cameraTravels): every page on the map is a living ground; off, only Home and Work are. */
-const TRAVEL: 'living' | '' = ELEMENTS.cameraTravels ? 'living' : '';
+/** The scroll motion (elements.ts unroll, or the camera's travel): every page on the map is a living ground; with
+ *  neither on, only Home and Work are (4b). */
+const TRAVEL: 'living' | '' = ELEMENTS.unroll || ELEMENTS.cameraTravels ? 'living' : '';
+/** The unroll: the deep pages (a case, a note) are living ground too, and open inside their place (`inside`). */
+const DEEP: 'living' | '' = ELEMENTS.unroll ? 'living' : '';
 
 export type Distance = 'level' | 'high' | 'deep';
 export type PageId = 'home' | 'work' | 'case' | 'writing' | 'article' | 'resume' | 'contact' | 'not-found';
@@ -48,6 +51,13 @@ export interface Place {
    * the footer's story map. The 404 lies off the map, so its path just ends in mist (no closing).
    */
   closing: boolean;
+  /**
+   * (the vanguard round) A deep page (a case, a note) opens INSIDE its place: its hero looks closer (compose.ts
+   * HERO.inside) and further along the place (the scene's Frame.insideU), rather than on the place's postcard. A page
+   * may name its own stretch-local u instead (A2's sub-anchors: a case's own quay in the town), which <main>'s
+   * data-inside carries as a number.
+   */
+  inside?: boolean | number;
 }
 
 export const PLACES: Readonly<Record<PageId, Place>> = {
@@ -77,9 +87,11 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
     distance: 'level',
     presence: 1,
     horizon: 0.55,
-    ground: '',
+    // (the unroll: a case is a living ground too, and opens inside the town, east of the bridge)
+    ground: DEEP,
     strip: 'sub',
     closing: true,
+    inside: !!DEEP,
   },
   writing: {
     page: 'writing',
@@ -97,9 +109,11 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
     distance: 'level',
     presence: 1,
     horizon: 0.35,
-    ground: '',
+    // (the unroll: a note opens inside the lake, the pavilion close)
+    ground: DEEP,
     strip: 'sub',
     closing: true,
+    inside: !!DEEP,
   },
   resume: {
     page: 'resume',
@@ -156,7 +170,8 @@ export function placeForPath(path: string): Place {
   return PLACES['not-found'];
 }
 
-/** The footer's story map: the five places in the painting's order (not the nav's), each a link. */
+/** The five places in the painting's order (not the nav's), each a link: the river line's stops and the tail's names
+ *  (the vanguard round; before it, the footer's story map, whose stills tools/build-stills.ts still names). */
 export const STORY_MAP = [
   { stretch: 0, label: 'Home', href: '/', still: 'home' },
   { stretch: 1, label: 'Work', href: '/work/', still: 'work' },
@@ -164,3 +179,17 @@ export const STORY_MAP = [
   { stretch: 3, label: 'Résumé', href: '/resume/', still: 'resume' },
   { stretch: 4, label: 'Contact', href: '/contact/', still: 'contact' },
 ] as const;
+
+/**
+ * The way on (the vanguard round's endings, components/page/NextPlace): every page but Contact and the 404 ends on
+ * the next place downstream. A case ends on the place after the town; a note on the place after the lake. The
+ * ending's words come from that page's own content.
+ */
+export const NEXT_PLACE: Readonly<Partial<Record<PageId, { page: PageId; href: string; label: string }>>> = {
+  home: { page: 'work', href: '/work/', label: 'Work' },
+  work: { page: 'writing', href: '/writing/', label: 'Writing' },
+  case: { page: 'writing', href: '/writing/', label: 'Writing' },
+  writing: { page: 'resume', href: '/resume/', label: 'Résumé' },
+  article: { page: 'resume', href: '/resume/', label: 'Résumé' },
+  resume: { page: 'contact', href: '/contact/', label: 'Contact' },
+};

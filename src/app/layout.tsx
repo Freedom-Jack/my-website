@@ -3,8 +3,8 @@ import type { ReactNode } from 'react';
 import { site } from '@content/site';
 import { BootScript } from '@/components/layout/BootScript';
 import { InkDefs } from '@/components/layout/InkDefs';
-import { SiteFooter } from '@/components/layout/SiteFooter';
 import { SiteHeader } from '@/components/layout/SiteHeader';
+import { Tail } from '@/components/layout/Tail';
 import { Effects } from '@/features/effects/Effects';
 import { elementClasses } from '@/features/landscape/elements';
 import { Landscape } from '@/features/landscape/Landscape';
@@ -15,10 +15,8 @@ import { fontFaces } from './fonts';
 import '@/styles/tokens.css';
 import '@/styles/base.css';
 import '@/styles/layout.css';
-import '@/styles/effects.css';
+import '@/styles/effects.css'; // the ink in the UI (links, the action, focus, the row rule, the flow dot: each element behind its el-* class)
 import '@/styles/components.css';
-import '@/styles/jade.css'; // the jade interface, Spring ink (after components.css)
-import '@/styles/finish.css'; // the interface finish (each element behind its el-* class: features/landscape/elements.ts)
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -38,8 +36,9 @@ export const viewport: Viewport = {
 };
 
 /**
- * Every page: the paper, the one persistent landscape canvas behind everything, the header, the page's <main>,
- * the footer (the story map, the links, "Still the landscape", the route announcer), and the Person JSON-LD.
+ * Every page: the paper, the one persistent landscape canvas behind everything, the header with its river line, the
+ * page's <main>, the tail (the colophon, the build stamp, "Still the landscape", the five names, the email, the seal,
+ * the route announcer), and the Person JSON-LD.
  * The canvas and the chrome persist across pages; only <main> changes (features/navigation).
  */
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -56,7 +55,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <InkDefs />
         <SiteHeader />
         {children}
-        <SiteFooter />
+        <Tail />
         <JsonLd data={personLd()} />
         <Navigation />
         <Effects />

@@ -7,15 +7,16 @@ import { allNotes } from './notes';
 import styles from './writing.module.css';
 
 /**
- * Writing (/writing/): the lake's strip with the title and intro in its mist; then one dated list, newest on top
- * (kind and date in small print, the title as the row's link, its description). No filters, pages or empty states:
- * a new piece is one more file (CONTENT.md). It ends on the lake's closing scene, then the story map.
+ * Writing (/writing/): the lake's strip with the title and intro in its mist; then one dated list of ledger rows,
+ * newest on top (kind and date in mono, the title as the row's link, its description), built for three. No filters,
+ * pages or empty states: a new piece is one more file (CONTENT.md). It ends downstream (the Résumé), then on the
+ * lake's closing scene and the tail.
  */
 export async function WritingIndex() {
   const notes = await allNotes();
   return (
     <PageMain page="writing" className={styles.page} glimpseEnd>
-      <Strip variant="sub" labelledBy="writing-title">
+      <Strip variant="sub" labelledBy="writing-title" still="writing">
         <h1 className="page-title" id="writing-title">
           {writing.title}
         </h1>
@@ -24,16 +25,22 @@ export async function WritingIndex() {
         </p>
       </Strip>
       <section className={`sec ${styles.list}`} data-veil="">
-        <ul className="rows" role="list">
+        <ul className="ledger ledger--dated" role="list">
           {notes.map((n) => (
-            <li className="row ink-row" key={n.slug}>
-              <p className="row__meta small">
+            <li className="ledger__row ink-row" key={n.slug}>
+              <p className="ledger__meta mono">
                 {n.kind} · <time dateTime={n.published}>{longDate(n.published)}</time>
+                {n.modified && n.modifiedNote ? (
+                  <>
+                    {' · '}
+                    {n.modifiedNote} <time dateTime={n.modified}>{longDate(n.modified)}</time>
+                  </>
+                ) : null}
               </p>
-              <h2 className="row__title">
+              <h2 className="ledger__title">
                 <InlineLink href={n.href}>{n.title}</InlineLink>
               </h2>
-              <p className="row__line">{n.description}</p>
+              <p className="ledger__line">{n.description}</p>
             </li>
           ))}
         </ul>

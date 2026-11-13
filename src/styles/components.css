@@ -1,9 +1,8 @@
 /* ==========================================================================
-   components.css — the round-4a shared components (SPEC-R4A §9).
-   The photo and "About me" (.hello), the signature (.signoff), Now, figures,
-   cases, the table, the brush diagram and margin notes. Behaviour lives in their
-   components (components/ui). A feature's CSS Module may only add LAYOUT for its
-   own sections, with tokens: no new colours, fonts, weights, shadows or motion.
+   components.css — the shared components (SPEC-R4A §9; the vanguard round's ledger).
+   The photo and "About me" (.hello), Now, figures, the ledger rows, the seal, cases, the table, the brush diagram
+   and margin notes. Behaviour lives in their components (components/ui). A feature's CSS Module may only add
+   LAYOUT for its own sections, with tokens: no new colours, fonts, weights, shadows or motion.
    Load order: tokens → base → layout → effects → components → the CSS Modules
    Shared file: do not edit from a page.
    ========================================================================== */
@@ -27,6 +26,14 @@
   row-gap: var(--space-m);
   align-items: start;
   margin-block-start: var(--space-m);
+}
+.hello__photo:not([src]) {
+  color: transparent; /* (its source comes as the reader nears it: no alt text shows meanwhile) */
+}
+@media (scripting: none) {
+  .hello__photo:not([src]) {
+    display: none; /* (the <noscript> twin shows the portrait) */
+  }
 }
 .hello__photo {
   display: block;
@@ -76,45 +83,31 @@
 }
 
 /* ==========================================================================
-   The About-me signature (SPEC-R4A §9.3): like a painter's name and seal at the
-   end of the note. Right-aligned to the text column. Never a handwriting font.
-     <p class="signoff"><span class="signoff__name">— Jack</span>
-       <span class="seal seal--sign" aria-hidden="true"><svg class="seal__mark" viewBox="0 0 64 64" focusable="false">
-         …the carved seal, its mask id "seal-carve-sign"…</svg></span></p>
-   The seal is static (never stamped) and hidden in forced colours (the name remains).
+   The seal (components/ui/Seal): a carved cinnabar stone with the one character cut out of it, drawn as a path.
+   Once per page, at the tail (layout.css sizes it there). Decorative; in forced colours an outline.
+     <span class="seal" aria-hidden="true"><svg class="seal__mark" viewBox="0 0 64 64">…</svg></span>
    ========================================================================== */
-.signoff {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 0.5rem;
+.seal {
+  display: block;
+  flex: none;
+  width: 2rem;
+  aspect-ratio: 1;
 }
-.hello__text > .signoff,
-.signoff {
-  margin-block-start: var(--space-s);
+.seal__mark {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
 }
-.signoff__name {
-  font-family: var(--font-body);
-  font-size: var(--fs-lead);
-  font-weight: var(--w-ui);
-  font-variation-settings: 'FLAR' var(--flare-sign);
-  line-height: 1.2;
-  letter-spacing: 0.02em;
-  color: var(--ink-2);
+.seal__stone {
+  fill: var(--cinnabar);
 }
-.seal--sign {
-  width: 24px;
-  rotate: -2deg;
-  translate: 0 0.08em;
-}
-@media (max-width: 39.99rem) {
-  .seal--sign {
-    width: 22px;
-  }
-}
+.seal__glyph {
+  fill: #000;
+} /* the glyph's outline (components/ui/Seal), cut out of the stone by its mask */
 @media (forced-colors: active) {
-  .seal--sign {
-    display: none;
+  .seal {
+    outline: 1px solid CanvasText;
   }
 }
 
@@ -130,18 +123,126 @@
 }
 
 /* ==========================================================================
-   Figures (SPEC-R4A §2.1): Sofia Sans Extra Condensed 900 at --fs-figure (22 → 28),
-   ink-2. A case's summary figure, the résumé timeline's years. Figures inside
-   sentences are <b> at text size instead.
+   Figures (the vanguard round): the poster numeral, the name face at --fs-figure (40 → 56) in ink, with its lead
+   word ("About", "Projected") small above or before it. The first screen's proof and a case's figure. Figures
+   inside sentences are <b> at text size instead; a ledger row's numeral is the same poster numeral (.ledger__figure).
    ========================================================================== */
 .fig {
   font-family: var(--font-name);
   font-size: var(--fs-figure);
   font-weight: 900;
   line-height: 1;
-  letter-spacing: 0.005em;
+  letter-spacing: 0;
   font-variant-numeric: lining-nums;
+  color: var(--ink-1);
+}
+.fig__lead {
+  font-family: var(--font-body);
+  font-size: var(--fs-small);
+  font-weight: var(--w-body);
+  line-height: var(--lh-small);
+  letter-spacing: 0;
+  color: var(--ink-3);
+}
+
+/* ==========================================================================
+   Ledger rows (the vanguard round): editorial rows on hairlines with the figure as a poster numeral in its own
+   column: Home's three outcomes, Work's projects, the Writing rows (dated, without a figure).
+     <ul class="ledger" role="list">
+       <li class="ledger__row ink-row">
+         <p class="ledger__figure"><span class="ledger__figure-lead">Projected</span>50%</p>   (optional)
+         <p class="ledger__meta mono">2023 – 2024</p>                                            (optional)
+         <h3 class="ledger__title"><a href>…</a></h3>
+         <p class="ledger__line">…</p>
+       </li>
+     </ul>
+   The title link covers the row (::after); other links in the row stay clickable above it. The numeral is decorative
+   (aria-hidden): the row's line carries the figure in words.
+   ========================================================================== */
+.ledger {
+  display: grid;
+}
+.ledger__row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: 0.25rem;
+  padding-block: 1rem;
+  border-top: 1px solid var(--rule);
+}
+.ledger__row:last-child {
+  border-bottom: 1px solid var(--rule);
+}
+.ledger__figure {
+  font-family: var(--font-name);
+  font-size: var(--fs-figure);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0;
+  font-variant-numeric: lining-nums;
+  color: var(--ink-1);
+  white-space: nowrap;
+}
+.ledger__figure-lead {
+  display: block;
+  margin-block-end: 0.2rem;
+  font-family: var(--font-body);
+  font-size: var(--fs-small);
+  font-weight: var(--w-body);
+  line-height: 1.2;
+  color: var(--ink-3);
+}
+.ledger__title {
+  font-family: var(--font-body);
+  font-size: var(--fs-item);
+  font-weight: var(--w-strong);
+  line-height: var(--lh-item);
+  color: var(--ink-1);
+  text-wrap: balance;
+}
+.ledger__title a {
+  text-decoration: none;
+}
+.ledger__title a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+.ledger__row:hover .ledger__title a,
+.ledger__row:focus-within .ledger__title a {
+  text-decoration: underline;
+  text-decoration-color: var(--ink-1);
+}
+.ledger__line {
   color: var(--ink-2);
+  max-width: var(--measure-read);
+}
+.ledger__meta a,
+.ledger__line a {
+  position: relative;
+  z-index: 1;
+}
+@media (min-width: 48rem) {
+  .ledger__row {
+    grid-template-columns: 8rem minmax(0, 1fr);
+    column-gap: 2rem;
+    align-items: baseline;
+  }
+  .ledger__row > :not(.ledger__figure) {
+    grid-column: 2;
+  }
+  .ledger__figure {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    align-self: start;
+  }
+  /* a dated row without a figure keeps the one column */
+  .ledger--dated .ledger__row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ledger--dated .ledger__row > * {
+    grid-column: 1;
+  }
 }
 
 /* ==========================================================================
@@ -252,7 +353,7 @@ details[open] > summary.case__summary::after {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M1.4 6.7Q3.4 4.7 5 2.9Q6.7 4.8 8.6 6.9' fill='none' stroke='%232A3034' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 summary.case__summary:hover::after {
-  text-decoration-color: var(--ink-2);
+  text-decoration-color: var(--ink-1);
 }
 @media (min-width: 40rem) {
   details[data-collapse='phone'][open] > summary.case__summary::after {
@@ -316,7 +417,10 @@ summary.case__summary:hover::after {
 } /* "2025 – present" never breaks */
 .table thead th {
   padding-block: 0 0.5rem;
+  font-size: 0.75rem;
   font-weight: var(--w-ui);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: var(--ink-3);
   vertical-align: bottom;
 }
@@ -416,9 +520,11 @@ summary.case__summary:hover::after {
    --wide SVG from a 60rem container, the --tall one below (the hidden one is
    display:none, so only one is in the accessibility tree). On a phone the tall one is
    never taller than 85svh. Labels are real <text> and never animate.
-     bands  .diagram__band (--1 top, --2, --3 bottom): wash at 5 / 8 / 11 %; static
-     nodes  .diagram__node: ink pools, wash at 16 %, no outline; never move
-     edges  .diagram__edge (pathLength="1" data-order="n"): annotation ink, 2.5 units, round caps
+   Drawn on hairlines (the vanguard round, P5): the drawing is a composed object at reading size, not a wash.
+     bands  .diagram__band (--1 top, --2, --3 bottom): no fill; one 1 px hairline (--rule) along the top of the two
+            lower layers, fading at the sides with the drawing's own mask; static
+     nodes  .diagram__node: a 1 px outline in quiet ink on the paper, no fill; never move
+     edges  .diagram__edge (pathLength="1" data-order="n"): annotation ink, 1.5 units, round caps
    ========================================================================== */
 .diagram {
   container-type: inline-size;
@@ -475,29 +581,35 @@ summary.case__summary:hover::after {
   }
 }
 
+/* a band's top edge only: the dash is the drawing's width (wide 1200 units, tall 400), the gap the rest of the
+   rectangle; the band's own vertical fade (its mask) would hide that edge, so it is dropped (the group's side fade
+   stays) */
 .diagram__band {
-  fill: var(--wash);
-  fill-opacity: 0.08;
+  fill: none;
   stroke: none;
+  mask: none;
 }
-.diagram__band--1 {
-  fill-opacity: 0.05;
-}
-.diagram__band--2 {
-  fill-opacity: 0.08;
-}
+.diagram__band--2,
 .diagram__band--3 {
-  fill-opacity: 0.11;
+  stroke: var(--rule);
+  stroke-width: 1; /* user units, so the dash below stays the drawing's width: 0.8 to 1 px as drawn */
+}
+.diagram__art--wide :is(.diagram__band--2, .diagram__band--3) {
+  stroke-dasharray: 1200 100000;
+}
+.diagram__art--tall :is(.diagram__band--2, .diagram__band--3) {
+  stroke-dasharray: 400 100000;
 }
 .diagram__node {
-  fill: var(--wash);
-  fill-opacity: 0.16;
-  stroke: none;
+  fill: none;
+  stroke: var(--ink-4);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
 }
 .diagram__edge {
   fill: none;
   stroke: var(--ink-annot);
-  stroke-width: 2.5;
+  stroke-width: 1.5;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -572,8 +684,8 @@ summary.case__summary:hover::after {
 .fold > summary:focus-visible,
 .margin-note__toggle:hover,
 .margin-note__toggle:focus-visible {
-  color: var(--jade-deep);
-  text-decoration-color: var(--jade-deep);
+  color: var(--ink-1);
+  text-decoration-color: var(--ink-1);
 }
 /* the fold's heading keeps the summary's line, beside the chevron */
 .fold > summary > h3 {

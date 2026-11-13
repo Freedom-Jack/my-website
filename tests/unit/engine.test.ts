@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 // The landscape engine's pure parts (no DOM, no GPU): where each place stands, how a window frames it, the palette.
 import {
+  cameraFor,
   framingAt,
+  framingBlend,
   sceneName,
   sceneField,
   SCENES,
@@ -67,6 +69,58 @@ describe('the landscape engine, pure parts', () => {
         expect(((f.worldTop - HERO.horizon) * f.scale) / 1.6 / height).toBeCloseTo(HERO.at, 6);
       }
     }
+  });
+  it('opens a deep page inside its place: closer by HERO.inside, on the same horizon, east of the landmark (the vanguard round)', () => {
+    const box = { width: 1440, height: 360, keepoutRight: 700 };
+    const open = { width: 1440, height: 360, keepoutRight: null }; // (no words over the box: the framing as named)
+    for (const [k, u, keepU] of [
+      [1, 0.72, 0.482],
+      [2, 0.84, 0.84],
+    ] as const) {
+      const hero = framingAt(k, 'wide', box, 'strip');
+      const inside = framingAt(k, 'wide', { ...box, inside: true }, 'strip');
+      expect(inside.scale).toBeCloseTo(hero.scale * HERO.inside, 6);
+      expect(inside.nominal).toBe(hero.nominal); // (its figure layer is the strip's)
+      // the shared horizon at the same height down the box
+      expect(((inside.worldTop - HERO.horizon) * inside.scale) / 1.6 / box.height).toBeCloseTo(HERO.at, 6);
+      // its focus column holds the scene's inner focus, east of the hero's (where no words overlap the box)
+      const named = framingAt(k, 'wide', { ...open, inside: true }, 'strip');
+      expect(named.worldLeft + (HERO.fx.wide * open.width) / named.scale).toBeCloseTo(k + u, 6);
+      expect(inside.worldLeft).toBeGreaterThan(hero.worldLeft);
+      // ...and under the words the keep-out rule still holds: the place's leftmost figurative point (Work: the bridge's
+      // west foot) stands at least KEEP_GAP right of the text, so the bridge looms whole at the words' edge
+      expect((k + keepU - inside.worldLeft) * inside.scale).toBeGreaterThanOrEqual(700 + 180 - 1e-6);
+      // a page's own sub-anchor instead (A2)
+      const own = framingAt(k, 'wide', { ...open, inside: true, insideU: 0.5 }, 'strip');
+      expect(own.worldLeft + (HERO.fx.wide * open.width) / own.scale).toBeCloseTo(k + 0.5, 6);
+    }
+    // a phone's case strip: the bridge (its east end at u 1.655) out of view to the west, the quay and the boats whole
+    const ph = framingAt(1, 'phone', { width: 390, height: 168.8, inside: true }, 'strip');
+    expect(ph.worldLeft).toBeGreaterThan(1.655);
+    expect(ph.worldLeft + 390 / ph.scale).toBeGreaterThan(1.93);
+    // the closing and the five heroes are untouched by the flag
+    expect(framingAt(1, 'wide', { ...box, inside: true }, 'closing')).toEqual(framingAt(1, 'wide', box, 'closing'));
+    expect(framingAt(0, 'wide', { width: 1440, height: 522, keepoutRight: 700, inside: true }, 'strip')).toEqual(
+      framingAt(0, 'wide', { width: 1440, height: 522, keepoutRight: 700 }, 'strip'),
+    );
+  });
+  it('finds the camera position that brings a part of a place to the focus column (A2, the sub-anchors)', () => {
+    const box = { width: 1440, height: 360, keepoutRight: 700 };
+    for (const [k, u] of [
+      [1, 0.9],
+      [1, 0.3],
+      [3, 0.7],
+      [2, 0.95],
+    ] as const) {
+      const s = cameraFor(k, u, 'wide', box);
+      const f = framingBlend(s, 'wide', box, 'strip');
+      expect(f.worldLeft + (HERO.fx.wide * box.width) / f.scale).toBeCloseTo(k + u, 3);
+    }
+    // the hero's own focus is its own camera (to the solver's tolerance)
+    expect(cameraFor(3, 0.65, 'wide', box)).toBeCloseTo(3, 3);
+    // clamped to the scroll
+    expect(cameraFor(0, -2, 'wide', box)).toBe(0);
+    expect(cameraFor(5, 3, 'wide', box)).toBe(5);
   });
   it('paints the scroll with one composition, and one river that never breaks (round 5)', () => {
     expect(SCENES.every((s) => s.page[0] === WORLD[0] && s.page[1] === WORLD[1])).toBe(true);

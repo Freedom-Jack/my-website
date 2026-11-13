@@ -20,7 +20,7 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-24.04
-    timeout-minutes: 35
+    timeout-minutes: 50
     env:
       NEXT_TELEMETRY_DISABLED: '1'
       # the QA build: the painting's read-only debug handle for the browser tests (never in the Vercel build)
@@ -60,7 +60,7 @@ jobs:
         run: npm run check:compliance
       - name: Links
         run: npm run check:links
-      - name: Browser tests (a smoke test per route, navigation, the §6 budgets)
+      - name: Browser tests (a smoke test per route, navigation, the §6 budgets, axe, the probe, the craft)
         run: npm run test:e2e
       - if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -68,3 +68,19 @@ jobs:
           name: playwright-report
           path: playwright-report
           retention-days: 7
+      # The budgets' gate (vanguard 01-budgets.md, the lead's R7, R9, R10, R12): the HTML gate and Lighthouse mobile and
+      # desktop on every route, after a warm-up, the median of five, on this QA build (Playwright's Chromium; a software
+      # rasteriser here, so the painting stays still and the numbers are the paper's). No phone profile here (--no-phone:
+      # it needs a real GPU) and nothing written: the phone run and --write (content/measured.json, the tail's build
+      # stamp) are the local release step on the real GPU (README).
+      - name: Budgets (the HTML gate and Lighthouse)
+        run: npm run check:budgets -- --no-phone
+        env:
+          CHROME_PATH: ''
+      - if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: budgets-report
+          path: |
+            budgets-report
+          retention-days: 14

@@ -4,13 +4,29 @@
 // part of the worker's own graph makes the worker's bundle reference itself, which a production Turbopack build never
 // finishes resolving.
 
-import { layerSize, paintSteps, premultiply, type Ctx2D, type LayerParams } from './figures';
+import type { Ctx2D, LayerParams } from './figures';
+import { mark } from './marks';
+import { qaOverrideLists } from '../elements';
 import type { FigureReply, FigureRequest, FigureResult } from './renderer';
+
+const QA = typeof process !== 'undefined' && process.env.NEXT_PUBLIC_INK_QA === '1';   // (the boot's marks, QA builds only)
 
 /** The figure layers' source (createFigureSource). */
 export interface FigureSource {
   request(params: LayerParams): Promise<FigureResult>;
+  /** Spawn the worker now (its chunk downloads), before any layer is asked for. */
+  warm(): void;
   destroy(): void;
+}
+
+// A source warmed before the engine arrives (Landscape.tsx, with the engine's own import): the engine takes it over.
+// This module has no static import of the drawing code, so the page's bundle gains only these few lines.
+let warmed: FigureSource | null = null;
+/** Spawn the figure worker now, so its chunk downloads beside the engine's; the engine's mount takes the source over. */
+export function warmFigureSource(): void {
+  if (warmed) return;
+  warmed = createFigureSource(true);
+  warmed.warm();
 }
 
 /**
@@ -18,7 +34,8 @@ export interface FigureSource {
  * the main thread in idle chunks of <= 8 ms. request() resolves to { width, height, data (premultiplied RGBA bytes,
  * top row first) | bitmap, sprites? (out 'gpu': the boats cut out of it), ms, life (the layer's life anchors) }.
  */
-export function createFigureSource(): FigureSource {
+export function createFigureSource(fresh = false): FigureSource {
+  if (!fresh && warmed) { const w = warmed; warmed = null; return w; }   // (the source warmed before the engine arrived)
   let worker: Worker | null = null, broken = false, seq = 0, dead = false;
   const pending = new Map<number, { resolve: (r: FigureResult) => void; reject: (err: unknown) => void; fallback: () => void }>();
   const canWorker = typeof Worker === 'function' && typeof OffscreenCanvas === 'function';
@@ -26,6 +43,7 @@ export function createFigureSource(): FigureSource {
     if (worker || broken || !canWorker) return worker;
     try {
       worker = new Worker(new URL('./figures.worker.ts', import.meta.url), { type: 'module', name: 'figures' });
+      if (QA) mark('worker:spawn');
       worker.onmessage = (e: MessageEvent<FigureReply>) => {
         const p = pending.get(e.data?.id);
         if (!p) return;
@@ -52,11 +70,13 @@ export function createFigureSource(): FigureSource {
       const w = ensure();
       if (!w) { fallback(); return; }
       pending.set(id, { resolve, reject, fallback });
-      w.postMessage({ id, ...params } satisfies FigureRequest);
+      // (QA builds: the element overrides of this browser ride with the request; the worker reads no storage)
+      w.postMessage({ id, ...params, qa: qaOverrideLists() } satisfies FigureRequest);
     });
   }
   return {
     request,
+    warm() { if (!dead) ensure(); },
     destroy() {
       dead = true;
       try { worker?.terminate(); } catch { /* ignore */ }
@@ -66,8 +86,11 @@ export function createFigureSource(): FigureSource {
   };
 }
 
-// The main-thread fallback: the same steps, run in idle time, at most ~8 ms at a go.
-function idleDraw(p: LayerParams) {
+// The main-thread fallback: the same steps, run in idle time, at most ~8 ms at a go. The drawing code (figures.ts's
+// brush kit and the sets, the worker's chunk) is loaded here on demand: the engine's own chunk never carries it.
+async function idleDraw(p: LayerParams) {
+  const [{ layerSize, paintSteps, premultiply, registerSets }, { SETS }] = await Promise.all([import('./figures'), import('./sets')]);
+  registerSets(SETS);
   return new Promise<FigureResult>((resolve, reject) => {
     const { width, height } = layerSize(p.stretch, p.scale, p.dpr);
     let canvas: OffscreenCanvas | HTMLCanvasElement;

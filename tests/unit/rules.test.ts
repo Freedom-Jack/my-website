@@ -139,12 +139,26 @@ describe('places (features/landscape/places)', () => {
     // the story map: the places in the painting's order, one per stretch, the 404 off it
     expect(STORY_MAP.map((p) => p.stretch)).toEqual([0, 1, 2, 3, 4]);
   });
-  it('lives on the five map pages with cameraTravels (Home and Work without it); every page on the road ends on its closing scene', () => {
+  it('lives on every page of the scroll under the unroll (the deep pages inside their place), on the five map pages with the camera travelling, on Home and Work with neither; every page on the road ends on its closing scene', () => {
     expect(
       Object.values(PLACES)
         .filter((p) => p.ground === 'living')
         .map((p) => p.page),
-    ).toEqual(ELEMENTS.cameraTravels ? ['home', 'work', 'writing', 'resume', 'contact'] : ['home', 'work']);
+    ).toEqual(
+      ELEMENTS.unroll
+        ? ['home', 'work', 'case', 'writing', 'article', 'resume', 'contact']
+        : ELEMENTS.cameraTravels
+          ? ['home', 'work', 'writing', 'resume', 'contact']
+          : ['home', 'work'],
+    );
+    // (the unroll: a case opens inside the town, a note inside the lake; nothing else is framed inside)
+    expect(
+      Object.values(PLACES)
+        .filter((p) => p.inside)
+        .map((p) => p.page),
+    ).toEqual(ELEMENTS.unroll ? ['case', 'article'] : []);
+    // (the production table: the unroll on, the camera's travel kept only as the QA alternative; the vanguard round)
+    expect(ELEMENTS.unroll && !ELEMENTS.cameraTravels).toBe(true);
     expect(
       Object.values(PLACES)
         .filter((p) => !p.closing)

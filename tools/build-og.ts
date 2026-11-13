@@ -30,6 +30,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { chromium } from '@playwright/test';
 import { parse } from 'yaml';
+import { home } from '../content/pages/home.ts';
 import { site } from '../content/site.ts';
 import { longDate } from '../src/lib/dates.ts';
 
@@ -56,7 +57,7 @@ const CHROME_ARGS = ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklis
 
 /** What each place's card shows, for the image's alt text. */
 const SCENE: Record<string, string> = {
-  home: 'his mountain in spring: a plum bough, a swallow and the morning light over the peaks',
+  home: 'his mountain in spring: a plum bough and the morning light over the peaks',
   work: 'a river town at its rainbow bridge',
   writing: 'a still lake with a pavilion under a willow',
   resume: 'terraced fields stepping down to the river',
@@ -73,6 +74,9 @@ interface Card {
   byline?: string;
   /** Home's one line under the name (the card is a cover: its two hero paragraphs would be unreadable at preview size) */
   line?: string;
+  /** Home's card also keeps the first screen's one proof (the vanguard round, P6: the name, the role, the proof); its
+   *  words count towards --check's staleness */
+  proof?: string;
   alt: string;
 }
 
@@ -111,7 +115,8 @@ async function cards(): Promise<Card[]> {
       title: site.name,
       eyebrow: '',
       line: `${site.jobTitle} · ${site.seo.employer.name}, ${site.city}`,
-      alt: `${site.name}, ${site.jobTitle}: his name and introduction beside an ink-wash painting of ${SCENE.home}.`,
+      proof: JSON.stringify(home.first.proof),
+      alt: `${site.name}, ${site.jobTitle}: his name, his role and one counted result beside an ink-wash painting of ${SCENE.home}.`,
     },
     ...(['work', 'writing', 'resume', 'contact'] as const).map((id) => ({
       id,
@@ -159,6 +164,8 @@ main .strip--sub { margin-top: -${EXTRA}px !important; }
 main .strip--sub > .strip__text { padding-block: 0 !important; align-self: center !important; margin-top: ${EXTRA}px !important; }
 main .strip--sub .page-title { font-size: 4.5rem !important; line-height: 1 !important; }
 main .strip .lead { display: none !important; }
+main .first__verb, main .first__title, main .first__now, main .first__action, main .first__proof .first__source { display: none !important; }
+main .strip--home > .strip__text { align-self: center !important; padding-block: 0 !important; margin-block: 0 !important; }
 .og-line { margin: 1.25rem 0 0 !important; font-size: 1.75rem !important; font-weight: 560 !important; line-height: 1.25 !important; color: var(--ink-2) !important; }
 .og-eyebrow { margin: 0 0 1.25rem !important; font-size: 1.5rem !important; font-weight: 560 !important; color: var(--ink-2) !important; }
 `;
@@ -218,7 +225,8 @@ interface Entry {
 interface Manifest {
   cards: Record<string, Entry>;
 }
-const wordsOf = (c: Card) => sha(JSON.stringify([c.title, c.eyebrow, c.byline ?? '', c.line ?? '']));
+const wordsOf = (c: Card) =>
+  sha(JSON.stringify([c.title, c.eyebrow, c.byline ?? '', c.line ?? '', ...(c.proof ? [c.proof] : [])]));
 const sha = (data: string | Uint8Array) => createHash('sha256').update(data).digest('hex');
 
 function readManifest(): Manifest {
@@ -257,6 +265,10 @@ async function cut(list: Card[]) {
     const ctx = await browser.newContext({
       viewport: { width: CARD.width, height: CARD.height },
       deviceScaleFactor: CARD.dpr,
+    });
+    // (a QA build mounts the engine at once, without the live probe)
+    await ctx.addInitScript(() => {
+      (window as unknown as { __inkLive?: boolean }).__inkLive = true;
     });
     const page = await ctx.newPage();
     for (const c of list) {
