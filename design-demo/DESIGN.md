@@ -814,6 +814,254 @@ the photo must start on the first screen); moving About's "I also build for myse
 wall-clock test on Now's month (a CI time bomb; the unit test compares it with the content dates instead); PDF Author
 metadata (a new dependency for a small gain); the photo through the image optimizer (its baked fade edge).
 
+### Vanguard (2026-11-02 to 13; Jack: "better than 99% of websites", full freedom, budgets first)
+
+Built on `redesign/v3` (off `redesign/v2` at c974780) in six work packages, each by a builder agent and an
+independent reviewer with a fix round where the review failed; the lead's rulings, the logs, the reviews, the patches,
+the measurements and every screenshot are in the durable folder outside the repo (`~/.claude/projects/…/vanguard/`,
+"the folder" below). Nothing here changes a hard rule of §2.
+
+**The brief** (2026-11-02, verbatim in the folder's `00-brief.md`): the awards of 2026; a CTO, a hiring lead and an
+investor remember it a week later; the first screen says he belongs at the front of the AI era; young, alive,
+confident, cool, still an ink painting; keep only the ink theme, its palette's feeling and the §2 hard rules;
+everything else, the scroll motion included, the lead's to judge; craft shown, not claimed, live in the browser,
+honestly and privately; performance part of the standard with budgets set before design; DRAFT words allowed and built
+in place; research, at least three directions as engine mockups, a six-seat jury, an adversarial attack, a full build
+with tests and CI green; commit only on his word.
+
+**Budgets before design** (`01-budgets.md`, amended five times as the build taught): Lighthouse mobile LCP ≤ 1.8 s
+target and ≤ 2.5 s gate, FCP ≤ 1.2 s, TBT ≤ 50 ms, no main-thread task over 50 ms at 4× slowdown (100 ms gate), CLS
+≤ 0.01, Performance ≥ 95; fonts ≤ 45 KB in two files; first-load JavaScript ≤ 160 KB and the engine ≤ 100 KB after
+first paint; ≤ 12 first-load requests target, 15 gate; every page's HTML ≤ 30 KB gzipped; the first screen complete,
+painting included, within 1.5 s on a phone; the painting still-first on every device, live only after every
+"may it run" check and a 1.5 s cadence probe, back to the still on two slow frames; memory ≤ 45 MB laptop, ≤ 20 MB
+phone; nothing heavy until a click that states its size; Lighthouse gated on the median of five runs after warming the
+server, min and max recorded.
+
+**The baseline** (`03-baseline.md`): the live site and the local build both scored 99–100 on Lighthouse mobile with a
+1.0 s text LCP; what read as slow was the first screen staying unfinished for four to five seconds on a phone (the
+engine landing as a 150–235 ms task at ~3.4 s, then the 2.3 s "morning"). First load: 330 KB of JavaScript, 102 KB of
+fonts in three files, 540–660 KB in all. The award exemplars measured the same way: the spectacle sites fail the
+budgets by an order of magnitude (Bruno Simon's Home LCP 24 s, Igloo's 7 s of blocking); the fast ones (Mangham 96,
+Wodniack 97, Karpathy 99) are plain.
+
+**The research** (17 lens notes, a critic and a digest in `research/`): award winners 2024–2026, the sites of AI
+leaders, the design-engineer genre, what CTOs and investors read, the performance state of the art, live AI in the
+browser, type, ink in contemporary design, scroll motion, the first screen, structure, phones, a challenger, the
+living site, and the gaps the critic found (accessibility, the Vercel free tier, the handscroll's grammar, machine
+readers). Its resolutions bound the designers: a verb and one counted proof with its measure on the first screen; the
+scroll motion as parallax without a referent; live craft sized and private, generation out; one named element per
+place; the seal the only red; no serif; the painting still-first on phones.
+
+**Four directions, a jury, a synthesis, an attack** (`directions/*`, `jury/*`, `05-synthesis.md`, `attack/*`): A the
+handscroll unrolled, B proof running, C under the hand, D the plain brave, each built in its own worktree. The jury's
+six seats scored proof 46.5, plain 44.0, unrolled 37.5, hand 35.5. The synthesis: proof on the control's surface with
+the river unrolled. The attack confirmed 26 findings of 40; four changed the design (one grammar for the whole site,
+the craft leaner and measured, the proof's real basis, one named element per place) and all of them became rulings
+in `06-build-brief.md` (A1–A17, then R1–R12 during the build).
+
+**What was built** (P1–P6; the logs in `build/`):
+
+- *The platform (P1).* The engine boots in slices (parallel shader compile, the first scene as its own frame, the
+  canvas hidden until the first present): no engine task over 50 ms at 4× slowdown. Every page's hero is a pre-cut
+  still from the engine's own first frame (`tools/build-heroes.ts`, `public/scenes/hero/`), the first frame on every
+  device; the live painting hands over beneath it with a mean difference of one grey level. `probe.ts` runs every
+  "may the painting run" check before the engine is imported (reduced motion, Still, Save-Data, a WebGL2 context with
+  `failIfMajorPerformanceCaveat`, the 1.5 s cadence); a quiet page fetches 0 engine bytes, asserted in CI. Two font
+  files, 35 KB, with size-adjusted fallbacks. The GLSL loader cut the engine chunk to 80 KB. First-load requests 13.
+- *The surface (P2).* The first screen: the name at 220 px in the name face, the approved verb sentence as one line,
+  the title line (DRAFT), one counted proof with its mono measure ("2023 to 2024 · the case →"), the dated line, one
+  text action with a drawn arrow. The header carries no seal; a river line under it travels with the scroll (a CSS
+  scroll timeline, finished state as the default). Every page ends on its place's rest with "Downstream · next" and the
+  next page's own sentence; Contact ends on the tail (the colophon, the build stamp, "last changed", Still, the five
+  names, the email, the seal once). Jade survives only as marks; ink for the name, titles and actions; no brush button,
+  no story map, no "— Jack" sign-off. `jade.css` and `finish.css` folded into the design system.
+- *The engine (P3).* The river unrolled: the painting slides linearly along the river with the reading (0 scenes drawn
+  while scrolling, 0 frames over 20 ms at 4× CPU), the far range running through the margin so the unroll never shows
+  a cut edge, Work, the case, the Résumé and Contact holding their last named thing in the margin to the end; the page
+  change pans on from where the slide stopped under a plain crossfade and never steps back. Cases and notes open inside
+  their place at 1.15×. One named element per place by the switch table (swallows, ribbon, petals, the silk veil and
+  the morning off; Home's plum a whole bough pinned in the frame's corner, clear of the light). The approved camera
+  travel survives as a QA switch (`cameraTravels`) for Jack's side by side. Memory 40.6 MB on Home after a pointer
+  read (gate 45), 17–19 MB on Work's phone page (gate 20).
+- *The craft (P4).* "Search these pages" on Work: a corpus of 46 section-sized passages (20 to 87 words), BM25 with a
+  stop list and a score floor and an honest "no close match", every passage with its place in the painting so a
+  focused result pans there and back (a 44 px "show the place" still on phones), a submit that works, roving focus,
+  Escape; the index (about 7 KB) loads only on the first focus; the status line says "downloaded N KB from this site ·
+  nothing you type is sent anywhere", the first half measured, the second asserted by a test that records every request.
+  "Under the hood": the lineage of the site's own words, the grammar mask (a byte automaton over a branching grammar,
+  opening on a step where the top token is blocked and four are legal), and the eval (n = 20, recall@1 50 %, recall@3
+  85 %, every miss printed, nothing tuned, the author named). The replay and the dense gate were cut by ruling.
+- *The pages (P5).* Every figure carries a basis (public-source, internal, projected); a projected figure is never a
+  numeral. The six cases on one spine (the figure and its measure on one line with "DRAFT · internal figure", the NDA
+  line only where there is no public evidence, Problem, My part, Outcome and status, Evidence, Stack), opening inside
+  the town. Work as six dated ledger rows with poster numerals in the name face. Home under 400 words, Now dated with
+  a 90-day test. The Résumé as one dense column, its PDF reprinted. Contact with the email as the focal point.
+- *QA, CI and the numbers (P6).* Stills, heroes, social cards and the PDF regenerated; axe-core on every route at
+  1440 and 360 with the research's rule set (zero violations; the lowest sampled contrast 6.99:1); the tap-target
+  sweep; the probe's reasons asserted; `npm run check:budgets` (the HTML gate, Lighthouse mobile and desktop as the
+  median of five after a warm-up, the real-GPU phone profile) wired into CI without the phone run (CI has no GPU) and
+  run locally with `--write` as the release step that stamps the tail. The whole browser suite: 185 of 185.
+
+**Measurements** (`07-measurements.md`; the final QA build of 2026-11-13 on this Mac):
+
+| Route | HTML gz | Lighthouse mobile LCP, median of 5 (min–max) | Score | Desktop | Phone LCP (real GPU) | Sharp still |
+| --- | --- | --- | --- | --- | --- | --- |
+| Home | 25.8 KB | 2.45 s (2.45–2.45) | 98 | 100 | 0.6 s | 0.96 s |
+| Work | 29.7 KB | 1.05 s | 98–100 | 100 | 1.1 s | (seed; the still only in the still state) |
+| A case | 29.7 KB | 2.45 s | 98 | 100 | 1.0 s | 1.07 s |
+| Writing | 10.6 KB | 2.38 s (2.30–2.38) | 98 | 100 | 0.9 s | 0.9 s |
+| A note | 21.2 KB | 2.45 s | 98 | 100 | 1.0 s | 1.05 s |
+| Résumé | 25.7 KB | 2.45 s | 98 | 100 | 0.9 s | 0.93 s |
+| Contact | 10.7 KB | 2.38 s | 98 | 100 | 1.0 s | 1.04 s |
+
+Every route: fonts 35 KB in two files, CSS 11–13 KB, first-load JavaScript 149–154 KB (the App Router's floor is
+about 131), the engine 80 KB after the probe, Home's first load 222 KB in 11 requests, longest task 55 ms, 0 of 239
+scroll frames over 20 ms at 4× CPU, tap INP 32–48 ms, heap 6.3–8.0 MB, CLS 0. Against the baseline on the phone
+profile: Home's text paints at 0.6 s (was 0.8), the sharp painting is there by 1 s (was a blur until ~3.4 s and
+finished at ~5.7 s), no long task (was one of 137 ms), fonts 35 KB (were 104), JavaScript 236 KB (was 333). The
+honest caveat: Lighthouse's simulation reports the inlined still as a 2.45 s LCP on five routes, 50 ms under Jack's
+gate, because it queues every request before the observed paint; on the real device the same still is painted at
+first paint. Lighthouse's own mode flips by about 0.5 s between runs (1.95/2.45 on Home), which is why the gate reads
+the median of five.
+
+**Decisions overturned, and why** (each a past decision of this file; §2 untouched):
+
+1. §5 Home's hero (the name at ~112 px, the role sentence, the "right now" line, two buttons, the photo on the first
+   screen) → the name at 220 px in ink, the verb line, the title line, one counted proof with its measure, the dated
+   line, one text action; the portrait with About, loading as the reader nears it. Reason: the research's first-screen
+   evidence (a verb, one proof with its unit, a date) and the jury.
+2. §4.5 and §9 jade as the interface accent (the jade name, titles, the brush button, the swash) → ink for the name,
+   titles and action; jade only as marks (the current nav item, the river line's dot, the second line of focus rings);
+   no brush button; the text action with a drawn arrow. Reason: scale is the gesture; the brush button read as a pill
+   from the 2023–25 template.
+3. §6 the three faces → two files, 35 KB: Sofia Sans Extra Condensed 900 as the name face and Familjen Grotesk as one
+   variable Latin subset, mono as a system stack for facts. Reason: the font budget, and a sharper reading voice the
+   plain direction proved.
+4. §7 and round 5's scroll motion (the camera lifting through the mist, parting layers, the place parking, the
+   descent) → the river unrolled: the painting slides along the river with the reading and hands the next page its
+   place; the old motion switchable in QA builds until Jack has seen both. Reason: the five-question test (referent,
+   subtraction, control, cost, recall).
+5. §12 "The scroll, held" (PR #26) → not merged; the hand-held scroll is dropped as navigation. Reason: as navigation
+   it lost the painting and failed three of five gates; one way to travel.
+6. §5 the footer story map and the seal in the header → the river line under the header and the tail. Reason: one
+   map, one seal, the colophon as a handscroll's own ending.
+7. §3 the "— Jack" sign-off with its seal, and the case colophon → gone; the seal signs once at the tail. Reason: the
+   costume read as decoration.
+8. §11.E answer 8 and round 5's "one ending, no Next" → every page ends on its place's rest and one "Downstream · next"
+   line, the next place arriving in the margin. Reason: the chain never dead-ends and the click never jumps back.
+9. §7 Spring ink's elements: the 2.3 s morning, the pointer stir and petals, the swash, the nav mark's lift, the silk
+   veil page change, the story map's sun, "visited" → off by the switch table; one named element per place (Home's
+   swallow and ribbon off, the plum moved off the light into the frame's corner, the halo kept; Work's swallows off;
+   Writing's petals off; the Résumé's swallow off). Reason: the opening made the first screen look unfinished; motif
+   collage; one grammar.
+10. §5 Work as a table with "How I build" and "In the open" → the six projects as dated ledger rows with poster
+    numerals, a compact search of the site's own words, How I build on hairlines, Under the hood, In the open.
+    Reason: proof that runs, and a ledger over a table.
+11. §10 and §12's "performance backlog, don't start unprompted" → performance is part of the standard: the sliced
+    boot, the still-first frame, the probe, the font cut, the budget gate in CI. Reason: Jack's brief.
+12. §6 the photo on the first screen at all three sizes → no photo on the first screen. Reason: two images compete
+    for one memory; the painting is the one image.
+13. §7's "one composition for every page" → cases and notes open inside their place at 1.15×; the 404 stays level
+    (a page with its own distance would re-compose the whole scroll). Reason: where in the painting a page lives.
+
+**DRAFT words, for Jack's approval** (each marked `DRAFT ·` where it shows; the files in `content/`):
+
+- `pages/home.ts` `first.title`: "Lead AI/ML Architect, CGI AI Center of Excellence, Toronto." The verb line above it
+  is the approved sentence in a new order, unmarked: his call too.
+- `site.ts` `tail.colophon`: "Words on paper and one painting, drawn by code in your browser. No analytics, nothing
+  fetched from a third party, and nothing you type is sent anywhere."
+- `pages/resume.ts` `line` (the Writing page's ending): "Five roles since 2019, two CGI Impact Awards and two cloud
+  certifications: on one page, as a PDF and as JSON."
+- `pages/case.ts` `basis.internal`: "internal figure"; `nda`: "Under NDA: the figures here come from my own record of
+  the work."
+- `pages/contact.ts` `response`: "I read everything and answer within a week."
+- `craft/hood.ts`: the three fold ties ("At CGI I built a lineage tool that documents where data came from; this is
+  that record for the words of this site." · "The agent for a proprietary language keeps every output inside an EBNF
+  grammar; this is that constraint on a case record, one token at a time." · "The insurance assistant answered from
+  retrieved passages, so retrieval had to be measured; this is the same measure for the search above."), the three
+  result lines, the mask's "what" paragraph and the eval's author line.
+- `craft/eval.ts`: the 20 evaluation questions, written by the site's author, to be replaced by his own held-out set.
+- Held out of Home to get under 400 words, kept verbatim in `pages/home.ts` `held`: About's "I'm optimistic about AI…"
+  paragraph and Now's "Off-hours: basketball, games, and a long xianxia novel."
+
+**Facts and calls only Jack can make** (the evidence is in the folder; `build/p7-compiled.md` has every pointer):
+
+1. Clearance of every public figure and whether CGI, RBC and TD Bank may be named as the content names them
+   ("At RBC" in the data-operations case), with the replacement wording if not.
+2. The basis of each headline figure (90 % and 50,000+; 525 % ROI; projected 50 %; 80 %; 321 %; 99.9 % and 2 TB;
+   mAP ≥ 70 %; 89 % over 2,000+ emails; 13+ initiatives and a team of about 20) and whether "internal figure" is the
+   basis word to print.
+3. The public title (Lead AI/ML Architect, Tech Lead, or both) and whether "CGI AI Center of Excellence" may stand in
+   the title line; the verb line's order.
+4. The two held Home lines: restore, delete, or make checkable.
+5. The Résumé's highlight linking the CGI product page beside "About 90 %" (his own text in resume.json): the attack's
+   ruling links that page only from the case's Evidence list; if he agrees it moves and the PDF is reprinted.
+6. Twenty to fifty evaluation questions in his own words, held out from tuning; until then the eval stays labelled as
+   the author's.
+7. The scroll motion, side by side: the unroll as built against the approved camera's travel, on a QA build with
+   `localStorage.setItem('ink-elements', '{"unroll":false,"cameraTravels":true}')`, or `build/p3-shots/final/`
+   beside `build/p3-shots/baseline/`. The loser's code goes once he has chosen.
+8. Home's first screen with and without the plum and the halo (`build/p3-shots/home-variants/`), and whether the
+   plum's own petals return with Writing's (one flag).
+9. The case opening inside the town at 1.15× (`build/p3-shots/final/work-rag-assistant-laptop-1-hero.png` against
+   `work-laptop-1-hero.png`).
+10. Work's margin: the town's east end held to the page's end, or Writing's west shore composed into the reach instead.
+11. The first screen's phone order (the dated line after the action at 390 × 844 so the action stays on the first
+    screen) and its type (the title line at 14 px to keep four sizes).
+12. The favicon kept as a 2.6 KB file (13 first-load requests); an 800-byte icon would mean redrawing the seal.
+13. For each case: the constraint, a rejected option and why, how it was measured, what failed or remains limited,
+    his part against the team's. Whether the three CGI periods are one continuous employment. The 2026 Impact Award's
+    figure and whether either citation may be quoted. The optimism paragraph. The colophon's words about how the site
+    was made. AI-training crawlers in robots.txt; visit counts; a calendar link. The Now block's refresh cadence.
+14. Vercel: a personal portfolio as non-commercial use on Hobby; apex or www as the one origin. His iPhone on Wi-Fi
+    and off for the real-device run (the rollback watch's 20 ms rule is untested on a real phone), and a Moto G class
+    Android if one can be borrowed.
+15. Which of PR #26 (the hand-held scroll, against master) and this branch's answer (the hand dropped) he wants; they
+    cannot both ship. LinkedIn's Featured link and headline.
+
+**Open items and risks carried out** (full list in `build/p7-compiled.md` §4):
+the inlined-still routes sit 50 ms under the Lighthouse LCP gate and Lighthouse's two modes are 0.5 s apart; Work's
+HTML has about 280 B of headroom and the case's about 250 B under 30 KB; CI's budgets step has never run on GitHub's
+Linux runner (the first push shows whether its Lighthouse holds there); the rollback watch is untested on a real phone;
+the Résumé's end pose shows a faint straight edge on the river wash; the veil question (A17) needs an engine QA switch
+before it can be judged; one 55 ms task after load is unnamed; `next start` serves the craft JSON uncompressed, so the
+status line reads about 28 KB locally against "about 7 KB" in production; the hero stills are exact only at their
+class's cut width; `experimental.turbopackChunking` is experimental; the lineage's commit stamp names the build's
+commit; the river line's travel is a CSS scroll timeline (Firefox behind a flag; the dot stands still there).
+
+**What it cost** (the agents' transcripts; the lead's own turns not counted): research, design, jury and attack about
+15 million output tokens on Fable and Opus (2026-11-02 to 05, three runs killed by spend limits and resumed); P1 about
+1.1 million on Fable; P2 and P3 about 7.5 million on Fable over 14 hours with two agents killed by the spend window
+and one fix round; P4, P5 and P6 with their fix rounds about 2 million on Opus over one day, one agent killed by the Mac
+sleeping. The lesson is in `00-brief.md`'s log: builders on Opus with a tool-call cap, one package per run, one
+measurement pass, no automatic fix rounds, the Mac kept awake.
+
+**The demo script** (ten steps a visitor takes; say what each proves):
+
+1. Open Home on a laptop: the name, the verb line, one proof with its measure, the dated line, one action; the
+   painting is a still from the first paint and the live painting fades in beneath within two seconds, nothing moving
+   the words (the first screen complete; the hand-over by one grey level).
+2. Scroll: the painting slides along the river with the reading and the town arrives in the margin at the end; in a QA
+   build `window.__ink.stats()` shows 0 scenes drawn while scrolling (the motion costs nothing).
+3. Click "Downstream · Work →": the painting pans on to Work's place under a crossfade of the words and never steps
+   back (one grammar for scroll and page change).
+4. On Work, click into "Search these pages": the index, about 7 KB, loads only now (nothing before you ask); type
+   "lineage" or "99.9%"; focus a result: the painting pans to its place and back (the words and the painting are one
+   map).
+5. Read the status line: "downloaded N KB from this site · nothing you type is sent anywhere", then the network panel:
+   same-origin GETs only, the typed text in no URL (privacy tested, not claimed).
+6. Open "Under the hood": the lineage of the words (46 passages, 20 to 87 words), the grammar mask (the top token
+   blocked, four legal), the eval (n = 20, recall@1 50 %, recall@3 85 %, the misses listed) (craft shown, honestly).
+7. Open a case: it opens inside the town at 1.15×; the figure, its measure and its basis on one line; the spine
+   Problem, My part, Outcome and status, Evidence, Stack (honest data, one spine).
+8. Turn on reduced motion, or Still in the tail: the painting becomes its still and the network panel shows 0 engine
+   bytes (the rules are gates).
+9. Open Home on a phone at 390 px, slow 4G: the words at 0.6 s, the sharp painting by 1 s, the live painting after the
+   probe, 0 scroll frames over 20 ms (phones first-class).
+10. Scroll to the tail: the colophon, the build stamp ("Lighthouse mobile, simulated" with the date and commit), Still,
+    the five names, the email, the seal once (one map, one seal, an honest ending).
+
 ## 13. Running the demo and its tools
 
 ```bash
