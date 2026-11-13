@@ -2638,6 +2638,8 @@ void main() {
   // drifting slowly along its length; painted only over the pale air and mist (so it passes BEHIND the ink of the
   // peaks), never under text, never on another page.
   p.y += dyB;   // (from here on, the light and the ribbon are the back's: they stay with the sky as the layers part)
+#ifdef EL_RIBBON
+  // (elements.ts ribbon: compiled in only when the ribbon is on; the vanguard round's A3 switched it off)
   float pxp = max(abs(dFdy(p.y)), 1e-5);
   // (suspended while a page change crosses the view, so it is never drawn over a painting that is fading)
   if (heroW > 0.0 && tm > 0.0 && uSweep.z <= 0.0) {
@@ -2734,10 +2736,13 @@ void main() {
       col = mix(col, vec3(0.36, 0.70, 0.74), clamp(thr * 0.4 * tk * brk * rk, 0.0, 1.0));
     }
   }
+#endif
   // the light's bloom, added after the grain, inside the painting only and never under the
   // text: a tight halo and a wide soft glow round each place's light (Home's the strongest), breathing slowly; it wraps
   // what stands in front of the light (thinner over dark ink), so the sun reads as a source, not a haze
+  // (elements.ts halo: compiled in only when it is on; QA switches it off for the side by side the vanguard round asks)
   vec3 cB = col;
+#ifdef EL_HALO
   if (inWin > 0.0) {
     float bk = inWin * (1.0 - smoothstep(0.02, 0.3, veil)) * (1.0 - 0.7 * clearK) * glSun;
     float u = p.x / HSW, kk = floor(u), add = 0.0, wa = 0.0;
@@ -2764,6 +2769,7 @@ void main() {
     col += add * bk * mix(0.3, 1.0, smoothstep(0.35, 0.85, lumB)) * vec3(0.975, 0.995, 1.0);
 #endif
   }
+#endif
 
   // inside a window into the painting nothing is lighter than the paper round it, channel by channel (never a bleached
   // hole); the light's bloom there is warm paper, never added white

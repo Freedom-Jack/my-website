@@ -29,19 +29,32 @@ for (const r of ROUTES) {
     await expect(page.locator('main h1')).toHaveCount(1);
     await expect(page.locator('main')).toHaveAttribute('data-page', r.page);
     await settle(page);
-    // the landscape mounted (or gave the page its static fallback)
+    // the landscape mounted (or gave the page its static fallback), or the live probe kept the page on its still
+    // (features/landscape/probe.ts: reduced motion, Still, Save-Data, no hardware WebGL, a failed cadence)
     const mode = await page.evaluate(() => (window as unknown as { __ink?: { mode: string } }).__ink?.mode ?? 'none');
-    expect(['webgl', 'canvas2d', 'static']).toContain(mode);
+    const live = await page.evaluate(() => document.documentElement.getAttribute('data-live'));
+    if (mode === 'none') expect(live, 'no painting: the probe said so').toBe('still');
+    else expect(['webgl', 'canvas2d', 'static']).toContain(mode);
     // hard rules on what the visitor gets
     const html = await page.content();
     expect(html).not.toMatch(PHONE);
     expect(html).not.toMatch(/QijinXu_Resume\.pdf/i);
     expect(html).not.toMatch(/\bPMP\b/);
     expect(await page.evaluate(() => document.body.innerText)).not.toMatch(CJK);
-    // the 404 marks nothing as "you are here"; every other page marks itself or its section
-    const current = await page.locator('.story-map a[aria-current]').count();
-    if (r.page === 'not-found') expect(current).toBe(0);
-    else expect(current).toBe(1);
+    // the 404 marks nothing as "you are here"; every other page marks itself or its section, in the tail's names and
+    // on the river line under the header (its mark stands under the current stop)
+    const current = await page.locator('.tail__names a[aria-current]').count();
+    const mark = await page.locator('.site-header .river').getAttribute('data-here');
+    if (r.page === 'not-found') {
+      expect(current).toBe(0);
+      expect(mark).toBe('');
+    } else {
+      expect(current).toBe(1);
+      expect(mark).toMatch(/^[0-4]$/);
+    }
+    // the tail signs the page once: one seal on the page, in the tail, and none in the header
+    expect(await page.locator('.seal').count()).toBe(1);
+    expect(await page.locator('.site-footer .seal').count()).toBe(1);
     expect(errors).toEqual([]);
   });
 }
@@ -93,8 +106,18 @@ test('moving between pages: the painting travels, focus lands on the new title, 
   await expect(page.locator('main')).toHaveAttribute('data-page', 'work');
   await expect(page.locator('#route-announcer')).toHaveText('Qijin (Jack) Xu · Work');
   expect(await page.evaluate(() => document.activeElement?.tagName)).toBe('H1');
-  await expect.poll(() => page.evaluate(() => (window as any).__ink?.stats().stretch)).toBe(1);
-  await page.locator(".story-map a[href='/resume/']").click();
+  // (where the painting is live it has travelled to Work's place; on a software rasteriser the live probe kept the page
+  // on its still, and there is no painting to ask)
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        (window as any).__ink
+          ? String((window as any).__ink.stats().stretch)
+          : document.documentElement.getAttribute('data-live'),
+      ),
+    )
+    .toMatch(/^(1|still)$/);
+  await page.locator(".tail__names a[href='/resume/']").click();
   await expect(page.locator('main')).toHaveAttribute('data-page', 'resume');
   await page.goBack();
   await expect(page.locator('main')).toHaveAttribute('data-page', 'work');

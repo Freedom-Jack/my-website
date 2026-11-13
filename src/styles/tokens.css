@@ -2,16 +2,17 @@
    tokens.css — the design system's single source of values.
    Every colour, size, space, duration and easing on the site comes from here.
    Shared file: page builders read these tokens, they never redefine them.
-   Load order (src/app/layout.tsx): tokens → base → layout → effects → components → jade → finish (the
-   Spring ink interface); each feature's own CSS Module comes after (layout only, with these tokens).
+   Load order (src/app/layout.tsx): tokens → base → layout → effects → components; each feature's own CSS Module
+   comes after (layout only, with these tokens).
 
    Reading first, then the art (DESIGN.md §6, SPEC-R4A §2): a calm reading column on cool paper, with a
    painted strip at the top of every page.
-   Colour in the interface: jade is its one accent, for the Home name, the page titles and the one brush button (and
-   for the marks: link brushes, ticks, rules, the focus ring). Cinnabar stays the seal's only. The landscape's
-   pigments (azurite, malachite, timber brown) are ENGINE-ONLY (features/landscape/engine/palette): they never become
-   tokens, text or UI colours. Text never sits on colour, save the one brush button's label (--glow-core on
-   --jade-deep).
+   Colour in the interface (the vanguard round, 05-synthesis.md): every word, title and rule is ink on cool paper;
+   jade is a mark, never a word: the river line's dot under the current page, the second line of a focus ring whose
+   first line is ink, the rule drawn under a row on hover, the diagram's flow dot, the selection tint. Cinnabar is
+   the seal's only, once per page, at the tail. The landscape's pigments (azurite, malachite, timber brown) are
+   ENGINE-ONLY (features/landscape/engine/palette): they never become tokens, text or UI colours. Text never sits on
+   colour.
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
@@ -21,7 +22,8 @@
    are pre-divided.
    -------------------------------------------------------------------------- */
 
-/* Sofia Sans Extra Condensed 900 (the name, figures) ← Impact (Windows, macOS), scaled to Sofia's cap height */
+/* Sofia Sans Extra Condensed 900 (the name, the titles, the figures) ← Impact (Windows, macOS), scaled to Sofia's cap
+   height */
 @font-face {
   font-family: 'Name Fallback';
   src: local('Impact');
@@ -41,52 +43,29 @@
   descent-override: 32.7%;
   line-gap-override: 0%;
 }
-/* Sofia Sans Condensed 600-800 (page titles) ← Arial Narrow / Helvetica Neue Condensed / Arial */
-@font-face {
-  font-family: 'Display Fallback';
-  src: local('Arial Narrow Bold'), local('ArialNarrow-Bold');
-  font-weight: 600 800;
-  size-adjust: 87.3%;
-  ascent-override: 103.1%;
-  descent-override: 34.4%;
-  line-gap-override: 0%;
-}
-@font-face {
-  font-family: 'Display Fallback 2';
-  src: local('Helvetica Neue Condensed Bold'), local('HelveticaNeue-CondensedBold');
-  font-weight: 600 800;
-  size-adjust: 86.4%;
-  ascent-override: 104.2%;
-  descent-override: 34.7%;
-  line-gap-override: 0%;
-}
-@font-face {
-  font-family: 'Display Fallback 3';
-  src: local('Arial Bold'), local('Arial-BoldMT');
-  font-weight: 600 800;
-  size-adjust: 71.6%;
-  ascent-override: 125.7%;
-  descent-override: 41.9%;
-  line-gap-override: 0%;
-}
-/* Commissioner (body, UI) ← Helvetica Neue / Arial */
+/* Familjen Grotesk 400-700 (reading, UI) ← Helvetica Neue / Arial, scaled to its advance widths. Measured in Chrome
+   against the built face at 100 px (the vanguard round's P1 log, build-3): a 150-character pangram is 6650 px wide
+   at 400 (Helvetica Neue 7109.5: size-adjust 93.5 %), 6871 at 560 and 6990 at 700 (the bold 7539.3: 92 %, within
+   1 % of both); the face's ascent is 102 px and its descent 23 (a 125 px line box), and Chrome scales the overrides
+   by size-adjust, so they are set at 102 / 93.5 and 23 / 93.5 (and / 92). Lines keep their count and height on the
+   swap. */
 @font-face {
   font-family: 'Body Fallback';
   src: local('Helvetica Neue'), local('HelveticaNeue'), local('Arial'), local('ArialMT');
-  size-adjust: 100%;
-  ascent-override: 102%;
-  descent-override: 21%;
+  font-weight: 400 500;
+  size-adjust: 93.5%;
+  ascent-override: 109.1%;
+  descent-override: 24.6%;
   line-gap-override: 0%;
 }
-
-/* --------------------------------------------------------------------------
-   Registered custom properties (animatable, typed)
-   -------------------------------------------------------------------------- */
-@property --ink-r {
-  /* radius of an ink bloom (buttons, rows) */
-  syntax: '<length>';
-  inherits: true;
-  initial-value: 0px;
+@font-face {
+  font-family: 'Body Fallback';
+  src: local('Helvetica Neue Bold'), local('HelveticaNeue-Bold'), local('Arial Bold'), local('Arial-BoldMT');
+  font-weight: 501 700;
+  size-adjust: 92%;
+  ascent-override: 110.9%;
+  descent-override: 25%;
+  line-gap-override: 0%;
 }
 
 :root {
@@ -100,74 +79,61 @@
 
   /* ---- The five inks (burnt, thick, heavy, light, clear). Every grey comes from here.
           Contrast on paper: 16.3 / 11.8 / 7.7 / 5.1 / 1.6 : 1 ---- */
-  --ink-1: #111416; /* burnt: the name, headings, body text */
-  --ink-2: #2a3034; /* thick: nav, the signature, figures */
-  --ink-3: #434c50; /* heavy: small print (7.7:1 on paper, 6.3:1 on mist-2) */
+  --ink-1: #111416; /* burnt: the name, titles, body text, the action */
+  --ink-2: #2a3034; /* thick: nav, the quieter lines */
+  --ink-3: #434c50; /* heavy: small print and the facts in mono (7.7:1 on paper, 6.3:1 on mist-2) */
   --ink-4: #5e676b; /* light: small print on plain paper only (5.1:1) */
-  --ink-5: #b9c2c4; /* clear: hairlines; never text */
+  --ink-5: #b9c2c4; /* clear: hairlines and a link's resting underline; never text */
 
   /* ---- UI pigments (the landscape's own pigments live in the engine, never here) ---- */
-  --wash: #1b5960; /* indigo turned toward jade: the row wash, annotation ink, diagram washes (7.0:1) */
-  --wash-deep: #0f3a3c; /* a fully loaded wash: the row wash's tide line */
-  /* Jade, the one UI accent (cinnabar stays the seal's): contrast on paper #EFF1EE */
-  --jade: #2f8f86; /* 3.4:1: marks only, never text */
-  --jade-ink: #1f6f68; /* 5.2:1: small text OK */
-  --jade-deep: #134a47; /* 8.8:1: page titles, the button, hover ink */
-  --jade-name: #0f3d36; /* 10.6:1: the Home name */
+  --wash: #1b5960; /* indigo turned toward jade: annotation ink, diagram washes, the selection tint (7.0:1) */
+  /* Jade, the one accent beside the seal, as marks only (never text): the river line's dot, the second line of a
+     focus ring, the row rule, the flow dot. Contrast on paper #EFF1EE: 3.4:1 / 8.8:1. */
+  --jade: #2f8f86;
+  --jade-deep: #134a47;
   --jade-hair: rgb(47 143 134 / 0.55);
-  --glow: #9eeaf2; /* light only, never text */
-  --glow-core: #e9fdfe; /* the button's label (9.5:1 on --jade-deep) */
-  --cinnabar: #b1362b; /* THE SEAL ONLY (the header's and the signature's). Nothing else is red. */
+  --glow: #9eeaf2; /* light only, never text: the selection's tint */
+  --cinnabar: #b1362b; /* THE SEAL ONLY (the tail's). Nothing else is red. */
 
   /* ---- Semantic aliases ---- */
   --text: var(--ink-1);
   --text-2: var(--ink-3);
   --text-3: var(--ink-4);
   --rule: #c3d3d2; /* hairlines between rows: a breath of jade */
-  --rule-rest: #5d8987; /* every link's resting mark (3.4:1 on paper) */
+  --rule-rest: #5d8987; /* the few resting marks that are not an underline (a fold's summary) (3.4:1 on paper) */
   --ink-annot: var(--wash); /* margin notes, diagram strokes, band labels (7.0:1 on paper) */
-  --focus: var(--jade-deep);
+  --focus: var(--ink-1); /* the focus ring's first line (its second line is jade: effects.css) */
 
-  /* ---- Families ---- */
+  /* ---- Families: two files (src/app/fonts.ts, 35 KB in all, the budget's two before the LCP). The name face is the
+          one display voice (the name, the page titles, the figures as poster numerals); the reading face is Familjen
+          Grotesk; facts (dates, labels, measures) take the system mono stack, 0 KB. ---- */
   --font-name:
     var(--font-name-face, 'Sofia Sans Extra Condensed'), 'Name Fallback', 'Name Fallback Apple', 'Arial Narrow',
     sans-serif;
-  --font-display:
-    var(--font-display-face, 'Sofia Sans Condensed'), 'Display Fallback', 'Display Fallback 2', 'Display Fallback 3',
-    'Arial Narrow', sans-serif;
-  --font-body: var(--font-body-face, 'Commissioner'), 'Body Fallback', ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-name);
+  --font-body: var(--font-body-face, 'Familjen Grotesk'), 'Body Fallback', ui-sans-serif, system-ui, sans-serif;
   --font-code:
     ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace; /* system faces only */
-  --flare-body: 18; /* Commissioner FLAR axis: a hint of brush in the terminals */
-  --flare-sign: 60; /* the About-me signature "— Jack" */
+  --flare-body: 0; /* (Commissioner's FLAR axis is gone; the rules that set it are no-ops on Familjen Grotesk) */
 
-  /* Commissioner: three weights only */
+  /* Familjen Grotesk (variable 400-700): three weights only */
   --w-body: 400; /* body, small print */
-  --w-ui: 560; /* labels, nav, table heads, buttons, "Next:" */
+  --w-ui: 560; /* labels, nav, the text action, table heads */
   --w-strong: 700; /* b, strong, h2, h3, the brand */
 
   /* ---- Motion: resonance, a fast attack and a long decay ---- */
   --ease-ink: cubic-bezier(0.2, 0.7, 0.1, 1);
   --ease-out: cubic-bezier(0.3, 0.6, 0.2, 1);
   --ease-in-out: cubic-bezier(0.6, 0, 0.3, 1);
-  --ease-bloom: cubic-bezier(0.32, 0.42, 0.22, 1); /* ink spreading: visible front, soft landing */
-  --ease-stamp: cubic-bezier(0.3, 1.4, 0.5, 1);
   --dur-press: 120ms;
   --dur-hover: 200ms;
-  --dur-brush: 520ms; /* underline draw (the brush-link effect scales it to the link's length) */
-  --dur-bloom: 640ms; /* ink bloom in buttons and rows */
-  --dur-settle: 400ms; /* the name's ink settle (the arrival effect): readable at first paint, crisp by 400 ms */
   --dur-draw: 520ms; /* one diagram stroke drawing in (the diagram draw-in) */
   --draw-step: 90ms; /* stagger between strokes, in flow order */
 
-  /* Route changes (features/navigation): the painting's pan with a pale mist sweep */
-  --dur-route-exit: 160ms; /* old text sinks into the mist */
-  --dur-route-enter: 260ms; /* new text condenses in */
-  --route-step: 50ms; /* the rest of the page follows its h1 by this much */
-  --route-shift: 16px; /* how far text drifts with the travel */
-  --route-blur: 3px; /* the h1 only */
+  /* Route changes (features/navigation): the painting's pan under a plain crossfade of the words (A10: one grammar) */
+  --dur-route-exit: 160ms; /* the old words fade */
+  --dur-route-enter: 260ms; /* the new words fade in */
   --dur-route-pan: 600ms;
-  --dur-route-sweep: 340ms; /* the mist dissolve (300-360 ms) */
   --dur-route-back-pan: 400ms; /* back/forward: content is instant, the painting follows */
   --dur-route-reduced: 150ms; /* reduced motion or "Still": a plain cross-fade */
   --dur-header: 220ms; /* the returning header's slide */
@@ -180,47 +146,53 @@
 }
 
 /* --------------------------------------------------------------------------
-   Round 4a: the type scale (SPEC-R4A §2.1).
-   Fluid between 390 and 640 px, constant above 640 (phone → tablet/wide values), except the name,
-   which scales continuously to 1440. At most four type sizes per screen (chrome excluded); figures
-   inside sentences are bold at text size, never enlarged.
+   The type scale (the vanguard round, 05-synthesis.md; SPEC-R4A §2.1 before it).
+   Fluid between 390 and 640 px, constant above 640 (phone → tablet/wide values), except the name and the titles,
+   which scale to 1440. Four type sizes on the first screen (the lead's ruling R1): the name, the poster numeral, one
+   reading size (--fs-first) and the small size (the title line, the mono facts). Figures inside sentences are bold at
+   text size, never enlarged.
    -------------------------------------------------------------------------- */
 :root {
-  --fs-small: 0.875rem; /* 14: meta, dates, captions, table heads, footer */
+  --fs-small: 0.875rem; /* 14: meta, dates, captions, table heads, the mono facts, the tail, the first screen's title line */
   --fs-body: clamp(1.0625rem, 0.965rem + 0.4vw, 1.125rem); /* 17 → 18 */
-  --fs-lead: clamp(1.125rem, 0.93rem + 0.8vw, 1.25rem); /* 18 → 20: hero lead, page intros, statements */
+  --fs-lead: clamp(1.125rem, 0.93rem + 0.8vw, 1.25rem); /* 18 → 20: page intros, statements */
+  --fs-first: clamp(1rem, 0.7rem + 1.2vw, 1.25rem); /* 16 → 20 (19 @ 640): the first screen's one reading size */
   --fs-item: clamp(1.125rem, 0.93rem + 0.8vw, 1.25rem); /* 18 → 20: h3, row titles */
-  --fs-h2: clamp(1.375rem, 0.985rem + 1.6vw, 1.625rem); /* 22 → 26: section headings, "Next: …", the email */
-  --fs-title: clamp(2rem, 1.22rem + 3.2vw, 2.5rem); /* 32 → 40: page titles (h1) */
-  --fs-name: clamp(2.75rem, 2.1875rem + 2.6vw, 4.5rem); /* 44 @ ≤ 346 · 45 @ 390 · 68 @ 1280 · 72 @ ≥ 1423 */
+  --fs-h2: clamp(1.375rem, 0.985rem + 1.6vw, 1.625rem); /* 22 → 26: section headings, the email */
+  --fs-title: clamp(3.5rem, 1.6rem + 7.8vw, 6rem); /* 56 → 96: page titles (h1), the name face */
+  --fs-title-long: clamp(2.5rem, 1.2rem + 5.4vw, 4.5rem); /* 40 → 72: a case's or a note's long title */
+  --fs-name: clamp(
+    5.75rem,
+    0.75rem + 23.5vw,
+    7.25rem
+  ); /* 104 @ 390 · 100 @ 375 · 97 @ 360 · 92 @ 320: the name, one line; 220 @ 1440 (below) */
   --fs-figure: clamp(
-    1.375rem,
-    1.0825rem + 1.2vw,
-    1.625rem
-  ); /* 22 → 26 (= --fs-h2, so a figure adds no type size to its
-                                                            screen; the condensed 900 face still marks it): a case's
-                                                            summary figure, timeline years */
+    2.5rem,
+    1.5rem + 4vw,
+    3.5rem
+  ); /* 40 → 56: the poster numeral (the first screen, a case, a ledger row) */
   --fs-nav: 0.9375rem; /* 15; 16 from 640; 14 at ≤ 416 */
   --fs-brand: 1.0625rem; /* 17: "Qijin Xu" in the header; 16 at ≤ 416 */
 
   --lh-body: 1.6;
   --lh-lead: 1.55;
+  --lh-first: 1.45;
   --lh-item: 1.3;
   --lh-h2: 1.25;
-  --lh-title: 1.1;
-  --lh-name: 1.02;
+  --lh-title: 0.92;
+  --lh-name: 0.84;
   --lh-small: 1.45;
 
   --measure-read: 42.5rem; /* 680: the reading column (about 60–72 characters of body) */
   --measure-wide: 60rem; /* 960: tables, diagrams, the About-me block */
-  --strip-text-max: 36.25rem; /* 580: the title block inside a wide strip */
+  --strip-text-max: 41rem; /* 656: the title block inside a wide strip (the first screen's words, the name at 220 px is 649 wide; an inner title) */
   --frame: 75rem; /* 1200: the page frame, centred */
   --rail-gap: 3rem; /* 48: reading column → margin rail */
   --rail-w: 18.75rem; /* 300: the margin rail (wide only) */
 }
 
 /* --------------------------------------------------------------------------
-   Round 4a: space, the frame and the chrome (SPEC-R4A §2.2–§2.4, §6.2).
+   Space, the frame and the chrome (SPEC-R4A §2.2–§2.4, §6.2).
    Breakpoints: phone < 40rem (640) · tablet 40–74.99rem · wide ≥ 75rem (1200) ·
    short: max-height 31.25rem (500) and below 75rem wide · tight header ≤ 23.4375rem (375) ·
    narrow gutter ≤ 22.5rem (360) · header wrap ≤ 22.25rem (356).
@@ -239,20 +211,23 @@
 
   --gutter: 1.25rem; /* 20 phone; 16 at ≤ 360; 32 from 640; 40 from 1200 */
   --header-h: 3.5rem; /* 56 phone; 64 from 640; 48 on short screens */
-  --seal-size: 28px; /* the header seal; 24 at ≤ 416 */
-  --brand-gap: 10px; /* seal → "Qijin Xu"; 8 at ≤ 416 */
   --header-gap: var(--space-s); /* home link → nav; 8 at ≤ 416 (one row down to 360) */
   --nav-gap: 14px; /* between the nav links; 28 from 640; 10 at ≤ 416; 8 at ≤ 360 */
+  --river-h: 10px; /* the river line under the header's row (its hairline, ticks and dot) */
 
-  /* the painted strips and the closing scene (art boxes; the engine paints inside them) */
-  --strip-home: clamp(190px, 28svh, 240px); /* 236 @ 390 × 844 (at half that, the young look shrinks to a thumbnail) */
-  --strip-sub: clamp(110px, 20svh, 170px); /* 169 @ 844 */
-  --strip-doc: clamp(88px, 12svh, 110px);
+  /* the painted strips and the closing scene (art boxes; the engine paints inside them). One fixed height per width
+     class (the vanguard round's P1, kept by the lead's ruling R1): the hero's still (components/page/Strip, cut by
+     build:heroes at 390 × 844, 1000 × 1200 and 1440 × 900) is then exact on every screen of the class, not cropped
+     about its horizon when the viewport is taller or shorter than the one it was cut at. The values are exactly the
+     ones a 390 × 844 phone resolved to (28svh of 844 is 236.32, not 236: the engine frames by the box's height, and a
+     rounded value re-scales every pixel of the approved painting by a hair). A title block taller than its band runs
+     onto the paper under it (layout.css: the strip's two rows), never stretching the band. */
+  --strip-home: 236.32px; /* (at half that, the young look shrinks to a thumbnail) */
+  --strip-sub: 168.8px;
+  --strip-doc: 101.28px;
   --closing-h: 160px;
   --glimpse-h: 180px; /* a window into the painting at a section break: 40 px of paper and mist next to the words above and below, the painting ~100 px between */
   --glimpse-h-end: 250px; /* ...and a short page's closing, where the windows end on the place, near and large (Writing, Contact) */
-  --story-map-art: 3.25rem; /* the footer's map of the painting (its scene stills): 52; from 640 .37 of a map column
-                                 (56-74), so each scene's window lies inside its still (layout.css) */
 
   /* Fluid small spaces for paddings and gaps inside components (unchanged from round 3) */
   --space-3xs: clamp(0.25rem, 0.23rem + 0.1vw, 0.3125rem);
@@ -271,8 +246,6 @@
     --fs-nav: 0.875rem;
     --fs-brand: 1rem;
     --nav-gap: 10px;
-    --seal-size: 24px;
-    --brand-gap: 8px;
     --header-gap: var(--space-2xs);
   }
 }
@@ -287,6 +260,7 @@
   /* tablet and up */
   :root {
     --fs-nav: 1rem;
+    --fs-name: clamp(9rem, 2.5rem + 12.5vw, 13.75rem); /* 160 @ 1000 · 190 @ 1200 · 200 @ 1280 · 220 @ ≥ 1440 */
     --nav-gap: 28px;
     --space-head: 0.875rem;
     --gutter: 2rem;
@@ -297,7 +271,6 @@
     --closing-h: 200px;
     --glimpse-h: 232px;
     --glimpse-h-end: 290px;
-    --story-map-art: clamp(3.5rem, (100vw - 4rem) * 0.0617, 4.625rem); /* .37 x (frame / 6): 56 @ 640-970, 59 @ 1024 */
   }
 }
 @media (min-width: 75rem) {
@@ -305,11 +278,10 @@
   :root {
     --space-section: 3.625rem;
     --gutter: 2.5rem;
-    --strip-home: clamp(440px, 58svh, 540px); /* 522 @ 900 */
-    --strip-sub: clamp(300px, 40svh, 360px); /* 360 @ 900 */
+    --strip-home: 522px; /* (was 58svh clamped 440-540: 522 at 900 tall; fixed so the still is exact) */
+    --strip-sub: 360px; /* (was 40svh clamped 300-360) */
     --strip-doc: 180px; /* the low end of SPEC-R4A's 180–220: documents open on their text */
     --closing-h: 240px;
-    --story-map-art: clamp(3.5rem, (100vw - 5rem) * 0.0617, 4.625rem); /* 69 @ 1200, 74 from 1280 */
   }
 }
 @media (max-height: 31.25rem) and (max-width: 74.99rem) {

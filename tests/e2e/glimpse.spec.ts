@@ -209,8 +209,11 @@ async function measure(page: Page, box: { top: number; h: number; left: number; 
     [png.toString('base64'), [top, box.h, box.left, box.w], lines, dpr] as const,
   );
 }
+// (Still on: the engine's own quiet mode is under test, not the live probe's refusal to fetch it, which probe.spec.ts
+// asserts: a QA build mounts the engine anyway on window.__inkLive)
 const still = (page: Page) =>
   page.addInitScript(() => {
+    (window as unknown as { __inkLive?: boolean }).__inkLive = true;
     try {
       localStorage.setItem('ink:still', '1');
       sessionStorage.setItem('ink:morning', '1');
@@ -335,6 +338,10 @@ test.describe('glimpses: phones', () => {
   test('reduced motion: a window is its rest pose wherever it stands', async ({ page }) => {
     test.skip(await isSoftware(page), 'a software rasteriser shows the stills');
     await page.emulateMedia({ reducedMotion: 'reduce' });
+    // (the engine's quiet mode is under test; on a load the probe would keep the page on its still: probe.spec.ts)
+    await page.addInitScript(() => {
+      (window as unknown as { __inkLive?: boolean }).__inkLive = true;
+    });
     await page.goto('/');
     await settle(page);
     await paintAll(page, 844);
@@ -354,15 +361,36 @@ test.describe('glimpses: phones', () => {
     // would differ by far more)
     expect(d).toBeLessThan(0.002);
   });
-  test('fallback: each window shows its own still until it is painted', async ({ page }) => {
+  test('fallback: each window shows its own still until it is painted, fetched only near the viewport (R5)', async ({
+    page,
+  }) => {
     await page.goto('/');
-    const bg = await page.evaluate(() =>
-      [...document.querySelectorAll('[data-landscape="glimpse"]')].map(
-        (e) => getComputedStyle(e, '::before').backgroundImage,
-      ),
+    // (the img carries its source as data until the window comes within half a viewport: never in the first load)
+    const stills = await page.evaluate(() =>
+      [...document.querySelectorAll('[data-landscape="glimpse"]')].map((e) => {
+        const img = e.querySelector('img');
+        return img
+          ? { src: img.getAttribute('src'), data: img.dataset.src, priority: img.getAttribute('fetchpriority') }
+          : null;
+      }),
     );
-    expect(bg[0]).toContain('/scenes/glimpse/home-0');
-    expect(bg[1]).toContain('/scenes/glimpse/home-1');
+    expect(stills[0]?.data).toContain('/scenes/glimpse/home-0');
+    expect(stills[1]?.data).toContain('/scenes/glimpse/home-1');
+    for (const s of stills) {
+      expect(s?.src).toBeNull();
+      expect(s?.priority).toBe('low');
+    }
+    // the first window's still arrives as the reader nears it; the second's stays unfetched meanwhile
+    const bx = (await boxes(page)).filter((b) => b.h > 0);
+    await jumpTo(page, Math.max(0, Math.round(bx[0]!.top - 844 * 1.2)));
+    await expect
+      .poll(() => page.evaluate(() => document.querySelector('[data-landscape="glimpse"] img')?.getAttribute('src')), {
+        timeout: 8000,
+      })
+      .toContain('/scenes/glimpse/home-0');
+    expect(
+      await page.evaluate(() => document.querySelectorAll('[data-landscape="glimpse"] img')[1]?.getAttribute('src')),
+    ).toBeNull();
   });
 });
 

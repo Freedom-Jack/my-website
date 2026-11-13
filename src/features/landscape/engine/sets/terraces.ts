@@ -24,6 +24,7 @@ import {
   runs, ellipse, anchor, ownSprite, D, type Env, type FigureMeta, type Pt, type Rng, type RGB,
 } from '../figures';
 import { swallowInk } from './young';
+import { el } from '../../elements';
 import type { Resolved } from '../compose';
 
 /** The set's stretch: every world x below is K + its offset (move the place by changing K). */
@@ -316,7 +317,9 @@ export function* draw(env: Env) {
   // ---- Résumé's one painted moment: terraces in the morning light. A swallow sweeps low over the fields toward the
   // light (the painted bird, its own sprite, gliding), the flooded treads hold the sky with a lit line along each lip,
   // and one tree on the left crown is in blossom.
-  if (!env.still) {
+  // (elements.ts swallows: the Résumé's swallow, off since the vanguard round's A3: the terraces keep the blossom tree
+  // and the farmhouse smoke)
+  if (!env.still && el('swallows')) {
     const sx = X(K + 0.6), sy = Y(0.445), path: Pt[] = [], sb = 40 * Math.pow(big, 0.5);
     for (let k = 0; k <= 30; k++) { const u = k / 30; path.push([sx - 120 + 260 * u, sy + 18 - 40 * u + 10 * Math.sin(u * 3.4)]); }
     // (a window into the painting, inlay, leaves the strip's swallow out: painted still into every window of the page it

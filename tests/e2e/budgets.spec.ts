@@ -3,45 +3,67 @@ import path from 'node:path';
 import { expect, test } from '@playwright/test';
 import { fontsReady, isSoftware, ROUTES, settle, VIEWPORTS } from './support/pages';
 
-// (the §6 budgets are DOM metrics; on a software rasteriser the painting runs still so the page's main thread
+// (the budgets are DOM metrics; on a software rasteriser the painting runs still so the page's main thread
 // answers at once, not minutes in)
 test.beforeEach(async ({ page }) => {
   if (await isSoftware(page)) await page.emulateMedia({ reducedMotion: 'reduce' });
 });
 
 /**
- * The DESIGN §6 budgets (SPEC-R4A §15.2), per page at 1440 / 1280 / 390, measured by the demo's own probe
- * (support/measure.js) and judged as design-demo/tools/qa/budget.py judged demo 4b, with its accepted exceptions:
- *   - 5 type sizes on the Résumé, Contact and Writing (SPEC §15.4);
- *   - short pages (Contact, Writing, the Note, the 404, a case) over .10 display ÷ readable on wide screens;
- *   - a page whose whole content fits screen one reports a low word count;
- *   - the Résumé and the Note up to 5 words short at 1440 / 1280 (SPEC §15.4.2);
- *   - Home at 390 up to 2 words short: demo 4b's 56 counted its "Draft art" label (2 words), which the build drops;
- *   - the 404 at 390 over .10 (.69: one short line under its title; the demo's known miss, RECORD §7.4);
- *   - Home's big name and what Spring ink's type costs (Jack, 2026-10-19: "keep Home's big name and relax the
- *     budget"): the name at --fs-name × 1.55 (× 1.42 up to 40 rem), about 112 / 106 / 64 px; Home's display ÷
- *     readable up to .40; 5 type sizes on Home, and on Work at 1280 × 720 (its section title, sub-heading, table
- *     head, text and caption share one short screen); Home at 1280 up to 2 words short.
- * OPEN (questions for Jack, reported but not failed):
- *   - a case page at 390 is over .10 (.28), because the case's long title is the page's h1 at title size (32 px, two
- *     or three lines). Options: accept, or set case titles at the section-heading size on phones;
- *   - the Résumé's first screen is short of words (115 / 150 at 1440, 89 / 120 at 1280, with the career-kit summary
- *     of 2026-10-22) since round 5 gave it the shared hero and the polish round dropped the letterhead's explanatory
- *     note (22 words of busywork) and its own address.
- *     Options: accept (coherence first), or tighten its letterhead's spacing;
- *   - Writing at 390 is over .10 (.12): one note under a one-sentence intro (the intro's second sentence was not Jack's
- *     words and went in the polish round). It settles as notes are added.
- * Work is now a concise index (DESIGN §11.E answer 2): its length budget (≤ 5 / 6 / 8 screens) must hold.
+ * The budgets of the vanguard round's surface (the lead's ruling R1 of 2026-11-12, on the DESIGN §6 budgets that
+ * came before), per page at 1440 × 900 / 1280 × 720 / 390 × 844, measured by the demo's own probe
+ * (support/measure.js):
+ *   - the first screen (Home): the name, the verb line, the title line, the proof with its measure and the action are
+ *     all inside the first viewport at 1440, 1280 and 390; at 375 × 667 (below) the name, the verb line and the proof
+ *     are, and the action may be the first thing below the fold;
+ *   - at most four type sizes on Home's first screen; at most four on any screen of any page, with the accepted
+ *     exceptions named below (five where a page's own objects meet on one screen);
+ *   - the name at ~220 / ~200 / ~120 px on one line; the titles at 96 / 96 / 56 (a case's and a note's long title at
+ *     72 / 72 / 40);
+ *   - no text animating on scroll; nothing scrolls sideways; standalone tap targets ≥ 44 × 44; the header in one row
+ *     from 360 (header.spec covers 375 and 360); Work a concise index (its length in screens, until P4 and P5 add the
+ *     search and the hood and re-set it).
+ * RETIRED by R1 (they described the old composition): "≥ 120 / 100 / 55 first-screen words" (the first screen is now
+ * judged by what is inside it, above), "display ÷ readable ≤ 0.1 (0.4 on Home)" (a poster name and a poster numeral
+ * are the design) and "the photo starts on the first screen" (no photo on the first screen is the rule now: the
+ * portrait sits with About, lazy).
+ * Accepted exceptions (five type sizes on one screen): Home (the About block's heading beside a ledger row's numeral,
+ * title, line and lead), the Résumé (its letterhead), Contact (its address), Writing (its rows under the intro, and
+ * the ending's poster link on its one screen), and Work (its section title, sub-heading, table head, text and caption
+ * on one short screen at 1280 × 720; the ending's poster link beside "In the open" on its last screen; P4 and P5
+ * re-set Work's screens).
+ * OPEN (reported, not failed): a case page's long title at 390 is two or three lines at 40 px (a question for Jack).
  */
 const MEASURE = readFileSync(path.join(import.meta.dirname, 'support/measure.js'), 'utf8');
-const WORDS = { home: { '1440': 120, '1280': 100, '390': 55 }, sub: { '1440': 150, '1280': 120, '390': 90 } } as const;
-const NAME = { '1440': 112, '1280': 106, '390': 64 } as const;
-const TITLE = { '1440': 40, '1280': 40, '390': 32 } as const;
+const NAME = { '1440': 220, '1280': 200, '390': 104 } as const;
+const TITLE = { '1440': 96, '1280': 96, '390': 56 } as const;
+const TITLE_LONG = { '1440': 72, '1280': 72, '390': 40 } as const;
 const WORK_LEN = { '1440': 5, '1280': 6, '390': 8 } as const;
-const FIVE_OK = new Set(['resume', 'contact', 'writing', 'home']);
-const SHORT = new Set(['contact', 'writing', 'note', '404', 'case']);
+const FIVE_OK = new Set(['resume', 'contact', 'writing', 'home', 'work']);
+const LONG = new Set(['case', 'note']);
+/** The first screen's parts, in order (Home): their boxes must end inside the first viewport. */
+const FIRST = ['.name', '.first__verb', '.first__title', '.first__proof', '.first__action'] as const;
 
 type M = Record<string, any>;
+
+/** The bottom edge (CSS px from the document's top) of each of the first screen's parts, and the name's lines. */
+async function firstScreen(page: import('@playwright/test').Page) {
+  return page.evaluate(
+    (sel) => {
+      const out: Record<string, number | null> = {};
+      for (const s of sel) {
+        const el = document.querySelector(s);
+        out[s] = el ? el.getBoundingClientRect().bottom + scrollY : null;
+      }
+      const name = document.querySelector('.name');
+      const lines = name ? name.getClientRects().length : 0;
+      const nameRect = name?.getBoundingClientRect();
+      return { bottoms: out, vh: innerHeight, nameLines: lines, nameH: nameRect?.height ?? 0 };
+    },
+    sel as unknown as string[],
+  );
+}
+const sel = FIRST;
 
 for (const [vp, v] of Object.entries(VIEWPORTS) as Array<
   [keyof typeof VIEWPORTS, (typeof VIEWPORTS)[keyof typeof VIEWPORTS]]
@@ -56,55 +78,37 @@ for (const [vp, v] of Object.entries(VIEWPORTS) as Array<
     for (const r of ROUTES) {
       test(r.id, async ({ page }) => {
         await page.goto(r.path);
-        // (the §6 budgets are DOM metrics: they wait for the fonts they measure, not for the painting, which a
+        // (the budgets are DOM metrics: they wait for the fonts they measure, not for the painting, which a
         // software rasteriser may take minutes to settle)
         await fontsReady(page);
         const m = (await page.evaluate(`(${MEASURE})({ taps: true })`)) as M;
-        const wide = v.width >= 1200;
         const fail: string[] = [];
-        // words on the first screen
-        const tgt = WORDS[r.id === 'home' ? 'home' : 'sub'][vp];
-        const w4 = m.s0.words4a as number;
-        const homeLabel = r.id === 'home' && vp === '390' && tgt - w4 <= 2;
-        const homeName = r.id === 'home' && vp === '1280' && tgt - w4 <= 2;
-        if (
-          w4 < tgt &&
-          !m.fitsFirstScreen &&
-          !homeLabel &&
-          !homeName &&
-          !((r.id === 'resume' || r.id === 'note') && wide && tgt - w4 <= 5) &&
-          !SHORT.has(r.id)
-        ) {
-          // round 5: the Résumé took the shared hero (360 px, not its 180 px band), and the polish round dropped its
-          // letterhead's note, so its first screen holds fewer words; reported for Jack (a question, not a failure)
-          // while within 50 words of the budget
-          if (r.id === 'resume' && tgt - w4 <= 50)
-            test.info().annotations.push({
-              type: 'open',
-              description: `résumé at ${vp}: first-screen words ${w4} < ${tgt} (the shared hero; a question for Jack)`,
-            });
-          else fail.push(`first-screen words ${w4} < ${tgt}`);
+        // the first screen's formula (Home): every part inside the first viewport
+        if (r.id === 'home') {
+          const f = await firstScreen(page);
+          for (const s of FIRST) {
+            const b = f.bottoms[s];
+            if (b === null) fail.push(`${s} is missing from the first screen`);
+            else if (b > f.vh + 0.5) fail.push(`${s} ends at ${Math.round(b)} px, below the first viewport (${f.vh})`);
+          }
+          if (f.nameLines !== 1 || f.nameH > m.nameFs * 1.1) fail.push(`the name is not on one line (${f.nameLines})`);
+          if (Math.abs(m.nameFs - NAME[vp]) > 3) fail.push(`name ${m.nameFs}px, target ~${NAME[vp]}`);
+          if (m.photo?.onFirstScreen) fail.push(`the photo is on the first screen (top ${m.photo?.top})`);
+        } else {
+          const want = LONG.has(r.id) ? TITLE_LONG[vp] : TITLE[vp];
+          if (Math.abs(m.h1Fs - want) > 0.5) fail.push(`title ${m.h1Fs}px, target ${want}`);
         }
-        // display ÷ readable
-        const lim = r.id === 'home' ? 0.4 : 0.1;
-        const worst = Math.round(Math.max(m.s0.ratio || 0, m.pageRatio || 0) * 100) / 100;
-        if (worst > lim && !(SHORT.has(r.id) && wide) && !(r.id === '404' && vp === '390')) {
-          if ((r.id === 'case' || r.id === 'writing') && vp === '390')
-            test.info().annotations.push({
-              type: 'open',
-              description: `${r.id} at 390: display/read ${worst} > ${lim} (a question for Jack)`,
-            });
-          else fail.push(`display/read ${worst} > ${lim}`);
-        }
-        // type sizes per screen
-        const fiveOk = FIVE_OK.has(r.id) || (r.id === 'work' && vp === '1280');
+        // type sizes: four on Home's first screen, four on any screen (five where accepted)
+        if (r.id === 'home' && m.s0.sizes.length > 4)
+          fail.push(`${m.s0.sizes.length} type sizes on the first screen: ${m.s0.sizes}`);
+        const fiveOk = FIVE_OK.has(r.id);
         if (m.maxSizesPerScreen > 4 && !(m.maxSizesPerScreen === 5 && fiveOk))
           fail.push(`${m.maxSizesPerScreen} type sizes on one screen`);
-        // the largest text
-        if (r.id === 'home') {
-          if (Math.abs(m.nameFs - NAME[vp]) > 2) fail.push(`name ${m.nameFs}px, target ~${NAME[vp]}`);
-          if (!m.photo?.onFirstScreen) fail.push(`the photo does not start on the first screen (top ${m.photo?.top})`);
-        } else if (m.h1Fs > TITLE[vp] + 0.5) fail.push(`title ${m.h1Fs}px > ${TITLE[vp]}`);
+        // a case's long title on a phone: reported for Jack
+        if (LONG.has(r.id) && vp === '390' && (m.h1?.lines ?? 0) > 2)
+          test
+            .info()
+            .annotations.push({ type: 'open', description: `${r.id} at 390: the title runs ${m.h1.lines} lines` });
         // no text animating on scroll
         if (m.reveal !== 0 || !m.arriveOk) fail.push(`data-reveal ${m.reveal}, data-arrive ${m.arrive}`);
         // nothing scrolls sideways; standalone tap targets ≥ 44 × 44
@@ -127,6 +131,67 @@ for (const [vp, v] of Object.entries(VIEWPORTS) as Array<
     }
   });
 }
+
+/**
+ * The first screen on the small phones (the lead's ruling R1): at 375 × 667 (the iPhone SE, mini and 8) the name, the
+ * verb line and the proof are inside the first viewport and the action may be the first thing below the fold; at
+ * 360 × 800 the name is still one line and everything is inside. At both widths every standalone target on the page
+ * is 44 × 44 (the attack's A12: the size sweep at 360; the sweep at 390 runs in the budgets above).
+ */
+for (const [width, height, inside] of [
+  [375, 667, ['.name', '.first__verb', '.first__proof']],
+  [360, 800, [...FIRST]],
+] as const) {
+  test(`Home's first screen at ${width} × ${height}`, async ({ browser }) => {
+    const ctx = await browser.newContext({
+      viewport: { width, height },
+      deviceScaleFactor: 3,
+      isMobile: true,
+      hasTouch: true,
+    });
+    const page = await ctx.newPage();
+    if (await isSoftware(page)) await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/');
+    await fontsReady(page);
+    const f = await firstScreen(page);
+    const fail: string[] = [];
+    for (const s of inside) {
+      const b = f.bottoms[s];
+      if (b === null) fail.push(`${s} is missing`);
+      else if (b > f.vh + 0.5) fail.push(`${s} ends at ${Math.round(b)} px, below the first viewport (${f.vh})`);
+    }
+    if (f.nameLines !== 1) fail.push(`the name is not on one line (${f.nameLines})`);
+    const m = (await page.evaluate(`(${MEASURE})({ taps: true })`)) as M;
+    if (m.overflow.sideways || m.overflow.offenderCount)
+      fail.push(`sideways: ${JSON.stringify(m.overflow.offenders?.slice(0, 3))}`);
+    if (m.s0.sizes.length > 4) fail.push(`${m.s0.sizes.length} type sizes on the first screen: ${m.s0.sizes}`);
+    const small = m.taps?.small ?? [];
+    if (small.length)
+      fail.push(
+        `tap targets < 44: ${small
+          .slice(0, 4)
+          .map((t: M) => `${t.el} '${t.name}' ${t.hitW}×${t.hitH}`)
+          .join('; ')}`,
+      );
+    expect(fail, `Home at ${width} × ${height}`).toEqual([]);
+    await ctx.close();
+  });
+}
+
+/**
+ * Home's words (P5): under 400 in <main>, the ending included, counted as a reader meets them (its rendered text: a
+ * print-only line is not counted, the ledger's numerals are). content/pages/home.ts `held` keeps what was taken off.
+ */
+test("Home's words: under 400", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  const words = await page.evaluate(
+    () =>
+      (document.querySelector('main') as HTMLElement).innerText.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w))
+        .length,
+  );
+  expect(words, `Home has ${words} words`).toBeLessThan(400);
+});
 
 /**
  * Colour stays out from behind text: no blue blocks or stripes on the inner pages. On the inner pages at 1440 the

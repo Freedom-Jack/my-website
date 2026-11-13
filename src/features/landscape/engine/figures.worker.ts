@@ -96,6 +96,8 @@ function buildSprites(canvas: OffscreenCanvas, ctx: OffscreenCanvasRenderingCont
 self.onmessage = (e) => {
   const p = e.data || ({} as FigureRequest);
   try {
+    // (QA builds: the engine's element overrides, which the sets read through elements.ts; this worker has no window)
+    if (p.qa) Object.assign(globalThis as object, { __elOff: p.qa.off, __elOn: p.qa.on });
     const t0 = performance.now();
     const { width, height } = layerSize(p.stretch, p.scale, p.dpr);
     if (!width || !height) throw new Error('no figure layer for this stretch');

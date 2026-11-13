@@ -3,25 +3,15 @@
    Screen
      hero        the terraced fields with the name (the page title) and the title, as every subpage's hero.
      letterhead  the contact line, the PDF button and JSON, the note (and, for print only, the name and title).
-     document    a hanging indent: the section headings and the timeline's years stand in the margin, and every
-                 line of text shares one edge (from 640). On phones the text uses the full width.
-     timeline    each role's start year in the margin, on the role's baseline (phones: above the role); one
-                 dry-brush stroke runs from each year down to the next (drawn still: nothing here moves).
+     document    one dense column (the vanguard round, P5): headings, roles and points share one edge, at the
+                 reading measure.
+     timeline    each role one line, "years · title · organisation", its points under it (nothing here moves).
    Print: this page IS the source of the résumé PDF (tools/build-pdf.ts). Ink only, no landscape or chrome, two
    pages on Letter or A4 (the end of the file). Every print rule is scoped to this page (.page on its <main>): the
    App Router keeps a visited page's CSS loaded. */
 
 .cv {
-  --cv-rail: 0px; /* phones: the year stands above its role (no rail) */
-  --cv-gap: 1.5rem; /* 24: the stroke's lane, then the text */
-  --cv-indent: 0px; /* phones: the text on the frame's edge */
-  --cv-entry-gap: var(--space-l); /* between two roles */
-}
-@media (min-width: 40rem) {
-  .cv {
-    --cv-rail: 6rem; /* 96: the years' margin */
-    --cv-indent: calc(var(--cv-rail) + var(--cv-gap));
-  }
+  --cv-entry-gap: var(--space-m); /* between two roles: dense */
 }
 
 /* ---------- the letterhead ---------- */
@@ -73,14 +63,17 @@
   display: none;
 } /* the site's own address: the PDF's letterhead only (print, below) */
 .cv-head__contact :global(a) {
-  --brush-y: calc(50% + 0.78em);
   display: inline-flex;
   align-items: center;
   min-block-size: 44px;
-  padding-bottom: 0;
   color: var(--ink-2);
 }
 
+/* "Updated", from the content's own date: quiet, under the three actions */
+.cv-head__updated {
+  margin-block-start: 0.25rem;
+  color: var(--ink-3);
+}
 .cv-head__actions {
   margin-block-start: 0.5rem;
   column-gap: 0.75rem; /* phones: still one row at 360 */
@@ -90,108 +83,33 @@
     column-gap: 1.75rem;
   }
 }
-.cv-head__actions :global(.brush) {
-  /* "JSON Resume": a 44 px target, its mark just under the word */
-  --brush-y: calc(50% + 0.78em);
+.cv-head__actions :global(a:not(.action)) {
+  /* "JSON Resume": a 44 px target */
   display: inline-flex;
   align-items: center;
   min-block-size: 44px;
-  padding-bottom: 0;
 }
 
-/* ---------- the document: a hanging indent from 640 ---------- */
-@media (min-width: 40rem) {
-  .cv-sec > :not(:global(.sec__title), .timeline) {
-    margin-inline-start: var(--cv-indent);
-  }
-}
-.cv-sec > .timeline {
-  max-width: none;
-} /* the rail and the text: from 640 the text keeps the reading measure */
-@media (min-width: 40rem) {
-  .cv-sec > .timeline {
-    max-width: calc(var(--cv-indent) + var(--measure-read));
-  }
-}
-
-/* ---------- experience: the timeline ---------- */
+/* ---------- experience: one line per role ---------- */
 .timeline {
   display: grid;
   row-gap: var(--cv-entry-gap);
+  max-width: var(--measure-read);
 }
-/* Phones: the year above its role, at the frame's edge; the stroke runs down the edge below it and the
-   role's text sits one lane in, at the full width less 24 px. From 640: the year in the 96 px margin on its
-   role's baseline, the text at the indent. */
-.timeline__entry {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  row-gap: 0.375rem;
-  padding-inline-start: var(--cv-gap);
-}
-.timeline__year {
-  margin-inline-start: calc(var(--cv-gap) * -1);
+.timeline__years {
   font-variant-numeric: lining-nums tabular-nums;
 }
-@media (min-width: 40rem) {
-  .timeline__entry {
-    grid-template-columns: var(--cv-rail) minmax(0, 1fr);
-    column-gap: var(--cv-gap);
-    padding-inline-start: 0;
-    align-items: baseline; /* the year shares its baseline with the role */
-  }
-  .timeline__year {
-    grid-column: 1;
-    grid-row: 1;
-    margin-inline-start: 0;
-  }
-  .timeline__body {
-    grid-column: 2;
-    grid-row: 1;
-  }
+.timeline__org {
+  font-weight: var(--w-body);
 }
-
-/* The brush stroke: from just under a year to just above the next. One tapering body, loaded at its year
-   and thinning as it runs (a filled shape: its viewBox is stretched to the entry's height, so only its
-   length scales and its width stays true), with a dry bristle that breaks up as the ink runs out.
-   Annotation ink at half strength; drawn still. The svg is set in the year's own face and size, so em is
-   the year's size and 1ch one tabular figure. Phones: down the frame's edge; from 640: under the middle of
-   the year's four figures. */
-.timeline__stroke {
-  position: absolute;
-  font: 900 var(--fs-figure) / 1 var(--font-name);
-  inset-inline-start: 0;
-  inset-block-start: 1.25em;
-  inline-size: 12px;
-  block-size: calc(100% - 1.25em + var(--cv-entry-gap) - 0.5em);
-  overflow: visible;
-  color: var(--ink-annot);
-  opacity: 0.5;
-  pointer-events: none;
-  -webkit-mask-image: linear-gradient(to bottom, #000 10%, rgb(0 0 0 / 0.35));
-  mask-image: linear-gradient(to bottom, #000 10%, rgb(0 0 0 / 0.35));
-}
-@media (min-width: 40rem) {
-  .timeline__stroke {
-    inset-inline-start: calc(2ch - 6px);
-  }
-}
-.timeline__ink {
-  fill: currentColor;
-}
-.timeline__dry {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 0.55;
-  stroke-linecap: round;
-  stroke-dasharray: 22 3 12 5 7 6 4 8 2 31;
-}
-
 .timeline__role {
   margin: 0;
 }
-.timeline__meta {
-  margin-block-start: 0.25rem;
+/* on screen the one line fills its measure before it wraps (balance breaks it early); print keeps the PDF as cut */
+@media screen {
+  .timeline__role {
+    text-wrap: pretty;
+  }
 }
 .timeline__points {
   display: grid;
@@ -275,7 +193,8 @@
   .page :global(.strip),
   .page :global(.closing),
   .page :global(.print-name),
-  .cv-head__actions {
+  .cv-head__actions,
+  .cv-head__updated {
     display: none !important;
   }
   .page *,
@@ -295,9 +214,6 @@
   }
 
   .cv {
-    --cv-rail: 17mm;
-    --cv-gap: 5mm;
-    --cv-indent: calc(var(--cv-rail) + var(--cv-gap));
     --cv-entry-gap: 3mm;
   }
 
@@ -386,57 +302,25 @@
     color: #000;
     break-after: avoid;
   }
-  .cv-sec > :not(:global(.sec__title), .timeline) {
-    margin-inline-start: var(--cv-indent);
-  }
   .cv-sec > .timeline {
     max-width: none;
   }
 
   /* Experience prints as plain block flow, so a role never splits across pages (Chrome does not honour
-     break-inside: avoid inside a fragmented grid row); each role is a small grid of year and text. */
+     break-inside: avoid inside a fragmented grid row). */
   .timeline {
     display: block;
   }
   .timeline__entry {
-    grid-template-columns: var(--cv-rail) minmax(0, 1fr);
-    column-gap: var(--cv-gap);
-    padding-inline-start: 0;
-    align-items: baseline;
     break-inside: avoid;
-  }
-  .timeline__year {
-    grid-column: 1;
-    grid-row: 1;
-    margin-inline-start: 0;
-  }
-  .timeline__body {
-    grid-column: 2;
-    grid-row: 1;
   }
   .timeline__entry + .timeline__entry {
     margin-block-start: var(--cv-entry-gap);
-  }
-  .timeline__year {
-    font-size: 15pt;
-    letter-spacing: 0;
-    color: #000;
-  } /* no tracking: it extracts as one word */
-  .timeline__stroke {
-    inset-inline-start: calc(2ch - 6px);
-    font-size: 15pt;
-    color: var(--ink-3);
-    opacity: 0.6;
   }
   .timeline__role {
     font-size: 11pt;
     line-height: 1.25;
     color: #000;
-  }
-  .timeline__meta {
-    margin-block-start: 0.4mm;
-    font-size: 8.6pt;
-    line-height: 1.4;
   }
   .timeline__points {
     gap: 0.8mm;

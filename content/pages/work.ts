@@ -17,7 +17,6 @@ export const work = {
 
   index: {
     title: 'Six projects, newest first',
-    columns: { years: 'Years', project: 'Project', outcome: 'Outcome' },
     /** A row with no public evidence (its links sit under the outcome): screen readers hear this. */
     noEvidence: 'Client work, no public page',
   },

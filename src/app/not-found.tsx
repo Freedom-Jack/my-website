@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFoundPage } from '@content/pages/not-found';
 import { PageMain } from '@/components/page/PageMain';
 import { Strip } from '@/components/page/Strip';
-import { InkButton } from '@/components/ui/InkButton';
+import { TextAction } from '@/components/ui/TextAction';
 import { LostMark } from '@/features/chrome/current';
 import { InlineLink } from '@/lib/inline';
 
@@ -13,7 +13,8 @@ export const metadata: Metadata = {
 
 /**
  * The 404: the lone peak's strip with the title, its one line and the way back in its mist (wide), on paper below
- * it on narrower screens. No closing scene: the path ends in mist, and the footer's story map is the way back.
+ * it on narrower screens. No closing scene and no ending: the path ends in mist, and the tail's names are the way
+ * back.
  */
 export default function NotFound() {
   const t = notFoundPage;
@@ -25,7 +26,9 @@ export default function NotFound() {
         </h1>
         <p className="lead">{t.line}</p>
         <p className="actions">
-          <InkButton href={t.primary.href}>{t.primary.label}</InkButton>
+          <TextAction href={t.primary.href} arrow>
+            {t.primary.label}
+          </TextAction>
           <InlineLink href={t.secondary.href}>{t.secondary.label}</InlineLink>
         </p>
       </Strip>

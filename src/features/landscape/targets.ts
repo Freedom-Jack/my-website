@@ -12,6 +12,9 @@ export interface MainPlace {
   presence: number;
   horizon: number;
   ground: 'living' | '';
+  /** (the vanguard round) the page opens inside its place: a closer hero, further along it; a number = its own
+   *  stretch-local u (a case's sub-anchor). */
+  inside: boolean | number;
 }
 
 export function placeOf(main: HTMLElement): MainPlace {
@@ -22,6 +25,8 @@ export function placeOf(main: HTMLElement): MainPlace {
     presence: num(d.presence, 1),
     horizon: num(d.horizon, 0.6),
     ground: d.ground === 'living' ? 'living' : '',
+    inside:
+      d.inside === undefined ? false : d.inside === '' || Number.isNaN(Number(d.inside)) ? true : Number(d.inside),
   };
 }
 
@@ -34,16 +39,17 @@ export function targetsOf(main: HTMLElement): LandscapeTargets {
     keepout: main.querySelectorAll('[data-landscape="keepout"]'),
     // (the windows into the painting at the page's section breaks; none when the flag is off)
     glimpse: elementOn('glimpses') ? main.querySelectorAll('[data-landscape="glimpse"], [data-glimpse="end"]') : [],
-    // (with the camera travelling, the footer's lines are veiled too: on a short living page the sea of mist reaches under them)
+    // (on a living page the tail's lines are veiled too: on a short living page the painting reaches under them)
     veil: [
       ...main.querySelectorAll('[data-veil]'),
-      ...(elementOn('cameraTravels')
-        ? document.querySelectorAll('.site-footer .story-map__list, .site-footer__base')
+      ...(elementOn('cameraTravels') || elementOn('unroll')
+        ? document.querySelectorAll('.site-footer .tail__colophon, .site-footer .tail__stamp, .site-footer .tail__base')
         : []),
     ],
     wake: main.querySelectorAll('[data-wake]'),
     horizon: place.horizon,
     ground: place.ground,
+    inside: place.inside,
   };
 }
 

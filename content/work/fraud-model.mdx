@@ -7,21 +7,22 @@ role: Data engineer
 figure:
   value: 321%
   note: lift in recovered fraud losses
+  basis: internal
 # The search snippet (≤ 160 characters): who did it and the result. Without one, the summary is used.
 metaDescription: 'Qijin (Jack) Xu shipped a fraud loss-ratio model: a 321% lift in recovered fraud losses versus a top-five bank benchmark.'
 summary: A loss-ratio model that recovers more fraud losses than a top-five bank’s benchmark.
 outcome: 321% lift in recovered fraud losses versus a top-five bank benchmark
 ---
 
-## Context
+## Problem
 
 Unrecovered fraud shows up directly in the loss ratio. The benchmark to beat was a model from a top-five bank.
 
-## What I did
+## My part
 
 I built and shipped a gradient-boosting plus logistic-regression model, with batch scoring in a Python and T-SQL pipeline.
 
-## Outcome
+## Outcome and status
 
 **321%** lift in recovered fraud losses versus the top-five bank benchmark.
 
