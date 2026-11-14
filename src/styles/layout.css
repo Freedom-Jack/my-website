@@ -316,7 +316,7 @@ main {
                        on the strip's box, set by the engine at that present) the still fades out over 300 ms, and a
                        later page's still never shows (html.ink-live: the painting is live under it);
      data-live="still" no live painting here (Save-Data, no hardware WebGL, reduced motion, Still, a failed or a
-                       failing probe): the still stands, sharp;
+                       failing probe): the still stands, sharp (Work's phone keeps its seed: .strip__fallback);
      none / probing    the still stands.
    Its height is the box's (one fixed height per width class: tokens.css --strip-*), so it is exact. A phone held
    sideways (the engine's `short` class, framed differently) has none. */
@@ -349,8 +349,10 @@ html.is-still .strip__still {
   transition: none;
 }
 /* Work's phone (Strip SEED_ALONE, the lead's ruling R12): no eager sharp still over the seed; the sharp phone still is
-   this box's background, shown (and so fetched) only where no painting will come: no JavaScript, no landscape at all,
-   or the probe's "still". A background that fails to load draws nothing. */
+   this box's background, shown (and so fetched) only without JavaScript, where that is known at the first paint. Where
+   the probe keeps the still (data-live="still", html.no-landscape) the seed stays: the probe answers only after the
+   scripts, and a sharp still arriving then was Work's LCP (2.9 s on CI's Lighthouse phone, score 94; Jack's ruling of
+   2026-11-14: keep the soft seed). A background that fails to load draws nothing. */
 .strip__fallback {
   position: absolute;
   inset: 0;
@@ -359,9 +361,7 @@ html.is-still .strip__still {
   background: var(--hero-sharp, none) 50% 66% / cover no-repeat;
 }
 @media (max-width: 39.99rem) {
-  html:not(.js) .strip__fallback,
-  html.no-landscape .strip__fallback,
-  html[data-live='still'] .strip__fallback {
+  html:not(.js) .strip__fallback {
     display: block;
   }
 }

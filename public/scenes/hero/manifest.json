@@ -1,6 +1,6 @@
 {
  "about": "The heroes' stills (the strip's first frame per page and width class), made by tools/build-heroes.ts from the engine; regenerate after any engine or scene change. inputs = sha256 over inputList.",
- "inputs": "3f3b824baf7e3b323441246316b7e77b49102469e874fd81fbe5fe6d66b44650",
+ "inputs": "b7d0b1c7ca2b811c650ed8ae3e8bc5089e3b0a2298ed38af6df83deb0f01fef6",
  "inputList": {
   "src/features/landscape/elements.ts": "36a2193d47918862729626010e5e1a72c200d5c6483ec3efef305e51e27f7cb4",
   "src/features/landscape/engine/canvas2d.ts": "71503547776b380a748347b916852dfd452cfa168ba572312d170450cd7b4f30",
@@ -33,7 +33,7 @@
   "src/features/landscape/places.ts#resume": "85c980710eb70d6f7b3b3df3ebf41a04a8e57741284983b6cd908cd5bafa032b",
   "src/features/landscape/places.ts#work": "1458b7cdd93c29425f6f2c2354d43c379e6832907a907cd86f71f8214f79adf1",
   "src/features/landscape/places.ts#writing": "417e8e720b346f4584979ed44ba989bc89bad9bc24e0b3ab0dabe79183937aa0",
-  "src/styles/layout.css#strip": "9cde6b50ba0a7188f2bc88f7baa396b648d14b5bfd284bc95dd3a4c40cf9e338",
+  "src/styles/layout.css#strip": "5d50fec4fe5cf3b2770f1253e8e60b789ce6a590739a294b45b168701882980b",
   "src/styles/tokens.css#strip-heights": "3f1cc6db7b9a480fbc4f23a1932f3becf98ab4a3e3e71b127cc970ef81e027b1",
   "tools/build-heroes.ts#settings": "02c2e322fef23ff7f15f011cbc13cc586694ad6a8b4e9be0243cbb72ff5dcd85"
  },

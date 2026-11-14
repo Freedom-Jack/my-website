@@ -1030,6 +1030,14 @@ status line reads about 28 KB locally against "about 7 KB" in production; the he
 class's cut width; `experimental.turbopackChunking` is experimental; the lineage's commit stamp names the build's
 commit; the river line's travel is a CSS scroll timeline (Firefox behind a flag; the dot stands still there).
 
+**After the push** (2026-11-14, the PR's first CI runs): the tail's measured stamp was one phrase that could not wrap,
+wider than a 360 px column, and failed the sideways checks on every route (it now breaks between its phrases). GitHub's
+GPU-less runner handed WebGL a SwiftShader context with no performance caveat, so the probe passed and the engine held
+the main thread for seconds (the probe now refuses a software renderer by name, and CI's budgets run without WebGL).
+Without the painting, Work's phone LCP became its sharp still arriving after the probe: 2.9 s, score 94. Jack's
+ruling: keep the soft seed. Where no painting comes, Work keeps its seed, and its sharp still shows only without
+JavaScript (the table's "the still only in the still state" no longer holds).
+
 **What it cost** (the agents' transcripts; the lead's own turns not counted): research, design, jury and attack about
 15 million output tokens on Fable and Opus (2026-11-02 to 05, three runs killed by spend limits and resumed); P1 about
 1.1 million on Fable; P2 and P3 about 7.5 million on Fable over 14 hours with two agents killed by the spend window

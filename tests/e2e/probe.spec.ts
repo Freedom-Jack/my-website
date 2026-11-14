@@ -10,7 +10,7 @@ import { isSoftware } from './support/pages';
  *     under the strip's still ([data-live] on the strip's box) and the still fades out;
  *   - the still is in the HTML from the first paint: an <img> in the strip's box before any script, a data URI
  *     (the inline seed) at phone widths and a fetched source on laptops; the phone's HTML holds no other image request
- *     for it; the sharp phone still is set for the no-painting states.
+ *     for it; the sharp phone still is set for the no-painting states (on Work's phone, only without JavaScript).
  */
 type Req = { url: string; type: string; t: number };
 /** Every request the page makes from now on, with its time from the watch's start (ms). */
@@ -272,7 +272,7 @@ test.describe('a phone, an inner page', () => {
       .evaluate((e) => (e as HTMLImageElement).currentSrc);
     expect(src).toMatch(/^data:image\/webp;base64,/);
     expect(src.length).toBeLessThan(1500 * 1.4);
-    // (no eager sharp still: the only reference to it is the fallback's background, shown where no painting comes)
+    // (no eager sharp still: the only reference to it is the fallback's background, shown only without JavaScript)
     await expect(page.locator('[data-landscape="strip"] .strip__still--sharp')).toHaveCount(0);
     expect(html).not.toMatch(/<img[^>]*work-phone@/);
     await expect(page.locator('[data-landscape="strip"] .strip__fallback')).toHaveCount(1);
@@ -280,17 +280,31 @@ test.describe('a phone, an inner page', () => {
     await page.waitForLoadState('load');
     expect(reqs.filter((r) => /\/scenes\/hero\//.test(r.url))).toEqual([]);
   });
-  test('Work, where no painting comes (reduced motion): the sharp still stands over the seed, fetched once', async ({
+  test('Work, where no painting comes (reduced motion): the seed stays, and no sharp still is fetched', async ({
     page,
   }) => {
+    // (Jack's ruling of 2026-11-14: the probe answers after the scripts, and a sharp still swapped in then was Work's
+    // LCP, 2.9 s on CI's Lighthouse phone; so the soft seed stays where no painting comes)
     await page.emulateMedia({ reducedMotion: 'reduce' });
     const { reqs } = watchRequests(page);
     await page.goto('/work/');
     await expect(page.locator('html')).toHaveAttribute('data-live', 'still', { timeout: 10_000 });
-    const fb = page.locator('[data-landscape="strip"] .strip__fallback');
-    await expect(fb).toBeVisible();
-    await expect
-      .poll(() => reqs.filter((r) => /\/scenes\/hero\//.test(r.url)).map((r) => r.url.replace(/^.*\//, '')))
-      .toEqual(['work-phone@2x.webp']);
+    await expect(page.locator('html')).toHaveClass(/\bno-landscape\b/);
+    await expect(page.locator('[data-landscape="strip"] .strip__still--seed img')).toBeVisible();
+    await expect(page.locator('[data-landscape="strip"] .strip__fallback')).toBeHidden();
+    await page.waitForLoadState('load');
+    await page.waitForTimeout(500);
+    expect(reqs.filter((r) => /\/scenes\/hero\//.test(r.url))).toEqual([]);
+  });
+  test.describe('without JavaScript', () => {
+    test.use({ javaScriptEnabled: false });
+    test('Work: the sharp still stands over the seed from the first paint, fetched once', async ({ page }) => {
+      const { reqs } = watchRequests(page);
+      await page.goto('/work/');
+      await expect(page.locator('[data-landscape="strip"] .strip__fallback')).toBeVisible();
+      await expect
+        .poll(() => reqs.filter((r) => /\/scenes\/hero\//.test(r.url)).map((r) => r.url.replace(/^.*\//, '')))
+        .toEqual(['work-phone@2x.webp']);
+    });
   });
 });

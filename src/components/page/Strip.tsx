@@ -21,9 +21,11 @@ import heroes from '../../../public/scenes/hero/manifest.json';
  * the seed is the sharp phone@1x still itself (3–6 KB inline): the painting is sharp at first paint and is the LCP at
  * FCP, so only the @2x still is laid over it, and only at DPR 2 and above on phones up to the cut's 430 px (the phone
  * class is cut 430 wide and covers the box at every phone width, never upscaled: the @2x is the same box, so no new LCP
- * candidate; the lead's ruling R12). Work (SEED_ALONE, R12) keeps its seed alone on the first screen: its sharp still
- * is no request there and stands over the seed only where no painting will come (.strip__fallback). A sharp still
- * that fails to load is hidden (the boot script's error listener), so a broken-image box never shows over the seed.
+ * candidate; the lead's ruling R12). Work (SEED_ALONE, R12) keeps its seed alone: with JavaScript its sharp still is
+ * never requested, even where no painting comes (the probe answers that only after the scripts, and a sharp still
+ * arriving then was Work's LCP: Jack's ruling of 2026-11-14, keep the soft seed); it stands over the seed only without
+ * JavaScript (.strip__fallback). A sharp still that fails to load is hidden (the boot script's error listener), so a
+ * broken-image box never shows over the seed.
  * Without JS or a landscape, the box shows a faint static ridge hint (layout.css) under the still, if any.
  */
 export type HeroPlace = 'home' | 'work' | 'writing' | 'resume' | 'contact' | 'case' | 'note';
@@ -49,10 +51,10 @@ const BLANK = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAA
  *  measured the DPR line: at "1.5dppx or less", Lighthouse's phone (412 px, DPR 1.75) fetched the @2x at low priority
  *  before the LCP and Lantern's graph held it: 2.53 s in four runs of five on Home and the case.) */
 const SHARP_SEED_ONLY = '(min-width: 431px), (max-resolution: 1.99dppx)';
-/** R12: the places whose phone seed stands alone on the first screen (no eager sharp still: Lighthouse's simulation
- *  queued it behind the scripts and made it the LCP at 2.6 s; with the low-entropy seed alone the LCP is the words).
- *  Their sharp still is a CSS background (.strip__fallback), fetched only where it shows: no JS, no landscape, or the
- *  probe's "still". */
+/** R12: the places whose phone seed stands alone (no eager sharp still: Lighthouse's simulation queued it behind the
+ *  scripts and made it the LCP at 2.6 s; with the low-entropy seed alone the LCP is the words). Their sharp still is a
+ *  CSS background (.strip__fallback), shown (and so fetched) only without JavaScript: where the probe keeps the still,
+ *  the seed stays (a sharp still that late was the LCP again, 2.9 s on CI's Lighthouse phone; Jack, 2026-11-14). */
 const SEED_ALONE: ReadonlySet<HeroPlace> = new Set<HeroPlace>(['work']);
 
 /** The hero's still: one source per width class the tool cut (the engine frames each class differently). */
