@@ -189,7 +189,9 @@ CI (`.github/workflows/ci.yml`) runs on every push and pull request:
 **The release step (local, on the real GPU).** Before a release commit, on a QA build serving on 3100:
 `npm run check:budgets -- --write` runs every gate, the phone profile included, and from a passing run writes Home's
 mobile LCP, its first-load transfer, the date and the commit into `content/measured.json`, which the tail prints
-("Lighthouse mobile, simulated"). Commit that file with the tree.
+("Lighthouse mobile, simulated"). The tail is on every page, so rebuild and run `npm run test:e2e` once more on the
+stamped build (the first stamp was one unbreakable phrase, wider than a 360 px column, and failed CI's sideways
+checks on every route), then commit that file with the tree.
 
 ## Deploying
 
