@@ -45,7 +45,7 @@ reached it falls back to `content/github/snapshot.json`.
 | `npm run test:e2e`           | Playwright against a built site on port 3100: smoke, navigation, budgets, scroll, phone bands, axe, probe, craft                                                                                                |
 | `npm run check:compliance`   | the hard rules over the sources and the built pages                                                                                                                                                             |
 | `npm run check:links`        | crawls the built site: every link answers, every outside link is https and allowed                                                                                                                              |
-| `npm run check:budgets`      | the HTML gate, Lighthouse (mobile, desktop; warmed, median of 5, min–max beside it) and the phone profile on the QA build on 3100; `-- --no-phone` in CI; `-- --write` stamps the tail (the local release step) |
+| `npm run check:budgets`      | the HTML gate, Lighthouse (mobile, desktop; warmed, median of 5, min–max) and the phone profile on the QA build (3100); `-- --no-phone --no-webgl` in CI; `-- --write` stamps the tail (the local release step) |
 | `npm run build:pdf`          | prints `/resume/` to `public/resume.pdf` (`-- --check` in CI)                                                                                                                                                   |
 | `npm run build:stills`       | cuts the phone bands' (the windows') stills (needs a QA build; `-- --check` in CI)                                                                                                                              |
 | `npm run build:og`           | cuts the link-preview cards (`public/og/`) from each page's hero (needs a QA build; `-- --check`)                                                                                                               |
@@ -184,7 +184,9 @@ CI (`.github/workflows/ci.yml`) runs on every push and pull request:
    navigation, the first screen's budgets at 1440, 1280 and 390 (and Home at 375 and 360), the scroll motion, the
    depth bands, Back's scroll position, the header's one row and its river line at 375 and 360);
 4. the budgets: the HTML gate (≤ 30,000 B gzip per route) and Lighthouse mobile and desktop, warmed, the median of
-   five (`check:budgets -- --no-phone`). CI writes nothing and runs no phone profile (it has no GPU).
+   five (`check:budgets -- --no-phone --no-webgl`). CI writes nothing and runs no phone profile (it has no GPU), and
+   its browser runs without WebGL: headless Chrome on a GPU-less runner offers a SwiftShader context that no visitor's
+   browser does, slow to create, so CI measures the paper (the probe refuses SwiftShader by name too).
 
 **The release step (local, on the real GPU).** Before a release commit, on a QA build serving on 3100:
 `npm run check:budgets -- --write` runs every gate, the phone profile included, and from a passing run writes Home's

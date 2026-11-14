@@ -82,3 +82,101 @@ describe('the rollback watch (probe.ts limitFor and watchFrames)', () => {
     expect(await run([34, 34, 34, 34], () => 33)).toEqual([true]);
   });
 });
+
+/**
+ * The GPU check (probe.ts gpuOK and softwareRenderer): the caveat's null, and a renderer named as software, keep the
+ * still. Headless Chrome on a GPU-less machine (CI's runner) hands WebGL a SwiftShader context with no caveat: on
+ * 2026-11-14 the probe passed there and the engine booted on it. Run on a fake canvas, with no DOM.
+ */
+describe('the GPU check (probe.ts gpuOK and softwareRenderer)', () => {
+  const RENDERER = 0x1f01;
+  const UNMASKED = 0x9246; // WEBGL_debug_renderer_info.UNMASKED_RENDERER_WEBGL
+  const SWIFTSHADER =
+    'ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)';
+  const METAL = 'ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)';
+  /** The page's canvas: a WebGL2 context whose RENDERER (and unmasked renderer) answer as given; null = refused. */
+  function fakeCanvas(ctx: { renderer: string; unmasked?: string } | null) {
+    const lost: string[] = [];
+    const asked: unknown[] = [];
+    const gl =
+      ctx === null
+        ? null
+        : {
+            RENDERER,
+            getParameter: (p: number) =>
+              p === RENDERER ? ctx.renderer : p === UNMASKED ? (ctx.unmasked ?? null) : null,
+            getExtension: (n: string) =>
+              n === 'WEBGL_debug_renderer_info' && ctx.unmasked !== undefined
+                ? { UNMASKED_RENDERER_WEBGL: UNMASKED }
+                : n === 'WEBGL_lose_context'
+                  ? { loseContext: () => lost.push('lost') }
+                  : null,
+          };
+    vi.stubGlobal('document', {
+      createElement: () => ({
+        getContext: (type: string, opts: unknown) => {
+          asked.push([type, opts]);
+          return gl;
+        },
+      }),
+    });
+    return { lost, asked };
+  }
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('softwareRenderer: the software rasterisers by name, and no hardware GPU among them', async () => {
+    const { softwareRenderer } = await import('@/features/landscape/probe');
+    for (const name of [
+      SWIFTSHADER,
+      'Google SwiftShader',
+      'llvmpipe (LLVM 15.0.7, 256 bits)',
+      'softpipe',
+      'Microsoft Basic Render Driver',
+      'ANGLE (Microsoft, Microsoft Basic Render Driver Direct3D11 vs_5_0 ps_5_0, D3D11)',
+      'Apple Software Renderer',
+      'Mesa Offscreen',
+      'D3D11 WARP',
+    ])
+      expect(softwareRenderer(name), name).toBe(true);
+    for (const name of [
+      METAL,
+      'Apple GPU',
+      'ANGLE (Intel, Intel(R) UHD Graphics 630 Direct3D11 vs_5_0 ps_5_0, D3D11)',
+      'ANGLE (NVIDIA, NVIDIA GeForce RTX 4070 (0x00002786) Direct3D11 vs_5_0 ps_5_0, D3D11)',
+      'Adreno (TM) 740',
+      'Mali-G78 MC14',
+      'Mesa Intel(R) Xe Graphics (TGL GT2)',
+    ])
+      expect(softwareRenderer(name), name).toBe(false);
+  });
+  it('a hardware GPU behind the masked RENDERER passes, and the probe context is lost at once', async () => {
+    const { gpuOK } = await import('@/features/landscape/probe');
+    const f = fakeCanvas({ renderer: 'WebKit WebGL', unmasked: METAL });
+    expect(gpuOK()).toBe(true);
+    expect(f.asked).toEqual([['webgl2', { failIfMajorPerformanceCaveat: true, antialias: false, depth: false }]]);
+    expect(f.lost).toEqual(['lost']);
+  });
+  it('the caveat refused: the still', async () => {
+    const { gpuOK } = await import('@/features/landscape/probe');
+    fakeCanvas(null);
+    expect(gpuOK()).toBe(false);
+  });
+  it('SwiftShader with no caveat (headless Chrome without a GPU): the still, and the context is lost', async () => {
+    const { gpuOK } = await import('@/features/landscape/probe');
+    const f = fakeCanvas({ renderer: 'WebKit WebGL', unmasked: SWIFTSHADER });
+    expect(gpuOK()).toBe(false);
+    expect(f.lost).toEqual(['lost']);
+  });
+  it('a RENDERER that names the GPU (Firefox) is read as it is, without the debug extension', async () => {
+    const { gpuOK } = await import('@/features/landscape/probe');
+    fakeCanvas({ renderer: 'llvmpipe (LLVM 15.0.7, 256 bits)' });
+    expect(gpuOK()).toBe(false);
+    fakeCanvas({ renderer: 'ANGLE (Intel, Intel(R) UHD Graphics 630 Direct3D11 vs_5_0 ps_5_0, D3D11)' });
+    expect(gpuOK()).toBe(true);
+  });
+  it('no name to read (the debug extension withheld): the caveat’s answer stands', async () => {
+    const { gpuOK } = await import('@/features/landscape/probe');
+    fakeCanvas({ renderer: 'WebKit WebGL' });
+    expect(gpuOK()).toBe(true);
+  });
+});

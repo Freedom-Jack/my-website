@@ -7,7 +7,8 @@
  *   1. reduced motion, or "Still the landscape" (features/chrome/still): the still IS the quiet form;
  *   2. Save-Data: the visitor asked for less, the still is enough;
  *   3. a WebGL2 context that the browser does not flag as a major performance caveat (a software rasteriser, a
- *      blocklisted GPU): without one the still stays (Canvas2D remains the engine's fallback for a context lost later);
+ *      blocklisted GPU) and whose renderer is not named as software (headless Chrome's SwiftShader carries no caveat):
+ *      without one the still stays (Canvas2D remains the engine's fallback for a context lost later);
  *   4. the cadence: 1.5 s of requestAnimationFrame deltas with the main thread idle, none over 20 ms (one retry).
  * Only then is the engine's module asked for (Landscape.tsx). Once live, two rAF deltas over 20 ms inside a rolling
  * second (watchFrames) hand the page back to the still and pause the painting; frames during the painting's own
@@ -39,21 +40,44 @@ export const quietNow = () =>
   matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.classList.contains('is-still');
 
 /**
+ * A software rasteriser, by its renderer's name (the browser tests' isSoftware reads the same names). Headless Chrome
+ * on a machine with no GPU hands WebGL a SwiftShader context WITHOUT the major-performance-caveat flag, so there the
+ * name is the only sign (CI's first budgets run, 2026-11-14: the probe passed, the engine booted on SwiftShader and held
+ * the main thread for seconds on every route).
+ */
+export const softwareRenderer = (name: string): boolean =>
+  /swiftshader|llvmpipe|softpipe|software|basic render|mesa offscreen|\bwarp\b/i.test(name);
+
+/** The context's renderer: RENDERER where the browser names the GPU there (Firefox), else the debug extension's. */
+function rendererOf(gl: WebGL2RenderingContext): string {
+  try {
+    const name = String(gl.getParameter(gl.RENDERER) ?? '');
+    if (!/^(webkit webgl|mozilla)$/i.test(name.trim())) return name;
+    const info = gl.getExtension('WEBGL_debug_renderer_info');
+    return info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL) ?? '') : name;
+  } catch {
+    return '';
+  }
+}
+
+/**
  * Can this browser paint the landscape with a hardware GPU? A WebGL2 context asked for with
- * `failIfMajorPerformanceCaveat`: null on a software rasteriser or a blocklisted GPU (the still stays, the engine's
- * chunk is never fetched). The probe context is lost at once so the engine's own context is the only one kept.
+ * `failIfMajorPerformanceCaveat` (null on a software rasteriser or a blocklisted GPU) whose renderer is not named as
+ * software (softwareRenderer). Otherwise the still stays and the engine's chunk is never fetched. The probe context is
+ * lost at once so the engine's own context is the only one kept.
  */
 export function gpuOK(): boolean {
   try {
     const canvas = document.createElement('canvas');
     const gl = canvas.getContext('webgl2', { failIfMajorPerformanceCaveat: true, antialias: false, depth: false });
     if (!gl) return false;
+    const software = softwareRenderer(rendererOf(gl));
     try {
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     } catch {
       /* the context goes with the canvas */
     }
-    return true;
+    return !software;
   } catch {
     return false;
   }

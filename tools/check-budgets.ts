@@ -12,6 +12,7 @@
  *   npm run check:budgets -- --out <dir>                          the report's folder (default budgets-report/)
  *   npm run check:budgets -- --write                              on a pass, write Home's numbers into
  *                                                                 content/measured.json (the tail's build stamp)
+ *   npm run check:budgets -- --no-webgl                           the browser without WebGL (CI: below)
  *
  * R7: run it with the machine quiet (Lighthouse first, the phone run after it: P1's one outlier came right after a
  * phone run). R12: the server is warmed first (one request per route, then two seconds: a cold route's first
@@ -21,8 +22,12 @@
  * over 1 s is re-run once and reported as an outlier (the re-run takes its place). Every run's trace is kept for a
  * route and preset that fails, and for every outlier.
  * R9 and R10: every route's HTML is measured as served, gzip, and gated at 30,000 B (Work sits near it).
- * Locally Google Chrome runs on the GPU (Metal); in CI Playwright's Chromium runs on a software rasteriser, where the
- * probe keeps the painting still, so CI's numbers are the paper's, the phone run's included.
+ * Locally Google Chrome runs on the GPU (Metal). In CI Playwright's Chromium runs on a runner with no GPU, with
+ * --no-webgl: there headless Chrome hands WebGL a SwiftShader context that it does not flag as a performance caveat and
+ * that takes seconds of main thread to create (CI's first budgets run, 2026-11-14: TBT 15 to 20 s on every route, the
+ * probe passing and the engine booting on SwiftShader). A visitor's Chrome without a GPU offers no such context, and
+ * the probe now refuses one by its renderer's name (features/landscape/probe.ts softwareRenderer), so CI runs the
+ * browser without WebGL: the probe answers "gpu" at once and CI's numbers are the paper's.
  */
 import { execSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -54,6 +59,9 @@ const MAC_CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome
 const CI = !!process.env.CI;
 const GPU_ARGS = process.platform === 'darwin' ? ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] : [];
 const LINUX_ARGS = process.platform === 'linux' ? ['--no-sandbox', '--disable-dev-shm-usage'] : [];
+/** --no-webgl: no WebGL in the browser (the probe answers "gpu" at once; CI's GPU-less runner, see above). */
+const NO_WEBGL = flag('--no-webgl');
+const WEBGL_ARGS = NO_WEBGL ? ['--disable-3d-apis'] : [];
 const FORMS = opt('--forms', 'mobile,desktop')
   .split(',')
   .filter((f): f is 'mobile' | 'desktop' => f === 'mobile' || f === 'desktop');
@@ -218,7 +226,7 @@ async function lighthouseAll(routes: string[]): Promise<LhRow[]> {
   const chromePath = process.env.CHROME_PATH || (existsSync(MAC_CHROME) ? MAC_CHROME : chromium.executablePath());
   const chrome = await chromeLauncher.launch({
     chromePath,
-    chromeFlags: ['--headless=new', '--no-first-run', ...GPU_ARGS, ...LINUX_ARGS],
+    chromeFlags: ['--headless=new', '--no-first-run', ...GPU_ARGS, ...LINUX_ARGS, ...WEBGL_ARGS],
   });
   const rows: LhRow[] = [];
   try {
@@ -342,7 +350,7 @@ interface PhoneRow {
 async function phoneAll(): Promise<PhoneRow[]> {
   const browser = await chromium.launch({
     ...(existsSync(MAC_CHROME) && !CI ? { channel: 'chrome' } : {}),
-    args: [...GPU_ARGS, '--hide-scrollbars', '--enable-precise-memory-info'],
+    args: [...GPU_ARGS, ...WEBGL_ARGS, '--hide-scrollbars', '--enable-precise-memory-info'],
   });
   const rows: PhoneRow[] = [];
   try {
@@ -469,7 +477,7 @@ async function main() {
 
   const date = new Date().toISOString();
   const L = [
-    `# Budgets · ${date.slice(0, 16).replace('T', ' ')} UTC · ${BASE} · commit ${shortSha()} · ${process.platform}${CI ? ' (CI)' : ''}`,
+    `# Budgets · ${date.slice(0, 16).replace('T', ' ')} UTC · ${BASE} · commit ${shortSha()} · ${process.platform}${CI ? ' (CI)' : ''}${NO_WEBGL ? ' · no WebGL' : ''}`,
     '',
     `Verdict: ${fails.length ? `FAIL (${fails.length})` : 'pass'} · Lighthouse: median of ${RUNS} per metric after a warm-up (LCP's min–max and the worst beside it) · ${Math.round((Date.now() - t0) / 1000)} s`,
     '',

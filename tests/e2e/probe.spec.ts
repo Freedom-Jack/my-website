@@ -65,6 +65,45 @@ test('no hardware GPU (a WebGL2 context with failIfMajorPerformanceCaveat refuse
   expect(marks).not.toContain('ink:gpu:ok');
 });
 
+test('a software renderer with no caveat (headless Chrome’s SwiftShader): the still, for the GPU', async ({ page }) => {
+  // (CI's GPU-less runner, 2026-11-14: the browser raised no caveat, the probe passed and the engine booted on
+  // SwiftShader, seconds of main thread on every route; the renderer's name is the probe's second test)
+  await page.addInitScript(() => {
+    const get = HTMLCanvasElement.prototype.getContext;
+    const UNMASKED = 0x9246;
+    HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, type: string, opts?: unknown) {
+      if (
+        type === 'webgl2' &&
+        (opts as { failIfMajorPerformanceCaveat?: boolean } | undefined)?.failIfMajorPerformanceCaveat
+      )
+        return {
+          RENDERER: 0x1f01,
+          getParameter: (p: number) =>
+            p === UNMASKED
+              ? 'ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)'
+              : p === 0x1f01
+                ? 'WebKit WebGL'
+                : null,
+          getExtension: (n: string) =>
+            n === 'WEBGL_debug_renderer_info'
+              ? { UNMASKED_RENDERER_WEBGL: UNMASKED }
+              : n === 'WEBGL_lose_context'
+                ? { loseContext() {} }
+                : null,
+        } as unknown as RenderingContext;
+      return (get as (this: HTMLCanvasElement, t: string, o?: unknown) => RenderingContext | null).call(
+        this,
+        type,
+        opts,
+      );
+    } as typeof get;
+  });
+  const { reqs } = watchRequests(page);
+  await page.goto('/');
+  const marks = await expectStillFor(page, reqs, 'gpu');
+  expect(marks).not.toContain('ink:gpu:ok');
+});
+
 test('a slow cadence (every frame over 20 ms, the retry too): the still, for the cadence', async ({ page }) => {
   test.skip(await isSoftware(page), 'a software rasteriser fails the GPU check first (the test above)');
   await page.addInitScript(() => {

@@ -69,12 +69,13 @@ jobs:
           path: playwright-report
           retention-days: 7
       # The budgets' gate (vanguard 01-budgets.md, the lead's R7, R9, R10, R12): the HTML gate and Lighthouse mobile and
-      # desktop on every route, after a warm-up, the median of five, on this QA build (Playwright's Chromium; a software
-      # rasteriser here, so the painting stays still and the numbers are the paper's). No phone profile here (--no-phone:
-      # it needs a real GPU) and nothing written: the phone run and --write (content/measured.json, the tail's build
-      # stamp) are the local release step on the real GPU (README).
+      # desktop on every route, after a warm-up, the median of five, on this QA build (Playwright's Chromium on a runner
+      # with no GPU, run without WebGL, --no-webgl: headless Chrome here would hand the page a SwiftShader context that no
+      # visitor's browser offers, unflagged and seconds of main thread to create; so the painting stays still and the
+      # numbers are the paper's). No phone profile here (--no-phone: it needs a real GPU) and nothing written: the phone
+      # run and --write (content/measured.json, the tail's build stamp) are the local release step on the real GPU (README).
       - name: Budgets (the HTML gate and Lighthouse)
-        run: npm run check:budgets -- --no-phone
+        run: npm run check:budgets -- --no-phone --no-webgl
         env:
           CHROME_PATH: ''
       - if: always()
