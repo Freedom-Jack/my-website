@@ -4,22 +4,22 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import { normPath, type Place, placeForPath } from '@/features/landscape/places';
 import { landscape } from '@/features/landscape/store';
+import { watchGlimpseStills } from '@/features/landscape/glimpse-stills';
 import { currentMain, placeOf, targetsOf } from '@/features/landscape/targets';
 import { quiet } from '@/features/chrome/still';
 import { cut, enter, exit, restore, travel } from './transition';
-import { liftNavMark } from '@/features/effects/nav-mark';
 
 /**
- * Moving between pages inside the one painting (design-demo/README "Route changes"; the demo router's
- * choreography on Next.js's own client navigation).
+ * Moving between pages inside the one painting: one grammar, the river's (the vanguard round, A10). The painting
+ * pans to the next place and the words cross-fade under it (transition.ts), on Next.js's own client navigation.
  *
  * Every in-site link is caught here, at the document (so links in MDX content and the chrome behave alike):
- * the old text sinks into the mist while the painting starts its pan toward the destination's place (known
- * from the places table before the page arrives, and its figures prepared off the main thread on hover), then
- * the router swaps the page. When the new <main> is in, the page is scrolled (to the top, or its #fragment),
- * the painting is rebound to its windows and veils, focus goes to its h1, the route announcer reads its title,
- * and its text condenses in. Back/forward: the content is there at once, at the place the reader left it (the
- * position is kept per path for the session), and the painting pans back behind it.
+ * the old words fade while the painting starts its pan toward the destination's place (known from the places
+ * table before the page arrives, and its figures prepared off the main thread on hover), then the router swaps the
+ * page. When the new <main> is in, the page is scrolled (to the top, or its #fragment), the painting is rebound to
+ * its windows and veils, focus goes to its h1, the route announcer reads its title, and the new words fade in.
+ * Back/forward: the content is there at once, at the place the reader left it (the position is kept per path for
+ * the session), and the painting pans back behind it.
  * Not caught: modified clicks, new tabs, downloads, files (/resume.pdf, /resume.json), other origins.
  */
 
@@ -47,7 +47,6 @@ const savedPos = (path: string) => {
 interface Pending {
   url: URL;
   dest: Place;
-  dir: number;
   timer: number;
   watchdog: number;
   pushed: boolean;
@@ -144,19 +143,16 @@ export function Navigation() {
         clearTimeout(old.watchdog);
       }
       const main = currentMain();
-      const fromStretch = Number(landscape.get()?.stats().stretch ?? (main ? placeOf(main).stretch : 0));
       const dest = placeForPath(url.pathname);
-      const dir = Math.sign(dest.stretch - fromStretch);
       const ctrl = new AbortController();
       const href = url.pathname + url.search + url.hash;
-      const p: Pending = { url, dest, dir, timer: 0, watchdog: 0, pushed: false, ctrl };
+      const p: Pending = { url, dest, timer: 0, watchdog: 0, pushed: false, ctrl };
       pending.current = p;
       savePos(location.pathname);
       router.prefetch(url.pathname + url.search);
       prepare(dest);
-      if (!quiet()) travel(landscape.get(), dest, { dir });
-      liftNavMark(url.pathname, dir); // (navMark: the nav's mark lifts at the click, inside the pan)
-      void exit(main, { dir, signal: ctrl.signal }).then(() => {
+      if (!quiet()) travel(landscape.get(), dest);
+      void exit(main, { signal: ctrl.signal }).then(() => {
         if (pending.current !== p || ctrl.signal.aborted) return;
         p.pushed = true;
         router.push(href, { scroll: false });
@@ -266,7 +262,9 @@ export function Navigation() {
     }
 
     focusAndAnnounce(main, target);
-    if (kind === 'push') void enter(main, { dir: p?.dir ?? 0 });
+    // the new page's window stills below the fold load as the reader nears them (R5)
+    watchGlimpseStills(main);
+    if (kind === 'push') void enter(main);
   }, [pathname]);
 
   return null;

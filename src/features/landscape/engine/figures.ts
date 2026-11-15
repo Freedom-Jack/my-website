@@ -121,12 +121,10 @@ export type Streams = (...keys: (string | number)[]) => Rng;
 /** The 2d context a layer is drawn on: an OffscreenCanvas's (the worker) or a canvas's (the idle fallback). */
 export type Ctx2D = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 
-/** A set's meta (THE SET API): the world rectangle [u0, u1, y0, y1] its layer covers, its plane and phase. */
-export interface FigureMeta {
-  rect: [u0: number, u1: number, y0: number, y1: number];
-  plane: number;
-  phase: 0 | 1;
-}
+/** A set's meta (THE SET API): the world rectangle [u0, u1, y0, y1] its layer covers, its plane and phase
+ *  (figure-meta.ts, where the main thread keeps every set's). */
+export type { FigureMeta } from './figure-meta';
+import { METAS, type FigureMeta } from './figure-meta';
 /** A set's draw(env): it may yield between elements (a few ms each), or be a plain function. */
 export type DrawSet = (env: Env) => Generator<unknown, void, unknown> | void;
 /** A figure set's module (sets/*.ts): export const meta (or null: a stub) and export function* draw. */
@@ -160,6 +158,9 @@ export interface LayerParams {
   /** Drawn for a window into the painting (index.ts GLIMPSE), a still view: its sprites are painted in, never
    *  cut apart (the window's present has no life pass), and the sets leave out what hangs from the strip's top edge. */
   inlay?: boolean;
+  /** QA builds only: the engine's element overrides (elements.ts qaOverrideLists), which the worker, with no window
+   *  and no storage of its own, could not read. */
+  qa?: { on: string[]; off: string[] };
 }
 
 /** The palette's inks (inks()): its colours, rgba() and its strength. */
@@ -236,6 +237,11 @@ export interface LifeParams {
   rings?: number;
   /** A sprite that swings slowly about its root (the plum: ~0.5 deg at ~0.08 Hz; the present pass turns it). */
   swing?: boolean;
+  /** (the unroll) A sprite pinned to the frame: the stage's slide does not carry it (Home's plum bough and Writing's
+   *  willow, the near framing elements whose roots lie past the frame's edge on the layer's eastern reach, which the
+   *  slide would otherwise bring into view as a cut end; index.ts lifeU). Windows (phones) and the camera's travel
+   *  ignore it. */
+  pinned?: boolean;
   /** (elements.ts waterfall) Smoke's box as a falling stream instead: its x, its lip's and its foot's y, its
    *  half-width (world px); the present pass slides lights down what the layer painted white there. */
   fall?: { x: number; y0: number; y1: number; hw: number };
@@ -294,26 +300,24 @@ function validMeta(m: FigureMeta) {
 }
 const setAt = (stretch: number) => sets().get(Math.round(Number(stretch))) || null;
 
-/** The figure layer of a stretch: { rect: [u0, u1, y0, y1], plane, phase } or null (no figures there). */
-export function figureMeta(stretch: number): FigureMeta | null {
-  const m = setAt(stretch)?.meta;
-  return m ? { rect: m.rect.slice() as FigureMeta['rect'], plane: m.plane, phase: m.phase } : null;
-}
-
-/** Every registered set, stubs included: [{ stretch, name, meta | null }] (the lab and QA list them). */
-export function figureSets(): { stretch: number; name: string; meta: FigureMeta | null }[] {
-  return [...sets().values()].sort((a, b) => a.stretch - b.stretch).map(({ stretch, name }) => ({ stretch, name, meta: figureMeta(stretch) }));
-}
+// (figureMeta reads the metas' own table, figure-meta.ts, the part of the sets the main thread keeps: the engine's
+// chunk carries no drawing code; the registry below is the worker's, and the fallback's once it has loaded)
+export { figureMeta } from './figure-meta';
 
 /** Pixel size of a layer drawn at `scale` CSS px per stretch and `dpr` device px per CSS px. */
 export function layerSize(stretch: number, scale: number, dpr: number): { width: number; height: number } {
-  const m = setAt(stretch)?.meta;
+  const m = METAS[Math.round(Number(stretch))];
   if (!m) return { width: 0, height: 0 };
   const [u0, u1, y0, y1] = m.rect;
   return {
     width: Math.max(2, Math.min(4096, Math.round((u1 - u0) * scale * dpr))),
     height: Math.max(2, Math.min(4096, Math.round((y1 - y0) * (scale / HS) * dpr))),
   };
+}
+
+/** Every registered set, stubs included: [{ stretch, name, meta | null }] (the lab and QA list them). */
+export function figureSets(): { stretch: number; name: string; meta: FigureMeta | null }[] {
+  return [...sets().values()].sort((a, b) => a.stretch - b.stretch).map(({ stretch, name, meta }) => ({ stretch, name, meta: meta ? { rect: meta.rect.slice() as FigureMeta['rect'], plane: meta.plane, phase: meta.phase } : null }));
 }
 
 /**

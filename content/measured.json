@@ -1,0 +1,8 @@
+{
+  "about": "The tail's measured number (components/layout/Tail): written by `npm run check:budgets -- --write` from a passing run on the QA build, locally on the real GPU (the release step; CI writes nothing), never typed by hand. While `lcpMs` is null the tail prints the build's commit and date only.",
+  "profile": "Lighthouse mobile, simulated",
+  "lcpMs": 2452,
+  "transferKB": 222,
+  "measuredOn": "2026-11-13",
+  "sha": "c974780"
+}

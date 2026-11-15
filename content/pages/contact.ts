@@ -15,6 +15,8 @@ export const contact = {
   intro:
     'I’m always glad to hear about collaborations on production AI, and invitations to speak or write about agents, retrieval, and AI architecture.',
   emailLabel: 'Email',
+  /** DRAFT (for Jack): the one honest response line under the address (the plain direction's words). */
+  response: 'DRAFT · I read everything and answer within a week.',
   copy: { label: 'Copy email', done: 'Copied' },
   ways: { github: 'GitHub', linkedin: 'LinkedIn', resume: 'Résumé' },
   /** "Based in Toronto, Canada (Eastern Time, 9:41 there).": {time} is the local time, filled in the browser. */

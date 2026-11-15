@@ -72,6 +72,8 @@ export async function settle(page: Page, timeout = 30_000) {
       if (document.readyState !== 'complete') return false;
       if (document.fonts && document.fonts.status !== 'loaded') return false;
       if (document.documentElement.classList.contains('no-landscape')) return true;
+      // (the live probe decided against a painting here: the page's still is the painting, and it is settled)
+      if (document.documentElement.getAttribute('data-live') === 'still') return true;
       const L = (window as unknown as { __ink?: { stats(): Record<string, unknown> } }).__ink;
       if (!L) return performance.now() > 15_000;
       const s = L.stats() as Record<string, any>;

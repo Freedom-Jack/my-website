@@ -14,7 +14,24 @@ const withMDX = createMDX({
 
 const config: NextConfig = {
   // This project's own folder is the root (never a parent folder that happens to hold another lockfile).
-  turbopack: { root: process.cwd() },
+  turbopack: {
+    root: process.cwd(),
+    rules: {
+      // the engine's shader module: its GLSL loses its comments and indentation in the bundle (tools/glsl-loader.cjs),
+      // which takes the engine's chunk under its 100 KB (gzip) budget; the source stays readable and the programs are
+      // the same tokens. (A glob with a `/` matches the project-relative path; the `**/` form is what matched.)
+      '**/landscape/engine/shaders.ts': {
+        loaders: [path.join(process.cwd(), 'tools/glsl-loader.cjs')],
+        as: '*.ts',
+      },
+    },
+  },
+  experimental: {
+    // Fewer, larger client chunks on a first load (the budgets' request gate: 12 first-load requests as the target,
+    // 15 the gate): the App Router's defaults split the framework and the site's own code into eight scripts; merging
+    // the small ones costs nothing on a site this size and saves requests on every cold visit.
+    turbopackChunking: { minChunkSize: 200000, maxChunkCountPerGroup: 5, requestCost: 500000 },
+  },
   outputFileTracingRoot: process.cwd(),
   // The pages read content/ at build time; the Work page (revalidated daily) reads it again on the server.
   outputFileTracingIncludes: { '/work': ['./content/**/*'], '/work/[slug]': ['./content/**/*'] },

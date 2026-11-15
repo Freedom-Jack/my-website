@@ -503,10 +503,21 @@ function onLimb(L: LimbOut, t: number, side: number): { p: Pt; up: Pt; along: nu
   return { p: L.P[i], up: [n[0] * side, n[1] * side], along, hw: L.hw[i] ?? 1 };
 }
 
+/** The plum's main limb's control points (dx, dy in units of s, from where it enters): the root first, out of the frame,
+ *  the tip last. `trim` shortens the tail beyond the fifth point (0: the limb ends at the elbow's far node, 1: the whole
+ *  tail), the points keeping their order along the line. (The vanguard round's fix round: scaling the tail's dx alone
+ *  put its first point east of the fifth, so the brush doubled back on itself: a stub where the tip should thin out.) */
+function plumCtl(trim: number): Pt[] {
+  const t = Math.max(0, Math.min(1, trim));
+  const head: Pt[] = [[52, 104], [-30, 70], [-104, 56], [-170, 66], [-226, 92]];
+  if (t < 0.05) return head;
+  const tail = ([[-276, 110], [-322, 104], [-350, 90]] as Pt[]).map(([dx, dy]): Pt => [-226 + (dx + 226) * t, 92 + (dy - 92) * t]);
+  return [...head, ...tail];
+}
 /** The plum's main limb as plumFrame lays it (its control points before the brush's jitter), world px: where the
  *  pointer may touch the bough (elements.ts plumGust). */
 export function plumLine(ex: number, ey: number, s: number, trim = 1): Pt[] {
-  return [[52, 104], [-30, 70], [-104, 56], [-170, 66], [-226, 92], [-276 * trim, 110], [-322 * trim, 104], [-350 * trim, 90]].map(([dx, dy]): Pt => [ex + dx * s, ey + dy * s]);
+  return plumCtl(trim).map(([dx, dy]): Pt => [ex + dx * s, ey + dy * s]);
 }
 /**
  * The plum bough (never clip-art, never the loudest thing in the scene, never cutting the peak). It enters from the
@@ -517,9 +528,9 @@ export function plumLine(ex: number, ey: number, s: number, trim = 1): Pt[] {
  */
 export function plumFrame(env: Env, ex: number, ey: number, s: number, R: Rng, o: { trim?: number } = {}): { box: { x: number; y: number; w: number; h: number } } {
   const S = (dx: number, dy: number): Pt => [ex + dx * s, ey + dy * s];
-  const trim = o.trim ?? 1;   // (phones: the tip is shorter)
+  const trim = o.trim ?? 1;   // (the tail shortened: plumCtl)
   const jit = (c: Pt[], k: number) => c.map(([x, y], i): Pt => (i === 0 || i === c.length - 1 ? [x, y] : [x + (R() - 0.5) * k * s, y + (R() - 0.5) * k * s]));
-  const mainC = [S(52, 104), S(-30, 70), S(-104, 56), S(-170, 66), S(-226, 92), S(-276 * trim, 110), S(-322 * trim, 104), S(-350 * trim, 90)];
+  const mainC = plumCtl(trim).map(([dx, dy]) => S(dx, dy));
   const subC = [S(-104, 52), S(-108, 84), S(-124, 112), S(-146, 128), S(-158, 140)];
   const whipC = [S(-170, 66), S(-180, 50), S(-192, 40), S(-206, 36)];
   const whip2C = [S(-226, 92), S(-236, 78), S(-248, 70), S(-258, 68)];

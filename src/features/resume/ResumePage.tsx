@@ -4,39 +4,21 @@ import { site } from '@content/site';
 import { PageMain } from '@/components/page/PageMain';
 import { Glimpse } from '@/components/page/Glimpse';
 import { Strip } from '@/components/page/Strip';
-import { InkButton } from '@/components/ui/InkButton';
-import { shortMonthYear } from '@/lib/dates';
+import { TextAction } from '@/components/ui/TextAction';
+import { longDate, monthYear, shortMonthYear } from '@/lib/dates';
 import { Inline } from '@/lib/inline';
 import { bareUrl, resume } from './resume';
 import styles from './resume.module.css';
 
 /**
  * The Résumé (/resume/), rendered from content/resume.json. The terraced fields' hero with the name and the title
- * (the same hero as every subpage), then the rest of the letterhead on paper and the document as a hanging indent;
- * it ends on the fields once more. This page's
+ * (the same hero as every subpage), then the rest of the letterhead on paper with "Updated" (the content's own date)
+ * and three actions (the PDF, the JSON, the email), and the document as one dense column: each role one line,
+ * "years · title · organisation" (the title carries its own scope, as the résumé words it), its points under it; it
+ * ends on the fields once more. This page's
  * print stylesheet IS the PDF (tools/build-pdf.ts prints it), so the page and the PDF never disagree.
  * No phone number, ever: the schema refuses one (features/resume/schema.ts).
  */
-
-// One hand-drawn dry-brush stroke per role, from its year down to the next (decorative; the last role has none).
-const STROKES = [
-  {
-    ink: 'M6.3 0C7.7.6 7.9 3 7.6 9 7.3 26 7.1 47 6.9 65 6.7 81 6.6 92 6.2 100 5.9 92 5.6 81 5.4 65 5.1 47 4.7 26 4.5 9 4.4 3 4.8.5 6.3 0Z',
-    dry: 'M7.5 28C7.4 47 7.2 66 6.8 97',
-  },
-  {
-    ink: 'M5.8 0C7.2.7 7.6 3.4 7.4 10 7.1 27 6.6 45 6.6 63 6.6 80 6.9 91 6.4 100 6.1 91 5.7 80 5.3 63 5.1 45 4.4 27 4.3 10 4.2 3.2 4.5.6 5.8 0Z',
-    dry: 'M7.3 33C7.1 51 7.3 70 6.9 96',
-  },
-  {
-    ink: 'M6.1 0C7.5.5 7.8 2.8 7.5 8.6 7.2 25 7.4 44 7 62 6.6 80 6.3 91 6 100 5.7 91 5.5 80 5.5 62 5.5 44 4.7 25 4.4 8.6 4.3 2.9 4.7.5 6.1 0Z',
-    dry: 'M7.6 30C7.5 49 7.2 67 6.7 95',
-  },
-  {
-    ink: 'M6 0C7.4.6 7.7 3.1 7.5 9.4 7.2 26 6.8 46 6.8 64 6.8 81 6.6 92 6.3 100 6 92 5.6 81 5.4 64 5.3 46 4.6 26 4.4 9.4 4.3 3.1 4.6.6 6 0Z',
-    dry: 'M7.4 31C7.4 50 7.1 68 6.8 96',
-  },
-];
 
 function Dates({ start, end }: { start: string; end?: string | undefined }) {
   return (
@@ -57,7 +39,7 @@ export function ResumePage() {
   return (
     <PageMain page="resume" className={styles.page} printName={false}>
       <article className={styles.cv} aria-labelledby="cv-name">
-        <Strip variant="sub" labelledBy="cv-name">
+        <Strip variant="sub" labelledBy="cv-name" still="resume">
           <h1 className="page-title" id="cv-name">
             {r.basics.name}
           </h1>
@@ -74,39 +56,39 @@ export function ResumePage() {
             <span>
               {r.basics.location.city}, {r.basics.location.region}, {site.countryName}
             </span>
-            <span>
-              <a className="brush brush--rest" href={`mailto:${r.basics.email}`}>
-                {r.basics.email}
-              </a>
+            <span className={styles['cv-head__site']}>
+              {/* the PDF's letterhead only: on screen the address is the third action, below */}
+              <a href={`mailto:${r.basics.email}`}>{r.basics.email}</a>
             </span>
             {github ? (
               <span>
-                <a className="brush brush--rest" href={github.url}>
-                  {bareUrl(github.url)}
-                </a>
+                <a href={github.url}>{bareUrl(github.url)}</a>
               </span>
             ) : null}
             {linkedin ? (
               <span>
-                <a className="brush brush--rest" href={linkedin.url}>
-                  {bareUrl(linkedin.url).replace(/^www\./, '')}
-                </a>
+                <a href={linkedin.url}>{bareUrl(linkedin.url).replace(/^www\./, '')}</a>
               </span>
             ) : null}
             <span className={styles['cv-head__site']}>
               {/* the PDF's letterhead only: on screen the reader is already here */}
-              <a className="brush brush--rest" href={`${site.url}/`}>
-                {host}
-              </a>
+              <a href={`${site.url}/`}>{host}</a>
             </span>
           </p>
           <p className={`actions ${styles['cv-head__actions']}`}>
-            <InkButton href="/resume.pdf" newTab type="application/pdf">
+            <TextAction href="/resume.pdf" newTab type="application/pdf">
               {t.pdf}
-            </InkButton>
-            <a className="brush brush--rest" href="/resume.json" type="application/json">
+            </TextAction>
+            <a href="/resume.json" type="application/json">
               {t.json}
             </a>
+            <a href={`mailto:${r.basics.email}`}>{r.basics.email}</a>
+          </p>
+          <p className={`small mono ${styles['cv-head__updated']}`}>
+            {t.updated}{' '}
+            <time dateTime={r.meta.lastModified}>
+              {r.meta.lastModified.length === 10 ? longDate(r.meta.lastModified) : monthYear(r.meta.lastModified)}
+            </time>
           </p>
         </div>
 
@@ -125,42 +107,26 @@ export function ResumePage() {
             {t.sections.experience}
           </h2>
           <ol className={styles.timeline} role="list">
-            {r.work.map((w, i) => {
-              const stroke = i < r.work.length - 1 ? STROKES[i % STROKES.length] : null;
-              return (
-                <li className={styles.timeline__entry} key={`${w.position}-${w.startDate}`}>
-                  <span className={`fig ${styles.timeline__year}`} aria-hidden="true">
-                    {w.startDate.slice(0, 4)}
+            {r.work.map((w) => (
+              <li className={styles.timeline__entry} key={`${w.position}-${w.startDate}`}>
+                <h3 className={`sec__sub ${styles.timeline__role}`}>
+                  <span className={styles.timeline__years}>
+                    <Dates start={w.startDate} end={w.endDate} />
                   </span>
-                  {stroke ? (
-                    <svg
-                      className={styles.timeline__stroke}
-                      viewBox="0 0 12 100"
-                      preserveAspectRatio="none"
-                      aria-hidden="true"
-                      focusable="false"
-                    >
-                      <path className={styles.timeline__ink} d={stroke.ink} />
-                      <path className={styles.timeline__dry} pathLength={100} d={stroke.dry} />
-                    </svg>
-                  ) : null}
-                  <div className={styles.timeline__body}>
-                    <h3 className={`sec__sub ${styles.timeline__role}`}>{w.position}</h3>
-                    <p className={`small ${styles.timeline__meta}`}>
-                      {w.name} · {w.location ? `${w.location} · ` : null}
-                      <Dates start={w.startDate} end={w.endDate} />
-                    </p>
-                    <ul className={styles.timeline__points} role="list">
-                      {w.highlights.map((h) => (
-                        <li key={h}>
-                          <Inline text={h} />
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </li>
-              );
-            })}
+                  {' · '}
+                  {w.position}
+                  {' · '}
+                  <span className={styles.timeline__org}>{w.name}</span>
+                </h3>
+                <ul className={styles.timeline__points} role="list">
+                  {w.highlights.map((h) => (
+                    <li key={h}>
+                      <Inline text={h} />
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ))}
           </ol>
         </section>
 

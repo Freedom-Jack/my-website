@@ -10,15 +10,15 @@ const subscribe = (fn: () => void) => {
 };
 
 /**
- * The footer's "Still the landscape": a toggle (aria-pressed) whose label never changes; pressed, its brush mark
- * stays drawn. Hidden without JS (it does nothing without it).
+ * The tail's "Still the landscape": a toggle (aria-pressed) whose label never changes; pressed, its underline stays
+ * in the burnt ink. Hidden without JS (it does nothing without it).
  */
 export function StillToggle() {
   const on = useSyncExternalStore(subscribe, isStill, () => false);
   return (
     <>
       <button
-        className="still-toggle brush"
+        className="still-toggle"
         type="button"
         aria-pressed={on}
         aria-describedby="still-hint"

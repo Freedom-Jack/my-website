@@ -4,15 +4,20 @@ Every word on the site lives in `content/`. Code never holds copy, so changing w
 a component. Run `npm run dev`, edit, and the page updates. Before you push, run `npm run ci`; it checks every content
 file (the schemas, the hard rules, the counts below).
 
-| To change                                                                         | Edit                                                    |
-| --------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| Name, title, email, city, profiles, jobs, education, skills, awards, certificates | `content/resume.json`                                   |
-| A page's own words (Home, Work's index, Contact, Writing, Résumé, 404)            | `content/pages/<page>.ts`                               |
-| A project (its page `/work/<slug>/` and its row in Work's table)                  | `content/work/<slug>.mdx`                               |
-| A note (`/writing/<slug>/`)                                                       | `content/writing/<slug>.mdx`                            |
-| The nav, the footer's "Updated", the author line, the site's address, search data | `content/site.ts`                                       |
-| The "In the open" repositories on Work                                            | `content/github/overrides.json`                         |
-| A project's brush diagram                                                         | `content/work/diagrams/<name>.wide.svg` and `.tall.svg` |
+| To change                                                                                             | Edit                                                    |
+| ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| Name, title, email, city, profiles, jobs, education, skills, awards, certificates                     | `content/resume.json`                                   |
+| A page's own words (Home, Work's index, Contact, Writing, Résumé, 404)                                | `content/pages/<page>.ts`                               |
+| A project (its page `/work/<slug>/` and its row in Work's table)                                      | `content/work/<slug>.mdx`                               |
+| A note (`/writing/<slug>/`)                                                                           | `content/writing/<slug>.mdx`                            |
+| The nav, the tail (the colophon, "Last changed"), the ending's label, the site's address, search data | `content/site.ts`                                       |
+| The tail's measured number (written by CI, never by hand)                                             | `content/measured.json`                                 |
+| The "In the open" repositories on Work                                                                | `content/github/overrides.json`                         |
+| A project's brush diagram                                                                             | `content/work/diagrams/<name>.wide.svg` and `.tall.svg` |
+| Work's search and Under the hood: the box, the status line, the folds' titles and sizes               | `content/pages/work-craft.ts` (`search`, `hood`)        |
+| The folds' ties and cases (DRAFT), long words (in their JSON, never in Work's HTML), the DRAFT eval   | `content/craft/hood.ts`, `content/craft/eval.ts`        |
+| A case page's shared words: where a figure comes from (DRAFT "internal figure"), the NDA line (DRAFT) | `content/pages/case.ts`                                 |
+| Where a project's figure comes from (`public-source`, `internal`, `projected`; A1)                    | `content/work/<slug>.mdx` (`figure.basis`)              |
 
 ## The résumé: one file, three outputs
 
@@ -108,6 +113,11 @@ These are checked on every push (`npm run check:compliance`, and the unit tests)
 - No project-management certification.
 - The public email is qxjack@gmail.com.
 - The only Chinese character on the site is the seal's, and it is drawn as a path, never typed as text.
-- Visible text says "Qijin Xu". "Jack" appears only in the About-me sign-off ("— Jack") and "Goes by Jack". The
-  search phrase "Qijin (Jack) Xu" lives in page titles and search data only.
+- Visible text says "Qijin Xu". "Jack" appears only in the Résumé's "Goes by Jack". The search phrase
+  "Qijin (Jack) Xu" lives in page titles and search data only.
 - Any new Chinese text is shown to Jack before it is used.
+- New words in Jack's voice that he has not approved carry a visible "DRAFT · " mark in the content file until he
+  does (the first screen's title line, the tail's colophon line, the Résumé's one-sentence line, Contact's response
+  line, a case page's "internal figure" and NDA line).
+- Approved words taken off a page for a budget are held, word for word, beside the ones shown (`held` in
+  `content/pages/home.ts`: two lines off Home to keep it under 400 words), for Jack's call.

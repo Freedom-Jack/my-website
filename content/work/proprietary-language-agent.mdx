@@ -7,6 +7,7 @@ role: Lead architect
 figure:
   value: Projected 50%
   note: less manual work
+  basis: projected
 # The search snippet (≤ 160 characters): who did it and the result. Without one, the summary is used.
 metaDescription: 'Qijin (Jack) Xu leads an agent that reads legacy code in a proprietary language, documents it and extracts its business rules. Projected 50% less manual work.'
 summary: An agent that reads legacy code in a proprietary language, documents it, and extracts the business rules inside.
@@ -23,11 +24,11 @@ diagram:
     - 'What comes out: documentation, extracted business rules and code prepared for migration.'
 ---
 
-## Context
+## Problem
 
 A client’s business rules live in legacy scripts written in a proprietary programming language. The scripts need maintaining and documenting now, and migrating later. Because the language is proprietary, general-purpose models can’t be trusted with it out of the box.
 
-## What I did
+## My part
 
 I lead the agent’s design and delivery. A LangGraph dual-state dynamic workflow coordinates vLLM-served models with retrieval. EBNF grammars constrain every output to what the grammar allows, and PII filtering keeps personal information out. The agent writes documentation, extracts business rules, and prepares the code for migration.
 
@@ -39,7 +40,7 @@ I lead the agent’s design and delivery. A LangGraph dual-state dynamic workflo
 
 <Note term="PII">Personally identifiable information: data that identifies a person, such as a name or an email address.</Note>
 
-## Outcome
+## Outcome and status
 
 Projected **50%** less manual work. In progress.
 

@@ -76,7 +76,8 @@ describe('content/work/*.mdx', () => {
       const labels = [...c.body.matchAll(/^## (.+)$/gm)].map((m) => m[1]);
       expect(labels.length).toBeGreaterThan(0);
       for (const l of labels)
-        expect(['Context', 'What I did', 'The hard part', 'Outcome', 'Evidence', 'Stack']).toContain(l);
+        // the case's spine (P5): a missing part is left out, never renamed
+        expect(['Problem', 'My part', 'The hard part', 'Outcome and status', 'Evidence', 'Stack']).toContain(l);
     });
   }
   it('orders are unique (the index table, newest first)', () => {
@@ -109,6 +110,18 @@ describe('content/work/*.mdx', () => {
     const slugs = cases.map((c) => c.slug);
     for (const row of home.workOn.rows) expect(slugs).toContain(row.href.replace(/^\/work\/|\/$/g, ''));
   });
+  it('the first screen’s proof is the approved row, split round the case’s own figure; its cases exist', () => {
+    const slugs = cases.map((c) => c.slug);
+    expect(slugs).toContain(home.first.proof.case);
+    expect(slugs).toContain(home.first.now.case);
+    const proof = cases.find((c) => c.slug === home.first.proof.case)!.data as { figure: { value: string } };
+    const words = proof.figure.value.trim().split(/\s+/);
+    const value = words.pop();
+    const lead = words.join(' ');
+    // "About **90%** of questions resolved…" = the lead, the figure in bold, the measure
+    expect(home.workOn.rows[0]!.line).toBe(`${lead ? `${lead} ` : ''}**${value}** ${home.first.proof.measure}`);
+    expect(home.workOn.rows[0]!.href).toBe(`/work/${home.first.proof.case}/`);
+  });
 });
 
 describe('the hard rules, across every content file (DESIGN §2)', () => {
@@ -134,5 +147,31 @@ describe('the hard rules, across every content file (DESIGN §2)', () => {
     ];
     for (const d of dates)
       expect(String(d).slice(0, 7) <= site.updated, `${d} is newer than "${site.updated}"`).toBe(true);
+  });
+});
+
+describe('figures say where they come from (A1), and Now stays dated', () => {
+  const cases = mdxFiles('content/work');
+  for (const c of cases) {
+    const fm = c.data as { figure: { basis: string; note: string; value: string }; outcome: string };
+    it(`${path.relative(process.cwd(), c.file)}: a figure with a basis; a link out only from a public source`, () => {
+      expect(['public-source', 'internal', 'projected']).toContain(fm.figure.basis);
+      if (fm.figure.basis !== 'public-source') expect(fm.figure.note).not.toMatch(/\]\(|https?:/);
+      // a projection is said as one, in words
+      if (fm.figure.basis === 'projected') {
+        expect(`${fm.figure.value} ${fm.figure.note}`.toLowerCase()).toContain('projected');
+        expect(fm.outcome.toLowerCase()).toContain('projected');
+      }
+    });
+  }
+  it('Home’s "Now" is never more than 90 days old (its month is printed)', () => {
+    if (!home.now.lines.length) return;
+    const start = Date.parse(`${home.now.month}-01T00:00:00Z`);
+    expect(Number.isFinite(start)).toBe(true);
+    const days = (Date.now() - start) / 86_400_000;
+    expect(
+      days,
+      `content/pages/home.ts now.month ${home.now.month} is ${Math.round(days)} days old`,
+    ).toBeLessThanOrEqual(90);
   });
 });

@@ -1,6 +1,7 @@
 /**
  * The seal: a carved cinnabar stone with his surname cut into it, like a painter's seal. The glyph is the one
- * Chinese character on the site (DESIGN.md §2; pre-approved). Decorative: always aria-hidden.
+ * Chinese character on the site (DESIGN.md §2; pre-approved). Decorative: always aria-hidden. It signs the site
+ * once per page, at the tail (components/layout/Tail): the only red on the page.
  *
  * The glyph is an outline, not text, so no CJK font is ever loaded: Noto Serif SC Black at 44 px, centred on
  * x 32.3 with its baseline at y 48.2 of the 64-unit stone (the demo's <text> placement), extracted once with
@@ -13,13 +14,10 @@ export const SEAL_GLYPH =
 export const SEAL_STONE =
   'M5.2 4.6 58.9 3.8q1.5.1 1.4 1.8l-.7 53.1q-.1 1.6-1.7 1.5L5.6 59.4q-1.5-.1-1.4-1.8L3.9 6.1q0-1.4 1.3-1.5Z';
 
-/**
- * @param id    unique per page: the carving mask's id ("seal-carve" in the header, "seal-carve-sign" for the signature)
- * @param sign  the About-me signature's smaller, static seal (never stamped)
- */
-export function Seal({ id, sign = false }: { id: string; sign?: boolean }) {
+/** @param id  unique per page: the carving mask's id ("seal-carve-tail" at the tail) */
+export function Seal({ id }: { id: string }) {
   return (
-    <span className={sign ? 'seal seal--sign' : 'seal'} aria-hidden="true">
+    <span className="seal" aria-hidden="true">
       <svg className="seal__mark" viewBox="0 0 64 64" focusable="false">
         <defs>
           <mask id={id} maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">

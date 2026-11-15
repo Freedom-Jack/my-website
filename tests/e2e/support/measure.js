@@ -211,7 +211,7 @@ async (opts = {}) => {
   out.fitsFirstScreen = out.contentBottom <= vh;
 
   // ---------------------------------------------------------------- photo, reveal/arrive, strip/closing boxes
-  const img = main.querySelector('img');
+  const img = main.querySelector('img:not(.strip__still img):not(.glimpse__still)');   // (the strip's still and the windows' stills are the painting, not the photo)
   if (img) {
     const r = img.getBoundingClientRect();
     out.photo = { top: R(r.top + sy), w: R(r.width), h: R(r.height), onFirstScreen: r.top + sy < vh, src: img.getAttribute('src') };

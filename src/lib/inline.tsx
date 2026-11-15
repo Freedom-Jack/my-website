@@ -9,19 +9,11 @@ export function isInternal(href: string): boolean {
   return href.startsWith('/') && !href.startsWith('//');
 }
 
-/** One link, as every link on the site is drawn: a resting dry-brush mark that draws on hover. */
-export function InlineLink({
-  href,
-  children,
-  className = 'brush brush--rest',
-}: {
-  href: string;
-  children: ReactNode;
-  className?: string;
-}) {
+/** One link, as every link on the site is drawn: a plain resting underline, ink on hover (effects.css). */
+export function InlineLink({ href, children, className }: { href: string; children: ReactNode; className?: string }) {
   if (isInternal(href) && !/\.[a-z0-9]+$/i.test(href.split(/[?#]/)[0] ?? '')) {
     return (
-      <Link className={className} href={href}>
+      <Link className={className} href={href} prefetch={false}>
         {children}
       </Link>
     );

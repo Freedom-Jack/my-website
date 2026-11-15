@@ -198,6 +198,18 @@ export interface Frame {
   /** HERO places: where the closing looks instead of the focus (stretch-local u), when the centred focus would show a
    *  neighbour's heaviest ink cut by the window's edge (the river: Home's east crag). */
   closingU?: number;
+  /** (the vanguard round) where a deep page's hero looks (stretch-local u): inside the place, east of its landmark
+   *  (a case among the town's quays and boats, a note on the lake), closer by HERO.inside; `insideUNarrow` on phones
+   *  and tablets, whose strip is a different cut of the place (default: insideU). */
+  insideU?: number;
+  insideUNarrow?: number;
+  /** (the vanguard round, the unroll) the place's last named thing to the east (stretch-local u): the page's travel
+   *  stops where it would go under the standing curtain (index.ts measureSlide, UNROLL.holdAt), so the margin shows a
+   *  drawn place to the page's end. Set where the next place lies beyond an empty reach (Work: the quay's east
+   *  moorings before the lake; the Résumé: the right hill's east shoulder before the crossing; Contact: the ferry at its
+   *  jetty, the last place on the chain); unset where the next
+   *  place arrives in the margin before this one has left it (Home: the town's west end). */
+  holdU?: number;
 }
 /** A scene's brush technique, windowed over stretch-local `at`. */
 interface Tech {
@@ -279,26 +291,45 @@ export const SCENES: Scene[] = [
         64, 64, 64, 61, 60, 59, 48, 48, 48, 48, 48, 46, 45, 45, 45, 51, 51, 51, 51, 51, 51, 51, 51, 55, 58, 58, 58, 55, 48,
         39, 39, 39, 38, 28, 17, 17, 17, 31, 31, 31] } },
     // (the closing looks a little east of the bridge: a wide closing is 1.25 stretches wide, and centred on the bridge its
-    // left edge would cut Home's east crag, the darkest ink on the page)
-    frame: { focus: [0.565, 0.272], keepU: 0.482, closingU: 0.69 },
+    // left edge would cut Home's east crag, the darkest ink on the page. The vanguard round (the unroll, phones): the
+    // closing looks at the reach after the town, the river running on toward the lake; a case opens INSIDE the town,
+    // east of the bridge. On a wide screen (insideU 0.72) the keep-out rule brings the view back until the bridge's west
+    // foot (keepU) stands clear of the words, so the bridge looms whole at the words' edge and the town east of it,
+    // closer, fills the margin; on a phone and a tablet (insideUNarrow 0.92) the bridge is out of view to the west (a
+    // phone) or whole at the left (a tablet) and the quay, the moored boats and the two-storey house (u 1.755-1.93)
+    // fill the strip)
+    // (the unroll's hold: the town's east moorings (u 1.83-1.9), its last tree and house (1.93-1.96) stand in the
+    // margin to the page's end; beyond them the river opens into the lake, an empty reach until the pavilion at 2.78)
+    frame: { focus: [0.565, 0.272], keepU: 0.482, closingU: 0.98, insideU: 0.72, insideUNarrow: 0.92, holdU: 0.86 },
     figures: 'market' },
   // Writing: a still lake, where the river opens out (its near bank sinks out of view between the town and the lake).
   // The low far shore and its whole reflection: the waterline the river's, the mirror below it (water.mirror: a still,
   // whole reflection, few strokes). Boneless and pale (tech.ink): the quietest place on the scroll.
   { name: 'lake', page: WORLD, tech: { at: [-0.10, 1.02], bone: 0.1, ink: 0.85 }, water: { at: [0.0, 1.0], y: 0.29, strokes: 0.25, refl: 1, banks: 1, mirror: 1 },
-    // (the closing shares Writing's first screen with its strip: its twin looks west down the still water, the pavilion
-    // out of view)
-    frame: { focus: [0.8, 0.3], twinU: 0.25 } },
+    // (the closing shares Writing's first screen with its strip: its twin used to look west down the still water, the
+    // pavilion out of view. The vanguard round: the ending looks east, where the lake narrows toward the terraces, the
+    // river going on; a note opens inside the lake, the pavilion close)
+    frame: { focus: [0.8, 0.3], twinU: 0.98, closingU: 0.98, insideU: 0.84 } },
   // Résumé: the river narrows again and runs along the foot of the terraced hills, which step down to its far bank
   // (tech.terr), in pale malachite; lower terraced hills on its near bank.
   { name: 'shore', page: WORLD, tech: { at: [0.02, 0.98], bone: 0.5, ink: 1.3, terr: 1 },
     water: { at: [0.0, 1.0], y: 0.29, near: 0.205, strokes: 0.35, refl: 0.5, banks: 0.4 },
-    frame: { focus: [0.65, 0.3] } },
+    // (the vanguard round: the ending looks east, toward the crossing. The unroll's hold: the right hill's blossom
+    // tree (its crown at 0.72, the tree at 0.77, the east shoulder at 0.85, the terraces to 1.0) stands a quarter of
+    // the way into the margin to the page's end, the whole hill with it (held at the shoulder, 0.85, the crown and
+    // the tree stood under the curtain's feather and the margin read as pale washes: 0.65 % of its pixels on an
+    // edge, against the spec's 0.5 % floor); the crossing's ferry lies beyond half a stretch of open water, which the
+    // page change's pan crosses)
+    frame: { focus: [0.65, 0.3], closingU: 0.98, holdU: 0.78 } },
   // Contact: the crossing, where the river opens into wide water: the far shore (the echo of his mountain at the right),
   // the open water below it in pale indigo with long ripples, the ferry at the jetty on the near side.
   { name: 'crossing', page: WORLD, tech: { at: [-0.02, 0.98], bone: 0.22, ink: 0.96, inkPortrait: 1.06 }, water: { at: [0.0, 0.96], y: 0.29, strokes: 1, refl: 0.75, banks: 0.8 },
-    // (the twin: west along the crossing, the far shore's long low ranges over the open water, the ferry out of view)
-    frame: { focus: [0.68, 0.3], keepU: 0.6, twinU: 0.3 } },
+    // (the twin: west along the crossing, the far shore's long low ranges over the open water, the ferry out of view.
+    // The unroll's hold (the lead's ruling R12): just east of the jetty's end (0.7), so the moored ferry (0.635) and the
+    // jetty stand in the margin, clear of the curtain, to the page's end (held at 0.7, the travel fell under 100 px).
+    // Held nowhere, P5's longer page slid the ferry under the curtain and the margin read as open water and mist: 0.42 %
+    // of its pixels on an edge, against the 0.5 % floor)
+    frame: { focus: [0.68, 0.3], keepU: 0.6, twinU: 0.3, holdU: 0.74 } },
   // The 404: one peak alone beyond the water, mist all round it (no closing: the page is off the map). Its host plane
   // stands taller than the composition's (amp: the old 'high' distance's relief), so one narrow summit rises clear.
   { name: 'lone-peak', page: WORLD, amp: [1, 1, 1.25, 1, 1],
@@ -639,6 +670,10 @@ export interface FramingBox {
   keepoutRight?: number | null;
   doc?: boolean;
   twin?: boolean;
+  /** (the vanguard round) a deep page's hero: inside its place, closer (HERO.inside) and further along it (the
+   *  scene's Frame.insideU, or `insideU`: a case's own place in the town, stretch-local). */
+  inside?: boolean;
+  insideU?: number;
 }
 /** Where a window looks: world x (stretches) at its left edge, scene height at its top, CSS px per stretch, the focus
  *  in box px. */
@@ -716,6 +751,16 @@ export function framingAt(stretch: number, cls: WidthClass = 'wide', box: Framin
     }
     fy = F.focus[1];
     nominal = T.scale;
+  } else if (box.inside && !own && kind === 'strip') {
+    // (the vanguard round) a deep page opens INSIDE its place: the same horizon rule, a little closer (HERO.inside), and
+    // framed on the place's inner focus (insideU: east of the landmark), so a case opens among the town's boats and quays
+    // rather than on the town's postcard. Its figure layer is the strip's, drawn at the hero's scale (within LAYER_SHARE).
+    scale = heroScale(cls, width) * HERO.inside;
+    nominal = heroScale(cls, width);
+    fu = Number.isFinite(box.insideU!) ? +box.insideU! : ((cls === 'wide' ? F.insideU : (F.insideUNarrow ?? F.insideU)) ?? F.focus[0]);
+    fy = F.focus[1];
+    top = heroTop(scale);
+    left = k + fu - HERO.fx[cls] * width / scale;
   } else {
     // the hero rule: one stretch is the box's width on wide screens (to 1700 px), a fixed scale below; the horizon HERO.at
     // down the box; the focus HERO.fx across (Home: its view's right edge at u 1, its mountain at the right)
@@ -755,6 +800,8 @@ export const HERO: {
   scale: Record<Exclude<WidthClass, 'wide'>, number>;
   closing: number;
   twin: number;
+  /** (the vanguard round) a deep page's hero (a case, a note) looks this much closer at its place's inner focus. */
+  inside: number;
 } = {
   horizon: 0.289,
   at: 0.66,
@@ -762,6 +809,7 @@ export const HERO: {
   scale: { tablet: 1000, phone: 820, short: 560 },
   closing: 0.8,
   twin: 1.6,
+  inside: 1.15,
 };
 /** The hero rule's scale for a width class and a box width: CSS px per stretch. */
 export function heroScale(cls: WidthClass, width: number): number {
@@ -836,6 +884,26 @@ function spanFrame(k: number, T: ClosingView, cls: WidthClass, width: number, he
   const x0 = kr !== null && kr > 0 ? Math.min(kr, width * 0.6) : 0;   // (a text over most of the box: its right 40 %)
   const scale = (width - x0) / Math.max(0.05, u1 - u0);
   return { scale, left: k + u1 - width / scale, top: bandTop(T, cls, height, scale), fu: T.u ?? (u0 + u1) / 2 };
+}
+
+/**
+ * (the vanguard round, A2: the sub-anchors) The camera position (a fractional stretch, as panTo takes it) that brings
+ * world x `k + u` (a place's part: a case's quay in the town, a role's terrace, a section's crag) to the hero's focus
+ * column (HERO.fx across the box) in this width class's strip framing. DOM-free: the search pans there and back with
+ * `panTo(cameraFor(...))`. Solved on framingBlend's blended worldLeft, which rises with the stretch (bisection, 1e-4).
+ */
+export function cameraFor(k: number, u: number, cls: WidthClass = 'wide', box: FramingBox = {}): number {
+  const width = Math.max(1, +box.width! || 1440);
+  const want = clampK(Math.round(Number(k) || 0)) + (Number(u) || 0);
+  const at = (s: number) => { const f = framingBlend(s, cls, box, 'strip'); return f.worldLeft + (HERO.fx[cls] * width) / f.scale; };
+  let lo = 0, hi = STRETCH_COUNT - 1;
+  if (at(lo) >= want) return lo;
+  if (at(hi) <= want) return hi;
+  for (let i = 0; i < 40 && hi - lo > 1e-4; i++) {
+    const mid = (lo + hi) / 2;
+    if (at(mid) < want) lo = mid; else hi = mid;
+  }
+  return Math.round(((lo + hi) / 2) * 1e4) / 1e4;
 }
 
 /**

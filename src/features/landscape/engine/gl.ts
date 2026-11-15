@@ -17,6 +17,12 @@
 //                      instead of queueing another behind it)
 //   settle()           wait (blocking) until the GPU has finished everything drawn so far. Only for a page that is
 //                      still hidden under the page wash: its first frame (shader compiles) lands there, not mid-reveal.
+//   poll()             advance the build: the programs' compiles and links run on the driver's own threads
+//                      (KHR_parallel_shader_compile; asked for with COMPLETION_STATUS_KHR, never a blocking wait), the
+//                      noise is painted once its program is done; `ready` turns true when every program is. index.ts
+//                      polls it from a short timer until then (whenReady) and paints the first scene only after, so the
+//                      boot never holds the main thread for the compiles (they were ~70 ms of one task on a phone).
+//                      Without the extension the first poll after LINK_GRACE asks for LINK_STATUS, which waits.
 //
 // Survives context loss: resources are rebuilt on 'webglcontextrestored' (views and figures are re-made by
 // index.ts, which repaints everything). destroy() frees them but keeps the context alive, so a remount on the same
@@ -24,9 +30,12 @@
 
 import { VERT, NOISE, NOISE_SIZE, SCENE, PRESENT } from './shaders';
 import { ROWS, LAYERS } from './ridges';
+import { mark } from './marks';
 import type { FigureImage, Renderer, RendererMemory } from './renderer';
 
-const SOFTWARE = /swiftshader|llvmpipe|softpipe|software|basic render|mesa offscreen|warp/i;
+const QA = typeof process !== 'undefined' && process.env.NEXT_PUBLIC_INK_QA === '1';   // (the boot's marks, QA builds only)
+const LINK_GRACE = 60;   // ms: without KHR_parallel_shader_compile, how long poll() lets the links run before it asks (and waits)
+const SOFTWARE =/swiftshader|llvmpipe|softpipe|software|basic render|mesa offscreen|warp/i;
 const NONE4 = new Float32Array([2, 2, -1, -1]);
 const ZERO4 = new Float32Array(4);
 const ALL_PLANES = new Float32Array([0, LAYERS - 1, 0, 0]);   // an ordinary view: every plane, opaque (4b depth layers set their own)
@@ -45,9 +54,14 @@ export interface GLHooks {
 }
 /** An error after a context was created: the canvas can no longer give a 2D context (see createGL). */
 export type TaintedError = Error & { tainted?: boolean };
-/** A linked program and its uniform locations (looked up once). */
+/** A program whose link was issued (it may still be running on the driver's threads until `done`: finish()) and its
+ *  uniform locations (looked up once, on a done program). */
 interface Program {
   p: WebGLProgram;
+  done: boolean;
+  /** Its shaders, kept until the link is checked (their logs name a failure), then deleted. */
+  vs: WebGLShader | null;
+  fs: WebGLShader | null;
   u(name: string): WebGLUniformLocation | null;
 }
 /** A view's GPU resources: its scene framebuffer (w x h; a draft paints sw x sh of it) and its ridge texture. */
@@ -68,8 +82,13 @@ interface Resources {
   sceneP: Program;
   presentP: Program;
   presentL: Program;
-  noise: WebGLTexture;
+  /** The paper and mist noise, painted once the noise program is done (null until then). */
+  noise: WebGLTexture | null;
   blank: WebGLTexture;
+  /** Every program linked and checked and the noise painted: scene() and present() may run (`ready`). */
+  complete: boolean;
+  /** performance.now() when the programs were issued (the blocking fallback waits LINK_GRACE from here). */
+  issuedAt: number;
 }
 
 function detectRenderer(gl: WebGL2RenderingContext) {
@@ -99,6 +118,7 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
     });
   } catch { context = null; }
   if (!context) return null;
+  if (QA) mark('gl:context');
   const gl = context;   // (typed: the helper functions below see a context, never a possible null)
   if (gl.isContextLost()) {
     const err: TaintedError = new Error('landscape: context lost at init');
@@ -109,8 +129,14 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
   const rendererName = detectRenderer(gl);
   const software = SOFTWARE.test(rendererName);
   const maxTex: number = gl.getParameter(gl.MAX_TEXTURE_SIZE) || 4096;
+  // the programs compile and link on the driver's threads, asked after without waiting (poll)
+  let parallel: { COMPLETION_STATUS_KHR: GLenum } | null = null;
+  try { parallel = gl.getExtension('KHR_parallel_shader_compile'); } catch { parallel = null; }
   let R: Resources | null = null;   // live GL resources
   let W = 0, H = 0;       // drawing-buffer size
+  // a size asked for before the build is complete, applied by poll() once it is: sizing the canvas waits on the GPU
+  // process, which is busy linking the programs until then (45 ms of the mount's task on a phone)
+  let wantW = 0, wantH = 0;
   // a long jump's cross-dissolve (the silk veil): the last frame before the splice, copied off the drawing buffer
   let prev: WebGLTexture | null = null, prevW = 0, prevH = 0;
   const views = new Map<string, View>();
@@ -122,37 +148,51 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
   let bitmapsOK = false;  // 4b: an ImageBitmap of a 2D canvas uploads premultiplied here (probeBitmaps)
 
   // (WebGL's create* return null only on a lost context, where every later call is a no-op: the ! below)
+  // A compile is only issued here: its status is asked with its program's link (finish), never right away (asking
+  // waits for it; the driver compiles on its own threads meanwhile).
   function compile(type: GLenum, src: string) {
     const s = gl.createShader(type)!;
     gl.shaderSource(s, src);
     gl.compileShader(s);
-    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS) && !gl.isContextLost()) {
-      const log = gl.getShaderInfoLog(s);
-      gl.deleteShader(s);
-      throw new Error(`landscape: shader compile failed\n${log}`);
-    }
     return s;
   }
   function program(frag: string): Program {
-    const p = gl.createProgram();
+    const p = gl.createProgram()!;
     const vs = compile(gl.VERTEX_SHADER, VERT);
     const fs = compile(gl.FRAGMENT_SHADER, frag);
     gl.attachShader(p, vs);
     gl.attachShader(p, fs);
     gl.linkProgram(p);
-    gl.deleteShader(vs);
-    gl.deleteShader(fs);
-    if (!gl.getProgramParameter(p, gl.LINK_STATUS) && !gl.isContextLost()) {
-      throw new Error(`landscape: link failed\n${gl.getProgramInfoLog(p)}`);
-    }
     const locs = new Map<string, WebGLUniformLocation | null>();
     return {
-      p,
+      p, vs, fs, done: false,
       u(name) {
         if (!locs.has(name)) locs.set(name, gl.getUniformLocation(p, name));
         return locs.get(name) as WebGLUniformLocation | null;
       },
     };
+  }
+  /** Is the program's link over? With the extension this never waits (COMPLETION_STATUS_KHR); without it only a
+   *  `wait` asks, and asking waits for the link. A failed link throws with the shaders' logs. */
+  function finish(pr: Program, wait: boolean): boolean {
+    if (pr.done) return true;
+    if (!wait) {
+      if (!parallel) return false;
+      if (!gl.getProgramParameter(pr.p, parallel.COMPLETION_STATUS_KHR)) return false;
+    }
+    if (!gl.getProgramParameter(pr.p, gl.LINK_STATUS) && !gl.isContextLost()) {
+      const logs = [pr.vs, pr.fs].map((s) => (s && !gl.getShaderParameter(s, gl.COMPILE_STATUS) ? gl.getShaderInfoLog(s) : '')).join('\n');
+      throw new Error(`landscape: link failed\n${gl.getProgramInfoLog(pr.p)}\n${logs}`);
+    }
+    for (const s of [pr.vs, pr.fs]) if (s) gl.deleteShader(s);
+    pr.vs = pr.fs = null;
+    pr.done = true;
+    return true;
+  }
+  function dropProgram(pr: Program | null) {
+    if (!pr) return;
+    for (const s of [pr.vs, pr.fs]) if (s) gl.deleteShader(s);
+    gl.deleteProgram(pr.p);
   }
   function tex(w: number, h: number, internal: GLenum, format: GLenum, type: GLenum, wrap: GLenum, data: ArrayBufferView | null = null): WebGLTexture {
     const t = gl.createTexture()!;
@@ -206,34 +246,68 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
     if (t) gl.deleteTexture(t);
   }
 
+  // The build is in two parts: everything is issued here in one go (the four programs link on the driver's threads
+  // meanwhile), and poll() finishes it as the links come in: the noise is painted, each program checked, `ready`.
   function build() {
     const r = {} as Resources;
+    if (QA) mark('gl:build:start');
     probeBitmaps();
+    if (QA) mark('gl:probe');
     r.vao = gl.createVertexArray()!;
     gl.bindVertexArray(r.vao);
     r.noiseP = program(NOISE);
     r.sceneP = program(SCENE);
     r.presentP = program(PRESENT);
     r.presentL = program(PRESENT.replace('#define LIFE ', '#define LIFE_ON 1\n#define LIFE '));   // 4b: with small life
-    // paper + mist noise, painted once
-    r.noise = tex(NOISE_SIZE, NOISE_SIZE, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, gl.REPEAT);
+    r.noise = null;
+    // a 1x1 transparent texture for unused samplers
+    r.blank = tex(1, 1, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, gl.CLAMP_TO_EDGE, new Uint8Array(4));
+    r.complete = false;
+    r.issuedAt = performance.now();
+    R = r;
+    if (QA) mark('gl:build:issued', { parallel: !!parallel });
+  }
+  // paper + mist noise, painted once (its program is done)
+  function paintNoise(r: Resources) {
+    const noise = tex(NOISE_SIZE, NOISE_SIZE, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, gl.REPEAT);
     const fb = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, r.noise, 0);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, noise, 0);
     gl.viewport(0, 0, NOISE_SIZE, NOISE_SIZE);
-    gl.useProgram(r.noiseP.p);
+    gl.useProgram(r.noiseP!.p);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.deleteFramebuffer(fb);
     // mipmaps: paper grain finer than a buffer pixel averages out instead of aliasing into speckle
-    gl.bindTexture(gl.TEXTURE_2D, r.noise);
+    gl.bindTexture(gl.TEXTURE_2D, noise);
     gl.generateMipmap(gl.TEXTURE_2D);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-    gl.deleteProgram(r.noiseP.p);
+    dropProgram(r.noiseP);
     r.noiseP = null;
-    // a 1x1 transparent texture for unused samplers
-    r.blank = tex(1, 1, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, gl.CLAMP_TO_EDGE, new Uint8Array(4));
-    R = r;
+    r.noise = noise;
+    if (QA) mark('gl:noise');
+  }
+  /** Finish what the links have delivered (never waiting with the extension; without it, waiting once LINK_GRACE
+   *  has passed, or when asked to `wait`). True once the build is complete. A failed program ends the renderer
+   *  (hooks.failed: the engine paints with Canvas2D on a fresh canvas instead). */
+  function poll(wait = false): boolean {
+    const r = R;
+    if (!r || gl.isContextLost()) return false;
+    if (r.complete) return true;
+    try {
+      const w = wait || (!parallel && performance.now() - r.issuedAt >= LINK_GRACE);
+      if (r.noiseP) { if (!finish(r.noiseP, w)) return false; paintNoise(r); }
+      if (!finish(r.sceneP, w) || !finish(r.presentP, w) || !finish(r.presentL, w)) return false;
+      r.complete = true;
+      if (wantW) { applySize(wantW, wantH); wantW = wantH = 0; }
+      if (QA) mark('gl:build:complete');
+      return true;
+    } catch (err) {
+      console.warn(String(err));
+      try { freeAll(); } catch { /* ignore */ }
+      hooks.failed?.();
+      return false;
+    }
   }
 
   // a figure layer's (or a sprite's) mipmapped texture, from premultiplied bytes or an ImageBitmap (closed after)
@@ -284,9 +358,7 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
     views.clear();
     for (const t of figs.values()) gl.deleteTexture(t);
     figs.clear();
-    gl.deleteProgram(R.sceneP.p);
-    gl.deleteProgram(R.presentP.p);
-    gl.deleteProgram(R.presentL.p);
+    for (const pr of [R.noiseP, R.sceneP, R.presentP, R.presentL]) dropProgram(pr);
     for (const t of [R.noise, R.blank]) if (t) gl.deleteTexture(t);
     if (prev) gl.deleteTexture(prev);
     prev = null; prevW = prevH = 0;
@@ -305,6 +377,11 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
   function clearFence() {
     if (fence && !gl.isContextLost()) { try { gl.deleteSync(fence); } catch { /* ignore */ } }
     fence = null;
+  }
+  function applySize(w: number, h: number) {
+    if (w === W && h === H) return;
+    W = canvas.width = w;
+    H = canvas.height = h;
   }
 
   const onLost = (e: Event) => {
@@ -342,12 +419,12 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
     software,
     rendererName,
     maxTexture: maxTex,
-    get ready() { return !!R && !gl.isContextLost(); },
-    /** Resize the drawing buffer (CSS size is the page's business). */
+    get ready() { return !!R && R.complete && !gl.isContextLost(); },
+    poll,
+    /** Resize the drawing buffer (CSS size is the page's business); before the build is complete, once it is (poll). */
     resize(w, h) {
-      if (w === W && h === H) return;
-      W = canvas.width = w;
-      H = canvas.height = h;
+      if (!R || !R.complete) { wantW = w; wantH = h; return; }
+      applySize(w, h);
     },
     /** Make sure view `id` has a w x h scene buffer. Returns true when it was (re)made (its painting is gone). */
     view(id, w, h) {
@@ -427,8 +504,9 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       clearFence();
     },
     scene(id, U) {
+      if (!R || !R.complete) return false;   // (the programs are still linking: the window stays pending)
       const v = views.get(id);
-      if (!R || !v || !v.ridges || !v.tex) return;
+      if (!v || !v.ridges || !v.tex) return;
       const P = R.sceneP;
       const ds = U.draft ? Math.min(1, Math.max(0.25, U.draftScale || 1)) : 1;
       const half = U.half === 0 || U.half === 1 ? U.half : -1;   // (a window's two depth layers share one buffer)
@@ -466,7 +544,7 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     },
     present(U) {
-      if (!R) return;
+      if (!R || !R.complete) return;
       const P = U.life ? R.presentL : R.presentP;   // (4b: the program with small life only while some is on screen)
       gl.bindVertexArray(R.vao);
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);

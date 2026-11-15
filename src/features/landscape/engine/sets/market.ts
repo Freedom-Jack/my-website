@@ -18,6 +18,7 @@
 // (the shader dissolves them anyway), and a layer rect cut to what any window can see.
 
 import { willowTip, swallowInk, reflectIn, ripples } from './young';
+import { el } from '../../elements';
 import {
   REF_PX, VH_PX, SCENE_FIELDS, sceneField, streams, rng, vnoise, resample, mix, mix3, smooth, D, anchor, bounds, ownSprite,
   stroke, wash, ellipse,
@@ -1464,12 +1465,16 @@ export function* draw(env: Env) {
     // on the town's lower bank, so it never floats there like a sticker)
     willowTip(env, [[2672, 340], [2635, 409], [2575, 454], [2515, 479], [2458, 489]], [[2635, 411], [2685, 439], [2728, 449]], 1.1, 574, own('d5 willow'));
     yield;
-    const sx = 2300, sy = 505, path: Pt[] = [];   // (in the open sky over the town, clear of the boat's mast and the willow)
-    for (let k = 0; k <= 30; k++) { const u = k / 30; path.push([sx + 160 - 300 * u, sy + 6 - 22 * u + 14 * Math.sin(u * 4.2)]); }
-    // (Home's painted swallow, large enough to show its white belly and paler hand; the pair apart, at different
-    // headings, never two black hooks side by side)
-    ownSprite(env, 'walker', { x: sx - 50, y: sy - 42, w: 100, h: 84 }, { path, home: [sx, sy], speed: 13, bird: true }, (e) => swallowInk(e, sx, sy, 58, 0.12, own('d5 swallow', 0), { bank: 0.4, lift: 0.3 }));
-    swallowInk(env, 2398, 548, 40, -0.38, own('d5 swallow', 1), { bank: 0.8, lift: 0.55, mist: 0.15 });
+    // (elements.ts swallows: Work's pair, off since the vanguard round's A3: the town keeps its willows and the boat
+    // lowering its mast as its one named life)
+    if (el('swallows')) {
+      const sx = 2300, sy = 505, path: Pt[] = [];   // (in the open sky over the town, clear of the boat's mast and the willow)
+      for (let k = 0; k <= 30; k++) { const u = k / 30; path.push([sx + 160 - 300 * u, sy + 6 - 22 * u + 14 * Math.sin(u * 4.2)]); }
+      // (Home's painted swallow, large enough to show its white belly and paler hand; the pair apart, at different
+      // headings, never two black hooks side by side)
+      ownSprite(env, 'walker', { x: sx - 50, y: sy - 42, w: 100, h: 84 }, { path, home: [sx, sy], speed: 13, bird: true }, (e) => swallowInk(e, sx, sy, 58, 0.12, own('d5 swallow', 0), { bank: 0.4, lift: 0.3 }));
+      swallowInk(env, 2398, 548, 40, -0.38, own('d5 swallow', 1), { bank: 0.8, lift: 0.55, mist: 0.15 });
+    }
   }
   yield;
   // (the town's mist, its back rows dissolving and the banks drifting across it, and the melting of both ends of the

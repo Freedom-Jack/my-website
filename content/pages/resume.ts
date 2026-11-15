@@ -12,6 +12,8 @@ export const resumePage = {
   },
   /** "Goes by Jack": the contact line's first item. */
   goesBy: 'Goes by {name}',
+  /** "Updated October 22, 2026": the line under the letterhead, from content/resume.json meta.lastModified. */
+  updated: 'Updated',
   pdf: 'View résumé (PDF)',
   json: 'JSON Resume',
   sections: {
@@ -22,4 +24,9 @@ export const resumePage = {
     certifications: 'Awards and certifications',
   },
   present: 'present',
+  /**
+   * DRAFT (for Jack): the one sentence the page before it ends on ("Downstream · Résumé →"). The counts are
+   * content/resume.json's: five roles since the 2019 internship, two CGI Impact Awards, two cloud certifications.
+   */
+  line: 'DRAFT · Five roles since 2019, two CGI Impact Awards and two cloud certifications: on one page, as a PDF and as JSON.',
 } satisfies PageWords & Record<string, unknown>;

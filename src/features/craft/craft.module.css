@@ -1,0 +1,354 @@
+/* The craft on Work: the search and Under the hood (features/craft). LAYOUT and the composed objects only, from the
+   design system's tokens: hairlines in --rule, small print in --fs-small, code in --font-code, the focus a hairline and
+   a tick. No new colours, fonts, sizes or motion; no boxes, no fills, no raw scores in the main view (A17). */
+
+/* ---------- the search: a label, a box and one status line ---------- */
+/* without JavaScript the box would do nothing: it is not there (A15); the six projects stand under it */
+:global(html:not(.js)) .search {
+  display: none;
+}
+.label {
+  display: block;
+  font-weight: var(--w-ui);
+  margin-block-end: var(--space-2xs);
+}
+.field {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-s);
+  border-block-end: 1px solid var(--rule);
+}
+.field:focus-within {
+  border-block-end-color: var(--ink-1);
+}
+.input {
+  flex: 1;
+  min-inline-size: 0;
+  min-block-size: 44px;
+  font: inherit;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.input:focus {
+  outline: none;
+}
+.input::-webkit-search-cancel-button {
+  display: none;
+}
+.submit {
+  flex: none;
+}
+.status {
+  margin-block-start: var(--space-2xs);
+  font-family: var(--font-code);
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  color: var(--text-3);
+}
+.results {
+  scroll-margin-block-start: calc(var(--header-h) + var(--space-s));
+}
+.count {
+  margin-block-start: var(--space-m);
+  font-size: var(--fs-small);
+  color: var(--text-2);
+}
+.hits {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-xs) 0 0;
+}
+/* a result: the passage (the link that opens it), then its source and place on a hairline */
+.hit {
+  position: relative;
+  padding-block: var(--space-s);
+  padding-inline-start: var(--space-s);
+  border-inline-start: 1px solid transparent;
+}
+.hit + .hit {
+  border-block-start: 1px solid var(--rule);
+}
+.text {
+  color: var(--text);
+  text-decoration: none;
+  display: block;
+}
+/* .hit .text (0,3,0) outranks effects.css's html.el-focus :focus-visible (0,2,1), so the ring really goes */
+.hit .text:focus,
+.hit .text:focus-visible {
+  outline: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+/* the focus (the brief: "the result focus a hairline and a tick"): the link's ring (base.css) gives way to a hairline
+   down the whole result and a tick at its first line, both in the focus ink; nothing boxed (A17) */
+.hit:focus-within {
+  border-inline-start-color: var(--focus);
+}
+.hit:focus-within::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-start: calc(var(--space-s) + 0.75em);
+  inline-size: var(--space-2xs);
+  border-block-start: 1px solid var(--focus);
+}
+.text:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--rule);
+}
+.source {
+  margin-block-start: var(--space-3xs);
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  color: var(--text-3);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-xs);
+}
+/* the place on a phone: a 44 px text control that shows the place's still inline */
+.show {
+  min-block-size: 44px;
+  font: inherit;
+  color: var(--text-2);
+  background: none;
+  border: 0;
+  padding: 0;
+  text-decoration: underline;
+  text-decoration-color: var(--rule);
+  cursor: pointer;
+}
+.still {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  margin-block-start: var(--space-xs);
+}
+.place {
+  color: var(--text-3);
+}
+/* wide screens only: the matched words, and the score as a hairline's length against the top result's */
+.matched {
+  margin-block-start: var(--space-3xs);
+  font-family: var(--font-code);
+  font-size: var(--fs-small);
+  color: var(--text-3);
+}
+.rel {
+  display: block;
+  max-inline-size: 8rem;
+  border-block-start: 1px solid var(--ink-3);
+  margin-block-end: var(--space-3xs);
+}
+@media (max-width: 29.99rem), (pointer: coarse) {
+  .matched {
+    display: none;
+  }
+}
+
+/* ---------- Under the hood: three folds on hairlines ---------- */
+.fold {
+  border-block-start: 1px solid var(--rule);
+}
+.fold:last-of-type {
+  border-block-end: 1px solid var(--rule);
+}
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0 var(--space-s);
+  min-block-size: 44px;
+  padding-block: var(--space-xs);
+  cursor: pointer;
+  list-style: none;
+}
+.summary::-webkit-details-marker {
+  display: none;
+}
+.foldTitle {
+  font-weight: var(--w-strong);
+}
+.foldTitle::after {
+  content: ' →';
+  font-weight: var(--w-body);
+  color: var(--text-3);
+}
+.fold[open] .foldTitle::after {
+  content: ' ↓';
+}
+.size {
+  font-family: var(--font-code);
+  font-size: var(--fs-small);
+  color: var(--text-3);
+}
+.tie {
+  margin-block: 0 var(--space-s);
+}
+.foldBody {
+  padding-block-end: var(--space-m);
+}
+.foldBody > * + * {
+  margin-block-start: var(--space-s);
+}
+.result {
+  color: var(--text);
+}
+.subhead {
+  font-size: var(--fs-body);
+  font-weight: var(--w-ui);
+  margin-block-start: var(--space-m);
+}
+.record {
+  display: grid;
+  gap: var(--space-3xs);
+}
+.record code,
+.grammar {
+  font-family: var(--font-code);
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+/* the token strip: the ten best tokens on one hairline, the blocked ones struck */
+.strip {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs) var(--space-s);
+  border-block-start: 1px solid var(--rule);
+  padding-block-start: var(--space-xs);
+}
+.strip li {
+  display: grid;
+}
+.tok {
+  font-family: var(--font-code);
+  font-size: var(--fs-small);
+  font-weight: var(--w-body);
+  white-space: pre;
+}
+.tokNote {
+  font-size: var(--fs-small);
+  color: var(--text-3);
+}
+.strip li[data-blocked] .tok,
+.table tr[data-blocked] .tok {
+  text-decoration: line-through;
+  text-decoration-color: var(--ink-3);
+  color: var(--text-3);
+}
+/* the tables: rows on hairlines, numbers aligned */
+.tableWrap {
+  overflow-x: auto;
+}
+.table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+}
+.table th,
+.table td {
+  text-align: start;
+  font-weight: var(--w-body);
+  padding: var(--space-2xs) var(--space-s) var(--space-2xs) 0;
+  border-block-end: 1px solid var(--rule);
+  vertical-align: baseline;
+}
+.table thead th,
+.table tfoot th,
+.table tfoot td {
+  color: var(--text-3);
+}
+.table tr[data-miss] th {
+  color: var(--text-2);
+}
+.num {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+@media (max-width: 29.99rem) {
+  .idCol,
+  .wideOnly {
+    display: none;
+  }
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-m);
+}
+.inner summary {
+  min-block-size: 44px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: var(--fs-small);
+}
+.plainList {
+  padding-inline-start: 0;
+  list-style: none;
+}
+.plainList li + li {
+  margin-block-start: var(--space-2xs);
+}
+/* the lineage: the list first, then the drawing */
+.lineage {
+  list-style: none;
+  padding: 0;
+}
+.lineage > li {
+  padding-block: var(--space-2xs);
+  border-block-end: 1px solid var(--rule);
+}
+.node {
+  font-weight: var(--w-ui);
+}
+.hash {
+  font-family: var(--font-code);
+  font-size: var(--fs-small);
+  color: var(--text-3);
+}
+.edgeLine {
+  color: var(--text-2);
+}
+.files {
+  list-style: none;
+  padding: 0;
+  margin-block-start: var(--space-2xs);
+  font-size: var(--fs-small);
+  columns: 2 16rem;
+}
+.files code {
+  font-family: var(--font-code);
+}
+.dag {
+  margin: var(--space-m) 0 0;
+  max-inline-size: 30rem;
+}
+.dag svg {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  overflow: visible;
+}
+.edge {
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+/* 12 is in the drawing's own units (its viewBox), not CSS pixels: it scales with the SVG, which is wrapped to fit, so
+   a rem token would mean a different size at every width; the list above it is the text equivalent at reading size */
+.svgLabel {
+  font-family: var(--font-body);
+  font-size: 12px;
+  fill: var(--text);
+}

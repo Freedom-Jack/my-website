@@ -8,6 +8,9 @@ Guidance for Claude Code in this repository. @AGENTS.md holds Next.js's own note
 - [design-demo/DESIGN.md](design-demo/DESIGN.md): the source of truth. §1 is the process rules, §2 the hard rules
   and the launch gate, §11.E Jack's answers, §12 the build plan.
 - [README.md](README.md) explains how the app is organised. [CONTENT.md](CONTENT.md) explains where every word lives.
+- The Vanguard round (2026-11-02 to 13, DESIGN §12 "Vanguard") rebuilt the whole site on `redesign/v3` with the
+  performance budgets as CI gates; its record lists every overturned decision, the DRAFT words and the facts that wait
+  for Jack. Until Jack approves that build, the approved look is the one below.
 - The approved look is the build on `round5/spring-ink` itself (DESIGN §12 "Round 5": the one painting, the style
   "Spring ink", its scroll motion and phone depth bands), and demo 4b in `design-demo/` for everything round 5 did not
   change. Any visual change is checked side by side with them, on the real GPU (DESIGN §13); the screenshots stay
@@ -17,7 +20,9 @@ Guidance for Claude Code in this repository. @AGENTS.md holds Next.js's own note
 
 Node 24 (`.node-version`). `npm run dev` · `npm run build` · `npm start` · `npm run ci` (type-check, lint, format
 check, unit tests, stills check) · `npm run test:e2e` (needs a build on port 3100) · `npm run check:compliance` ·
-`npm run check:links` · `npm run build:pdf` · `npm run build:stills`. The table in README.md says what each does.
+`npm run check:links` · `npm run check:budgets` (the HTML gate, Lighthouse and the phone profile against the
+budgets; `-- --write` stamps the tail, the local release step) · `npm run build:pdf` · `npm run build:stills` ·
+`npm run build:heroes` · `npm run build:og`. The table in README.md says what each does.
 
 ## How the code is organised
 

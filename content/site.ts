@@ -56,10 +56,32 @@ export const site = {
     { label: 'Contact', href: '/contact/' },
   ],
 
-  /** The footer's "Still the landscape": what the control does, for a tooltip and screen readers. */
+  /** The tail's "Still the landscape": what the control does, for a tooltip and screen readers. */
   stillHint: 'Stops the painting’s motion; remembered on this device.',
 
-  /** "Updated October 2026" in the footer: the month of the last content change. Change it with the words. */
+  /**
+   * The way on (the vanguard round): every page but Contact and the 404 ends on one line pointing downstream, to the
+   * next place in the painting's order, with that page's own sentence (components/page/NextPlace). The label is new.
+   */
+  ending: { label: 'Downstream' },
+
+  /**
+   * The tail of the scroll (the footer on every page; components/layout/Tail): the colophon line (DRAFT, for Jack:
+   * its honesty about how the site was made is his to word), the build stamp (the short commit and the date, written
+   * at build; a measured number only when CI wrote content/measured.json, with its profile named), "Last changed",
+   * Still, the five names, the email and the one seal.
+   */
+  tail: {
+    colophon:
+      'DRAFT · Words on paper and one painting, drawn by code in your browser. No analytics, nothing fetched from a third party, and nothing you type is sent anywhere.',
+    build: 'Build',
+    lastChanged: 'Last changed',
+    /** the measured number's words: "LCP 1.1 s, Lighthouse mobile, simulated" */
+    lcp: 'LCP',
+    names: 'All pages',
+  },
+
+  /** "Last changed October 2026" in the tail: the month of the last content change. Change it with the words. */
   updated: '2026-10',
 
   /**

@@ -6,9 +6,14 @@ import { z } from 'zod';
 /**
  * The Work cases: one MDX file per project in content/work/ (its file name is its address, /work/<file-name>/).
  * Front matter, checked here (a bad one fails the build): see content/work/rag-assistant.mdx for every field.
- * The body is "## Context", "## What I did", "## Outcome", "## Evidence", "## Stack" (each optional; "## The hard
- * part" when Jack writes it), with <Note term="…">…</Note> glossary notes after the paragraph they explain.
+ * The body is the case's spine: "## Problem", "## My part", "## Outcome and status", "## Evidence", "## Stack" (each
+ * optional, a missing one left out; "## The hard part" when Jack writes it), with <Note term="…">…</Note> glossary notes after the paragraph they explain.
  */
+
+/** Where a figure comes from (A1): only a `public-source` figure may link out from its measure; a `projected` one never
+ *  sits in a figure column (it stays in prose, with the word "projected"). */
+export const FIGURE_BASES = ['public-source', 'internal', 'projected'] as const;
+export type FigureBasis = (typeof FIGURE_BASES)[number];
 
 const link = z.object({ label: z.string().min(1), url: z.url() }).strict();
 
@@ -20,7 +25,15 @@ export const caseFrontmatter = z
     years: z.string().regex(/^\d{4} – (\d{4}|present)$/, 'years like "2023 – 2024" or "2025 – present" (en dash)'),
     org: z.string().min(1),
     role: z.string().min(1),
-    figure: z.object({ lead: z.string().optional(), value: z.string().min(1), note: z.string().min(1) }).strict(),
+    /** the figure and its measure; `basis` says where it comes from (A1; see content/work/rag-assistant.mdx) */
+    figure: z
+      .object({
+        lead: z.string().optional(),
+        value: z.string().min(1),
+        note: z.string().min(1),
+        basis: z.enum(FIGURE_BASES),
+      })
+      .strict(),
     summary: z.string().min(1),
     /** the search snippet, naming him and the result; the summary stands in without one */
     metaDescription: z.string().min(1).max(160).optional(),

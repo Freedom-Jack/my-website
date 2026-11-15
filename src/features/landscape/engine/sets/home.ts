@@ -192,22 +192,36 @@ export function* draw(env: Env) {
   // cleft and the host peak stay clear. On phones it is drawn larger, from the same corner.)
   const bs0 = 1.28 + (big - 1) * 0.6;
   // (phones: the bough is smaller and tucked into the strip's top-right corner, so the host peak and its light stay
-  // clear)
+  // clear; laptops: 0.78 of its round-5 size, the size the corner has room for off the light (below))
   const phoneK = big > 1.5;
-  const bs = phoneK ? bs0 * 0.6 : bs0;
+  const bs = phoneK ? bs0 * 0.6 : bs0 * 0.78;
   // (a story-map still leaves the near framing out: one continuous strip; so does a window into the painting, inlay,
   // where the bough would hang from no edge, a sticker in the sky)
-  if (!env.still && !env.inlay) {
+  if (!env.still && !env.inlay && el('plum')) {
     // (drawn as its own sprite so it can swing about its root, ~0.5 deg at ~0.08 Hz, in the present pass; a painting
     // without sprites paints it into the layer)
-    const ex = 1478 + (big - 1) * 14, ey = phoneK ? 150 : Math.max(196, 286 - (big - 1) * 30), Rb = own('d5 bough');
+    // (the vanguard round, A3: the bough moved off the light; the fix round: the whole bough, in the corner it has room
+    // for, pinned to the frame. At 1440 x 900 the corner is bounded by the header's paper band above (world y ~290 at
+    // the hero: raised to clear the halo, the limb's arc stood under the band, leaving a stub and a lone blossom), the
+    // light's halo below and left (lights.ts: Home's light at u 0.724, y 0.518, r 0.155 vh; its rim at x ~1190 at the
+    // bough's height) and the frame's east edge: a pocket ~250 px wide. The bough enters at world (1478, 250), its root
+    // 90 px past the edge, its limb's arc 16 px under the band, its tail shortened (young.ts plumCtl) so the tip stands
+    // at x ~1196, 158 px from the light's centre, its lowest blossom ~190 px from it. THE UNROLL (elements.ts unroll):
+    // the sprite is pinned (figures.ts LifeParams.pinned; index.ts lifeU), so the painting slides west under it and the
+    // bough keeps its corner, as the near framing bough of a handscroll belongs to the opening the reader looks
+    // through, not to the distance; its root, which lies on the layer's eastern reach, is never slid into view as a cut
+    // end. Phones: the strip rides with its box, no slide; the bough as before, its tail shortened the same way.)
+    const ex = 1478 + (big - 1) * 14, ey = phoneK ? 110 : 250, Rb = own('d5 bough');
+    const trim = phoneK ? 0.2 : 0.45;
     // (plumGust: the limb's line rides along, so the pointer can find the bough)
-    const limb = el('plumGust') ? { limb: plumLine(ex, ey, bs, big > 1.5 ? 0.8 : 1) } : {};
-    ownSprite(env, 'boat', { x: ex - 400 * bs, y: ey - 70 * bs, w: 460 * bs, h: 260 * bs }, { swing: true, range: [ex - 4000, ex + 4000], ...limb }, (e) => { plumFrame(e, ex, ey, bs, Rb, { trim: big > 1.5 ? 0.8 : 1 }); });
-    anchor(env, 'smoke', { x: ex - 400 * bs, y: ey + 64 * bs, w: 300 * bs, h: 220 * bs }, { petals: { n: 8, size: 5.5 * bs, speed: 1 } });
+    const limb = el('plumGust') ? { limb: plumLine(ex, ey, bs, trim) } : {};
+    ownSprite(env, 'boat', { x: ex - 400 * bs, y: ey - 70 * bs, w: 460 * bs, h: 260 * bs }, { swing: true, pinned: true, range: [ex - 4000, ex + 4000], ...limb }, (e) => { plumFrame(e, ex, ey, bs, Rb, { trim }); });
+    // (the petals that let go of it and drift down: elements.ts petals, off since A3)
+    if (el('petals')) anchor(env, 'smoke', { x: ex - 400 * bs, y: ey + 64 * bs, w: 300 * bs, h: 220 * bs }, { petals: { n: 8, size: 5.5 * bs, speed: 1 } });
   }
   yield;
-  if (!env.still) {
+  // (elements.ts swallows: Home's swallow and its far birds, off since A3: one named element per place)
+  if (!env.still && el('swallows')) {
     // one swallow in the open sky left of the peak (never over the light), gliding on a curving line; two tiny far ones
     const sx = big > 1.5 ? 730 : 812, sy = big > 1.5 ? 470 : 470, path: Pt[] = [];   // (on phones too, left of the peak inside the tighter frame)
     for (let k = 0; k <= 30; k++) { const u = k / 30; path.push([sx + 150 - 330 * u, sy + 40 - 70 * u - 46 * Math.sin(u * Math.PI)]); }

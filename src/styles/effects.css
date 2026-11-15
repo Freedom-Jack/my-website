@@ -1,295 +1,144 @@
 /* ==========================================================================
-   effects.css — where the ink lives in the UI: brush links, the ink button,
-   ink rows, the seal stamp, the name's ink settle, diagram draw-ins and route
-   changes. Each block names the JS module that drives it (if any). Everything
-   works without JS; JS only adds entry points, timing and one-shot triggers.
-   Round 4a: no text fades in on scroll, and nothing is hidden at first paint.
+   effects.css — where the ink lives in the UI: links, the text action, the focus ring, the row rule, the
+   diagram draw-ins and the flow dot, route changes. Each block names the JS module that drives it (if any).
+   Everything works without JS; JS only adds entry points, timing and one-shot triggers.
+   The vanguard round (05-synthesis.md): no brush strokes, no blooms, no stamps; one plain underline, one drawn
+   arrow, and jade only as marks (the second line of the focus ring, the row rule, the flow dot, the selection).
+   No text fades in on scroll, and nothing is hidden at first paint.
    Shared file: do not edit from a page.
    ========================================================================== */
 
 /* ==========================================================================
-   Brush link (the brush-link effect sets --brush-ms and the stroke variant)
-   Every link has a visible resting mark (a 1 px underline in --rule-rest, 3.4:1);
-   hover only enriches it: a dry-brush stroke draws over it in the reading direction,
-   across wrapped lines in order; on leave it lifts off from the start towards the tail.
-   Exempt from the resting mark: the header nav (layout.css), the home link and .ink-btn.
-   --brush-y moves the stroke's band (default: the bottom of the padding box), e.g. in a
-   44 px nav target the stroke sits just under the word.
+   Links: a 1 px resting underline in the clear ink (--ink-5), ink on hover and focus; only the link's words are
+   underlined (a date beside a link in a mono line carries none: components.css .mono). The header's nav is exempt
+   (its place says "navigation": layout.css); a title link in a row underlines on the row's hover (components.css).
    ========================================================================== */
-.brush {
-  /* The band is placed from the bottom of the padding; the visible stroke starts ~20% into it
-     (svg/brush.svg), so with these values its top clears g, j, p, q, y. Vertical padding on an
-     inline link reflows nothing. */
-  --brush-h: 0.36em; /* stroke thickness band; display titles use a thinner one */
-  --brush-pad: 0.4em; /* how far below the text the stroke sits */
-  text-decoration: underline 1px var(--rule-rest);
-  text-underline-offset: 0.3em;
-  padding-bottom: var(--brush-pad);
-  background-image: var(--brush-img, url('./svg/brush.svg'));
-  background-repeat: no-repeat;
-  background-position: 100% var(--brush-y, 100%);
-  background-size: 0% var(--brush-h);
-  transition:
-    background-size var(--brush-ms, var(--dur-brush)) var(--ease-ink),
-    background-position 0s,
-    text-decoration-color var(--dur-hover) var(--ease-out),
-    color var(--dur-hover) var(--ease-out);
+main a,
+.tail a {
+  text-decoration-color: var(--ink-5);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.26em;
+  transition: text-decoration-color var(--dur-hover) var(--ease-out);
 }
-.brush[data-brush='2'] {
-  --brush-img: url('./svg/brush-2.svg');
+main a:hover,
+main a:focus-visible,
+.tail a:hover,
+.tail a:focus-visible {
+  text-decoration-color: var(--ink-1);
 }
-.brush:hover,
-.brush:focus-visible,
-.brush[aria-current],
-.brush[aria-pressed='true'],
-.ink-row:hover .brush:not(.brush--rest),
-.ink-row:focus-within .brush:not(.brush--rest) {
-  background-position: 0 var(--brush-y, 100%);
-  background-size: 100% var(--brush-h);
-  text-decoration-color: transparent;
-}
-.brush:focus-visible {
-  outline-offset: 5px;
-}
-
-/* Large display links that may wrap: a finer stroke, under the descenders and clear of the next line's
-   capitals. At rest they show a faint brush trace (svg/brush-trace.svg, the stroke at ~35%). */
-.brush--display {
-  --brush-h: 0.2em;
-  --brush-pad: 0.17em;
-  text-decoration: none;
-  background-image: var(--brush-img, url('./svg/brush.svg')), url('./svg/brush-trace.svg');
-  background-position:
-    100% 100%,
-    0 100%;
-  background-size:
-    0% var(--brush-h),
-    100% calc(var(--brush-h) * 0.72);
-}
-.brush--display:hover,
-.brush--display:focus-visible,
-.brush--display[aria-current],
-.ink-row:hover .brush--display,
-.ink-row:focus-within .brush--display {
-  background-position:
-    0 100%,
-    0 100%;
-  background-size:
-    100% var(--brush-h),
-    100% var(--brush-h);
-}
-
-/* Links inside running text: the same resting rule (never colour alone); the ring hugs the word. */
-.brush--rest:focus-visible {
-  outline-offset: 2px;
-  border-radius: 0.15em;
+/* a press (a tap, a mousedown) is answered in ink, never by the system's own highlight (base.css turns that off) */
+main a:active,
+.tail a:active,
+summary:active,
+.margin-note__toggle:active {
+  color: var(--ink-1);
 }
 
 /* ==========================================================================
-   Ink button (the ink-button effect: entry point, press rings, focus from centre)
-   Rest: one loaded brush stroke of indigo wash (30% → 10%), streaked dry at the tail.
-   Hover: ink blooms from where the pointer entered; the label turns paper exactly
-   where the ink has reached. Works without JS (blooms from the centre). One per screen.
+   The text action (components/ui/TextAction): the one action on a screen is words in the UI weight with a 2 px ink
+   underline and a drawn arrow after them ("See the work →"); a 44 px target; the arrow nudges on hover. As a
+   <button> (Contact's "Copy email") the same, without the arrow.
    ========================================================================== */
-.ink-btn {
-  --x: 50%;
-  --y: 50%;
-  --rmax: 280px;
-  --ink-dx: 12px; /* how far the stroke overhangs the label box (left) */
-  --ink-tail: 10px; /* … and past it on the right (the dry tail lives inside the label box) */
-  --ink-dy: 6px;
-  position: relative;
-  isolation: isolate;
+.action {
   display: inline-flex;
   align-items: center;
-  min-height: 48px;
+  gap: 0.55em;
+  min-height: 44px;
   font-family: var(--font-body);
-  font-size: var(--fs-body);
   font-weight: var(--w-ui);
-  line-height: 1;
-  letter-spacing: 0.012em;
   color: var(--ink-1);
-  text-decoration: none;
+  text-decoration: underline;
+  text-decoration-color: var(--ink-1);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.3em;
   -webkit-tap-highlight-color: transparent;
-  transition:
-    --ink-r var(--dur-bloom) var(--ease-bloom),
-    scale var(--dur-press) var(--ease-out);
 }
-.ink-btn:hover,
-.ink-btn:focus-visible {
-  --ink-r: var(--rmax);
+.action:hover,
+.action:focus-visible {
+  text-decoration-color: var(--ink-1);
 }
-.ink-btn:active {
-  scale: 0.985;
+.action--button {
+  font-size: inherit;
+  cursor: pointer;
 }
-.ink-btn:focus-visible {
-  outline-offset: 9px;
-  border-radius: 18px 30px 20px 26px / 26px 22px 30px 18px;
-}
-.ink-btn__ink {
-  position: absolute;
-  inset: calc(var(--ink-dy) * -1) calc(var(--ink-tail) * -1) calc(var(--ink-dy) * -1) calc(var(--ink-dx) * -1);
-  z-index: -1;
-  pointer-events: none;
-  -webkit-mask: url('./svg/swash.svg') 0 0 / 100% 100% no-repeat;
-  mask: url('./svg/swash.svg') 0 0 / 100% 100% no-repeat;
-}
-.ink-btn__ink::before,
-.ink-btn__ink::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-}
-.ink-btn__ink::before {
-  background: linear-gradient(
-    97deg,
-    color-mix(in oklab, var(--wash) 31%, transparent),
-    color-mix(in oklab, var(--wash) 21%, transparent) 58%,
-    color-mix(in oklab, var(--wash) 10%, transparent)
-  );
-}
-/* the bloom; the filter runs before the parent's mask, so the wet front is ragged inside a clean stroke */
-.ink-btn__ink::after {
-  background: radial-gradient(
-    circle at calc(var(--x) + var(--ink-dx)) calc(var(--y) + var(--ink-dy)),
-    var(--ink-2) 0,
-    var(--ink-1) calc(var(--ink-r) - 40px),
-    #05080a calc(var(--ink-r) - 14px),
-    color-mix(in oklab, var(--ink-1) 45%, transparent) calc(var(--ink-r) - 5px),
-    transparent var(--ink-r)
-  );
-  filter: url(#ink-bloom);
-}
-.ink-btn__label {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.7em;
-  padding: 0.82em calc(1.4em + 2.4rem) 0.82em 1.3em; /* room for the stroke's dry tail */
-  color: transparent; /* painted by the gradient: ink outside the bloom, paper inside */
-  background: radial-gradient(
-    circle at var(--x) var(--y),
-    var(--paper) calc(var(--ink-r) - 56px),
-    var(--ink-1) calc(var(--ink-r) - 34px)
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-}
-.ink-btn__arrow {
+/* the drawn arrow: a brush stroke with its head, in the words' ink, masked over currentColor */
+.action__arrow {
   flex: none;
-  width: 1.6em;
-  height: 0.78em;
-  background: radial-gradient(
-    circle at calc(var(--x) - var(--ax, 50%)) calc(var(--y) - var(--ay, 50%)),
-    var(--paper) calc(var(--ink-r) - 56px),
-    var(--ink-1) calc(var(--ink-r) - 34px)
-  );
-  -webkit-mask: url('./svg/arrow.svg') center / contain no-repeat;
-  mask: url('./svg/arrow.svg') center / contain no-repeat;
+  width: 1.5em;
+  height: 0.75em;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 14'%3E%3Cpath d='M1.5 7.4C9 6.6 17 7.1 26.5 6.9M20.5 1.8c2.3 2.1 4.3 3.8 7.1 5.1-2.7 1.2-4.7 2.8-6.8 5.1' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 14'%3E%3Cpath d='M1.5 7.4C9 6.6 17 7.1 26.5 6.9M20.5 1.8c2.3 2.1 4.3 3.8 7.1 5.1-2.7 1.2-4.7 2.8-6.8 5.1' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / contain no-repeat;
   transition: translate 280ms var(--ease-ink);
 }
-.ink-btn:hover .ink-btn__arrow {
-  translate: 0.22em 0;
+.action:hover .action__arrow {
+  translate: 0.2em 0;
 }
 
 /* ==========================================================================
-   Ink row (the ink-button effect: the entry point and the reach): a row's wash wicks out
-   from the pointer and its title's brush underline draws. A pale wash inside, a
-   darker tide line where it stops (svg/wash-row.svg thins the ends).
+   Focus (elements.ts focus): a 2 px ink ring 2 px off the control, and a second line in jade outside it (the one
+   jade mark on a control); selection in a glow-tinted paper; a jade scrollbar. A page title focused after a page
+   change carries the announcer, not a frame.
    ========================================================================== */
-.ink-row {
-  --x: 30%;
-  --y: 50%;
-  --rmax: 600px; /* replaced per entry point by the ink-button effect */
-  --ink-r: 0px;
-  --bleed: max(-1.25rem, calc(var(--gutter) * -0.75)); /* the wash may spill into the margin, never past the screen */
-  position: relative;
-  isolation: isolate;
-  transition: --ink-r 400ms var(--ease-out); /* receding */
+html.el-focus {
+  scrollbar-color: var(--jade-hair) transparent;
 }
-.ink-row::before {
+html.el-focus :focus-visible {
+  outline: 2px solid var(--ink-1);
+  outline-offset: 2px;
+  box-shadow:
+    0 0 0 4px var(--paper),
+    0 0 0 6px var(--jade);
+  border-radius: 2px;
+}
+html.el-focus h1[tabindex='-1']:focus-visible,
+html.el-focus main:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+html.el-focus ::selection {
+  background: color-mix(in oklab, var(--glow) 55%, var(--paper)); /* ink-1 on it: ~14:1 */
+  color: var(--ink-1);
+}
+
+/* ==========================================================================
+   Row rule (elements.ts rowrule; features/effects/finish.ts gives table rows .rule-row): on hover or focus a 1.5 px
+   jade line at 0.7 lies exactly on the row's bottom border, drawn from the row's left edge to its right over 260 ms;
+   leaving fades it. Nothing behind the text. The ledger rows and the shared rows (.ink-row) and table rows alike.
+   ========================================================================== */
+.ink-row,
+.rule-row {
+  position: relative;
+}
+html.el-rowrule :is(.ink-row, .rule-row)::after {
   content: '';
   position: absolute;
-  inset: 0 var(--bleed);
-  z-index: -1;
+  left: 0;
+  right: 0;
+  bottom: -0.75px;
+  height: 1.5px;
+  z-index: 0;
   pointer-events: none;
-  background: radial-gradient(
-    ellipse var(--ink-r) calc(var(--ink-r) * 0.3) at calc(var(--x) - var(--bleed)) var(--y),
-    color-mix(in oklab, var(--wash) 30%, var(--paper)) 0,
-    color-mix(in oklab, var(--wash) 36%, var(--paper)) 86%,
-    var(--wash-deep) 92%,
-    var(--wash-deep) 97%,
-    transparent 100%
-  );
-  -webkit-mask: url('./svg/wash-row.svg') 0 0 / 100% 100% no-repeat;
-  mask: url('./svg/wash-row.svg') 0 0 / 100% 100% no-repeat;
-  filter: url(#ink-feather);
-  opacity: 0.22;
-}
-.ink-row:hover,
-.ink-row:focus-within {
-  --ink-r: var(--rmax);
-  transition: --ink-r 700ms var(--ease-bloom);
-}
-
-/* ==========================================================================
-   Seal: the header's seal is stamped once per session, then simply there.
-   The About-me signature's seal (.seal--sign) never stamps and never moves.
-   ========================================================================== */
-.home-link .seal__mark {
-  transform-origin: 50% 55%;
+  background: var(--jade);
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left center;
   transition:
-    scale var(--dur-press) var(--ease-out),
-    filter var(--dur-hover) var(--ease-out);
+    opacity 240ms var(--ease-out),
+    transform 0s linear 240ms;
 }
-html.js:not(.is-sealed) .home-link .seal__mark {
-  animation: seal-stamp 680ms var(--ease-stamp) 140ms both;
-}
-.home-link:hover .seal__mark {
-  filter: brightness(0.94) saturate(1.06);
-}
-.home-link:active .seal__mark {
-  scale: 0.95;
-}
-@keyframes seal-stamp {
-  0% {
-    opacity: 0;
-    scale: 1.22;
-    rotate: -5deg;
-    filter: blur(1.2px);
-  }
-  45% {
-    opacity: 1;
-    scale: 0.95;
-    rotate: 0.6deg;
-    filter: blur(0);
-  }
-  70% {
-    scale: 1.015;
-  }
-  100% {
-    opacity: 1;
-    scale: 1;
-    rotate: 0deg;
-    filter: none;
-  }
+html.el-rowrule :is(.ink-row, .rule-row):is(:hover, :focus-within)::after {
+  opacity: 0.7;
+  transform: scaleX(1);
+  transition:
+    opacity 90ms var(--ease-out),
+    transform 260ms cubic-bezier(0.3, 0.6, 0.25, 1);
 }
 
 /* ==========================================================================
-   The name's ink settle (the arrival effect). The name is readable at first paint: it is never
-   hidden, faded or blurred. On a full load it wears a feathered ink edge (#ink-arrive)
-   whose displacement the arrival effect relaxes from 8 to 0 over <= 400 ms; then html.is-arrived.
-   The inline boot script adds .is-arrived after 3 s whatever happens. Not after a route
-   change (html.is-routed: the route's own enter replaces it), not under reduced motion.
-   ========================================================================== */
-html.js:not(.is-arrived) [data-arrive='name'] {
-  filter: url(#ink-arrive);
-}
-html.is-routed [data-arrive='name'] {
-  filter: none !important;
-}
-
-/* ==========================================================================
-   Draw-ins (the diagram effect): diagram strokes draw in once, in flow order (they are not text).
+   Draw-ins (features/effects/diagram): diagram strokes draw in once, in flow order (they are not text).
    An SVG whose [data-order] paths (pathLength="1") draw --dur-draw each, --draw-step apart;
    or an HTML rule that draws in the reading direction. JS adds the waiting state.
    ========================================================================== */
@@ -301,10 +150,35 @@ html.js [data-draw].is-pending:not(svg):not(:has([data-order])) {
   clip-path: inset(0 100% 0 0);
 }
 
+/* ---------- flow (elements.ts flow; features/effects/finish.ts clones each edge): a small ink dot with a short
+   tapering tail (three stacked dashes: 1, 2 and 3 px wide) runs along the diagram's arrows once per hover, in flow
+   order; dark jade, no glow, no blur; the arrowhead it reaches does not light ---------- */
+.diagram__flow {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+  opacity: 0;
+}
+.diagram__flow--tail,
+.diagram__flow--body,
+.diagram__flow--core {
+  stroke: #082726; /* a wetter, darker jade than the arrows (--jade-deep), so the dot reads on its own line */
+}
+.diagram__flow--tail {
+  stroke-width: 1;
+}
+.diagram__flow--body {
+  stroke-width: 2;
+}
+.diagram__flow--core {
+  stroke-width: 3.5;
+}
+
 /* ==========================================================================
-   Route changes (features/navigation). The painting's sideways pan is the
-   transition, with a pale mist sweep (the landscape paints it). Full-document
-   navigations get the browser's default 260 ms cross-fade (@view-transition, below).
+   Route changes (features/navigation). One grammar, the river's (A10): the painting pans to the next place and the
+   words cross-fade under it (transition.ts, opacity only). Full-document navigations get the browser's default
+   260 ms cross-fade (@view-transition, below).
    ========================================================================== */
 @view-transition {
   navigation: auto;
@@ -316,28 +190,20 @@ html.js [data-draw].is-pending:not(svg):not(:has([data-order])) {
 }
 
 /* ==========================================================================
-   Reduced motion: a calm static landscape and simple fades. Nothing blooms,
-   blurs, slides or pans; the page transition is a short cross-fade.
+   Reduced motion and "Still the landscape": a calm static landscape and simple fades. Nothing nudges, draws or
+   pans; the page transition is a short cross-fade.
    ========================================================================== */
 @media (prefers-reduced-motion: reduce) {
-  .brush {
-    transition-duration: 1ms, 0s, 1ms, 1ms;
-  }
-  .ink-btn,
-  .ink-row {
-    transition-duration: 1ms;
-  }
-  .ink-btn__arrow {
+  main a,
+  .tail a,
+  .action__arrow {
     transition: none;
   }
-  .ink-btn:hover .ink-btn__arrow {
+  .action:hover .action__arrow {
     translate: none;
   }
-  html.js:not(.is-sealed) .home-link .seal__mark {
-    animation: ink-fade 240ms ease both;
-  }
-  html.js:not(.is-arrived) [data-arrive='name'] {
-    filter: none;
+  html.el-rowrule :is(.ink-row, .rule-row):is(:hover, :focus-within)::after {
+    transition: none;
   }
   ::view-transition-old(root) {
     animation: ink-fade 200ms ease reverse both;
@@ -352,6 +218,12 @@ html.js [data-draw].is-pending:not(svg):not(:has([data-order])) {
   html.js [data-draw].is-pending:not(svg) {
     clip-path: none;
   }
+}
+html.is-still .action__arrow {
+  transition: none;
+}
+html.is-still.el-rowrule :is(.ink-row, .rule-row):is(:hover, :focus-within)::after {
+  transition: none;
 }
 @keyframes ink-fade {
   from {
@@ -371,8 +243,8 @@ html.js [data-draw].is-pending:not(svg):not(:has([data-order])) {
     stroke-dasharray: none !important;
     stroke-dashoffset: 0 !important;
   }
-  [data-arrive] {
-    filter: none !important;
+  .diagram__flow {
+    display: none;
   }
 }
 
@@ -380,29 +252,19 @@ html.js [data-draw].is-pending:not(svg):not(:has([data-order])) {
    Forced colours: keep every control legible with system colours; drop ink layers.
    ========================================================================== */
 @media (forced-colors: active) {
-  .ink-btn__ink,
-  .ink-row::before {
-    display: none;
+  .action {
+    text-decoration-color: LinkText;
   }
-  .ink-btn {
-    border: 1px solid LinkText;
-  }
-  .ink-btn__label {
-    background: none;
-    color: LinkText;
-  }
-  .ink-btn__arrow {
+  .action__arrow {
     background: LinkText;
   }
-  .brush {
-    background: none;
-    text-decoration: underline;
+  .diagram__flow,
+  html.el-rowrule :is(.ink-row, .rule-row)::after {
+    display: none !important;
   }
-  .home-link .seal {
-    outline: 1px solid CanvasText;
-  }
-  [data-arrive] {
-    filter: none !important;
+  html.el-focus :focus-visible {
+    outline-color: Highlight;
+    box-shadow: none;
   }
   html.js [data-draw].is-pending [data-order] {
     stroke-dasharray: none;

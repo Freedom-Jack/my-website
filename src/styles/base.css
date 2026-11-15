@@ -26,7 +26,7 @@ html {
 a,
 button,
 summary {
-  -webkit-tap-highlight-color: transparent; /* a tap is answered in jade (jade.css :active), not by the system's box */
+  -webkit-tap-highlight-color: transparent; /* a tap is answered in ink (effects.css :active), not by the system's box */
 }
 body {
   min-height: 100svh;
@@ -153,11 +153,11 @@ time {
   color: var(--ink-1);
 }
 
-/* ---------- focus: a crisp ink ring, never removed ---------- */
+/* ---------- focus: a crisp ink ring, never removed (its jade second line: effects.css, elements.ts focus) ---------- */
 :focus-visible {
   outline: 2px solid var(--focus);
-  outline-offset: 4px;
-  border-radius: 3px;
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 /* ---------- skip link ---------- */
@@ -202,6 +202,17 @@ time {
 /* Round 4a: cinnabar is the seal's only. The round-3 accent full stops become plain ink. */
 .accent {
   color: inherit;
+}
+/* the facts' voice: dates, labels, measures and the build stamp in the system mono at the small size, in ink-3, with
+   tabular figures; never a paragraph. A link inside carries its underline on the link's own words only. */
+.mono {
+  font-family: var(--font-code);
+  font-size: var(--fs-small);
+  font-weight: 400;
+  line-height: var(--lh-small);
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--ink-3);
 }
 .ink-defs {
   position: absolute;

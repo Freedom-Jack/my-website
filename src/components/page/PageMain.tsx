@@ -3,13 +3,16 @@ import { PLACES, type PageId } from '@/features/landscape/places';
 import { site } from '@content/site';
 import { JsonLd } from '@/lib/jsonld';
 import { Closing } from './Closing';
+import { NextPlace } from './NextPlace';
 
 /**
  * A page's <main>: it declares the page's place in the painting (data-stretch, data-distance, data-presence,
- * data-horizon, data-ground; the landscape and the navigation read them), and ends on the page's own closing
- * scene (every page but the 404, which lies off the map). The print-only name line opens it (every page but the Résumé, which has
- * its own letterhead): printed pages hide the header (DESIGN §11.E answer 12). The page's own structured data
- * (`ld`) goes first, so the closing stays <main>'s last child and the footer its next sibling (layout.css).
+ * data-horizon, data-ground, data-inside: a deep page opens inside its place, and may name its own stretch-local u
+ * there; the landscape and the navigation read them), ends on the way on (NextPlace: one line
+ * pointing downstream, every page but Contact and the 404) and then on the page's own closing scene (every page but
+ * the 404, which lies off the map). The print-only name line opens it (every page but the Résumé, which has its own
+ * letterhead): printed pages hide the header (DESIGN §11.E answer 12). The page's own structured data (`ld`) goes
+ * first, so the closing stays <main>'s last child and the tail its next sibling (layout.css).
  */
 export function PageMain({
   page,
@@ -41,6 +44,7 @@ export function PageMain({
       data-presence={place.presence}
       data-horizon={place.horizon}
       data-ground={place.ground || undefined}
+      data-inside={place.inside === true ? '' : typeof place.inside === 'number' ? place.inside : undefined}
     >
       {ld.map((data, i) => (
         <JsonLd key={i} data={data} />
@@ -51,6 +55,7 @@ export function PageMain({
         </p>
       ) : null}
       {children}
+      <NextPlace page={page} />
       {place.closing ? <Closing end={glimpseEnd} /> : null}
     </main>
   );

@@ -87,8 +87,7 @@
 }
 /* the name in the byline: a 44 px tall target that changes nothing in the line's layout */
 .note__byline :global(a),
-.prose :global(p) > :global(a.brush) {
-  --brush-y: calc(50% + 0.78em);
+.prose :global(p) > :global(a) {
   display: inline-block;
   padding-block: 12px;
   margin-block: -12px;
@@ -137,12 +136,11 @@
   margin-block-start: 0.5em;
 }
 
-/* the quotation: no box and no italics; the words take Commissioner's brush flare, with a hanging
-   wash-coloured mark (Commissioner's own curly opening quote) in the margin on wide screens */
+/* the quotation: no box and no italics, in the quieter ink, with a hanging wash-coloured mark (the face's own curly
+   opening quote) in the margin on wide screens */
 .prose :global(blockquote) {
   position: relative;
   padding-inline-start: 1.35em;
-  font-variation-settings: 'FLAR' var(--flare-sign);
   color: var(--ink-2);
 }
 .prose :global(blockquote)::before {

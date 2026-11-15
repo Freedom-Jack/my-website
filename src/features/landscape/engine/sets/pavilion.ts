@@ -1,4 +1,5 @@
 import { rushes, willowTip, loosePetal, ripples } from './young';
+import { el } from '../../elements';
 // sets/pavilion.ts — Writing and the Note (stretch 2): the still lake. One corner, in the manner of Ma Yuan and Xia
 // Gui: at the lower right a low rocky spit runs out from the shore (lost in mist) into the still water; on it an
 // open pavilion, four posts under one low pyramidal roof whose eave corners lift only a little (Song restraint: one
@@ -19,7 +20,7 @@ import { rushes, willowTip, loosePetal, ripples } from './young';
 // there). The spit's tail runs on to K + 1.215, into the layer's melting end, so on wide screens it leaves the frame
 // at the right edge.
 
-import { REF_PX, VH_PX, streams, vnoise, mix, mix3, wash, softWash, stroke, dryBrush, runs, ellipse, anchor, bounds, type Env, type FigureMeta, type Pt, type RGB } from '../figures';
+import { REF_PX, VH_PX, streams, vnoise, mix, mix3, wash, softWash, stroke, dryBrush, runs, ellipse, anchor, ownSprite, bounds, type Env, type FigureMeta, type Pt, type RGB } from '../figures';
 
 /** The set's stretch: every world x below is K + its offset (move the place by changing K). */
 const K = 2;
@@ -324,9 +325,21 @@ export function* draw(env: Env) {
   // broken rings and their lit arcs; more petals fall through the air (life: the present pass).
   // The light on the water is the shader's (a glassy glitter column under the low light).
   if (!env.still) {
-    // (it comes in from the right, under the window's top feather, so the whole of it is seen)
-    willowTip(env, [[X(K + 1.13), Y(0.545)], [X(K + 1.09), Y(0.512)], [X(K + 1.045), Y(0.49)], [X(K + 1.0), Y(0.481)], [X(K + 0.968), Y(0.487)], [X(K + 0.95), Y(0.5)]],
-      [[X(K + 1.07), Y(0.5)], [X(K + 1.09), Y(0.474)], [X(K + 1.105), Y(0.466)]], 1.15 * b, Y(0.29), own('q3 willow'), -0.2, 140, 14);
+    // (it comes in from the right, under the window's top feather, so the whole of it is seen. THE UNROLL (the
+    // vanguard round's fix round): drawn as its own sprite, pinned to the frame (figures.ts LifeParams.pinned, as
+    // Home's plum bough is): its root lies just past the wide hero's east edge, on the layer's eastern reach, and
+    // Writing's slide (403 px at 1440) brought it into the sky as a cut end by the page's end; pinned, the lake slides
+    // west under it and the willow keeps its corner, the near framing element of the opening the reader looks through.
+    // Still, no swing: its life is the lake's, not its own. A painting without sprites paints it into the layer.)
+    const ctl: Pt[] = [[X(K + 1.13), Y(0.545)], [X(K + 1.09), Y(0.512)], [X(K + 1.045), Y(0.49)], [X(K + 1.0), Y(0.481)], [X(K + 0.968), Y(0.487)], [X(K + 0.95), Y(0.5)]];
+    const side: Pt[] = [[X(K + 1.07), Y(0.5)], [X(K + 1.09), Y(0.474)], [X(K + 1.105), Y(0.466)]];
+    const Rw = own('q3 willow');
+    // (a generous box: the strands hang to the waterline and sway west by up to a quarter of their length; the sprite
+    // is cropped to its ink)
+    const wbox = { x: X(K + 0.95) - 75 * b, y: Y(0.545) - 20 * b, w: X(K + 1.13) - X(K + 0.95) + 99 * b, h: Y(0.29) - Y(0.545) + 44 * b };
+    ownSprite(env, 'boat', wbox, { pinned: true, range: [X(K + 1.13) - 4000, X(K + 1.13) + 4000] }, (e) => {
+      willowTip(e, ctl, side, 1.15 * b, Y(0.29), Rw, -0.2, 140, 14);
+    });
   }
   yield;
   {
@@ -352,7 +365,9 @@ export function* draw(env: Env) {
       ripples(env, x, y, (5 + r) * b, Rq, { n: 2, sq: 0.24, alpha: 0.75 });
       loosePetal(env, x, y - 0.4 * b, r * b, Rq, 0.04);
     }
-    if (!env.still) anchor(env, 'smoke', { x: X(K + 0.87), y: Y(0.56), w: 0.24 * REF_PX, h: Y(0.24) - Y(0.56) }, { petals: { n: 5, size: 4.6 * b, speed: 0.8 } });
+    // (elements.ts petals: the petals falling through the air, off since the vanguard round's A3; the ones lying on the
+    // water above are paint and stay)
+    if (!env.still && el('petals')) anchor(env, 'smoke', { x: X(K + 0.87), y: Y(0.56), w: 0.24 * REF_PX, h: Y(0.24) - Y(0.56) }, { petals: { n: 5, size: 4.6 * b, speed: 0.8 } });
   }
   yield;
 }
