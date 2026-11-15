@@ -1041,10 +1041,14 @@ failed on a coin toss: Lighthouse's simulation counts every script that began to
 blocking an image LCP (a text LCP painted in the first frame takes the FCP estimate instead, which is why Work reads
 1.06 s in every run), and on the runner React's async chunk starts within a millisecond or two of the first frame's
 presentation, before it in some runs and after it in others: Home 1.96 or 2.57 s, Contact 1.89 or 2.51 s, the same
-pages. On Jack's go ("just fix it all the way") CI's mobile LCP gate is 2.7 s on the median (`--lcp-both-modes`,
-`tools/lcp-gate.ts`), above the slow mode's 2.61 s at worst; gating the fastest run instead would not hold, since on
-this Mac the slow mode took all five runs on Home and the Résumé (2.45 s). The release step on this Mac keeps 2.5 s,
-and both modes stay in the report.
+pages. A slower runner then failed Work's TBT (171 ms against 150): Lighthouse multiplies the CPU time it sees by four,
+GitHub's runners differ by almost 2× from job to job (benchmark index 2077 to 3835), and Work's TBT read 109, 139 and
+171 ms on three of them for one page (React's chunk, counted in both of Lantern's windows because Work loads no image to
+delay it). On Jack's go ("do it all the way until it is fixed") the three mobile gates that move with the CPU take
+the runner's values in CI, set from every run of those three jobs with a margin (`--runner`, `tools/runner-gates.ts`):
+score 90, LCP 2.8 s, TBT 250 ms. Every other gate is the budget, the release step on this Mac keeps the budget for all
+of them, and gating the fastest run instead would not hold (on this Mac the slow mode took all five runs on Home and the
+Résumé).
 
 **What it cost** (the agents' transcripts; the lead's own turns not counted): research, design, jury and attack about
 15 million output tokens on Fable and Opus (2026-11-02 to 05, three runs killed by spend limits and resumed); P1 about

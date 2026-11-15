@@ -13,15 +13,17 @@
  *   npm run check:budgets -- --write                              on a pass, write Home's numbers into
  *                                                                 content/measured.json (the tail's build stamp)
  *   npm run check:budgets -- --no-webgl                           the browser without WebGL (CI: below)
- *   npm run check:budgets -- --lcp-both-modes                     the mobile LCP gate above Lantern's slow mode (CI)
+ *   npm run check:budgets -- --runner                             the runner's gates for the CPU-bound numbers (CI)
  *
  * R7: run it with the machine quiet (Lighthouse first, the phone run after it: P1's one outlier came right after a
  * phone run). R12: the server is warmed first (one request per route, then two seconds: a cold route's first
  * Lighthouse run fell in the slow one of Lantern's two LCP modes, ~0.5 s apart), then FIVE runs per route and preset.
  * The gate is the MEDIAN of the runs, per metric; the min and max (both modes, when there are two) and the worst run
- * are recorded beside it. With --lcp-both-modes (CI) the mobile LCP gate is 2.7 s, above Lantern's slow mode on
- * GitHub's runner, where a page whose LCP is an image falls in either mode from run to run on a millisecond's race
- * (Home 1.96 or 2.57 s, the same page): tools/lcp-gate.ts has the evidence. Locally (the release step) it is 2.5 s.
+ * are recorded beside it. With --runner (CI) the three mobile gates that move with the machine's CPU take the runner's
+ * values (score 90, LCP 2.8 s, TBT 250 ms): on GitHub's shared runner the same pages moved with a CPU that differs by
+ * almost 2× between jobs, and an image LCP falls in either of Lantern's two modes on a millisecond's race
+ * (tools/runner-gates.ts has the evidence). Every other gate, and every gate locally (the release step), is the budget.
+ * The report's header names the runs' median benchmark index (Lighthouse's measure of the machine's CPU).
  * A run whose TBT is over 1 s is re-run once and reported as an outlier (the re-run takes its place). Every run's
  * trace is kept for a route and preset that fails, and for every outlier.
  * R9 and R10: every route's HTML is measured as served, gzip, and gated at 30,000 B (Work sits near it).
@@ -40,7 +42,7 @@ import { chromium } from '@playwright/test';
 import * as chromeLauncher from 'chrome-launcher';
 import lighthouse from 'lighthouse';
 import desktopConfig from 'lighthouse/core/config/desktop-config.js';
-import { RUNNER_MOBILE_LCP_MS } from './lcp-gate.ts';
+import { RUNNER_MOBILE_GATES } from './runner-gates.ts';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Json = Record<string, any>;
@@ -66,8 +68,8 @@ const LINUX_ARGS = process.platform === 'linux' ? ['--no-sandbox', '--disable-de
 /** --no-webgl: no WebGL in the browser (the probe answers "gpu" at once; CI's GPU-less runner, see above). */
 const NO_WEBGL = flag('--no-webgl');
 const WEBGL_ARGS = NO_WEBGL ? ['--disable-3d-apis'] : [];
-/** --lcp-both-modes (CI): the mobile LCP gate clears Lantern's slow mode on GitHub's runner (tools/lcp-gate.ts). */
-const LCP_BOTH_MODES = flag('--lcp-both-modes');
+/** --runner (CI): the mobile score, LCP and TBT gates for GitHub's runner, whose CPU moves them (tools/runner-gates.ts). */
+const RUNNER = flag('--runner');
 const FORMS = opt('--forms', 'mobile,desktop')
   .split(',')
   .filter((f): f is 'mobile' | 'desktop' => f === 'mobile' || f === 'desktop');
@@ -100,6 +102,8 @@ const median = (xs: number[]) => {
 const s2 = (v: number) => `${(v / 1000).toFixed(2)} s`;
 const kb = (v: number) => `${Math.round(v / KB)} KB`;
 const fails: string[] = [];
+/** Every Lighthouse run's benchmark index (its measure of the machine's CPU): the report names their median. */
+const benchmarks: number[] = [];
 const gate = (ok: boolean, what: string) => {
   if (!ok) fails.push(what);
 };
@@ -251,6 +255,8 @@ async function lighthouseAll(routes: string[]): Promise<LhRow[]> {
           if (!res?.lhr?.categories?.performance) throw new Error(`no Lighthouse result: ${form} ${route}`);
           traces.push([`${form}-${slug(route)}-run${i + 1}${tag}`, (res.artifacts as Json | undefined)?.Trace]);
           const m = metricsOf(res.lhr as unknown as Json);
+          const bi = Number((res.lhr as unknown as Json).environment?.benchmarkIndex);
+          if (Number.isFinite(bi)) benchmarks.push(bi);
           reports.set(m, typeof res.report === 'string' ? res.report : JSON.stringify(res.lhr));
           return m;
         };
@@ -274,10 +280,10 @@ async function lighthouseAll(routes: string[]): Promise<LhRow[]> {
         const before = fails.length;
         const where = `Lighthouse ${form} ${route} (median of ${runs.length})`;
         if (form === 'mobile') {
-          const g = GATES.mobile;
-          const lcpGate = LCP_BOTH_MODES ? RUNNER_MOBILE_LCP_MS : g.lcp;
+          // (--runner: the three numbers that move with the machine's CPU take the runner's gates)
+          const g = RUNNER ? { ...GATES.mobile, ...RUNNER_MOBILE_GATES } : GATES.mobile;
           gate(med.score >= g.score, `${where}: score ${med.score} < ${g.score}`);
-          gate(med.lcp <= lcpGate, `${where}: LCP ${s2(med.lcp)} > ${s2(lcpGate)}`);
+          gate(med.lcp <= g.lcp, `${where}: LCP ${s2(med.lcp)} > ${s2(g.lcp)}`);
           gate(med.fcp <= g.fcp, `${where}: FCP ${s2(med.fcp)} > ${s2(g.fcp)}`);
           gate(med.si <= g.si, `${where}: Speed Index ${s2(med.si)} > ${s2(g.si)}`);
           gate(med.tbt <= g.tbt, `${where}: TBT ${Math.round(med.tbt)} ms > ${g.tbt} ms`);
@@ -484,9 +490,9 @@ async function main() {
 
   const date = new Date().toISOString();
   const L = [
-    `# Budgets · ${date.slice(0, 16).replace('T', ' ')} UTC · ${BASE} · commit ${shortSha()} · ${process.platform}${CI ? ' (CI)' : ''}${NO_WEBGL ? ' · no WebGL' : ''}`,
+    `# Budgets · ${date.slice(0, 16).replace('T', ' ')} UTC · ${BASE} · commit ${shortSha()} · ${process.platform}${CI ? ' (CI)' : ''}${NO_WEBGL ? ' · no WebGL' : ''}${benchmarks.length ? ` · benchmark index ${Math.round(median(benchmarks))}` : ''}`,
     '',
-    `Verdict: ${fails.length ? `FAIL (${fails.length})` : 'pass'} · Lighthouse: median of ${RUNS} per metric after a warm-up (LCP's min–max and the worst beside it)${LCP_BOTH_MODES ? ` · mobile LCP gate ${s2(RUNNER_MOBILE_LCP_MS)} (--lcp-both-modes: above Lantern's slow mode on this runner)` : ''} · ${Math.round((Date.now() - t0) / 1000)} s`,
+    `Verdict: ${fails.length ? `FAIL (${fails.length})` : 'pass'} · Lighthouse: median of ${RUNS} per metric after a warm-up (LCP's min–max and the worst beside it)${RUNNER ? ` · the runner's gates (--runner): mobile score ≥ ${RUNNER_MOBILE_GATES.score}, LCP ≤ ${s2(RUNNER_MOBILE_GATES.lcp)}, TBT ≤ ${RUNNER_MOBILE_GATES.tbt} ms` : ''} · ${Math.round((Date.now() - t0) / 1000)} s`,
     '',
     '## HTML as served (gzip; gate 30,000 B)',
     '',
@@ -533,7 +539,20 @@ async function main() {
   writeFileSync(path.join(OUT, 'summary.md'), L.join('\n') + '\n');
   writeFileSync(
     path.join(OUT, 'summary.json'),
-    JSON.stringify({ date, base: BASE, html, lighthouse: lh, phone, fails }, null, 1),
+    JSON.stringify(
+      {
+        date,
+        base: BASE,
+        benchmarkIndex: benchmarks.length ? Math.round(median(benchmarks)) : null,
+        runnerGates: RUNNER ? RUNNER_MOBILE_GATES : null,
+        html,
+        lighthouse: lh,
+        phone,
+        fails,
+      },
+      null,
+      1,
+    ),
   );
   console.log(L.join('\n'));
 
