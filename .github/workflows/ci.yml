@@ -72,10 +72,13 @@ jobs:
       # desktop on every route, after a warm-up, the median of five, on this QA build (Playwright's Chromium on a runner
       # with no GPU, run without WebGL, --no-webgl: headless Chrome here would hand the page a SwiftShader context that no
       # visitor's browser offers, unflagged and seconds of main thread to create; so the painting stays still and the
-      # numbers are the paper's). No phone profile here (--no-phone: it needs a real GPU) and nothing written: the phone
-      # run and --write (content/measured.json, the tail's build stamp) are the local release step on the real GPU (README).
+      # numbers are the paper's). The mobile LCP gate is 2.7 s here (--lcp-both-modes, tools/lcp-gate.ts): on this runner
+      # a page whose LCP is an image falls in either of Lantern's two modes from run to run on a millisecond's race (Home
+      # 1.96 or 2.57 s, the same page), so the gate must clear the slow one; the release step keeps 2.5 s.
+      # No phone profile here (--no-phone: it needs a real GPU) and nothing written: the phone run and --write
+      # (content/measured.json, the tail's build stamp) are the local release step on the real GPU (README).
       - name: Budgets (the HTML gate and Lighthouse)
-        run: npm run check:budgets -- --no-phone --no-webgl
+        run: npm run check:budgets -- --no-phone --no-webgl --lcp-both-modes
         env:
           CHROME_PATH: ''
       - if: always()

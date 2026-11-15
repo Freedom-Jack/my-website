@@ -13,14 +13,17 @@
  *   npm run check:budgets -- --write                              on a pass, write Home's numbers into
  *                                                                 content/measured.json (the tail's build stamp)
  *   npm run check:budgets -- --no-webgl                           the browser without WebGL (CI: below)
+ *   npm run check:budgets -- --lcp-both-modes                     the mobile LCP gate above Lantern's slow mode (CI)
  *
  * R7: run it with the machine quiet (Lighthouse first, the phone run after it: P1's one outlier came right after a
  * phone run). R12: the server is warmed first (one request per route, then two seconds: a cold route's first
  * Lighthouse run fell in the slow one of Lantern's two LCP modes, ~0.5 s apart), then FIVE runs per route and preset.
  * The gate is the MEDIAN of the runs, per metric; the min and max (both modes, when there are two) and the worst run
- * are recorded beside it. A run whose TBT is
- * over 1 s is re-run once and reported as an outlier (the re-run takes its place). Every run's trace is kept for a
- * route and preset that fails, and for every outlier.
+ * are recorded beside it. With --lcp-both-modes (CI) the mobile LCP gate is 2.7 s, above Lantern's slow mode on
+ * GitHub's runner, where a page whose LCP is an image falls in either mode from run to run on a millisecond's race
+ * (Home 1.96 or 2.57 s, the same page): tools/lcp-gate.ts has the evidence. Locally (the release step) it is 2.5 s.
+ * A run whose TBT is over 1 s is re-run once and reported as an outlier (the re-run takes its place). Every run's
+ * trace is kept for a route and preset that fails, and for every outlier.
  * R9 and R10: every route's HTML is measured as served, gzip, and gated at 30,000 B (Work sits near it).
  * Locally Google Chrome runs on the GPU (Metal). In CI Playwright's Chromium runs on a runner with no GPU, with
  * --no-webgl: there headless Chrome hands WebGL a SwiftShader context that it does not flag as a performance caveat and
@@ -37,6 +40,7 @@ import { chromium } from '@playwright/test';
 import * as chromeLauncher from 'chrome-launcher';
 import lighthouse from 'lighthouse';
 import desktopConfig from 'lighthouse/core/config/desktop-config.js';
+import { RUNNER_MOBILE_LCP_MS } from './lcp-gate.ts';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Json = Record<string, any>;
@@ -62,6 +66,8 @@ const LINUX_ARGS = process.platform === 'linux' ? ['--no-sandbox', '--disable-de
 /** --no-webgl: no WebGL in the browser (the probe answers "gpu" at once; CI's GPU-less runner, see above). */
 const NO_WEBGL = flag('--no-webgl');
 const WEBGL_ARGS = NO_WEBGL ? ['--disable-3d-apis'] : [];
+/** --lcp-both-modes (CI): the mobile LCP gate clears Lantern's slow mode on GitHub's runner (tools/lcp-gate.ts). */
+const LCP_BOTH_MODES = flag('--lcp-both-modes');
 const FORMS = opt('--forms', 'mobile,desktop')
   .split(',')
   .filter((f): f is 'mobile' | 'desktop' => f === 'mobile' || f === 'desktop');
@@ -269,8 +275,9 @@ async function lighthouseAll(routes: string[]): Promise<LhRow[]> {
         const where = `Lighthouse ${form} ${route} (median of ${runs.length})`;
         if (form === 'mobile') {
           const g = GATES.mobile;
+          const lcpGate = LCP_BOTH_MODES ? RUNNER_MOBILE_LCP_MS : g.lcp;
           gate(med.score >= g.score, `${where}: score ${med.score} < ${g.score}`);
-          gate(med.lcp <= g.lcp, `${where}: LCP ${s2(med.lcp)} > ${s2(g.lcp)}`);
+          gate(med.lcp <= lcpGate, `${where}: LCP ${s2(med.lcp)} > ${s2(lcpGate)}`);
           gate(med.fcp <= g.fcp, `${where}: FCP ${s2(med.fcp)} > ${s2(g.fcp)}`);
           gate(med.si <= g.si, `${where}: Speed Index ${s2(med.si)} > ${s2(g.si)}`);
           gate(med.tbt <= g.tbt, `${where}: TBT ${Math.round(med.tbt)} ms > ${g.tbt} ms`);
@@ -479,7 +486,7 @@ async function main() {
   const L = [
     `# Budgets · ${date.slice(0, 16).replace('T', ' ')} UTC · ${BASE} · commit ${shortSha()} · ${process.platform}${CI ? ' (CI)' : ''}${NO_WEBGL ? ' · no WebGL' : ''}`,
     '',
-    `Verdict: ${fails.length ? `FAIL (${fails.length})` : 'pass'} · Lighthouse: median of ${RUNS} per metric after a warm-up (LCP's min–max and the worst beside it) · ${Math.round((Date.now() - t0) / 1000)} s`,
+    `Verdict: ${fails.length ? `FAIL (${fails.length})` : 'pass'} · Lighthouse: median of ${RUNS} per metric after a warm-up (LCP's min–max and the worst beside it)${LCP_BOTH_MODES ? ` · mobile LCP gate ${s2(RUNNER_MOBILE_LCP_MS)} (--lcp-both-modes: above Lantern's slow mode on this runner)` : ''} · ${Math.round((Date.now() - t0) / 1000)} s`,
     '',
     '## HTML as served (gzip; gate 30,000 B)',
     '',

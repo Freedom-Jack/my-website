@@ -1036,7 +1036,15 @@ GPU-less runner handed WebGL a SwiftShader context with no performance caveat, s
 the main thread for seconds (the probe now refuses a software renderer by name, and CI's budgets run without WebGL).
 Without the painting, Work's phone LCP became its sharp still arriving after the probe: 2.9 s, score 94. Jack's
 ruling: keep the soft seed. Where no painting comes, Work keeps its seed, and its sharp still shows only without
-JavaScript (the table's "the still only in the still state" no longer holds).
+JavaScript (the table's "the still only in the still state" no longer holds). Then the routes whose LCP is an image
+failed on a coin toss: Lighthouse's simulation counts every script that began to run before the observed paint as
+blocking an image LCP (a text LCP painted in the first frame takes the FCP estimate instead, which is why Work reads
+1.06 s in every run), and on the runner React's async chunk starts within a millisecond or two of the first frame's
+presentation, before it in some runs and after it in others: Home 1.96 or 2.57 s, Contact 1.89 or 2.51 s, the same
+pages. On Jack's go ("just fix it all the way") CI's mobile LCP gate is 2.7 s on the median (`--lcp-both-modes`,
+`tools/lcp-gate.ts`), above the slow mode's 2.61 s at worst; gating the fastest run instead would not hold, since on
+this Mac the slow mode took all five runs on Home and the Résumé (2.45 s). The release step on this Mac keeps 2.5 s,
+and both modes stay in the report.
 
 **What it cost** (the agents' transcripts; the lead's own turns not counted): research, design, jury and attack about
 15 million output tokens on Fable and Opus (2026-11-02 to 05, three runs killed by spend limits and resumed); P1 about
