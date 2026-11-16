@@ -1,0 +1,561 @@
+/* ==========================================================================
+   body.css — round 7 (2026-11-16): everything below the first screen, on every page.
+
+   Jack: "the rest of the page has no visual effects and it's all terrible … The body is like only left side of the
+   page … even the footer is not perfectly aligned with the page"; "the whole idea is this is the whole big scroll.
+   It's one big painting."
+
+   The painting runs the whole width behind the page (elements.ts curtain, off) and still slides west as the page
+   is read. The words lie in its mist, across the whole frame: every block of words keeps a cloud of the paper's own
+   mist behind it (plates/veils.ts), so a cloud carrying words drifts up across the peaks as the page scrolls; a few
+   display words are inked INTO the painting, between its depth layers (.inked), so a ridge or a roof passes in
+   front of the letters. What moves is ink, wash, mist, paper or the seal: brush rules that draw themselves, figures
+   as ink numerals that rise like ink in paper, a wash that blooms under the pointer, the seal pressed when something
+   is done. Reading keeps its normal sizes; nothing is hidden at first paint without JavaScript or scroll timelines
+   (every effect's finished state is the default).
+
+   One grid: the page frame (1200) in twelve columns, the header's own edges. Every page's blocks are placed on it
+   by the page's CSS Module; the tail (the footer) stands on it too.
+   Load order: tokens → base → layout → plates → effects → components → body → the CSS Modules.
+   ========================================================================== */
+
+:root {
+  --grid-gap: 1rem;
+  /* the section titles in the name face: 40 @ 390 → 64 @ 1440 */
+  --fs-ink: clamp(2.5rem, 1.94rem + 2.3vw, 4rem);
+  /* a figure as an ink numeral: 76 @ 390 → 150 @ 1440 */
+  --fs-num: clamp(4.75rem, 3.03rem + 7.05vw, 9.375rem);
+  /* the ending's next place, inked into the painting: 84 @ 390 → 232 @ 1440 */
+  --fs-giant: clamp(5.25rem, 1.8rem + 14.1vw, 14.5rem);
+  /* between two sections of the body */
+  --space-body: clamp(3.75rem, 2.6rem + 4.7vw, 6.5rem);
+  --ease-wash: cubic-bezier(0.2, 0.75, 0.2, 1);
+}
+@media (min-width: 40rem) {
+  :root {
+    --grid-gap: 1.25rem;
+  }
+}
+@media (min-width: 75rem) {
+  :root {
+    --grid-gap: 1.5rem;
+    --space-body: 8.5rem; /* (wide: the painting stands open between two sections' mist) */
+  }
+}
+
+/* ---------- the grid ----------
+   .spread: twelve columns of the frame on wide screens, six on tablets, one on phones. A page's module places its
+   blocks (grid-column) and staggers them (margin-block-start), so the words step across the painting. */
+.spread {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: var(--grid-gap);
+  align-items: start;
+}
+@media (min-width: 40rem) {
+  .spread {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .spread > * {
+    grid-column: 1 / -1;
+  }
+}
+@media (min-width: 75rem) {
+  .spread {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+}
+
+/* a section of the body */
+.part {
+  margin-block-start: var(--space-body);
+}
+.part > * + * {
+  margin-block-start: var(--space-para);
+}
+
+/* ---------- the section title: the name face, with a dry-brush rule that draws itself under it ----------
+     <h2 class="h-ink" id="x-title">About me</h2>
+   The rule is the title's own (::after): it draws from the left as the title comes up the screen (a scroll timeline
+   on the rule itself; where there is none it simply lies there). */
+.h-ink {
+  font-family: var(--font-name);
+  font-size: var(--fs-ink);
+  font-weight: 900;
+  line-height: 0.96;
+  letter-spacing: 0.005em;
+  color: var(--ink-1);
+  text-wrap: balance;
+}
+.h-ink::after {
+  content: '';
+  display: block;
+  inline-size: min(100%, 4.6em);
+  block-size: 0.2em;
+  margin-block-start: 0.16em;
+  background: url('./svg/stroke-a.svg') left center / 100% 100% no-repeat;
+}
+.h-ink + * {
+  margin-block-start: 1.1rem;
+}
+/* a smaller title of the same voice (a column's head inside a section) */
+.h-ink--s {
+  font-size: clamp(1.875rem, 1.6rem + 1.15vw, 2.5rem); /* 30 → 40 */
+  line-height: 1;
+}
+.h-ink--s + * {
+  margin-block-start: 0.9rem;
+}
+/* the facts' label over a block: mono capitals, with a jade tick before it (jade is a mark, never a word) */
+.tag {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  font-family: var(--font-code);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.tag::before {
+  content: '';
+  flex: none;
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-radius: 50%;
+  background: var(--jade);
+}
+.tag + * {
+  margin-block-start: 0.5rem;
+}
+
+/* ---------- brush rules ----------
+   A dry-brush stroke where a hairline stood: .stroke on an empty <span aria-hidden> or an <hr>. It draws in from the
+   left as it comes up the screen. */
+.stroke {
+  display: block;
+  inline-size: 100%;
+  block-size: 0.5rem;
+  border: 0;
+  background: url('./svg/stroke-b.svg') left center / 100% 100% no-repeat;
+}
+.stroke--heavy {
+  block-size: 0.8rem;
+  background-image: url('./svg/stroke-a.svg');
+}
+
+@keyframes stroke-draw {
+  from {
+    clip-path: inset(-40% 100% -40% 0);
+  }
+  to {
+    clip-path: inset(-40% 0 -40% 0);
+  }
+}
+/* ---------- a figure as an ink numeral ----------
+     <p class="num"><span class="num__lead">About</span>90%</p>
+   The name face, large, in ink. It rises as ink climbs paper while it comes up the screen (a soft edge moving up it,
+   a scroll timeline on the numeral itself). */
+.num {
+  font-family: var(--font-name);
+  font-size: var(--fs-num);
+  font-weight: 900;
+  line-height: 0.82;
+  letter-spacing: 0;
+  font-variant-numeric: lining-nums;
+  color: var(--ink-1);
+  white-space: nowrap;
+}
+.num__lead {
+  display: block;
+  margin-block-end: 0.5rem;
+  font-family: var(--font-code);
+  font-size: 0.8125rem;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+@property --rise {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 130%;
+}
+@keyframes ink-rise {
+  from {
+    --rise: -30%;
+  }
+  to {
+    --rise: 130%;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    html.js:not(.is-still) :is(.h-ink::after, .stroke) {
+      animation: stroke-draw linear both;
+      animation-timeline: view();
+      animation-range: entry 20% entry 115%;
+    }
+    html.js:not(.is-still) .num {
+      -webkit-mask-image: linear-gradient(to top, #000 calc(var(--rise) - 30%), transparent var(--rise));
+      mask-image: linear-gradient(to top, #000 calc(var(--rise) - 30%), transparent var(--rise));
+      animation: ink-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 140%;
+    }
+  }
+}
+
+/* ---------- words inked INTO the painting ----------
+   .inked stands between the painting's two leaves (plates.css): behind the place, in front of the sky and the far
+   ranges, so a peak or a roof passes in front of the letters as the scroll slides. Only while the plates are the
+   stage; elsewhere (a phone, a page change, no painting) the words stand on the page as any others. Never inside a
+   box that makes its own stacking context (a transform, a filter, a container). */
+html[data-plates='on'] .inked {
+  position: relative;
+  z-index: calc(var(--z-landscape) - 1);
+}
+
+/* ---------- a wash under the pointer ----------
+   A row answers the pointer with a pale wash of wet ink that blooms where the pointer stands (features/effects/
+   finish.ts sets --mx, --my on the row) and a brush rule drawn along its foot; nothing sits behind the words but
+   the faintest tint (ink-1 on it stays over 14:1). Rows: .ink-row. */
+.ink-row {
+  isolation: isolate;
+}
+.ink-row::before {
+  content: '';
+  position: absolute;
+  inset: -3rem -4rem;
+  z-index: -1;
+  pointer-events: none;
+  /* (the blot stands where the pointer is, in the row's own box: the pseudo-element reaches 4 rem and 3 rem past it) */
+  background: radial-gradient(
+    17rem 8rem at calc(var(--mx, 30%) + 4rem) calc(var(--my, 50%) + 3rem),
+    rgb(27 89 96 / 0.15),
+    rgb(27 89 96 / 0.07) 48%,
+    transparent 100%
+  );
+  opacity: 0;
+  transition: opacity 520ms var(--ease-wash);
+}
+.ink-row:is(:hover, :focus-within)::before {
+  opacity: 1;
+}
+@media (hover: none) {
+  .ink-row::before {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ink-row::before {
+    transition: none;
+  }
+}
+
+/* ---------- the seal, pressed ----------
+   .stamp on a .seal: it comes down a little large and tilted, lands, and the cinnabar takes (once, when it is
+   added). Reduced motion and Still: it is simply there. */
+@keyframes seal-press {
+  0% {
+    opacity: 0;
+    scale: 1.5;
+    rotate: -9deg;
+  }
+  55% {
+    opacity: 1;
+    scale: 0.94;
+    rotate: 1deg;
+  }
+  100% {
+    opacity: 1;
+    scale: 1;
+    rotate: 0deg;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.is-still) .stamp {
+    animation: seal-press 520ms cubic-bezier(0.2, 0.9, 0.25, 1) both;
+  }
+}
+
+/* ---------- a link in the body's display voice: words with a brush underline that draws on hover ---------- */
+.brush-link {
+  position: relative;
+  text-decoration: none;
+  background: url('./svg/stroke-b.svg') left 100% / 0% 0.42em no-repeat;
+  padding-block-end: 0.22em;
+  transition: background-size 420ms var(--ease-wash);
+}
+main a.brush-link {
+  text-decoration: none;
+}
+.brush-link:is(:hover, :focus-visible) {
+  background-size: 100% 0.42em;
+}
+@media (prefers-reduced-motion: reduce) {
+  .brush-link {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   The ending (components/page/NextPlace): every page but Contact and the 404 ends on the next place downstream.
+   Its name is inked into the painting where that place has come into view (the page's travel ends 60 % of the way
+   to it): the largest words below the first screen, standing behind the place's own roofs or peaks; the label and
+   the next page's sentence lie in a cloud beside it.
+     <aside class="next spread" aria-label="Downstream: Work">
+       <div class="next__text" data-veil><p class="tag">Downstream</p><p class="next__line">…</p></div>
+       <p class="next__name inked"><a class="next__link" href="/work/">Work<span class="action__arrow"></span></a></p>
+     </aside>
+   ========================================================================== */
+.next {
+  max-width: none;
+  margin-block-start: var(--space-body);
+  padding-block-start: 0;
+  border-top: 0;
+  row-gap: 1.25rem;
+}
+.next__text {
+  max-width: 30rem;
+}
+.next__line {
+  margin-block-start: 0.5rem;
+  color: var(--ink-2);
+  max-width: 34em;
+}
+.next__name {
+  margin: 0;
+}
+.next__link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.18em;
+  min-height: 44px;
+  font-family: var(--font-name);
+  font-weight: 900;
+  font-size: var(--fs-giant);
+  line-height: 0.86;
+  letter-spacing: 0.005em;
+  color: var(--ink-1);
+  text-decoration: none;
+  white-space: nowrap;
+}
+main a.next__link {
+  text-decoration: none;
+}
+.next__link .action__arrow {
+  width: 0.62em;
+  height: 0.31em;
+  translate: 0 -0.12em;
+  transition: translate 420ms var(--ease-ink);
+}
+.next__link:is(:hover, :focus-visible) .action__arrow {
+  translate: 0.14em -0.12em;
+}
+@media (min-width: 75rem) {
+  .next {
+    align-items: start;
+  }
+  /* the page's last screen: the ending's words and the next place's name at its top, the place itself standing clear
+     under them (the closing's gap: nothing lies there but the painting), then the tail */
+  .next + .closing {
+    margin-block-start: 0;
+  }
+  .next + .closing .closing__art {
+    min-height: 17rem;
+  }
+  .next > .next__text {
+    grid-column: 1 / span 4;
+    align-self: start;
+    margin-block-start: 4.5rem;
+  }
+  .next > .next__name {
+    grid-column: 6 / -1;
+    justify-self: end;
+    align-self: start;
+  }
+}
+
+/* ==========================================================================
+   The tail (components/layout/Tail; the footer, on every page): the end of the scroll, on the page's own grid.
+   A brush rule the frame's width; then the whole scroll in miniature, its five places in the painting's order, each a
+   link to its page with its name under it and the current one sealed; then, on the same twelve columns, the colophon
+   and the build stamp at the left, the email, "Still the landscape" and the seal at the right. Everything starts on
+   the frame's left edge or ends on its right one, as the header and the body do.
+     <footer class="site-footer tail" data-veil="bank"><div class="frame">
+       <span class="stroke stroke--heavy"></span>
+       <nav class="scrollmap" aria-label="All pages"><ol role="list"><li><a href="/"><span class="scrollmap__art">
+         <img …></span><span class="scrollmap__name">Home</span></a></li>…</ol></nav>
+       <div class="tail__base spread"><div class="tail__words">…</div><div class="tail__side">…</div></div>
+     </div></footer>
+   ========================================================================== */
+.site-footer.tail {
+  margin-block-start: var(--space-body);
+  padding-block: 0 max(var(--space-l), env(safe-area-inset-bottom, 0px));
+}
+main:has(> .closing:last-child) + .site-footer.tail {
+  margin-block-start: var(--space-s);
+}
+.tail > .frame {
+  display: block;
+  padding-block-start: 0;
+  border-top: 0;
+}
+.tail > .frame > .stroke {
+  margin-block-end: 1.5rem;
+}
+.scrollmap ol {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  column-gap: 0;
+}
+.scrollmap li {
+  min-width: 0;
+}
+.scrollmap a {
+  position: relative;
+  display: grid;
+  row-gap: 0.5rem;
+  text-decoration: none;
+  color: var(--ink-2);
+  -webkit-tap-highlight-color: transparent;
+}
+.tail .scrollmap a {
+  text-decoration: none;
+}
+.scrollmap__art {
+  position: relative;
+  display: block;
+  aspect-ratio: 240 / 124;
+  overflow: hidden;
+}
+/* (the place stands in the right half of its first frame: the picture is laid twice the cell's width, from its right) */
+.scrollmap__art img {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 215%;
+  max-width: none;
+  height: auto;
+  translate: 0 -50%;
+  opacity: 0.78;
+  transition:
+    opacity 380ms var(--ease-wash),
+    scale 900ms var(--ease-wash);
+  transform-origin: 75% 50%;
+}
+.scrollmap a:is(:hover, :focus-visible) img,
+.scrollmap a[aria-current] img {
+  opacity: 1;
+}
+.scrollmap a:is(:hover, :focus-visible) img {
+  scale: 1.045;
+}
+.scrollmap__name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  min-block-size: 44px;
+  padding-inline-start: 0.125rem;
+  font-size: var(--fs-small);
+  font-weight: var(--w-ui);
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+}
+.scrollmap a:is(:hover, :focus-visible) .scrollmap__name,
+.scrollmap a[aria-current] .scrollmap__name {
+  color: var(--ink-1);
+}
+/* you are here: a small seal-red square before the current place's name (the tail's cinnabar, beside the seal) */
+.scrollmap a[aria-current] .scrollmap__name::before {
+  content: '';
+  flex: none;
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  background: var(--cinnabar);
+  border-radius: 1px;
+}
+.tail__base {
+  margin-block-start: 1.25rem;
+  row-gap: 1.25rem;
+  align-items: start;
+}
+.tail__words {
+  display: grid;
+  row-gap: 0.5rem;
+}
+.tail__colophon {
+  max-width: 44em;
+  color: var(--ink-2);
+}
+.tail__side {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 1.5rem;
+  row-gap: 0.25rem;
+}
+.tail__side .seal {
+  width: 2.25rem;
+}
+.tail__mail {
+  font-size: var(--fs-body);
+}
+@media (min-width: 75rem) {
+  .tail__base > .tail__words {
+    grid-column: 1 / span 7;
+  }
+  .tail__base > .tail__side {
+    grid-column: 8 / -1;
+    justify-content: flex-end;
+    justify-self: end;
+  }
+}
+@media (max-width: 39.99rem) {
+  /* phones: the scroll's five places in one row the screen's width, names under them at the small size */
+  .scrollmap ol {
+    margin-inline: calc(-1 * var(--gutter-x));
+  }
+  .scrollmap__name {
+    justify-content: center;
+    padding-inline-start: 0;
+    font-size: 0.8125rem;
+    gap: 0.3em;
+  }
+  .scrollmap__art {
+    aspect-ratio: 78 / 60;
+  }
+  .scrollmap__art img {
+    width: 330%;
+    right: -18%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scrollmap__art img {
+    transition: none;
+  }
+  .scrollmap a:is(:hover, :focus-visible) img {
+    scale: 1;
+  }
+}
+@media (forced-colors: active) {
+  .stroke,
+  .h-ink::after {
+    background: CanvasText;
+    block-size: 2px;
+  }
+}
+@media print {
+  .stroke,
+  .h-ink::after {
+    display: none;
+  }
+  .num {
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+  }
+}

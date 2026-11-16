@@ -43,7 +43,7 @@ export function targetsOf(main: HTMLElement): LandscapeTargets {
     veil: [
       ...main.querySelectorAll('[data-veil]'),
       ...(elementOn('cameraTravels') || elementOn('unroll')
-        ? document.querySelectorAll('.site-footer .tail__colophon, .site-footer .tail__stamp, .site-footer .tail__base')
+        ? document.querySelectorAll('.site-footer .scrollmap, .site-footer .tail__words, .site-footer .tail__side')
         : []),
     ],
     wake: main.querySelectorAll('[data-wake]'),

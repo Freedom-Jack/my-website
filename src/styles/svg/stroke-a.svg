@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 24" preserveAspectRatio="none">
+  <!-- A long dry-brush stroke (round 7): the brush lands full at the left and runs out of ink to the right
+       (flying white). The section titles' rule and the ending's. -->
+  <defs>
+    <linearGradient id="load" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#111416" stop-opacity="1"/>
+      <stop offset=".34" stop-color="#111416" stop-opacity=".96"/>
+      <stop offset=".72" stop-color="#111416" stop-opacity=".74"/>
+      <stop offset="1" stop-color="#111416" stop-opacity=".42"/>
+    </linearGradient>
+    <filter id="dry" x="0" y="-60%" width="100%" height="220%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.0045 0.55" numOctaves="2" seed="7" result="streak"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="13" result="edge"/>
+      <feDisplacementMap in="SourceGraphic" in2="edge" scale="3" xChannelSelector="R" yChannelSelector="G" result="shape"/>
+      <feComposite in="shape" in2="streak" operator="arithmetic" k1="0" k2="4" k3="3" k4="-4.05" result="mask"/>
+      <feFlood flood-color="#111416"/>
+      <feComposite in2="mask" operator="in"/>
+    </filter>
+  </defs>
+  <path filter="url(#dry)" fill="url(#load)" d="M3 13.4C2.6 8.4 9 5.6 24 5.2 110 3.4 290 4.6 468 7.4c62 1 108 2.2 129 4-20 2.4-66 3.8-128 4.4C290 17.6 112 19.8 26 20.6 10 20.8 3.4 18.6 3 13.4z"/>
+</svg>

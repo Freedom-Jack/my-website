@@ -3,7 +3,6 @@ import { site } from '@content/site';
 import { PageMain } from '@/components/page/PageMain';
 import { Glimpse } from '@/components/page/Glimpse';
 import { Strip } from '@/components/page/Strip';
-import { Seal } from '@/components/ui/Seal';
 import { TextAction } from '@/components/ui/TextAction';
 import { Ask } from '@/features/ask/Ask';
 import { allCases } from '@/features/work/cases';
@@ -18,14 +17,20 @@ import styles from './home.module.css';
 const span = (years: string, to: string) => years.replace(' – ', ` ${to} `);
 
 /**
- * Home (/): Jack's "about me" page (COPY §1) with the vanguard round's first screen (05-synthesis.md): the name at a
- * fifth of the screen in his mountain's mist, the verb line, the title line, one counted proof (the case's figure as
- * a poster numeral beside its measure, then its years and "the case →"), the dated line with its measure, and the
- * one action. The painting is the pre-cut still from the first paint, the live painting fading in beneath it. Then,
- * on paper: About (the portrait, lazy), What I work on as ledger rows with the cases' own figures (never a
- * projection's), Now (dated), Writing rows built for three (kind · written · last tended, the note's own words), Say
- * hello, and the ending downstream (Work). Under 400 words in all (content/pages/home.ts `held`). Every word: content/pages/home.ts; every figure and
- * year: the case's front matter (content/work/*.mdx).
+ * Home (/): Jack's "about me" page (COPY §1).
+ *
+ * The first screen is the live site's (the vanguard round's: the name at a fifth of the screen in his mountain's
+ * mist, the verb line, the title line, one counted proof, the dated line, the one action), untouched by round 7.
+ *
+ * Below it (round 7) the page uses the whole frame, and the words step across the painting as it slides west:
+ *   About me, with the portrait, at the left while his mountain still stands at the right, and Now in a cloud of its
+ *   own that drifts up across the peaks;
+ *   What I work on as three steps down the page, left to right, each with its case's own figure as an ink numeral (a
+ *   projection is an outline, never filled: it is not yet real), the mountain showing between the steps;
+ *   Ask the painting (features/ask): a real model in the visitor's browser, answering with a line of the site's own;
+ *   Writing and Say hello side by side;
+ *   and the ending: the next place's name inked into the painting where the river town has come into view.
+ * Every word: content/pages/home.ts; every figure and year: the case's front matter (content/work/*.mdx).
  */
 export async function HomePage() {
   const [notes, cases] = await Promise.all([allNotes(), allCases()]);
@@ -80,108 +85,121 @@ export async function HomePage() {
         </p>
       </Strip>
 
-      <section className="hello wide" aria-labelledby="about-title" data-veil="0.88">
-        {/* a plain <img>: the portrait sits with About, after the first screen, never on it (next/image would
-            re-encode it and costs a client chunk and a request on the first load); its source comes as the reader nears
-            it (data-near: features/landscape/glimpse-stills), so it never joins the first load; <noscript> without JS */}
-        {/* (the frame: the photo is multiplied into its own paper, inside one layer; blended against the page
-            itself, the whole page was composited the slow way while the portrait was on screen) */}
-        <div className="hello__frame">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            className="hello__photo"
-            data-src={about.photo.src}
-            data-near=""
-            width={about.photo.width}
-            height={about.photo.height}
-            alt={about.photo.alt}
-            loading="lazy"
-            decoding="async"
-          />
-          <noscript>
+      {/* About me and Now: the long read at the left, where no painting stands yet; Now floats in its own cloud at the
+          right and drifts up across his mountain */}
+      <section className={`part spread ${styles.about}`} aria-labelledby="about-title">
+        <div className={styles.aboutMain} data-veil="0.88">
+          {/* a plain <img>: the portrait sits with About, after the first screen, never on it; its source comes as the
+              reader nears it (data-near: features/landscape/glimpse-stills), so it never joins the first load;
+              <noscript> without JS. The frame: the photo is multiplied into its own paper, inside one layer (blended
+              against the page itself, the whole page was composited the slow way while the portrait was on screen) */}
+          <div className={`hello__frame ${styles.photo}`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               className="hello__photo"
-              src={about.photo.src}
+              data-src={about.photo.src}
+              data-near=""
               width={about.photo.width}
               height={about.photo.height}
               alt={about.photo.alt}
+              loading="lazy"
               decoding="async"
             />
-          </noscript>
+            <noscript>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                className="hello__photo"
+                src={about.photo.src}
+                width={about.photo.width}
+                height={about.photo.height}
+                alt={about.photo.alt}
+                decoding="async"
+              />
+            </noscript>
+          </div>
+          <div className={styles.aboutText}>
+            <h2 className="h-ink" id="about-title">
+              {about.title}
+            </h2>
+            {about.paragraphs.map((p) => (
+              <p key={p}>
+                <Inline text={p} />
+              </p>
+            ))}
+          </div>
         </div>
-        <div className="hello__text">
-          <h2 className="sec__title" id="about-title">
-            {about.title}
-          </h2>
-          {about.paragraphs.map((p) => (
-            <p key={p}>
-              <Inline text={p} />
+        {now.lines.length ? (
+          <aside className={styles.now} aria-labelledby="now-title" data-veil="">
+            <p className="tag">
+              <time dateTime={now.month}>{monthYear(now.month)}</time>
             </p>
-          ))}
-        </div>
+            <h2 className="h-ink h-ink--s" id="now-title">
+              {now.title}
+            </h2>
+            <ul className={styles.nowList} role="list">
+              {now.lines.map((line) => (
+                <li key={line.label}>
+                  <b>{line.label}:</b> <Inline text={line.text} />
+                </li>
+              ))}
+            </ul>
+          </aside>
+        ) : null}
       </section>
 
       <Glimpse still="home-0" />
-      <section className="sec" aria-labelledby="work-on-title" data-veil="">
-        <h2 className="sec__title" id="work-on-title">
-          {workOn.title}
-        </h2>
-        <ul className="ledger" role="list">
+      {/* What I work on: three steps down the page, left to right; each step keeps its own cloud, so his mountain
+          shows between them as it crosses the screen */}
+      <section className={`part ${styles.workOn}`} aria-labelledby="work-on-title">
+        <div className={styles.workOnHead} data-veil="">
+          <h2 className="h-ink" id="work-on-title">
+            {workOn.title}
+          </h2>
+        </div>
+        <ol className={`spread ${styles.steps}`} role="list">
           {workOn.rows.map((row) => {
-            // the row's figure is its case's own (the numeral is decorative: the line carries the figure in words); a
-            // projection is never a numeral, it stays in the line with the word "projected" (A1)
+            // the step's figure is its case's own (the numeral is decorative: the line carries the figure in words).
+            // A projection is drawn as an outline under its own label ("Projected"), never as filled ink: it is not
+            // yet real (the vanguard round kept it out of the numerals altogether, A1; an outline says the same)
             const c = byHref(row.href);
-            const f = c && c.figure.basis !== 'projected' ? splitFigure(c.figure) : null;
+            const f = c ? splitFigure(c.figure) : null;
+            const projected = c?.figure.basis === 'projected';
             return (
-              <li className="ledger__row ink-row" key={row.href}>
+              <li className={`${styles.step} ink-row`} key={row.href} data-veil="">
                 {f ? (
-                  <p className="ledger__figure" aria-hidden="true">
-                    {f.lead ? <span className="ledger__figure-lead">{f.lead}</span> : null}
+                  <p className={projected ? `num ${styles.projected}` : 'num'} aria-hidden="true">
+                    {f.lead ? <span className="num__lead">{f.lead}</span> : null}
                     {f.value}
                   </p>
                 ) : null}
-                <h3 className="ledger__title">
+                <h3 className={styles.stepTitle}>
                   <InlineLink href={row.href}>{row.title}</InlineLink>
                 </h3>
-                <p className="ledger__line">
+                <p className={styles.stepLine}>
                   <Inline text={row.line} />
                 </p>
               </li>
             );
           })}
-        </ul>
-        <p className="more">
-          <InlineLink href={workOn.more.href}>{workOn.more.label}</InlineLink>
+        </ol>
+        <p className={styles.all} data-veil="">
+          <TextAction href={workOn.more.href} arrow>
+            {workOn.more.label.replace(/\s*→$/, '')}
+          </TextAction>
         </p>
       </section>
 
-      {now.lines.length ? (
-        <section className="sec now" aria-labelledby="now-title" data-veil="">
-          <h2 className="sec__title" id="now-title">
-            {now.title}
-            <span className="sec__date small">
-              · <time dateTime={now.month}>{monthYear(now.month)}</time>
-            </span>
-          </h2>
-          <ul className="rows rows--plain" role="list">
-            {now.lines.map((line) => (
-              <li key={line.label}>
-                <b>{line.label}:</b> <Inline text={line.text} />
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
+      {/* the page's moment: a real model in the visitor's own browser, answering with a line of this site */}
+      <Ask />
 
-      {notes.length ? (
-        <>
-          <Glimpse phone still="home-1" />
-          <section className="sec" aria-labelledby="writing-title" data-veil="">
-            <h2 className="sec__title" id="writing-title">
+      <Glimpse phone still="home-1" />
+      <section className={`part spread ${styles.last}`}>
+        {notes.length ? (
+          <div className={styles.writing} data-veil="">
+            <h2 className="h-ink" id="writing-title">
               {writing.title}
             </h2>
-            <ul className="ledger ledger--dated" role="list">
+            <ul className={`ledger ledger--dated ${styles.notes}`} role="list" aria-labelledby="writing-title">
               {notes.slice(0, 3).map((n) => (
                 <li className="ledger__row ink-row" key={n.slug}>
                   <p className="ledger__meta mono">
@@ -205,17 +223,16 @@ export async function HomePage() {
                 <InlineLink href={writing.more.href}>{writing.more.label}</InlineLink>
               </p>
             ) : null}
-          </section>
-        </>
-      ) : null}
-
-      <section className="sec" aria-labelledby="say-hello-title" data-veil="">
-        <h2 className="sec__title" id="say-hello-title">
-          {hello.title}
-        </h2>
-        <p>
-          <Inline text={hello.line} />
-        </p>
+          </div>
+        ) : null}
+        <div className={styles.hello} data-veil="">
+          <h2 className="h-ink" id="say-hello-title">
+            {hello.title}
+          </h2>
+          <p className={styles.helloLine}>
+            <Inline text={hello.line} />
+          </p>
+        </div>
       </section>
     </PageMain>
   );

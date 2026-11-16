@@ -5,10 +5,19 @@
    Shown while html[data-plates="on"]; the engine's own canvas (.landscape) rests then.
    ========================================================================== */
 
+/* Two leaves (round 7): .plates__back holds what lies behind the place (the far plate: the sky, the light, the far
+   ranges; its top under the header's band; the haze), .plates__fore the place and everything in front of it (the
+   middle and near plates, the sea of mist, what is pinned). Each is a fixed layer of the page's root, so a page can
+   ink words INTO the painting between them (body.css .inked: z-index between the two) and a ridge passes in front
+   of the letters. The wrapper keeps the stage's variables and attributes and has no box. Plain layers only: no
+   mask, filter or blend mode on either leaf or anything in it. */
 .plates {
+  display: contents;
+}
+.plates__back,
+.plates__fore {
   position: fixed;
   inset: 0;
-  z-index: var(--z-landscape);
   width: 100%;
   height: 100lvh;
   overflow: hidden;
@@ -16,13 +25,19 @@
   visibility: hidden;
   contain: strict;
 }
-html[data-plates='on'] .plates {
+.plates__back {
+  z-index: calc(var(--z-landscape) - 2);
+}
+.plates__fore {
+  z-index: var(--z-landscape);
+}
+html[data-plates='on'] :is(.plates__back, .plates__fore) {
   visibility: visible;
 }
 html[data-plates='on'] .landscape {
   visibility: hidden !important; /* the darkroom: it develops the plates and shows nothing */
 }
-html.no-landscape .plates {
+html.no-landscape :is(.plates__back, .plates__fore) {
   display: none;
 }
 
@@ -228,7 +243,8 @@ html[data-rain] .weather__c {
 html[data-plates='on'] .veils {
   display: block;
 }
-/* A patch is two nested masks, so its edges meet without a seam: the outer one ends it sideways (a plain soft edge at
+/* THE FIRST SCREEN'S PATCHES (.veil--hero: the title block; round 6's, unchanged: the header is the live site's).
+   A patch is two nested masks, so its edges meet without a seam: the outer one ends it sideways (a plain soft edge at
    its left, where no painting stands; a torn edge of mist at its right, toward the painting), the inner one above and
    below (the same torn edge lying down). Between the edges: solid paper. */
 .veil {
@@ -237,6 +253,8 @@ html[data-plates='on'] .veils {
   --ends: 150px; /* ...and above and below it */
   --left: 90px;
   --at: 0px;
+}
+.veil--hero {
   -webkit-mask-image:
     var(--edge-r, linear-gradient(to right, #000, transparent)),
     linear-gradient(
@@ -274,7 +292,7 @@ html[data-plates='on'] .veils {
   -webkit-mask-composite: source-over;
   mask-composite: add;
 }
-.veil > i {
+.veil--hero > i {
   position: absolute;
   inset: 0;
   display: block;
@@ -319,6 +337,27 @@ html[data-plates='on'] .veils {
   mask-repeat: repeat-x, repeat-x, no-repeat;
   -webkit-mask-composite: source-over;
   mask-composite: add;
+}
+/* THE BODY'S FIELD OF MIST (round 7; plates/veils.ts): one sheet of the paper's own tile the size of the page, whose
+   mask is the field the page computes from where its words stand (solid behind every line, thinning out in billows
+   with the distance to the nearest words; --field, a small image stretched over the sheet). It scrolls with the
+   words; the browser moves it. */
+.veil-field {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 0;
+  background: var(--paper) var(--paper-tile, none) 0 0 / var(--paper-tile-size, 512px) var(--paper-tile-size, 512px);
+  -webkit-mask-image: var(--field, none);
+  mask-image: var(--field, none);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+.veil-field:not([style*='--field']) {
+  display: none;
 }
 /* the header sits on paper, never on the painted sky: a band of paper under it, solid to the header's foot and
    melting out below it; it scrolls away with the header */
@@ -381,7 +420,8 @@ html.el-corner .veil--head {
 }
 
 @media print {
-  .plates,
+  .plates__back,
+  .plates__fore,
   .veils,
   .weather {
     display: none;

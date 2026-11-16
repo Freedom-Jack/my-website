@@ -8,6 +8,9 @@
  *            light). Once per hover, with a 4 s rest; it never loops. Labels and nodes never move. It reads its flag
  *            at the moment it acts (fxOn), so a runtime toggle is honoured, and does nothing under reduced motion or
  *            Still.
+ *   wash     (round 7) a row answers the pointer with a pale wash of wet ink that blooms where the pointer stands
+ *            (body.css .ink-row::before): one listener on the page tells the row under the pointer where it is
+ *            (--mx, --my, px from the row's own corner), at most once a frame. Fine pointers only.
  */
 import { fxOn } from '@/features/landscape/elements';
 
@@ -127,10 +130,40 @@ function flows(root: ParentNode, signal: AbortSignal) {
   }
 }
 
+// ------------------------------------------------------------------------------------------------ wash
+function washes(root: ParentNode, signal: AbortSignal) {
+  if (!(root instanceof HTMLElement) || !matchMedia('(hover: hover)').matches) return;
+  let raf = 0;
+  let row: HTMLElement | null = null;
+  let x = 0;
+  let y = 0;
+  const set = () => {
+    raf = 0;
+    if (!row) return;
+    const r = row.getBoundingClientRect();
+    row.style.setProperty('--mx', `${Math.round(x - r.left)}px`);
+    row.style.setProperty('--my', `${Math.round(y - r.top)}px`);
+  };
+  root.addEventListener(
+    'pointermove',
+    (e) => {
+      if (e.pointerType !== 'mouse') return;
+      row = (e.target as Element | null)?.closest?.('.ink-row') ?? null;
+      if (!row) return;
+      x = e.clientX;
+      y = e.clientY;
+      if (!raf) raf = requestAnimationFrame(set);
+    },
+    { signal, passive: true },
+  );
+  signal.addEventListener('abort', () => raf && cancelAnimationFrame(raf));
+}
+
 export function initFinish(root: ParentNode): () => void {
   const ctrl = new AbortController();
   const undoRows = rowRules(root);
   flows(root, ctrl.signal);
+  washes(root, ctrl.signal);
   return () => {
     ctrl.abort();
     undoRows();

@@ -64,16 +64,15 @@ export const home = {
     },
     paragraphs: [
       'I’ve spent the last {{years}} years putting AI into production at CGI: LLM agents, RAG platforms, and the data systems they stand on. Along the way the work earned two {CGI Impact Awards}, but the part I enjoy most is still the architecture: how the pieces fit, where the system can break, and how you know it works.',
+      'I’m optimistic about AI because it isn’t floating on hype. It sits on real foundations, from cloud platforms and chipmakers to industries like manufacturing and finance that are already seeing the gains.',
       'I also build for myself. If a tool can make my own work easier, I usually {end up building it}.',
       'Away from the keyboard, I play basketball, play games, and read {wuxia and xianxia novels}.',
     ],
     /**
-     * HELD for Jack (P5, 2026-11-13): approved words taken off Home to keep it under 400 words (the vanguard round's
-     * budget), kept here word for word for his call. Not shown and not searched.
+     * (Round 7, 2026-11-16: the approved paragraph the vanguard round held back for its 400-word budget, "I’m
+     * optimistic about AI…", is back where COPY §1 has it, second; that budget went with the round, and Jack asks
+     * for pages that are full.)
      */
-    held: [
-      'I’m optimistic about AI because it isn’t floating on hype. It sits on real foundations, from cloud platforms and chipmakers to industries like manufacturing and finance that are already seeing the gains.',
-    ],
   },
 
   workOn: {
@@ -100,8 +99,8 @@ export const home = {
 
   /**
    * "Now": shown only while it has real lines; update the month whenever they change (a unit test fails once the
-   * month is more than 90 days old). `held`: the off-hours line, taken off Home with About's (above) for the 400-word
-   * budget; About's last paragraph says the same.
+   * month is more than 90 days old). `held`: the off-hours line, taken off Home by the vanguard round; it stays off,
+   * since About's last paragraph says the same.
    */
   now: {
     title: 'Now',

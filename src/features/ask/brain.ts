@@ -1,35 +1,37 @@
 /**
- * "Ask the painting": what happens to a visitor's line (the page's side; the model itself runs in ask.worker.ts).
+ * "Ask the painting": what happens to a visitor's question (the page's side; the model itself runs in ask.worker.ts).
  *
- *   1. the model reads the line (and its parts) into vectors;
- *   2. the router decides what it is: a scene, or a question (the line against the router's own phrases, and the
- *      words a question opens with);
- *   3. a scene: each thing the painting can do is measured against the line (the model's score, and a spelt-out
- *      keyword counting too); what is close enough becomes a mood (features/landscape/types Mood);
- *      a question: a private matter is turned away before anything is searched (the guard); otherwise the line is
- *      measured against every line of the site's own words and against the questions each line is filed under
- *      (questions.ts), and under a floor it says it does not know: it never writes an answer of its own;
+ *   1. the model reads the line into a vector;
+ *   2. a private matter is turned away before anything is searched (the guard);
+ *   3. otherwise the line is measured against every line of the site's own words and against the questions each
+ *      line is filed under (questions.ts); the three closest are reported with their scores, and under a floor it
+ *      says it does not know: it never writes an answer of its own;
  *   4. every step is reported as it happens, with its real numbers (the page draws them).
+ *
+ * Round 7: the other half (a scene read from the words, repainting the painting by hour and weather) is gone with
+ * the colours it painted (Jack: "It looks not inked Chinese painting"). Every line is a question now.
  */
-import type { Mood } from '@/features/landscape/types';
 import { cosine, unpackVector } from './encoder';
 import { LEANS, linesOf, sentences, type AskChunk, type Line } from './lines';
-import { ANCHORS, clauses, named, QUESTION_CUE, type Anchor } from './scene';
 
 /** A step of the trace, as it happens. */
 export type Step =
   | { kind: 'load'; loaded: number; total: number; done: boolean; ms?: number }
   | { kind: 'read'; tokens: number; pieces: string[] }
   | { kind: 'embed'; dim: number; ms: number }
-  | { kind: 'route'; as: 'scene' | 'question'; scene: number; question: number }
-  | { kind: 'scene'; found: { label: string; score: number }[] }
   | { kind: 'guard' }
-  | { kind: 'search'; lines: number; source: string; score: number; floor: number }
+  | {
+      kind: 'search';
+      lines: number;
+      source: string;
+      score: number;
+      floor: number;
+      /** the three closest lines, the closest first: where each stands and its score */
+      top: { source: string; score: number }[];
+    }
   | { kind: 'travel'; place: string };
 
 export type Answer =
-  | { kind: 'scene'; mood: Mood; labels: string[] }
-  | { kind: 'scene-unknown' }
   | {
       kind: 'answer';
       /** the line (or the one sentence of it) that answers, word for word */
@@ -53,8 +55,6 @@ interface Index {
   dim: number;
   corpusHash: string;
   lines: (null | { v: string; s?: string[]; q?: [sentence: number, vector: string, thing?: string][] })[];
-  anchors: Record<string, string[]>;
-  kinds: Record<string, string[]>;
 }
 
 /**
@@ -79,10 +79,6 @@ const names = (line: string, thing: string) => {
   const at = ` ${line.toLowerCase().replace(/[^a-z0-9+#.\-/]+/g, ' ')} `.replace(/[.?!]+ /g, ' ');
   return at.includes(` ${thing.toLowerCase()} `);
 };
-/** A thing of the scene is taken at this score (the model's, or a spelt-out keyword's standing in for it). */
-const TAKE = { hour: 0.56, weather: 0.58, lamps: 0.6 };
-const NAMED = 0.9;
-
 export function createBrain(onStep: (s: Step) => void) {
   let worker: Worker | null = null;
   let ready = false;
@@ -98,8 +94,6 @@ export function createBrain(onStep: (s: Step) => void) {
       number,
       { v: Float32Array; s: Float32Array[]; q: [sentence: number, vector: Float32Array, thing?: string][] }
     >;
-    anchors: Map<string, Float32Array[]>;
-    kinds: Record<string, Float32Array[]>;
   }> | null = null;
 
   function start() {
@@ -172,9 +166,7 @@ export function createBrain(onStep: (s: Step) => void) {
             : [],
         ),
       );
-      const anchors = new Map(Object.entries(index.anchors).map(([k, vs]) => [k, vs.map(unpackVector)]));
-      const kinds = Object.fromEntries(Object.entries(index.kinds).map(([k, vs]) => [k, vs.map(unpackVector)]));
-      return { lines, vec, anchors, kinds };
+      return { lines, vec };
     })());
 
   return {
@@ -183,44 +175,12 @@ export function createBrain(onStep: (s: Step) => void) {
     },
     async ask(line: string): Promise<Answer> {
       try {
-        const parts = clauses(line);
-        const [D, E] = await Promise.all([load(), embed(parts)]);
+        const [D, E] = await Promise.all([load(), embed([line])]);
         onStep({ kind: 'read', tokens: E.pieces[0]!.length, pieces: E.pieces[0]! });
         onStep({ kind: 'embed', dim: E.vectors[0]!.length, ms: E.ms[0]! });
         const whole = E.vectors[0]!;
-        const best = (vs: Float32Array[], qs: Float32Array[] = [whole]) =>
-          Math.max(...vs.flatMap((v) => qs.map((q) => cosine(q, v))));
 
-        // the router
-        const sceneK = best(D.kinds.scene!),
-          questionK = best(D.kinds.question!);
-        const taken = (a: Anchor) => Math.max(best(D.anchors.get(a.key) ?? [], E.vectors), named(line, a) ? NAMED : 0);
-        const scores = ANCHORS.map((a) => ({ a, score: taken(a) }));
-        const anyScene = scores.some((x) => x.score >= TAKE[x.a.group]);
-        const cue = QUESTION_CUE.test(line);
-        const as: 'scene' | 'question' = !cue && (anyScene || sceneK > questionK + 0.08) ? 'scene' : 'question';
-        onStep({ kind: 'route', as, scene: sceneK, question: questionK });
-
-        if (as === 'scene') {
-          // one hour and one weather at most (the closest of each), and the lamps
-          const pick = (g: Anchor['group']) =>
-            scores.filter((x) => x.a.group === g && x.score >= TAKE[g]).sort((p, q) => q.score - p.score)[0];
-          const hour = pick('hour'),
-            weather = pick('weather'),
-            lamps = pick('lamps');
-          const found = [hour, weather, lamps].filter(Boolean) as { a: Anchor; score: number }[];
-          onStep({ kind: 'scene', found: found.map((x) => ({ label: x.a.label, score: Math.min(1, x.score) })) });
-          if (!found.length) return { kind: 'scene-unknown' };
-          const mood: Mood = {};
-          if (hour && hour.a.key !== 'day') mood[hour.a.key as 'dawn' | 'dusk' | 'night'] = 1;
-          if (weather && weather.a.key !== 'clear')
-            mood[weather.a.key as 'snow' | 'rain'] = hour?.a.key === 'night' ? 0.75 : 0.9;
-          // (the lamps: when they are named; and a night or a dusk lights them itself)
-          mood.lamps = lamps ? 1 : hour?.a.key === 'night' ? 1 : hour?.a.key === 'dusk' ? 0.8 : 0;
-          return { kind: 'scene', mood, labels: found.map((x) => x.a.label) };
-        }
-
-        // a question. The guard first: what the site keeps off its pages is not searched for
+        // the guard first: what the site keeps off its pages is not searched for
         if (PRIVATE.test(line)) {
           onStep({ kind: 'guard' });
           return { kind: 'private' };
@@ -229,6 +189,7 @@ export function createBrain(onStep: (s: Step) => void) {
         // filed under (the closer of the two is the line's score)
         let hit: { l: Line; score: number; sentence: number } | null = null;
         let count = 0;
+        const ranked: { l: Line; score: number }[] = [];
         for (const l of D.lines) {
           const v = D.vec.get(l.n);
           if (!v) continue;
@@ -245,10 +206,19 @@ export function createBrain(onStep: (s: Step) => void) {
             }
           }
           if (!hit || score > hit.score) hit = { l, score, sentence };
+          ranked.push({ l, score });
         }
-        const source = hit ? `${hit.l.chunk.page} · ${hit.l.section}` : '';
+        const where = (l: Line) => `${l.chunk.page} · ${l.section}`;
+        const source = hit ? where(hit.l) : '';
+        // the three closest, one per place on a page (two lines of one section are one candidate)
+        ranked.sort((p, q) => q.score - p.score);
+        const top: { source: string; score: number }[] = [];
+        for (const r of ranked) {
+          if (top.length >= 3) break;
+          if (!top.some((t) => t.source === where(r.l))) top.push({ source: where(r.l), score: Math.max(0, r.score) });
+        }
         const shown = hit && hit.score >= FLOOR ? hit.score : under(hit?.score ?? 0);
-        onStep({ kind: 'search', lines: count, source, score: shown, floor: FLOOR });
+        onStep({ kind: 'search', lines: count, source, score: shown, floor: FLOOR, top });
         if (!hit || hit.score < FLOOR) return { kind: 'unknown', score: under(hit?.score ?? 0), floor: FLOOR };
 
         // what is shown, word for word: the sentence the question was filed under; or the line, when it is not
