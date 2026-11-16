@@ -1147,20 +1147,25 @@ Nothing here changes a hard rule of §2. **It waits for Jack's verdict.**
 - **The painting runs the whole width behind the page** (`elements.ts curtain`, off: the unroll's standing curtain
   hid the place left of the text column, and with it went the hold that stopped a page's travel short). It still
   slides west as the page is read; by a page's end the next place has come into view.
-- **The words lie in the painting's mist, across the whole frame** (`styles/body.css`, one twelve-column grid on
-  the header's 1200 frame). The paper behind the body's words is ONE FIELD OF MIST computed from where the words
-  stand (`plates/veils.ts`): solid behind every line, thinning out in billows with the distance to the nearest
-  words, so neighbours share a cloud, a wide gap opens onto the painting and no edge is a ruled line. (Patches with
-  torn edges left scraps of mountain between neighbours.) The first screen keeps round 6's patches untouched.
+- **The words lie in the painting, across the whole frame** (`styles/body.css`, one twelve-column grid on the
+  header's 1200 frame), **with only a breath of mist behind them.** The mist is ONE FIELD computed from where the
+  words stand (`plates/veils.ts`): strong only behind small text (the painting a ghost there), faint behind titles
+  and numerals (they are read straight on the painting), nothing anywhere else, lying in bands that thin out in
+  billows, so the peaks and roofs stand clear on every side of a block. The first screen keeps round 6's patches.
+  **The first build of this round got this wrong** and Jack said so the same day: the field kept solid paper far
+  round every block, and with the words across the whole frame it whited the painting out, so the body had less
+  painting than the live site: "everything under the header is just straight downhill toilet paper".
 - **Words inked into the painting** (`.inked`): the plates stand in two leaves (what lies behind the place; the
   place and what is in front of it) and a page's display words stand between them, so a peak or a roof passes in
   front of the letters: every page's ending (the next place's name, large) and a project page's figure. The mist
   opens round such words (`veils.ts`, the clearings), so a neighbour's cloud never greys a letter of them.
-- **What moves is ink, wash, mist, paper or the seal.** Section titles in the name face with a dry-brush rule that
-  draws itself; figures as ink numerals that rise as they come up the screen (a projection is an outline under its
-  "Projected" label, never filled ink); a blot of wet ink under the pointer on a row; the seal pressed when something
-  is done (an answer found, the address copied). Scroll timelines, so a scroll runs no script; without them, under
-  reduced motion and under Still everything simply stands finished. Nothing is hidden at first paint.
+- **What moves is ink, wash, mist, paper or the seal.** Section titles in the name face; figures as ink numerals
+  that rise as they come up the screen (a projection is an outline under its "Projected" label, never filled ink);
+  a blot of wet ink under the pointer on a row; the seal pressed when something is done (an answer found, the
+  address copied). Scroll timelines, so a scroll runs no script; without them, under reduced motion and under Still
+  everything simply stands finished. Nothing is hidden at first paint. **No brush bars:** the first build drew a
+  dry-brush stroke under every title, box and section and down the Résumé's timeline; Jack: "why there are so many
+  big bold lines?" They are gone; a line is a hairline, as the header's are.
 - **Each page** (first screens untouched):
   - Home: About me (the approved paragraph the Vanguard budget held back is back) with Now in a cloud of its own;
     What I work on as three steps down the page; **Ask the painting in the body**, questions only (the half that
@@ -1181,13 +1186,20 @@ Nothing here changes a hard rule of §2. **It waits for Jack's verdict.**
     screen rule is inside `@media screen`, so the print stylesheet (the PDF) is as it was.
   - Contact: the address large in the name face across the water; copying it presses the seal. 404: its number
     under the lone peak.
-  - The tail, on the page's grid: a brush rule, **the whole scroll in miniature** (five places, the current one
-    marked), the colophon and the build stamp at the left, Still, the email and the seal at the right.
+  - The tail: **the whole scroll in miniature as ONE strip of the painting**, Home's peaks to the crossing with
+    the stretches between them, the screen's width (below 1200 px a sideways scroll that opens on the current
+    place), each page's name under its own place and the current one marked; then, on the page's grid, the colophon
+    and the build stamp at the left, Still, the email and the seal at the right. The strip is cut from the engine
+    (`tools/build-scroll.ts`, `npm run build:scroll`: nine views half a stretch apart, each fading into the next),
+    with the two framing willow boughs off (`elements.ts boughs`). Five separate place stills stood here first;
+    Jack: "it is not a coherent scroll … also include the transitions".
   - Below 1200 px: the same sections stacked, the windows into the painting between them, and each page ends on
     the next place's own picture under its name.
 - **Measured** on the last build (the production build, this Mac):
   - Scrolling, real Chrome at 1728 × 994: 0 % GPU on every page (Work 6 % on the way down), no frame over 20 ms
-    (the live site: 21 to 23 %).
+    (the live site: 21 to 23 %). After the rework of the mist and the tail the frames are as they were (p95 10 ms,
+    none over 20 ms); the GPU share could not be read again that morning (the machine was in use: the live site
+    itself read 34 % idle), so it is to be measured again on a quiet machine.
   - A phone, throttled (390 × 844, CPU 4× slower, slow 4G; `check:budgets`' phone run, what the page really
     did): the words at 0.64 to 0.68 s on every page, the largest paint at 0.65 to 1.13 s, no task over 58 ms,
     CLS 0, scrolling at a p95 of 16.7 ms.

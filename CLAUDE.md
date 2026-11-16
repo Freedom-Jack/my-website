@@ -18,8 +18,10 @@ Guidance for Claude Code in this repository. @AGENTS.md holds Next.js's own note
   [NEW-WORDS.md](NEW-WORDS.md).
 - Round 7 (2026-11-16, DESIGN §12 "Round 7") is on `redesign/v6` and waits for Jack's verdict: the first screen of
   every page is the live site's; everything below it and the footer are new (`src/styles/body.css`: the painting
-  the whole width, the words in its mist on one twelve-column grid, words inked between the painting's two leaves,
-  the tail with the scroll in miniature). New words are listed in [NEW-WORDS.md](NEW-WORDS.md). Its preview:
+  the whole width at full strength, the words on one twelve-column grid with only a breath of mist behind them,
+  words inked between the painting's two leaves, the tail's one strip of the whole scroll). Jack's verdict on its
+  first build is the rule for the body: the painting is never whited out behind the words, and no bold brush bars
+  ("why there are so many big bold lines?"). New words are listed in [NEW-WORDS.md](NEW-WORDS.md). Its preview:
   `NEXT_PUBLIC_INK_QA=1 npx next build && NEXT_PUBLIC_INK_QA=1 npx next start -p 3106`.
 - The approved look is the build on `round5/spring-ink` itself (DESIGN §12 "Round 5": the one painting, the style
   "Spring ink", its scroll motion and phone depth bands), and demo 4b in `design-demo/` for everything round 5 did not
@@ -32,7 +34,8 @@ Node 24 (`.node-version`). `npm run dev` · `npm run build` · `npm start` · `n
 check, unit tests, stills check) · `npm run test:e2e` (needs a build on port 3100) · `npm run check:compliance` ·
 `npm run check:links` · `npm run check:budgets` (the HTML gate, Lighthouse and the phone profile against the
 budgets; `-- --write` stamps the tail, the local release step) · `npm run build:pdf` · `npm run build:stills` ·
-`npm run build:heroes` · `npm run build:og` · `npm run build:ask` (the ask line's index; needs the build served) ·
+`npm run build:heroes` · `npm run build:scroll` (the tail's strip of the whole scroll; needs the build served) ·
+`npm run build:og` · `npm run build:ask` (the ask line's index; needs the build served) ·
 `npm run preview` (the QA build with the switch panel, on port 3106; it only says so when one is already running
 there). The table in README.md says what each does.
 
@@ -50,7 +53,8 @@ there). The table in README.md says what each does.
   JavaScript without changing a pixel), behind the contract in `types.ts`; `engine/renderer.ts` is the contract
   between the engine and its two painters, `figures.ts` the figure sets' API. Change it only with the engine's own docs in mind (design-demo/README.md, "The landscape engine, inside" and "Figure sets and small life").
   After any change to the engine, a figure set, a palette, a light, `elements.ts`, a place, or a strip or band height,
-  regenerate the stills (`npm run build:stills`, which needs a QA build).
+  regenerate the stills (`npm run build:stills`, which needs a QA build), and after one that changes how a place
+  looks, the tail's strip too (`npm run build:scroll`).
 - `src/features/landscape/elements.ts` is the one switch table of Spring ink's elements and the scroll motion: a new
   element gets a flag there, and off must mean gone.
 - `src/features/landscape/plates/` is the stage as page layers on wide screens (round 6): the engine develops each
