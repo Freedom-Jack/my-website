@@ -1,13 +1,71 @@
-/* Work's LAYOUT only (SPEC-R4A §10.2): the index (/work/) and the case pages (/work/<slug>/). The shared files
-   (layout.css, components.css) carry type, ink and motion; this places Work's blocks and tunes their spacing with
-   tokens. No new colours, fonts, weights, sizes, shadows or motion.
-     index: strip (h1 "Work" + intro) · the search · "Six projects, newest first" (ledger rows) · How I build · Under
-            the hood · In the open · the ending · closing
-     case:  strip (h1 the case + its meta) · the figure on one line, the summary, the NDA line · the diagram · the
-            spine (Problem · My part · Outcome and status · Evidence · Stack) · "All six projects →" · closing */
+/* Work's LAYOUT (round 7): the index (/work/) and the case pages (/work/<slug>/). The shared files (body.css,
+   components.css) carry type, ink and motion; this places Work's blocks on the frame's twelve columns and tunes their
+   spacing with tokens.
+     index: strip (h1 "Work" + intro) · "Six projects, newest first" (rows, the left nine columns) · How I build (the
+            whole frame: the statement and the drawing) · Under the hood (features/craft) · In the open (the right
+            columns, once the town has gone west) · the ending
+     case:  below */
 
-/* ---------- the six projects: dated ledger rows (components.css) ----------
-   A row's public evidence: a quiet line in small print under its outcome, its links above the row's own link. */
+/* ---------- the six projects: rows with the figure as an ink numeral ---------- */
+.projects {
+  display: grid;
+  margin-block-start: var(--space-m);
+}
+.project {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: 0.5rem;
+  padding-block: 1.25rem;
+  border-top: 1px solid var(--rule);
+}
+.project:last-child {
+  border-bottom: 1px solid var(--rule);
+}
+/* the row's numeral: smaller than a page's one figure (six of them stand in a column): 56 → 96 */
+.numeral {
+  font-size: clamp(3.5rem, 2.57rem + 3.8vw, 6rem);
+}
+.outline {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--ink-2);
+}
+@media (forced-colors: active) {
+  .outline {
+    color: CanvasText;
+    -webkit-text-stroke: 0;
+  }
+}
+.title {
+  font-size: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem); /* 20 → 26 */
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.title a {
+  text-decoration: none;
+}
+/* the title's link covers the row; the evidence links stay above it */
+.title a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+.project:is(:hover, :focus-within) .title a {
+  text-decoration: underline;
+  text-decoration-color: var(--ink-1);
+}
+.outcome {
+  margin-block-start: 0.375rem;
+  color: var(--ink-2);
+  max-width: 36em;
+}
+.when {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.75em;
+}
+/* A row's public evidence: a quiet line in small print under its outcome, its links above the row's own link. */
 .evidence {
   display: block;
   margin-block-start: 0.25rem;
@@ -15,10 +73,104 @@
   line-height: var(--lh-small);
   color: var(--ink-3);
 }
+.evidence :global(a) {
+  position: relative;
+  z-index: 1;
+}
 .evidence :global(a)::before {
   content: '';
   position: absolute;
   inset: -0.9em -0.25em; /* (0.9em above and below a 14 px line: 45 px) */
+}
+@media (min-width: 48rem) {
+  .project {
+    grid-template-columns: 11.5rem minmax(0, 1fr) auto;
+    column-gap: 2rem;
+    align-items: center;
+    padding-block: 1.5rem;
+  }
+  .when {
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: end;
+    gap: 0.125rem;
+  }
+}
+@media (min-width: 75rem) {
+  .six {
+    max-width: calc((100% - 11 * var(--grid-gap)) / 12 * 9 + 8 * var(--grid-gap)); /* nine of the twelve columns */
+  }
+  .project {
+    grid-template-columns: 15.5rem minmax(0, 1fr) auto;
+  }
+}
+
+/* ---------- How I build: the statement and the drawing ---------- */
+.statement {
+  font-family: var(--font-name);
+  font-weight: 900;
+  font-size: clamp(1.75rem, 1.3rem + 1.9vw, 3rem); /* 28 → 48 */
+  line-height: 1.02;
+  letter-spacing: 0.004em;
+  color: var(--ink-1);
+  text-wrap: balance;
+  max-width: 12em;
+}
+.buildText > * + * {
+  margin-block-start: var(--space-para);
+}
+.buildText > :global(.h-ink) + * {
+  margin-block-start: 1.25rem;
+}
+.buildArt {
+  margin-block-start: var(--space-m);
+}
+.buildArt :global(.diagram) {
+  max-width: none;
+}
+@media (min-width: 75rem) {
+  /* the statement at the left, its line beside it; the drawing under them, the frame's whole width (its wide form) */
+  .build > .buildText {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+    align-items: end;
+  }
+  .buildText > :global(.h-ink) {
+    grid-column: 1 / span 6;
+  }
+  .buildText > .statement {
+    grid-column: 1 / span 6;
+    margin-block-start: 1.25rem;
+  }
+  .buildText > :last-child {
+    grid-column: 8 / -1;
+    margin-block-start: 0;
+  }
+  .build > .buildArt {
+    grid-column: 1 / -1;
+    margin-block-start: 2.5rem;
+  }
+}
+
+/* ---------- In the open ---------- */
+.openBody > * + * {
+  margin-block-start: var(--space-para);
+}
+.openBody > :global(.h-ink) + * {
+  margin-block-start: 1.1rem;
+}
+.openBody > :global(.sec__sub) {
+  margin-block-start: var(--space-item);
+}
+.openBody > :global(.fold) {
+  margin-block-start: var(--space-item);
+}
+@media (min-width: 75rem) {
+  /* the town has gone west by now: the public pieces stand at the right, over the open water */
+  .open > .openBody {
+    grid-column: 6 / -1;
+  }
 }
 
 /* "In the open": a repository's name is one word; it never breaks inside */
@@ -50,7 +202,11 @@
   inset: -0.9em -0.25em; /* (0.9em above and below a 14 px line: 45 px) */
 }
 
-/* ---------- a case page ---------- */
+/* ---------- a case page (round 7) ----------
+     case: strip (h1 the case + its meta) · the summary, the figure in words, the NDA line (left) and the figure
+           inked into the painting (right) · the diagram, the frame's width · the spine (Problem · My part · Outcome
+           and status · Evidence · Stack) with the notes in the rail · the live piece tied to the case (three cases)
+           · "All six projects →" · the ending */
 /* the strip: the case's title, then its meta line (organisation · years · role) in small print */
 .page :global(.strip__text) > :global(.case__meta) {
   margin-block-start: 0.5rem;
@@ -64,40 +220,76 @@
     display: none;
   }
 }
-/* the case opens with its figure (the poster numeral and its measure on one line) and its summary, then the drawing,
-   then the labelled body */
-.case > :global(.case__fig) {
-  margin-block-start: 0;
-}
-.case :global(.case__measure) {
+/* the summary: the case in one sentence, set large */
+.summary {
+  font-size: clamp(1.375rem, 1.15rem + 1vw, 2rem); /* 22 → 32 */
+  line-height: 1.22;
+  font-weight: var(--w-ui);
+  letter-spacing: -0.012em;
   color: var(--ink-1);
+  text-wrap: balance;
+  max-width: 21em;
 }
-/* the case's spine opens on its figure with its measure on one line (from 640; a phone may wrap after the numeral),
-   then where the figure comes from in mono small print on the same baseline */
-.fig {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  column-gap: 0.4em;
+/* the figure in words (the numeral beside it is decorative), then where it comes from in mono small print */
+.measure {
+  margin-block-start: 1.25rem;
+  font-size: var(--fs-lead);
+  line-height: var(--lh-lead);
+  color: var(--ink-1);
   row-gap: 0.25rem;
-}
-@media (min-width: 40rem) {
-  .fig > :global(.case__measure) {
-    white-space: nowrap;
-  }
 }
 .basis {
   color: var(--ink-3);
 }
-/* the NDA line: a quiet line under the summary, where the case has no public evidence */
+/* the NDA line: a quiet line under the figure, where the case has no public evidence */
 .nda {
   margin-block-start: var(--space-2xs);
   color: var(--ink-3);
 }
-/* a projection, said in words (A1): the measure's ink, at the summary's size */
-.projected {
-  margin-block-start: 0;
-  color: var(--ink-1);
+/* the figure itself: one numeral, the largest thing on the page, inked into the painting (it stands behind the
+   town's roofs as the page scrolls): 112 @ 390 → 272 @ 1440 */
+.figure {
+  font-size: clamp(7rem, 3.3rem + 15.2vw, 17rem);
+  line-height: 0.8;
+  margin-block-start: var(--space-m);
+}
+.figure :global(.num__lead) {
+  font-size: 0.875rem;
+  margin-block-end: 0.75rem;
+}
+@media (min-width: 75rem) {
+  .lede {
+    align-items: start;
+    min-height: 19rem;
+  }
+  .lede > .ledeText {
+    grid-column: 1 / span 6;
+    margin-block-start: 1rem;
+  }
+  .lede > .figure {
+    grid-column: 7 / -1;
+    justify-self: end;
+    text-align: end;
+    margin-block-start: 0;
+  }
+}
+.drawing :global(.diagram) {
+  max-width: none;
+}
+
+/* the spine: each part opens on its label in the name face */
+.case :global(.case__label) {
+  font-family: var(--font-name);
+  font-weight: 900;
+  font-size: clamp(1.625rem, 1.45rem + 0.75vw, 2rem); /* 26 → 32 */
+  line-height: 1.05;
+  letter-spacing: 0.005em;
+}
+.case :global(.case__part) + :global(.case__part) {
+  margin-block-start: var(--space-m);
+}
+.case :global(.case__part) > :global(.case__label) + * {
+  margin-block-start: 0.5rem;
 }
 /* evidence: plain lines in small print, flush with the column (no bullets, no indent); a line's link may wrap, so
    its hit area is the whole line */
@@ -115,7 +307,23 @@
 .case :global(.case__evidence) :global(li) + :global(li) {
   margin-block-start: 1.5rem;
 } /* hit areas never overlap */
+
+/* the live piece tied to the case, and the search above its test on the assistant's page */
+.live {
+  row-gap: var(--space-l);
+}
+.livePiece > :global(.h-ink) + * {
+  margin-block-start: 1rem;
+}
+@media (min-width: 75rem) {
+  .live > .livePiece {
+    grid-column: 1 / span 8;
+  }
+  .live > .liveSearch {
+    grid-column: 1 / span 6;
+  }
+}
 /* the way back */
-.case > :global(.more) {
-  margin-block-start: var(--space-section);
+.back {
+  margin-block-start: var(--space-l);
 }

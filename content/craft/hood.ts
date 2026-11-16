@@ -13,6 +13,8 @@ export const hood = {
     result:
       '{files} content files fed {passages} passages; the search, the vocabulary and the eval were all built from them at {commit}.',
     list: 'The record',
+    /** (round 7) the fold that holds the list, under the drawing */
+    listFold: 'Read the record as a list',
     drawing: 'The same record, drawn',
     from: 'from',
     edges: {
@@ -40,6 +42,9 @@ export const hood = {
     blocked: 'blocked',
     next: 'Take the best legal token',
     again: 'Start again',
+    /** (round 7) the record writes itself, one token at a time, once it is on screen; these stop and resume it */
+    pause: 'Pause',
+    resume: 'Go on',
     done: 'The record is complete and valid against the grammar.',
     grammar: 'The grammar',
     of: 'of',
@@ -53,6 +58,15 @@ export const hood = {
       'The questions were written by the site’s author, not Jack; Jack’s own held-out set replaces them. Nothing in the search was tuned on them: BM25’s defaults, a stop list and a score floor fixed beforehand.',
     columns: { q: 'Question', rank: 'Right passage at', top: 'First result' },
     misses: 'Misses (the right passage not in the top three)',
+    /** (round 7) the fold that holds every question and its result, under the dots */
+    every: 'Every question and its result',
+    /** (round 7) over the dots while the questions are being run, here, in the reader's browser */
+    running: 'Running the {n} questions in your browser…',
+    ran: 'Run just now, in your browser: {n} questions in {ms} ms.',
+    dots: 'The questions, one mark each',
+    first: 'right passage first',
+    third: 'in the top three',
+    miss: 'missed',
     none: 'none',
     notFound: 'not in the top three',
     n: 'n',
