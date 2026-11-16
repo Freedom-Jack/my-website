@@ -4,7 +4,8 @@ import { PageMain } from '@/components/page/PageMain';
 import { Glimpse } from '@/components/page/Glimpse';
 import { Strip } from '@/components/page/Strip';
 import { TextAction } from '@/components/ui/TextAction';
-import { Ask } from '@/features/ask/Ask';
+import { LazyIsland } from '@/components/ui/LazyIsland';
+import { AskShell } from '@/features/ask/AskShell';
 import { allCases } from '@/features/work/cases';
 import { allNotes } from '@/features/writing/notes';
 import { Inline, InlineLink } from '@/lib/inline';
@@ -189,8 +190,11 @@ export async function HomePage() {
         </p>
       </section>
 
-      {/* the page's moment: a real model in the visitor's own browser, answering with a line of this site */}
-      <Ask />
+      {/* the page's moment: a real model in the visitor's own browser, answering with a line of this site (its own
+          code comes only as the reader nears it: LazyIsland) */}
+      <LazyIsland island="ask">
+        <AskShell />
+      </LazyIsland>
 
       <Glimpse phone still="home-1" />
       <section className={`part spread ${styles.last}`}>

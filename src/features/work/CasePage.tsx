@@ -9,7 +9,8 @@ import { MarginNote } from '@/components/ui/MarginNote';
 import { TextAction } from '@/components/ui/TextAction';
 import { buildCraft } from '@/features/craft/build';
 import { Piece, type PieceKind } from '@/features/craft/client/Piece';
-import { Search } from '@/features/craft/client/Search';
+import { LazyIsland } from '@/components/ui/LazyIsland';
+import { SearchShell } from '@/features/craft/SearchShell';
 import craftStyles from '@/features/craft/craft.module.css';
 import { splitFigure } from '@/lib/figure';
 import { Inline } from '@/lib/inline';
@@ -128,7 +129,9 @@ export function CasePage({ c }: { c: Case }) {
               {k === 'eval' ? (
                 // the assistant's page: the search itself, then its test (whose words speak of "the search above")
                 <div className={`${craftStyles.piece} ${styles.liveSearch}`} id="hood-search" data-veil="">
-                  <Search size={craft.sizes.corpus} />
+                  <LazyIsland island="search" props={{ size: craft.sizes.corpus }}>
+                    <SearchShell size={craft.sizes.corpus} />
+                  </LazyIsland>
                 </div>
               ) : null}
               <div className={`${craftStyles.piece} ${styles.livePiece}`} data-veil="">

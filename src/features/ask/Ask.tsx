@@ -48,8 +48,8 @@ function line(s: Step): string {
 /** The place's own first frame, at phone size (public/scenes/hero): what a phone shows instead of the pan. */
 const STILLS = ['home', 'work', 'writing', 'resume', 'contact'];
 
-export function Ask() {
-  const [value, setValue] = useState('');
+export function Ask({ initialValue = '' }: { initialValue?: string }) {
+  const [value, setValue] = useState(initialValue);
   const [busy, setBusy] = useState(false);
   const [steps, setSteps] = useState<Step[]>([]);
   const [answer, setAnswer] = useState<Answer | null>(null);

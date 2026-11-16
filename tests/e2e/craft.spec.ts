@@ -150,6 +150,7 @@ test('a focused result pans the painting to its place, and back', async ({ page 
     page.evaluate(() => (window as unknown as { __ink: { stats(): { stretch?: number } } }).__ink.stats().stretch ?? 0);
   const s0 = await stretch();
   await box(page).fill('hockey');
+  await expect(page.locator('a[data-hit]').first()).toBeVisible();
   await box(page).press('ArrowDown');
   await expect.poll(stretch, { timeout: 5000 }).not.toBeCloseTo(s0, 1);
   await page.keyboard.press('Escape');

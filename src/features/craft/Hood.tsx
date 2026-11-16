@@ -1,7 +1,8 @@
 import { workCraft } from '@content/pages/work-craft';
 import type { Craft } from './build';
 import { Piece, type PieceKind } from './client/Piece';
-import { Search } from './client/Search';
+import { LazyIsland } from '@/components/ui/LazyIsland';
+import { SearchShell } from './SearchShell';
 import styles from './craft.module.css';
 
 /**
@@ -38,7 +39,9 @@ export function Hood({ craft }: { craft: Pick<Craft, 'sizes' | 'mask'> }) {
         {piece('eval', styles.pieceEval!)}
         {/* no heading of its own: the search's <form role="search"> names itself with its label (hidden without JS) */}
         <div className={`${styles.piece} ${styles.pieceSearch}`} id="hood-search" data-veil="">
-          <Search size={craft.sizes.corpus} />
+          <LazyIsland island="search" props={{ size: craft.sizes.corpus }}>
+            <SearchShell size={craft.sizes.corpus} />
+          </LazyIsland>
         </div>
         {piece('lineage', styles.pieceLineage!)}
       </div>

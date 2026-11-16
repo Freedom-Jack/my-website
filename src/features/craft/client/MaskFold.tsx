@@ -118,7 +118,9 @@ export function MaskFold({ data }: { data: Data }) {
         <ol className={styles.tokens} aria-label={w.strip}>
           {view.top.map((t) => (
             <li key={t} data-blocked={view.m[t] ? undefined : ''} data-best={t === best ? '' : undefined}>
-              <span className={styles.tok}>{show(vocab[t]!)}</span>
+              <span className={styles.tok} data-struck={view.m[t] ? undefined : ''}>
+                {show(vocab[t]!)}
+              </span>
               <span className={styles.share} aria-hidden="true">
                 <i
                   style={{ inlineSize: `${view.m[t] ? Math.max(6, Math.round((view.share(t) / widest) * 100)) : 0}%` }}

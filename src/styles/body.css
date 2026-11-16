@@ -20,6 +20,11 @@
    ========================================================================== */
 
 :root {
+  /* the two dry-brush strokes, inline (svg/stroke-a.svg: a long stroke that runs out of ink; svg/stroke-b.svg: a
+     thinner, quicker one): as files they were two more requests in every page's first load. Every rule that draws
+     one names it by these. */
+  --stroke-a: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 24' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='load' x1='0' x2='1' y1='0' y2='0'%3E%3Cstop offset='0' stop-color='%23111416' stop-opacity='1'/%3E%3Cstop offset='.34' stop-color='%23111416' stop-opacity='.96'/%3E%3Cstop offset='.72' stop-color='%23111416' stop-opacity='.74'/%3E%3Cstop offset='1' stop-color='%23111416' stop-opacity='.42'/%3E%3C/linearGradient%3E%3Cfilter id='dry' x='0' y='-60%25' width='100%25' height='220%25' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0045 0.55' numOctaves='2' seed='7' result='streak'/%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.05' numOctaves='2' seed='13' result='edge'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='edge' scale='3' xChannelSelector='R' yChannelSelector='G' result='shape'/%3E%3CfeComposite in='shape' in2='streak' operator='arithmetic' k1='0' k2='4' k3='3' k4='-4.05' result='mask'/%3E%3CfeFlood flood-color='%23111416'/%3E%3CfeComposite in2='mask' operator='in'/%3E%3C/filter%3E%3C/defs%3E%3Cpath filter='url(%23dry)' fill='url(%23load)' d='M3 13.4C2.6 8.4 9 5.6 24 5.2 110 3.4 290 4.6 468 7.4c62 1 108 2.2 129 4-20 2.4-66 3.8-128 4.4C290 17.6 112 19.8 26 20.6 10 20.8 3.4 18.6 3 13.4z'/%3E%3C/svg%3E");
+  --stroke-b: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 24' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='load' x1='0' x2='1' y1='0' y2='0'%3E%3Cstop offset='0' stop-color='%23111416' stop-opacity='.9'/%3E%3Cstop offset='.5' stop-color='%23111416' stop-opacity='.72'/%3E%3Cstop offset='1' stop-color='%23111416' stop-opacity='.36'/%3E%3C/linearGradient%3E%3Cfilter id='dry' x='0' y='-80%25' width='100%25' height='260%25' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.004 0.7' numOctaves='2' seed='29' result='streak'/%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.04' numOctaves='2' seed='5' result='edge'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='edge' scale='2.6' xChannelSelector='R' yChannelSelector='G' result='shape'/%3E%3CfeComposite in='shape' in2='streak' operator='arithmetic' k1='0' k2='4' k3='3' k4='-4.1' result='mask'/%3E%3CfeFlood flood-color='%23111416'/%3E%3CfeComposite in2='mask' operator='in'/%3E%3C/filter%3E%3C/defs%3E%3Cpath filter='url(%23dry)' fill='url(%23load)' d='M2 12.6c.2-3 5-4.4 16-4.6 96-1.6 250-.6 420 1.2 74 .8 130 1.8 160 3-30 1.6-86 2.4-160 2.8-170 1-324 2.2-420 2.6-11 .1-15.800-1.600-16-5z'/%3E%3C/svg%3E");
   --grid-gap: 1rem;
   /* the section titles in the name face: 40 @ 390 → 64 @ 1440 */
   --fs-ink: clamp(2.5rem, 1.94rem + 2.3vw, 4rem);
@@ -93,7 +98,7 @@
   inline-size: min(100%, 4.6em);
   block-size: 0.2em;
   margin-block-start: 0.16em;
-  background: url('./svg/stroke-a.svg') left center / 100% 100% no-repeat;
+  background: var(--stroke-a) left center / 100% 100% no-repeat;
 }
 .h-ink + * {
   margin-block-start: 1.1rem;
@@ -138,11 +143,11 @@
   inline-size: 100%;
   block-size: 0.5rem;
   border: 0;
-  background: url('./svg/stroke-b.svg') left center / 100% 100% no-repeat;
+  background: var(--stroke-b) left center / 100% 100% no-repeat;
 }
 .stroke--heavy {
   block-size: 0.8rem;
-  background-image: url('./svg/stroke-a.svg');
+  background-image: var(--stroke-a);
 }
 
 @keyframes stroke-draw {
@@ -281,7 +286,7 @@ html[data-plates='on'] .inked {
 .brush-link {
   position: relative;
   text-decoration: none;
-  background: url('./svg/stroke-b.svg') left 100% / 0% 0.42em no-repeat;
+  background: var(--stroke-b) left 100% / 0% 0.42em no-repeat;
   padding-block-end: 0.22em;
   transition: background-size 420ms var(--ease-wash);
 }

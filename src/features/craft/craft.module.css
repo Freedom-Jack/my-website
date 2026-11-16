@@ -24,7 +24,7 @@
   display: flex;
   align-items: flex-end;
   gap: var(--space-s);
-  background: url('../../styles/svg/stroke-a.svg') left bottom / 100% 0.55rem no-repeat;
+  background: var(--stroke-a) left bottom / 100% 0.55rem no-repeat;
   padding-block-end: 0.75rem; /* (the stroke lies under the box, never in it) */
 }
 .field:focus-within {
@@ -306,16 +306,16 @@
 .tokens li[data-blocked] .tok {
   color: var(--ink-4);
 }
-.tokens li[data-blocked] .tok::after {
+.tokens li[data-blocked] .tok[data-struck]::after {
   content: '';
   position: absolute;
   inset-inline: -0.3em;
   inset-block-start: 46%;
   block-size: 0.42em;
-  background: url('../../styles/svg/stroke-a.svg') left center / 100% 100% no-repeat;
+  background: var(--stroke-a) left center / 100% 100% no-repeat;
 }
 @media (prefers-reduced-motion: no-preference) {
-  .tokens li[data-blocked] .tok::after {
+  .tokens li[data-blocked] .tok[data-struck]::after {
     animation: strike 360ms var(--ease-ink) both;
   }
 }
@@ -334,7 +334,7 @@
 .share > i {
   display: block;
   block-size: 100%;
-  background: url('../../styles/svg/stroke-b.svg') left center / 100% 100% no-repeat;
+  background: var(--stroke-b) left center / 100% 100% no-repeat;
   opacity: 0.55;
   transition: inline-size 420ms var(--ease-wash);
 }

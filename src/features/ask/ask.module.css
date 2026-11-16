@@ -14,7 +14,7 @@
   align-items: flex-end;
   gap: 1rem;
   /* the line itself: one dry-brush stroke under the words */
-  background: url('../../styles/svg/stroke-a.svg') left bottom / 100% 0.6rem no-repeat;
+  background: var(--stroke-a) left bottom / 100% 0.6rem no-repeat;
   padding-block-end: 0.8rem; /* (the stroke lies under the box, never in it) */
 }
 .input {
@@ -246,7 +246,7 @@
 .bar > i {
   display: block;
   block-size: 100%;
-  background: url('../../styles/svg/stroke-b.svg') left center / 100% 100% no-repeat;
+  background: var(--stroke-b) left center / 100% 100% no-repeat;
   opacity: 0.4;
 }
 .top li[data-first] .bar > i {
