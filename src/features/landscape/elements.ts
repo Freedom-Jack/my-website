@@ -134,9 +134,11 @@ export const ELEMENTS = {
   unroll: true,
   /** The unroll's standing curtain: once the reading starts, the middle and near layers left of the title block's
    *  column are in mist, so the place passes in the right margin only. OFF (round 7; Jack: "The body is like only
-   *  left side of the page"): the painting runs the whole width behind the page from top to bottom, the words keep
-   *  their own mist (the banks and clouds of plates/veils.ts) wherever they lie, and nothing stops the travel short
-   *  (the hold was the curtain's: with the whole width to stand in, a place is still on screen at the page's end). */
+   *  left side of the page"): the painting runs the whole width behind the page from top to bottom, and the words
+   *  keep only a breath of mist of their own (plates/veils.ts) wherever they lie. The hold stays (the engine's
+   *  unroll: Work, the project pages, the Résumé and Contact stop their travel with the place's last named thing
+   *  beside the reading column, as on the live site): without it a long page slid its place behind its own words
+   *  half way down and read to the end beside open water. */
   curtain: false,
   /** The camera travels (the approved round-5 motion): on wide screens the scene's depth layers part as you scroll
    *  (near crags and the plum drop away fastest, the middle settles over a sea of mist, the far range barely moves),

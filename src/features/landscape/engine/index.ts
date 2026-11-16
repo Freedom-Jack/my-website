@@ -2265,8 +2265,10 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       // overlaps the strip (QA's frames, the lab), the text bands' median stands in.)
       const kr0 = wins[0].keepR !== null && wins[0].keepR > 0 && sb0 ? wins[0].keepR + sb0.left : 0;
       const col = kr0 > 0 ? kr0 : st.colM;
-      // (round 7, elements.ts curtain, off: no standing curtain; the stage runs the whole width behind the page)
-      st.curtX = el('curtain') && col > 0 ? col + T.core + T.feather : -1;
+      // (round 7, elements.ts curtain, off: no standing curtain; the stage runs the whole width behind the page.
+      // The reading column's edge still names where the hold stops the travel, below)
+      const colX = col > 0 ? col + T.core + T.feather : -1;
+      st.curtX = el('curtain') ? colX : -1;
       st.curtSweep = 0;
       if (tween && tween.slidePx0 !== undefined) st.slidePx = tween.slidePx0;
       else if (sb0) {
@@ -2285,8 +2287,8 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
         // take its place, and the margin read to the end over mist. The travel stops where that thing (compose.ts
         // Frame.holdU) would stand UNROLL.holdAt into the margin; the page change's pan carries the rest.
         const hu = SCENES[k]?.frame.holdU;
-        if (hu !== undefined && st.curtX > 0 && cssW > st.curtX) {
-          const cap = (k + hu - A.worldLeft) * A.scale - (st.curtX + UNROLL.holdAt * (cssW - st.curtX));
+        if (hu !== undefined && colX > 0 && cssW > colX) {
+          const cap = (k + hu - A.worldLeft) * A.scale - (colX + UNROLL.holdAt * (cssW - colX));
           if (cap > 0) px = Math.min(px, cap);
         }
         st.slidePx = -px;

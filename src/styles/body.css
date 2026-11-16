@@ -373,8 +373,9 @@ main a.next__link {
   .next + .closing {
     margin-block-start: 0;
   }
+  /* (the gap gives way on a short window, so the ending is whole on the page's last screen) */
   .next + .closing .closing__art {
-    min-height: 17rem;
+    min-height: clamp(6rem, 100svh - 39rem, 17rem);
   }
   /* (three columns: the longest name, Contact, starts in the fifth, and the mist opens round it) */
   .next > .next__text {

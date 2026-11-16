@@ -8,11 +8,13 @@ import { Inline, InlineLink } from '@/lib/inline';
 
 /**
  * The ending: every page but Contact and the 404 ends on the next place downstream (the chain Home → Work → Writing
- * → Résumé → Contact has no dead end; a case and a note point past their own place). Round 7: the place's name is
- * inked INTO the painting (body.css .inked: between the painting's two leaves), at the right, where that place has
- * come into view by the page's end (the travel stops 60 % of the way to it), so its roofs or peaks stand in front of
- * the letters; the label (content/site.ts `ending`) and the next page's own sentence lie in a cloud at the left. A
- * real anchor: the page change is the painting's own pan (features/navigation).
+ * → Résumé → Contact has no dead end; a case and a note point past their own place). Round 7: the place's name
+ * stands large at the right, over the painting. Where the page's travel has brought that place into view by the
+ * page's end (places.ts NEXT_PLACE `inked`), the name is inked INTO the painting (body.css .inked: between the
+ * painting's two leaves), so its roofs or peaks stand in front of the letters; where the page's own place holds
+ * beside the words, the name stands in front of it. The label (content/site.ts `ending`) and the next page's own
+ * sentence lie in a breath of mist at the left. A real anchor: the page change is the painting's own pan
+ * (features/navigation).
  */
 const LINES: Partial<Record<PageId, string>> = {
   work: work.intro,
@@ -35,7 +37,7 @@ export function NextPlace({ page }: { page: PageId }) {
           </p>
         ) : null}
       </div>
-      <p className="next__name inked">
+      <p className={next.inked ? 'next__name inked' : 'next__name'}>
         <InlineLink href={next.href} className="next__link">
           {next.label}
           <span className="action__arrow" aria-hidden="true" />

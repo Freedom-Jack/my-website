@@ -46,8 +46,8 @@ const THIN = 72; // beyond it the mist thins out to nothing over about this much
 const SWELL = 36; // swelling and shrinking by up to this much in slow billows (about 330 px each)
 const RIPPLE = 16; // ...with smaller ones riding on them (about 110 px)
 const LIE = 0.75; // a sideways step's share of one up or down: the mist lies in bands
-const BANK_PAD = 30; // a bank's whole paper above its section's first line and below its last
-const BANK_THIN = 150; // ...and how far its edge thins out
+const BANK_PAD = 12; // a bank's whole paper above its section's first line and below its last
+const BANK_THIN = 100; // ...and how far its edge thins out
 const CLEAR = 80; // the mist closes again over about this much round words inked into the painting (it billows too)
 /** Display words: read straight on the painting, with only a breath of mist. */
 const DISPLAY = '.h-ink, .num, .next__link, [data-veil-light]';

@@ -1145,8 +1145,11 @@ Nothing here changes a hard rule of §2. **It waits for Jack's verdict.**
   Writing's framing willow now leaves with the first screen (it stayed pinned to the screen's corner). Nothing is
   laid over the painting or pinned in front of it. Round 6's lag fix (the plates) stays. The stills were re-cut.
 - **The painting runs the whole width behind the page** (`elements.ts curtain`, off: the unroll's standing curtain
-  hid the place left of the text column, and with it went the hold that stopped a page's travel short). It still
-  slides west as the page is read; by a page's end the next place has come into view.
+  hid the place left of the text column). It still slides west as the page is read. On Home, Writing and the note
+  the next place has come into view by the page's end; on Work, a project page, the Résumé and Contact the travel
+  HOLDS the page's own place beside the reading column, as on the live site (the engine's hold; the first build
+  dropped it with the curtain, and a long page slid its place behind its own words half way down and read to the
+  end beside open water).
 - **The words lie in the painting, across the whole frame** (`styles/body.css`, one twelve-column grid on the
   header's 1200 frame), **with only a breath of mist behind them.** The mist is ONE FIELD computed from where the
   words stand (`plates/veils.ts`): strong only behind small text (the painting a ghost there), faint behind titles
@@ -1157,8 +1160,10 @@ Nothing here changes a hard rule of §2. **It waits for Jack's verdict.**
   painting than the live site: "everything under the header is just straight downhill toilet paper".
 - **Words inked into the painting** (`.inked`): the plates stand in two leaves (what lies behind the place; the
   place and what is in front of it) and a page's display words stand between them, so a peak or a roof passes in
-  front of the letters: every page's ending (the next place's name, large) and a project page's figure. The mist
-  opens round such words (`veils.ts`, the clearings), so a neighbour's cloud never greys a letter of them.
+  front of the letters: a project page's figure, and the ending's name (the next place's, large) where that place
+  has arrived under it (`places.ts NEXT_PLACE inked`: Home, Writing, the note). Where the page's own place holds
+  (Work, a project page, the Résumé) the name stands in front of it: behind, its roofs or its hill covered the
+  letters. The mist opens round such words (`veils.ts`, the clearings), so a neighbour's cloud never greys them.
 - **What moves is ink, wash, mist, paper or the seal.** Section titles in the name face; figures as ink numerals
   that rise as they come up the screen (a projection is an outline under its "Projected" label, never filled ink);
   a blot of wet ink under the pointer on a row; the seal pressed when something is done (an answer found, the
