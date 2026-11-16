@@ -114,6 +114,20 @@ export interface MountOptions extends Partial<LandscapeTargets> {
   quality?: 'auto' | number;
 }
 
+/**
+ * THE MOODS (round 6): the painting at another hour and in other weather, each 0..1 (absent: 0). The scenes are not
+ * repainted: the mood is a grade of what is painted (engine/shaders.ts moodGrade), so the paper stays the paper.
+ */
+export interface Mood {
+  dusk?: number;
+  night?: number;
+  dawn?: number;
+  snow?: number;
+  rain?: number;
+  /** The lamps lit (the hut's room, a window, a boat's lantern). */
+  lamps?: number;
+}
+
 export interface PanOptions {
   duration?: number;
   distance?: Distance;
@@ -142,6 +156,8 @@ export interface LandscapeHandle {
   prepare(stretch: number, o?: { distance?: Distance; presence?: number }): Promise<void>;
   rebind(o: Partial<LandscapeTargets>): void;
   setStill(on: boolean): void;
+  /** THE MOODS: take the painting to another hour or weather, over `ms` (0: at once). */
+  setMood?(mood: Mood, ms?: number): void;
   refresh(): void;
   pause(): void;
   resume(): void;

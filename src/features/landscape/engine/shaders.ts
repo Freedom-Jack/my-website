@@ -1291,6 +1291,81 @@ float lightNear(vec2 wp, float s) {
   }
   return m;
 }
+// THE MOODS (round 6): the painting at another hour and in other weather. The scenes are not repainted: this is a
+// grade of what is already painted, laid on each plate as it is developed (and on the screen pass), so a change of
+// mood costs one development of the plates. The paper stays the paper (cool, bare): only what is painted moves, by
+// how blue it is (the air and the washes), how dark (the ink) and how near the place's light.
+uniform vec4  uMoodA;        // x dusk, y night, z dawn, w snow (each 0..1; all 0: the painting as it was painted)
+uniform vec4  uMoodB;        // x rain, y the lamps lit, z the plate that carries them (2 the middle, 3 the near), w unused
+uniform vec4  uLamp[3];      // a lamp: its world point (viewport heights across, scene height up), its glow's
+                             // radius (scene heights), its strength (0: none)
+vec3 moodGrade(vec3 c, vec2 wp) {
+  if (uMoodA.x + uMoodA.y + uMoodA.z + uMoodA.w + uMoodB.x <= 0.0) return c;
+  float lum = dot(c, vec3(0.299, 0.587, 0.114));
+  float blue = clamp((c.b - c.r) / 0.2, 0.0, 1.0);          // 0 the bare paper .. 1 the ice-blue air
+  // (the faintest washes, a breath of blue on the paper far from the place, stay paper in every mood: deepened, they
+  // would stand as grey patches behind the words)
+  float airK = smoothstep(0.24, 0.66, blue) * smoothstep(0.58, 0.84, lum);   // the pale air and the washes
+  float hillK = blue * (1.0 - smoothstep(0.58, 0.84, lum)); // the hills' own blues
+  float nearL = lightNear(wp, 0.3);
+  if (uMoodA.x > 0.0) {
+    // dusk: the low sun warms the air round it (apricot, then rose), the air far from it goes lavender, the hills'
+    // blue goes to violet and a breath deeper
+    vec3 warm = mix(vec3(0.985, 0.740, 0.700), vec3(1.000, 0.835, 0.655), smoothstep(0.25, 0.85, nearL));
+    vec3 air = mix(vec3(0.792, 0.780, 0.918), warm, smoothstep(0.03, 0.6, nearL));
+    vec3 d = mix(c, mix(air, vec3(1.0, 0.95, 0.88), smoothstep(0.86, 0.98, lum) * 0.6), airK * 0.92);
+    d = mix(d, vec3(c.r * 0.94 + 0.105, c.g * 0.84 + 0.02, c.b * 0.92 + 0.02) * (0.9 + 0.1 * nearL), hillK * 0.9);
+    // (the ink keeps its value; its edge toward the light takes a little warmth)
+    d += vec3(0.05, 0.018, 0.0) * nearL * (1.0 - blue) * smoothstep(0.3, 0.8, lum) * 0.0;
+    c = mix(c, d, uMoodA.x);
+  }
+  if (uMoodA.z > 0.0) {
+    // dawn: a paler, rosier dusk; the air far from the light is a cool pearl
+    vec3 warm = mix(vec3(0.985, 0.800, 0.800), vec3(1.000, 0.900, 0.790), smoothstep(0.25, 0.85, nearL));
+    vec3 air = mix(vec3(0.840, 0.870, 0.940), warm, smoothstep(0.05, 0.65, nearL));
+    vec3 d = mix(c, air, airK * 0.8);
+    d = mix(d, vec3(c.r * 0.97 + 0.05, c.g * 0.93 + 0.02, c.b * 0.96 + 0.02), hillK * 0.8);
+    c = mix(c, d, uMoodA.z);
+  }
+  if (uMoodA.y > 0.0) {
+    // night: the air's wash is deep indigo (a moonlit painting keeps its sheet: the bare paper stays), paler round
+    // the moon; the hills cooler and about a third down; what is white stays white: the moon, the mist, the fall
+    vec3 deep = mix(vec3(0.118, 0.180, 0.318), vec3(0.330, 0.455, 0.640), smoothstep(0.0, 0.8, nearL));
+    vec3 n = mix(c, deep, airK * 0.94);
+    vec3 hill = mix(vec3(lum), c, 0.7) * vec3(0.46, 0.55, 0.76);
+    n = mix(n, hill, hillK * 0.95);
+    // (the dark ink goes a breath toward indigo, never lighter)
+    n = mix(n, n * vec3(0.9, 0.95, 1.08), (1.0 - blue) * (1.0 - smoothstep(0.2, 0.6, lum)) * 0.5);
+    c = mix(c, n, uMoodA.y);
+  }
+  if (uMoodA.w > 0.0) {
+    // snow: the air greys and pales; the hills' lit faces are white, the rock's ink showing through
+    vec3 sn = mix(c, mix(vec3(lum), c, 0.3) * vec3(0.985, 0.992, 1.0) + 0.015, airK * 0.85);
+    sn = mix(sn, mix(vec3(0.962, 0.970, 0.980), vec3(0.70, 0.77, 0.85), smoothstep(0.62, 0.3, lum)), hillK * smoothstep(0.2, 0.42, lum) * 0.86);
+    c = mix(c, sn, uMoodA.w);
+  }
+  if (uMoodB.x > 0.0) {
+    // rain: everything painted a little deeper and greyer, the air a slate wash
+    vec3 r = mix(c, mix(vec3(lum), c, 0.55) * vec3(0.80, 0.85, 0.91), airK * 0.85);
+    r = mix(r, mix(vec3(lum), c, 0.75) * vec3(0.78, 0.83, 0.90), hillK * 0.9);
+    c = mix(c, r, uMoodB.x);
+  }
+  return c;
+}
+// the lamps lit (a hut's room, a window, a boat's lantern): how much warm light falls at this world point
+float lampAt(vec2 wp) {
+  float g = 0.0;
+  if (uMoodB.y <= 0.0) return g;
+  for (int i = 0; i < 3; i++) {
+    vec4 Lp = uLamp[i];
+    if (Lp.w <= 0.0) continue;
+    vec2 d = (wp - Lp.xy) / max(Lp.z, 1e-4);
+    float r2 = dot(d, d);
+    g += Lp.w * (exp(-r2 * 18.0) * 1.0 + exp(-r2 * 2.2) * 0.42 + exp(-r2 * 0.32) * 0.16);
+  }
+  return g * uMoodB.y;
+}
+const vec3 LAMP = vec3(1.0, 0.76, 0.42);   // the lamp's light: warm, never red
 // the inner places' spring morning (the window's grade, as the strip has it) on the stage, so its rest frame keeps the
 // strip's look: the hills take Home's value structure, the pale air moves toward one smooth ice gradient (white at the
 // light, bluer away from it) in the strip's top, and left of the words' keep-out the pale sky is paper.
@@ -1858,8 +1933,10 @@ vec4 lifeLay(vec4 C, inout float adm) {
 // THE PLATES: a transparent depth layer's own finish, as the screen pass lays it over the composite: the drift's lift
 // (at rest: the plate holds still, the moving mist is the page's own layer), the paper's grain and the light's bloom,
 // thinner over dark ink. L premultiplied; wp its world point; fc its pixel in the plate.
-vec4 plateFinish(vec4 L, vec2 wp, vec2 fc) {
-  if (L.a <= 0.002) return vec4(0.0);
+vec4 plateFinish(vec4 L, vec2 wp, vec2 fc, float lampK) {
+  // (the lamps' glow also lies where the layer holds nothing: a halo in the air round the hut)
+  float lg = lampK > 0.0 ? lampAt(wp) * lampK : 0.0;
+  if (L.a <= 0.002) { float ga = clamp(lg * 0.55, 0.0, 0.8); return vec4(LAMP * ga, ga); }
   vec3 c = L.rgb / L.a;
   vec2 mp = wp * vec2(0.26, 0.72);
   float w = texture(uNoise, mp * 0.7 + vec2(REST_T * 0.0021, 0.0)).g;
@@ -1867,6 +1944,8 @@ vec4 plateFinish(vec4 L, vec2 wp, vec2 fc) {
   float m2 = texture(uNoise, mp * 2.3 + vec2(REST_T * 0.0080, REST_T * 0.0007) + (m1 - 0.5) * 0.25).g;
   float mist = smoothstep(0.36, 0.74, m1 * 0.68 + m2 * 0.42);
   c = max(c, mix(c, MIST, clamp(mist * stAdm(L) * 0.56, 0.0, 0.75)));
+  c = moodGrade(c, wp);
+  if (lg > 0.0) c = clamp(c + LAMP * lg * 0.9 * (0.35 + 0.65 * dot(c, vec3(0.333))), 0.0, 1.0);
   vec2 gp = (fc * uPx + vec2(uPanPx, 0.0)) / (${NOISE_SIZE}.0 * uGrainPx);
   float bpt = uPx / uGrainPx;
   float gk = 1.0 + 0.2 * smoothstep(0.8, 1.35, bpt) - 0.35 * smoothstep(1.6, 2.4, bpt);
@@ -1884,7 +1963,9 @@ vec4 plateFinish(vec4 L, vec2 wp, vec2 fc) {
     c += add * mix(0.3, 1.0, smoothstep(0.35, 0.85, dot(c, vec3(0.299, 0.587, 0.114)))) * vec3(0.975, 0.995, 1.0); }
 #endif
   c += (hash12(fc) - 0.5) / 255.0;
-  return vec4(clamp(c, 0.0, 1.0) * L.a, L.a);
+  // (over what the layer covers, the layer; beyond its edge, the lamp's halo)
+  float ga = clamp(lg * 0.55, 0.0, 0.8) * (1.0 - L.a);
+  return vec4(clamp(c, 0.0, 1.0) * L.a + LAMP * ga, L.a + ga);
 }
 
 void main() {
@@ -2036,7 +2117,7 @@ void main() {
       Mi *= 1.0 - cur;
     }
     if (uStG.y > uStG.x && Mi.a > 0.004) Mi.rgb = stGrade(Mi.rgb / Mi.a, wp, uv.x - O1.x, 0.0, 0.0) * Mi.a;   // (its hills)
-    if (plate == 2 || (plate == 5 && lv == 3)) { outColor = plateFinish(Mi, wp, fc); return; }
+    if (plate == 2 || (plate == 5 && lv == 3)) { outColor = plateFinish(Mi, wp, fc, plate == 2 && uMoodB.z < 2.5 ? 1.0 : 0.0); return; }
     if (plate == 0) {
     col = col * (1.0 - Mi.a) + Mi.rgb;
     adm = mix(adm, stAdm(Mi), Mi.a);
@@ -2046,7 +2127,7 @@ void main() {
     if (plate == 5) Ne = vec4(0.0);
     if (lv == 4) Ne = lifeLay(Ne, lfa);
     Ne *= (1.0 - cur) * (1.0 - hid) * (1.0 - ruleK);
-    if (plate == 3 || plate == 5) { outColor = plateFinish(Ne, wp, fc); return; }
+    if (plate == 3 || plate == 5) { outColor = plateFinish(Ne, wp, fc, plate == 3 && uMoodB.z > 2.5 ? 1.0 : 0.0); return; }
     if (plate == 0) {
     col = col * (1.0 - Ne.a) + Ne.rgb;
     adm = mix(adm, stAdm(Ne), Ne.a);
@@ -2097,6 +2178,7 @@ void main() {
       float sea = (1.0 - smoothstep(sy - uSea.y, sy + uSea.y * 0.45, uv.y)) * uSt.z * (1.0 - hid);
       vec3 seaC = mix(mix(MIST, SKY, 0.25), mix(PAPER, SKY, 0.3), smoothstep(0.0, 0.2, sy - uv.y));
       if (plate == 4) {
+        seaC = moodGrade(seaC, wp);
         // (its own grain: under it the far plate's is covered)
         vec2 gpS = (fc * uPx + vec2(uPanPx, 0.0)) / (${NOISE_SIZE}.0 * uGrainPx);
         float bptS = uPx / uGrainPx;
@@ -2718,6 +2800,11 @@ void main() {
   }
 #endif
   col = mix(col, PAPER, veil);
+  // THE MOODS: the hour and the weather on what is painted (the far plate, the ribbon's ground, the screen pass)
+  if (inWin > 0.0) {
+    col = mix(col, moodGrade(col, p), inWin * (1.0 - veil));
+    if (plate == 0) { float lg0 = lampAt(p) * inWin * (1.0 - veil); if (lg0 > 0.0) col = clamp(col + LAMP * lg0 * 0.8 * (0.35 + 0.65 * dot(col, vec3(0.333))), 0.0, 1.0); }
+  }
 
   // paper: faint mottling, fine tooth and fibres (in CSS px, unrolling with the pan)
   vec2 gp = (fc * uPx + vec2(uPanPx, 0.0)) / (${NOISE_SIZE}.0 * uGrainPx);

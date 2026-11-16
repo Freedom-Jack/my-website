@@ -473,6 +473,11 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       const hold = prev && prevW === W && prevH === H ? U.hold ?? 0 : 0;
       gl.uniform1f(P.u('uHold'), hold);
       bindTex(P, 10, 'uPrev', hold > 0 ? prev : null);
+      // the moods (the hour, the weather, the lamps)
+      const md = U.mood;
+      gl.uniform4f(P.u('uMoodA'), md ? md[0] : 0, md ? md[1] : 0, md ? md[2] : 0, md ? md[3] : 0);
+      gl.uniform4f(P.u('uMoodB'), md ? md[4] : 0, md ? md[5] : 0, md ? md[6] : 3, 0);
+      gl.uniform4fv(P.u('uLamp'), U.lamps || ZERO12);
       gl.uniform1f(P.u('uPx'), U.px);
       gl.uniform1f(P.u('uPanPx'), U.panPx);
       gl.uniform1f(P.u('uGrain'), U.grain);

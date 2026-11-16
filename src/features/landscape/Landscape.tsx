@@ -7,6 +7,7 @@ import { createPlateStage, type PlateStage } from './plates/sink';
 import { createVeils, type Veils } from './plates/veils';
 import { watchGlimpseStills } from './glimpse-stills';
 import { cadence, gpuOK, limitFor as limitForState, quietNow, saveData, setLive, watchFrames } from './probe';
+import { moods } from './mood-control';
 import { landscape } from './store';
 import { currentMain, placeOf, targetsOf } from './targets';
 import type { EngineModule, LandscapeHandle } from './types';
@@ -141,6 +142,8 @@ export function Landscape() {
         mark('mount:done');
         html.classList.toggle('no-landscape', handle.mode === 'static');
         landscape.set(handle);
+        // the painting keeps the visitor's hour (and a scene they asked for, while the tab lives)
+        moods.start();
         // QA builds only: the probes judge the painting through the handle, and tools/build-stills.ts remounts
         // the engine module itself (no veils, a fixed resolution) to cut the story map's stills
         if (QA)
@@ -211,6 +214,7 @@ export function Landscape() {
       stopWatch?.();
       stopStills();
       document.removeEventListener('ink:still', onStill);
+      moods.stop();
       handle?.destroy();
       plates?.destroy();
       plates = null;

@@ -212,6 +212,11 @@ export type LifeKind = 'smoke' | 'willow' | 'boat' | 'shimmer' | 'walker';
 export interface LifeParams {
   /** smoke: where the plume leaves. */
   src?: Pt;
+  /** (THE MOODS) a lamp: where its light stands (a hut's room, a window, a boat's lantern), its glow's radius
+   *  (world px; 26 by default) and its strength (1). The anchor is no life: the engine lights it with the mood. */
+  lamp?: Pt;
+  lampR?: number;
+  lampK?: number;
   /** willow: the tree's foot, its size and sway. */
   foot?: Pt;
   s?: number;

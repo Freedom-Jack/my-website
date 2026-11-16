@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { ELEMENTS, type ElementName } from '@/features/landscape/elements';
+import { MOODS } from '@/features/landscape/mood';
+import { moods } from '@/features/landscape/mood-control';
 import styles from './switches.module.css';
 
 /**
@@ -16,6 +18,15 @@ const OPEN = 'ink-switches-open';
 type Overrides = Partial<Record<ElementName, boolean>>;
 
 const GROUPS: { title: string; items: [ElementName, string][] }[] = [
+  {
+    title: 'New in this round',
+    items: [
+      ['hours', 'The painting keeps time: dawn, day, dusk, night by your clock'],
+      ['weather', 'Falling snow and rain when a scene asks for them'],
+      ['depth', 'Depth: the layers answer the pointer'],
+      ['ask', 'Ask the painting: the line on Home (a real model in the browser)'],
+    ],
+  },
   {
     title: 'The painting',
     items: [
@@ -130,6 +141,19 @@ export function Switches() {
             <b>The camera travels</b> (round 5): the layers part, the camera rises through mist and comes back down
           </span>
         </label>
+      </fieldset>
+      <fieldset className={styles.group}>
+        <legend>The hour, now (no reload)</legend>
+        <p className={styles.chips}>
+          <button type="button" onClick={() => moods.ask(null)}>
+            your clock
+          </button>
+          {Object.keys(MOODS).map((name) => (
+            <button type="button" key={name} onClick={() => moods.ask(MOODS[name])}>
+              {name}
+            </button>
+          ))}
+        </p>
       </fieldset>
       {GROUPS.map((g) => (
         <fieldset className={styles.group} key={g.title}>

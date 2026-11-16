@@ -4,6 +4,7 @@ import { PageMain } from '@/components/page/PageMain';
 import { Glimpse } from '@/components/page/Glimpse';
 import { Strip } from '@/components/page/Strip';
 import { TextAction } from '@/components/ui/TextAction';
+import { Ask } from '@/features/ask/Ask';
 import { allCases } from '@/features/work/cases';
 import { allNotes } from '@/features/writing/notes';
 import { Inline, InlineLink } from '@/lib/inline';
@@ -76,6 +77,8 @@ export async function HomePage() {
             {first.action.label}
           </TextAction>
         </p>
+        {/* round 6: the one line a visitor can speak to the painting through (a real model, in their browser) */}
+        <Ask />
       </Strip>
 
       <section className="hello wide" aria-labelledby="about-title" data-veil="0.88">

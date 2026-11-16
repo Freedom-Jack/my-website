@@ -47,7 +47,9 @@ function bandsOf(el: Element): Box[] {
   for (let n = walk.nextNode(), i = 0; n && i < 900; n = walk.nextNode(), i++) {
     if (!(n as Text).data.trim()) continue;
     const pe = n.parentElement;
-    if (!pe || pe.closest('svg') || (pe.closest('.margin-note') && !el.matches('.margin-note')) || unrendered(pe)) continue;
+    // (a margin note, and anything that asks for its own paper, data-veil-own, is veiled on its own lines)
+    const own = pe?.closest('.margin-note, [data-veil-own]');
+    if (!pe || pe.closest('svg') || (own && own !== el && el.contains(own)) || unrendered(pe)) continue;
     range.selectNodeContents(n);
     for (const q of range.getClientRects()) if (q.width >= 2 && q.height >= 2 && inside(q)) items.push([q.left, q.top, q.right, q.bottom]);
   }
@@ -126,7 +128,7 @@ export function createVeils(): Veils {
     const els = new Set<Element>();
     if (main) for (const el of main.querySelectorAll('[data-veil], [data-landscape="keepout"]')) els.add(el);
     for (const el of document.querySelectorAll('.site-footer .tail__colophon, .site-footer .tail__stamp, .site-footer .tail__base')) els.add(el);
-    for (const el of [...els]) for (const n of el.querySelectorAll('.margin-note')) els.add(n);
+    for (const el of [...els]) for (const n of el.querySelectorAll('.margin-note, [data-veil-own]')) els.add(n);
     const y = window.scrollY || 0;
     const x = window.scrollX || 0;
     // (beside a block the paper reaches further on a wide window, where the painting is larger)
@@ -188,6 +190,7 @@ export function createVeils(): Veils {
   addEventListener('resize', refresh, { passive: true });
   document.fonts?.addEventListener?.('loadingdone', refresh);
   document.addEventListener('toggle', refresh, true);
+  document.addEventListener('ink:veils', refresh); // (a block that grows without moving the page: the ask line's inscription)
   watch();
   refresh();
 
@@ -201,6 +204,7 @@ export function createVeils(): Veils {
       removeEventListener('resize', refresh);
       document.fonts?.removeEventListener?.('loadingdone', refresh);
       document.removeEventListener('toggle', refresh, true);
+      document.removeEventListener('ink:veils', refresh);
       dropEdges();
       root.remove();
     },

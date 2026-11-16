@@ -207,6 +207,11 @@ export interface PresentU {
   /** The scroll's air (elements.ts air): [on, speed, drift, envelope], [plum lean, ribbon bow, strength, 0],
    *  [light swell, warmth, 0, 0], the petals aloft (3 x 2 vec4). null = none (the approved scroll). */
   air?: { a: Float32Array; b: Float32Array; c: Float32Array; petals: Float32Array; petalsB: Float32Array } | null;
+  /** THE MOODS (shaders.ts moodGrade): [dusk, night, dawn, snow, rain, the lamps lit, the plate that carries the
+   *  lamps (2 middle, 3 near), 0], and up to three lamps ([world x in viewport heights, scene height, radius,
+   *  strength] each). Absent: the painting as it was painted. */
+  mood?: Float32Array | null;
+  lamps?: Float32Array | null;
   /** CSS px per buffer px, the pan in CSS px, the grain's strength and its texel. */
   px: number;
   panPx: number;

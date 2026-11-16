@@ -36,7 +36,7 @@ import type { Distance, Framing, Resolved, Spec, WidthClass, WindowKind } from '
 import type { FigureMeta, LifeKind, LifeOut, Pt } from './figures';
 import type { FigureImage, FigureSlot, LifeTable, PresentGlimpse, PresentU, PresentWindow, Renderer, SceneBase, StageU } from './renderer';
 import { elementOn } from '../elements';
-import type { LandscapeHandle, LandscapeStats, LandscapeTargets, Mode, MountOptions, PanOptions, PlateBox, PlateFrame, PlateGeometry, PlateKind } from '../types';
+import type { LandscapeHandle, LandscapeStats, LandscapeTargets, Mode, Mood, MountOptions, PanOptions, PlateBox, PlateFrame, PlateGeometry, PlateKind } from '../types';
 import { LIGHTS } from './lights';
 
 // (the figure sets are the worker's: the main thread keeps their metas only, figure-meta.ts; the fallback without a
@@ -1056,6 +1056,44 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
   let platePin = false;                                // something is pinned to the frame
   let plateRibbon = false;                             // the silk ribbon turns on the far plate
   const plateCounts = { developed: 0, parts: 0, px: 0 };
+
+  // ---------------------------------------------------------------- THE MOODS (round 6)
+  // The painting at another hour and in other weather (types.ts Mood; shaders.ts moodGrade): a grade of what is
+  // already painted, so a change repaints no scene: the plates are developed again (the screen pass takes it on its
+  // next frame). A change eases over its time in a few steps.
+  const MOOD_KEYS = ['dusk', 'night', 'dawn', 'snow', 'rain', 'lamps'] as const;
+  const moodU = new Float32Array(8), lampU = new Float32Array(12);
+  const moodNow = [0, 0, 0, 0, 0, 0];
+  let moodTween: { from: number[]; to: number[]; t0: number; ms: number } | null = null;
+  const moodOn = () => moodNow.some((v) => v > 0.001);
+  function setMood(m: Mood, ms = 0) {
+    const to = MOOD_KEYS.map((k) => clamp01(num(m[k], 0)));
+    if (!(ms > 0) || quantized() || hidden) { moodTween = null; to.forEach((v, i) => (moodNow[i] = v)); }
+    else moodTween = { from: moodNow.slice(), to, t0: performance.now(), ms };
+    platesAll = true;
+    request(S_PRESENT);
+  }
+  /** The mood's uniforms now, and the lamps of the place on show (its figure layer's `lamp` anchors). */
+  function moodUniforms() {
+    for (let i = 0; i < 6; i++) moodU[i] = moodNow[i];
+    lampU.fill(0);
+    let plane = 3, n = 0;
+    if (moodNow[5] > 0.001) {
+      for (const s of lastSlots) {
+        if (!s.L.life || s.k <= 0.001) continue;
+        for (const a of s.L.life) {
+          const lp = a.params?.lamp;
+          if (!Array.isArray(lp) || n >= 3) continue;
+          const w = lifeW(lp[0], lp[1]);
+          lampU.set([w[0], w[1], Math.max(0.01, (num(a.params?.lampR, 26) / REF_PX) * HS), num(a.params?.lampK, 1)], n * 4);
+          plane = a.plane;
+          n++;
+        }
+      }
+    }
+    moodU[6] = plane >= T.split[1] ? 3 : 2;   // (the plate that holds the lamps' own layer)
+    return n;
+  }
 
   // ---------------------------------------------------------------- life that answers you (elements.ts)
   // stir: ring sets on the open water, kept in the world (so they ride the page's scroll) with the view they lie in
@@ -3264,6 +3302,14 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       if (morning ? arrive * mornK() >= MORN_SUNUP : arrive >= 1.24) sendSunUp();
       if (morning ? arrive >= Math.max(ARRIVE_END, MORN_END / mornK()) : arrive >= ARRIVE_END) { arriving = false; arrive = 9; sendSunUp(); if (QA) mark('arrive:end', { morning }); } else animating = true;
     }
+    if (moodTween) {
+      // the mood eases to its new hour; the plates are developed again at each step (about 14 a second)
+      const k = clamp01((now - moodTween.t0) / moodTween.ms), e = k * k * (3 - 2 * k);
+      moodTween.to.forEach((v, i) => (moodNow[i] = moodTween!.from[i] + (v - moodTween!.from[i]) * e));
+      if (k >= 1) moodTween = null; else due = Math.min(due, now + 70);
+      platesAll = true;
+      need |= S_PRESENT;
+    }
     if (stepHz(false)) need |= S_PRESENT;
     if (Math.abs(hzK - hzTarget) > 1e-4 && !quantized() && forced === null) animating = true;
     if (sw) { if (updateSweep(dt)) animating = true; need |= S_PRESENT; }
@@ -3796,7 +3842,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       const r = L.meta.rect, lw = (r[1] - r[0]) * REF_PX, lh = (r[3] - r[2]) * (REF_PX / HS);
       const x0 = r[0] * REF_PX, y0 = (1 - r[3]) * (REF_PX / HS);
       L.life.forEach((a, n) => {
-        if (!(a.kind in LIFE_KIND)) return;
+        if (!(a.kind in LIFE_KIND) || a.params?.lamp) return;   // (a lamp's anchor: THE MOODS light it; it is no life)
         let box = [a.x, a.y, a.x + a.w, a.y + a.h], alpha = 1, sprite: LifeEntry['sprite'] = null;
         if (a.kind === 'boat' || a.kind === 'walker') {
           // it moves only if the worker made it a sprite (else it is painted, still, in the layer)
@@ -4041,6 +4087,8 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       air: airOn() && W ? { a: airU, b: airU2, c: airU3, petals: airP, petalsB: airQ } : null,
       live: liveU,
       live2: liveU2,
+      mood: (moodUniforms(), moodOn() ? moodU : null),
+      lamps: moodOn() ? lampU : null,
       px: cssW / W,
       panPx: stretch * HS * (cssH || 1),
       grain: grainK,
@@ -4458,6 +4506,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       observeEls(true);
       request(S_MEASURE | S_PRESENT);
     },
+    setMood,
     setStill(on) {
       on = !!on;
       if (destroyed) return;
@@ -4579,6 +4628,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
         palette,
         widthClass: cls,
         // (THE PLATES: on show, and how much has been developed: whole plates, parts, pixels)
+        mood: Object.fromEntries(MOOD_KEYS.map((k, i) => [k, Math.round(moodNow[i] * 100) / 100])),
         plates: { on: platesShown, pin: platePin, life: plateLifeCss ? plateLifeCss.map(Math.round) : null, ...plateCounts, geometry: platesGeo ? JSON.parse(platesGeo) : null },
         windows: { strip: winStat(wins[0]), closing: winStat(wins[1]) },
         glimpses: { on: glimpseOn(), live: glimLive, paints: counts.glimPaints, run: { max: Math.round(glimRun.max) }, list: glims.map((g) => ({ end: g.end, j: g.j, near: g.near, vis: g.vis, painted: g.painted, live: g.live, doc: Math.round(g.doc), top: g.box ? Math.round(g.box.top) : null, h: g.box ? Math.round(g.box.height) : null, view: g.vw ? [Math.round(g.vw), Math.round(g.vh)] : null })) },

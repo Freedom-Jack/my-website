@@ -80,6 +80,23 @@ export const ELEMENTS = {
    *  painting's). ON: the light is Home's named element with the mountain and the fall. QA switches it off for Jack's
    *  side by side (the brief, A3: Home with and without the plum and the light's halo). */
   halo: true,
+  // ---- round 6: what is new (each on its own switch, for Jack's side by side)
+  /** The painting keeps time: it follows the visitor's own clock. Dawn (rose), the day as it was painted, dusk (the
+   *  low sun's apricot and rose, the hills violet, the hut's lamp lit), night (the air a deep indigo wash round a
+   *  moon, the lamps lit). A grade of what is painted (features/landscape/mood.ts; shaders.ts moodGrade): no scene is
+   *  repainted and the paper stays the paper. Off: always the day. */
+  hours: true,
+  /** Weather on the page's own layers when a scene asks for it: falling snow, rain (plates.css; the painting's own
+   *  snow and rain are part of the mood's grade). */
+  weather: true,
+  /** Depth you can feel: on wide screens each plate of the painting answers the pointer by its own depth (the near
+   *  crags most, the far ranges least), eased with weight. Fine pointers only; never under reduced motion or Still. */
+  depth: true,
+  /** Ask the painting: one line on Home. A small language model in the visitor's own browser (hosted with the site,
+   *  loaded only when they ask) reads what they type: a scene ("snow at dusk, the lanterns lit") repaints the
+   *  painting; a question about the work is answered from the site's own words, and the painting travels to the
+   *  place that holds the answer (features/ask). */
+  ask: true,
   // ---- the scroll
   /**
    * THE UNROLL (P3; direction A, "The handscroll, unrolled", the jury's winner for the scroll). On wide screens the
