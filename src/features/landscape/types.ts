@@ -41,9 +41,11 @@ export interface LandscapeTargets {
  * the stage travels under it (Home's plum bough), 6 the paper itself with its grain (one tile of it: the page's
  * veils, the paper kept behind the words, are cut from it), 7 the haze deck between the far and the middle layers and
  * 8 the cloud bank the camera rises through (the camera's travel only), 9 Home's silk ribbon (over the far layer,
- * behind the peaks: it turns, so it has a small plate of its own and the far plate stays as it was developed).
+ * behind the peaks: it turns, so it has a small plate of its own and the far plate stays as it was developed),
+ * 10 the far layer's top as it stands under the header's paper band (the pale sky easing out of the paper): it lies
+ * over the far plate at the page's top and is let go as the header scrolls away (`band`), so the sky below is whole.
  */
-export type PlateKind = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+export type PlateKind = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 /** A box on the screen at the page's top, CSS px: left, top, width, height. */
 export type PlateBox = [left: number, top: number, width: number, height: number];
 export interface PlateGeometry {
@@ -59,6 +61,9 @@ export interface PlateGeometry {
   motion: 'unroll' | 'camera';
   /** The unroll: how far west the plates travel over the whole page (CSS px). */
   travel: number;
+  /** The page's whole scroll (CSS px), and the scroll over which the header's band has gone (plate 10 is let go). */
+  maxY: number;
+  band: number;
   /** The camera's travel: the stage's pose at samples of the page's scroll (the engine's own choreography, read off
    *  for every sample: the lift, the place's sideways step, the stairs, the descent), which the page turns into each
    *  plate's keyframes. */

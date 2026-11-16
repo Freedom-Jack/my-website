@@ -22,7 +22,9 @@ const zone = () => {
     return '';
   }
 };
-const byClock = (): Mood => (elementOn('hours') ? moodAt(new Date(), zone()) : {});
+// (an automated browser, the tests, the stills, a measurement, keeps the day as it was painted: what it checks
+// must not change with the hour it runs at)
+const byClock = (): Mood => (elementOn('hours') && !navigator.webdriver ? moodAt(new Date(), zone()) : {});
 const current = (): Mood => asked ?? byClock();
 
 function apply(ms: number) {

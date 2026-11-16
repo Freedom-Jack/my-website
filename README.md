@@ -71,7 +71,16 @@ src/features/            one folder per feature, each owning its components, log
   landscape/             the painting: places.ts (where each page stands), Landscape.tsx (the one persistent
                          canvas), elements.ts (THE switch table of Spring ink's elements and scroll motion),
                          engine/ (the WebGL2 engine; types.ts is its contract, lights.ts the one table of each
-                         place's light, sets/ the places' figures, sets/young.ts the plum, swallow and willow)
+                         place's light, sets/ the places' figures, sets/young.ts the plum, swallow and willow);
+                         plates/ (round 6: on wide screens the stage is the page's own layers, developed once by
+                         the engine and moved by the browser; the veils and their torn edges); mood.ts and
+                         mood-control.ts (the painting keeps the visitor's hour; snow and rain when asked)
+  ask/                   "Ask the painting" on Home: a sentence-embedding model in the visitor's browser (a worker;
+                         its files in public/models, fetched only when the line is used), the tokenizer and encoder
+                         shared with tools/build-ask.ts, the routing (a scene or a question) and the retrieval
+                         (lines.ts: the corpus's units as lines; questions.ts: the questions each line is filed
+                         under, never shown)
+  qa/                    the preview's switch panel (QA builds only)
   navigation/            route changes as pans along the painting under a plain crossfade of the words
   chrome/                current page, the returning header, Still, the 404's lost mark
   effects/               diagram draw-in, row rules and the diagram's flow dot (finish.ts)
@@ -81,13 +90,14 @@ src/lib/                 typography, inline markup, dates, figures (the poster n
 src/styles/              the design system: tokens, base, layout, effects, components (global, from the demo);
                          effects.css holds the interface elements, each behind its html.el-* class (focus, the row
                          rule, the flow dot)
-tools/                   build-pdf, build-stills, build-heroes, build-og, compliance, linkcheck (TypeScript, run by Node 24
-                         directly); glsl-loader.cjs (the build's loader for the engine's shaders: comments out)
+tools/                   build-pdf, build-stills, build-heroes, build-og, build-ask (the ask line's index, with the
+                         same model the browser runs), compliance, linkcheck (TypeScript, run by Node 24 directly);
+                         glsl-loader.cjs (the build's loader for the engine's shaders: comments out)
 tests/unit/              content schemas and counts, GitHub rules, the engine's pure parts (Vitest)
-tests/e2e/               smoke, navigation and the DESIGN §6 budgets (Playwright; support/measure.js is the
-                         demo's own probe); scroll.spec.ts (the scroll motion: quiet modes, smoothness, seams,
-                         memory); glimpse.spec.ts (the phone and tablet depth bands); probe.spec.ts (the live
-                         probe: the quiet forms fetch no engine byte, the still is in the HTML and hands over)
+tests/e2e/               a smoke test per route and the hard rules on the rendered pages, navigation, axe and tap
+                         targets (Playwright); glimpse.spec.ts (the phone and tablet depth bands); probe.spec.ts (the
+                         live probe: the quiet forms fetch no engine byte, the still is in the HTML and hands over).
+                         (Round 6 removed the Vanguard round's budget and scroll-present suites with what they guarded.)
 design-demo/             the approved static demo, its notes and its QA tools: reference only, never deployed
 ```
 

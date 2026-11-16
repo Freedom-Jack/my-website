@@ -6,7 +6,7 @@ is yours to keep, change or delete. Say which, and the line in its file changes;
 ## 1. Ask the painting (new this round; `content/pages/ask.ts`)
 
 The line on Home, its hint, its examples, and every sentence its trace and its answers can show. The answers
-themselves are never written by me or by the model: an answer is a sentence of your own approved words.
+themselves are never written by me or by the model: an answer is a line of your own approved words.
 
 - `label`: Ask the painting
 - `placeholder`: snow at dusk, the lanterns lit
@@ -21,7 +21,8 @@ themselves are never written by me or by the model: an answer is a sentence of y
 - `routeQuestion`: Read as a question ({question} to {scene})
 - `scene`: In it: {found}
 - `sceneNone`: Nothing in it that I can paint yet
-- `search`: Closest of {n} passages of this site: {score}
+- `guard`: A private matter: nothing searched
+- `search`: Closest of {n} lines of this site: {score}
 - `travel`: The painting travels to {place}
 - `scene`: Repainted: {labels}.
 - `sceneBack`: Back to your own hour
@@ -29,10 +30,22 @@ themselves are never written by me or by the model: an answer is a sentence of y
 - `answerNote`: My own words, found by the model, not written by it.
 - `from`: From
 - `back`: Bring the painting back
+- `private`: I keep that off this site. Ask me about the work instead.
 - `unknown`: Nothing in my words is close enough ({score}, under {floor}), and I would rather not guess.
 - `unknownMore`: The work pages hold the detail; or write to me.
 - `error`: The model could not run in this browser. The search on the Work page needs no model.
 - `tries` (the three examples): "snow at dusk, the lanterns lit" · "What did you build for insurers?" · "a moonlit night"
+
+Not shown to anyone, but written by me and yours to read: `src/features/ask/questions.ts` files each line of the
+site under the questions it answers (about 200 questions over 75 lines, such as "Where did you study?" for the
+"York University" line; and "Do you know X?" for each thing your skills lines name). A visitor's question is
+measured against these, and the answer shown is always your own line. A question about pay, age, family, faith,
+politics, health, a phone number or a home address is not searched at all (the `private` line above).
+
+How well it answers (measured in the browser, 2026-11-15, on questions I wrote after filing, in other words): of 39
+fair questions 33 were answered with the right line, 1 arguably, 5 were turned away; of 50 it cannot answer, 49
+were turned away and 1 ("are you looking for a job") was shown your contact line. Those 89 questions were mine. A
+list of the questions you would expect visitors to ask replaces them.
 
 ## 2. Lines the live site printed with "DRAFT" (the label is off; the words are unchanged)
 

@@ -52,8 +52,9 @@ for (const r of ROUTES) {
       expect(current).toBe(1);
       expect(mark).toMatch(/^[0-4]$/);
     }
-    // the tail signs the page once: one seal on the page, in the tail, and none in the header
-    expect(await page.locator('.seal').count()).toBe(1);
+    // the tail signs every page once; Home carries his seal beside his name too (round 6); none in the header
+    expect(await page.locator('.seal').count()).toBe(r.page === 'home' ? 2 : 1);
+    expect(await page.locator('.site-header .seal').count()).toBe(0);
     expect(await page.locator('.site-footer .seal').count()).toBe(1);
     expect(errors).toEqual([]);
   });

@@ -7,6 +7,8 @@
  *
  *   .plates                      fixed, the screen; shown while html[data-plates="on"] (the engine's canvas rests)
  *     canvas[data-plate="1"]     the far layer: the sky, the light, the far ranges (opaque, with the paper's grain)
+ *     canvas[data-plate="10"]    its top as it stands under the header's paper band (the sky easing out of the
+ *                                paper): over the far plate at the page's top, let go as the header scrolls away
  *     .plates__front             the standing curtain: left of its line the middle and near plates are clipped away
  *       .plates__in
  *         canvas[data-plate="2"] the middle layer: the place
@@ -24,12 +26,13 @@
  * What may stand here (round 6's measurement, on a 120 Hz 3456 x 2234 display): plain layers, each moved by a
  * transform, and plain rectangular clips cost the compositor nothing while the page scrolls (0 % GPU); one CSS mask
  * or blend mode over moving layers makes it composite the whole page itself, 15 to 25 % GPU on every scroll frame.
- * So: no mask, filter, blend mode or opacity on .plates or anything in it.
+ * So: no mask, filter or blend mode on .plates or anything in it, and no opacity on a box that holds plates (a
+ * single plate's own opacity is a plain layer's: the haze, the cloud and the band's plate are let in and out by it).
  */
 import type { PlateGeometry, PlateKind, PlateSink } from '../types';
 import { alphaCanvas, EDGE_L, WISP_W, wispAlpha } from './edges';
 
-const KINDS: PlateKind[] = [1, 2, 3, 4, 5, 7, 8, 9];
+const KINDS: PlateKind[] = [1, 10, 2, 3, 4, 5, 7, 8, 9];
 /** One period of the paper's grain, CSS px (the engine's: 512 grain texels of 1 CSS px, at most 2 device px each). */
 const tileSize = () => 512 * Math.min(1, 2 / Math.max(1, devicePixelRatio || 1));
 
@@ -48,6 +51,29 @@ type Key = [p: number, x: number, y: number, opacity?: number];
 
 /** Each plate's keyframes for a geometry. */
 function motionOf(g: PlateGeometry, kind: PlateKind): Key[] {
+  if (kind === 10) {
+    // the far layer's top under the header's band: it travels with the far plate, and is let go as the band scrolls
+    // away with the header (whole at the page's top, gone after `band` px of the page's scroll; under reduced
+    // motion and Still too, where the far plate holds its pose: the band still leaves with the header)
+    const moving = g.still ? [] : motionOf(g, 1);
+    const far: Key[] =
+      moving.length > 1
+        ? moving
+        : [
+            [0, 0, 0],
+            [1, 0, 0],
+          ];
+    const p1 = Math.min(1, g.band / Math.max(1, g.maxY));
+    const at = (p: number): Key => {
+      let i = 1;
+      while (i < far.length - 1 && far[i]![0] < p) i += 1;
+      const [a, b] = [far[i - 1]!, far[i]!];
+      const f = b[0] > a[0] ? Math.min(1, Math.max(0, (p - a[0]) / (b[0] - a[0]))) : 0;
+      return [p, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f, Math.max(0, 1 - p / p1)];
+    };
+    const ps = [...new Set([...far.map((k) => k[0]), p1])].sort((a, b) => a - b);
+    return ps.map(at);
+  }
   if (g.still || kind === 5) return [[0, 0, 0]];
   if (g.motion === 'unroll')
     return [

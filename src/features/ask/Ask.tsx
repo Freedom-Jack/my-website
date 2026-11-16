@@ -12,7 +12,7 @@ import styles from './ask.module.css';
  * "Ask the painting" (Home's first screen; elements.ts `ask`). One line. A visitor describes a scene, or asks about
  * the work; a small language model in their own browser reads it (brain.ts, ask.worker.ts), and every step it takes
  * is set down beside the line as it happens, with its real numbers. A scene repaints the painting (the mood); a
- * question is answered with a passage of the site's own words, word for word, and the painting travels to the place
+ * question is answered with a line of the site's own words, word for word, and the painting travels to the place
  * that holds it. Nothing is fetched until the line is used; nothing typed leaves the browser.
  */
 const fill = (s: string, v: Record<string, string | number>) =>
@@ -40,8 +40,10 @@ function line(s: Step): string {
       return s.found.length
         ? fill(t.scene, { found: s.found.map((f) => `${f.label} ${two(f.score)}`).join(' · ') })
         : t.sceneNone;
+    case 'guard':
+      return t.guard;
     case 'search':
-      return fill(t.search, { n: s.passages, score: two(s.score) });
+      return fill(t.search, { n: s.lines, score: two(s.score) });
     case 'travel':
       return fill(t.travel, { place: s.place });
   }
@@ -68,7 +70,7 @@ export function Ask() {
     document.dispatchEvent(new Event('ink:veils'));
   }, [steps, answer]);
 
-  /** The model's code and files come with the first turn to the line (never before). */
+  /** The line's own code comes when the visitor turns to it; the model's files only when they ask (brain.ts). */
   async function wake() {
     if (brain.current) return brain.current;
     const { createBrain } = await import('./brain');
@@ -79,7 +81,6 @@ export function Ask() {
         return i >= 0 ? prev.map((p, j) => (j === i ? s : p)) : [...prev, s];
       }),
     );
-    brain.current.warm();
     return brain.current;
   }
 
@@ -93,7 +94,12 @@ export function Ask() {
     const a = await b.ask(q);
     setAnswer(a);
     setBusy(false);
-    if (a.kind === 'scene') moods.ask(a.mood);
+    if (a.kind === 'scene') {
+      moods.ask(a.mood);
+      // (a phone holds the painting at the page's top, above the line: bring it into view to watch it repaint)
+      if (innerWidth < 1200 && window.scrollY > 40)
+        scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    }
     if (a.kind === 'answer') {
       panner.current ??= makePanner();
       panner.current.focus({ stretch: a.stretch, u: a.u });
@@ -195,8 +201,21 @@ export function Ask() {
         {answer?.kind === 'scene-unknown' ? <p className={styles.said}>{r.sceneUnknown}</p> : null}
         {answer?.kind === 'answer' ? (
           <figure className={styles.answer}>
-            {/* the passage's closest sentence, word for word (the whole passage is on its page, one click on) */}
-            <blockquote>{answer.sentence || answer.text}</blockquote>
+            {/* the line that answers, word for word, with the short lines that stand beside it on its page (a
+                list's other items) in a lighter ink; the page itself is one click on */}
+            <blockquote>
+              {answer.before.map((t) => (
+                <p key={t} className={styles.beside}>
+                  {t}
+                </p>
+              ))}
+              <p>{answer.said}</p>
+              {answer.after.map((t) => (
+                <p key={t} className={styles.beside}>
+                  {t}
+                </p>
+              ))}
+            </blockquote>
             <figcaption>
               <span>
                 {r.from}{' '}
@@ -211,6 +230,7 @@ export function Ask() {
             </figcaption>
           </figure>
         ) : null}
+        {answer?.kind === 'private' ? <p className={styles.said}>{r.private}</p> : null}
         {answer?.kind === 'unknown' ? (
           <p className={styles.said}>
             {fill(r.unknown, { score: two(answer.score), floor: two(answer.floor) })} {r.unknownMore}

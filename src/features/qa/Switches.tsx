@@ -92,6 +92,8 @@ export function Switches() {
   const [open, setOpen] = useState(false);
   const [over, setOver] = useState<Overrides | null>(null);
   useEffect(() => {
+    // (a person's tool: an automated browser, a test or a screenshot, never gets it)
+    if (navigator.webdriver) return;
     // (read after hydration: the server renders the closed tab)
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setOver(read());

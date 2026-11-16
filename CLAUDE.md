@@ -11,6 +11,11 @@ Guidance for Claude Code in this repository. @AGENTS.md holds Next.js's own note
 - The Vanguard round (2026-11-02 to 13, DESIGN §12 "Vanguard") rebuilt the whole site on `redesign/v3` with the
   performance budgets as CI gates; its record lists every overturned decision, the DRAFT words and the facts that wait
   for Jack. Until Jack approves that build, the approved look is the one below.
+- **Round 6** (DESIGN §12 "Round 6", on `redesign/v5`, from 2026-11-15) is the current work: the live site kept as
+  the base, the lag fixed (the plates), what the Vanguard round switched off brought back, and new things on Home
+  (the moods, "Ask the painting"). Its brief cancels the Vanguard round's tests and byte budgets, and for this round
+  the "approved look" and the frozen design system below are where the work starts, not a fence. New words wait in
+  [NEW-WORDS.md](NEW-WORDS.md).
 - The approved look is the build on `round5/spring-ink` itself (DESIGN §12 "Round 5": the one painting, the style
   "Spring ink", its scroll motion and phone depth bands), and demo 4b in `design-demo/` for everything round 5 did not
   change. Any visual change is checked side by side with them, on the real GPU (DESIGN §13); the screenshots stay
@@ -22,7 +27,8 @@ Node 24 (`.node-version`). `npm run dev` · `npm run build` · `npm start` · `n
 check, unit tests, stills check) · `npm run test:e2e` (needs a build on port 3100) · `npm run check:compliance` ·
 `npm run check:links` · `npm run check:budgets` (the HTML gate, Lighthouse and the phone profile against the
 budgets; `-- --write` stamps the tail, the local release step) · `npm run build:pdf` · `npm run build:stills` ·
-`npm run build:heroes` · `npm run build:og`. The table in README.md says what each does.
+`npm run build:heroes` · `npm run build:og` · `npm run build:ask` (the ask line's index; needs the build served) ·
+`npm run preview` (the QA build with the switch panel, on port 3105). The table in README.md says what each does.
 
 ## How the code is organised
 
@@ -41,6 +47,16 @@ budgets; `-- --write` stamps the tail, the local release step) · `npm run build
   regenerate the stills (`npm run build:stills`, which needs a QA build).
 - `src/features/landscape/elements.ts` is the one switch table of Spring ink's elements and the scroll motion: a new
   element gets a flag there, and off must mean gone.
+- `src/features/landscape/plates/` is the stage as page layers on wide screens (round 6): the engine develops each
+  depth layer into a canvas there and the browser moves them. **Never put a CSS mask, filter or blend mode on
+  `.plates` or anything inside it, nor opacity on a box that holds plates** (it costs 15–25 % GPU on every scroll
+  frame; DESIGN §12 "Round 6"). A single plate's own opacity is fine (the band's plate is let go that way).
+- `src/features/ask/` is "Ask the painting": the model's worker, the tokenizer and encoder (shared with
+  `tools/build-ask.ts`), the routing and retrieval. The model's files are in `public/models/`; its words in
+  `content/pages/ask.ts`. It never writes an answer: an answer is a line of the site's own words. `questions.ts`
+  files each line under the questions it answers (an index, never shown); after any change to the words, the
+  questions or the scene's anchors, run `npm run build:ask` against a served build (a unit test fails until then).
+- `src/features/qa/` is the preview's switch panel (QA builds only).
 - `places.ts` is the one table of where each page stands in the painting. `PageMain` and the navigation both read
   it.
 

@@ -1184,7 +1184,9 @@ uniform float uGrainPx;      // CSS px per grain texel (1, finer on dense phone 
 // ribbon alone (over the far plate, behind the peaks).
 uniform vec4  uPlateW;       // the canvas-uv window this pass paints (x0, y0, width, height): a plate, or a tile of one
 uniform vec4  uPlateK;       // x the plate (above); y, z this pass's pixel origin in its plate (the grain and the
-                             // dither are anchored to the plate, so tiles and repainted parts meet without a seam)
+                             // dither are anchored to the plate, so tiles and repainted parts meet without a seam);
+                             // w: 1 = the far plate's top as it stands under the header's paper band (the page's
+                             // plate 10: the sky's way out of the paper), 0 = the far plate itself, the sky whole
 // 4b, the living ground (body[data-ground="living"], wide screens): the page's own scene painted once into three depth
 // layers (far: the sky and the far ranges, opaque, alpha = mist admittance; middle and near: premultiplied, alpha =
 // coverage), each presented at its own sink as you scroll (the camera rising through cloud), with a haze deck between
@@ -1325,7 +1327,10 @@ vec3 moodGrade(vec3 c, vec2 wp) {
     // dusk: the low sun warms the air round it (apricot, then rose), the air far from it goes lavender, the hills'
     // blue goes to violet and a breath deeper
     vec3 warm = mix(vec3(0.985, 0.740, 0.700), vec3(1.000, 0.835, 0.655), smoothstep(0.25, 0.85, nearL));
-    vec3 air = mix(vec3(0.792, 0.780, 0.918), warm, smoothstep(0.03, 0.6, nearL));
+    // (while the dusk is still coming, an afternoon, the air far from the light keeps its own blue and only the air
+    // round the light warms: the lavender comes as the dusk deepens, so no hour is a greyer day)
+    vec3 farAir = mix(c, vec3(0.792, 0.780, 0.918), smoothstep(0.3, 0.95, uMoodA.x));
+    vec3 air = mix(farAir, warm, smoothstep(0.03, 0.6, nearL));
     vec3 d = mix(c, mix(air, vec3(1.0, 0.95, 0.88), smoothstep(0.86, 0.98, lum) * 0.6), airK * 0.92);
     d = mix(d, vec3(c.r * 0.94 + 0.105, c.g * 0.84 + 0.02, c.b * 0.92 + 0.02) * (0.9 + 0.1 * nearL), hillK * 0.9);
     // (the ink keeps its value; its edge toward the light takes a little warmth)
@@ -1335,7 +1340,9 @@ vec3 moodGrade(vec3 c, vec2 wp) {
   if (uMoodA.z > 0.0) {
     // dawn: a paler, rosier dusk; the air far from the light is a cool pearl
     vec3 warm = mix(vec3(0.985, 0.800, 0.800), vec3(1.000, 0.900, 0.790), smoothstep(0.25, 0.85, nearL));
-    vec3 air = mix(vec3(0.840, 0.870, 0.940), warm, smoothstep(0.05, 0.65, nearL));
+    // (a morning past its dawn: the far air is the day's own blue again, the rose stays round the light)
+    vec3 farAir = mix(c, vec3(0.840, 0.870, 0.940), smoothstep(0.3, 0.95, uMoodA.z));
+    vec3 air = mix(farAir, warm, smoothstep(0.05, 0.65, nearL));
     vec3 d = mix(c, air, airK * 0.8);
     d = mix(d, vec3(c.r * 0.97 + 0.05, c.g * 0.93 + 0.02, c.b * 0.96 + 0.02), hillK * 0.8);
     c = mix(c, d, uMoodA.z);
@@ -2647,9 +2654,11 @@ void main() {
   // the header sits on paper, never on the painted sky: a paper band under it, anchored to the page (it scrolls
   // away with the header), solid to the header's foot and melting out over ~64 px (desktops; ~26 px on phones), its
   // edge torn by the drift so it is mist, not a ruled line. The painting rises out of the paper below it.
-  if (plate <= 1 || plate == 9) {
-    // (THE PLATES: the band itself is the page's own layer, scrolling away with the header; the far plate keeps the
-    // sky's own way out of the paper below it, where it stands at the page's top)
+  if (plate == 0 || plate == 9 || (plate == 1 && uPlateK.w > 0.5)) {
+    // (THE PLATES: the band itself is the page's own layer, scrolling away with the header. The sky's own way out of
+    // the paper below it is a plate of its own, the far plate's top with this ease (uPlateK.w): it lies over the far
+    // plate at the page's top and the page lets it go as the header scrolls away, so the sky is whole below, as the
+    // screen pass has it)
     float cssPx = 1.0 / max(uLive2.w, 1e-6);
     float pageY = ((1.0 - uv.y) + (plate == 0 ? uLive2.x : 0.0)) * cssPx;
     float wCss = aspect * cssPx;

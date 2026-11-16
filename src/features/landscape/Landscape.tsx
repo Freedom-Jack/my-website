@@ -230,6 +230,7 @@ export function Landscape() {
     <>
       <div ref={platesRef} className="plates" aria-hidden="true">
         <canvas data-plate="1" />
+        <canvas data-plate="10" />
         <canvas data-plate="7" />
         <div className="plates__front">
           <div className="plates__in">

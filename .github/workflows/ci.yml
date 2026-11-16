@@ -1,6 +1,7 @@
 # CI on every push and pull request: the site must type-check, lint, pass its unit tests, build, keep the hard rules
 # (no phone, address, project-management credential, old résumé PDF or CJK), keep its links, keep the PDF in step with
-# the résumé, pass a smoke test per route and the DESIGN §6 budgets. Nothing here deploys (Vercel does, from master).
+# the résumé and pass a smoke test per route. Nothing here deploys (Vercel does, from master). (Round 6: the Vanguard
+# round's byte and Lighthouse budgets are cancelled; `npm run check:budgets` stays as a local measuring tool.)
 name: CI
 
 on:
@@ -60,7 +61,7 @@ jobs:
         run: npm run check:compliance
       - name: Links
         run: npm run check:links
-      - name: Browser tests (a smoke test per route, navigation, the §6 budgets, axe, the probe, the craft)
+      - name: Browser tests (a smoke test per route, navigation, axe, the probe, the craft)
         run: npm run test:e2e
       - if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -68,24 +69,3 @@ jobs:
           name: playwright-report
           path: playwright-report
           retention-days: 7
-      # The budgets' gate (vanguard 01-budgets.md, the lead's R7, R9, R10, R12): the HTML gate and Lighthouse mobile and
-      # desktop on every route, after a warm-up, the median of five, on this QA build (Playwright's Chromium on a runner
-      # with no GPU, run without WebGL, --no-webgl: headless Chrome here would hand the page a SwiftShader context that no
-      # visitor's browser offers, unflagged and seconds of main thread to create; so the painting stays still and the
-      # numbers are the paper's). --runner (tools/runner-gates.ts): the three mobile gates that move with the machine's
-      # CPU take the runner's values (score 90, LCP 2.8 s, TBT 250 ms): this shared runner's CPU differs by almost 2×
-      # between jobs (Work's TBT 109 to 171 ms for one page), and an image LCP falls in either of Lantern's two modes on a
-      # millisecond's race; every other gate is the budget, and the release step keeps the budget for all of them.
-      # No phone profile here (--no-phone: it needs a real GPU) and nothing written: the phone run and --write
-      # (content/measured.json, the tail's build stamp) are the local release step on the real GPU (README).
-      - name: Budgets (the HTML gate and Lighthouse)
-        run: npm run check:budgets -- --no-phone --no-webgl --runner
-        env:
-          CHROME_PATH: ''
-      - if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: budgets-report
-          path: |
-            budgets-report
-          retention-days: 14

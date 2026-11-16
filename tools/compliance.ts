@@ -17,7 +17,8 @@ const ROOT = process.cwd();
 const TEXT = /\.(ts|tsx|js|mjs|cjs|css|json|mdx|md|svg|txt|xml|html|rsc|webmanifest)$/;
 /** Files that must name a rule to enforce it: the patterns themselves, the redirect, the tests. */
 const ALLOW: Record<Finding['rule'], RegExp> = {
-  phone: /^(src\/lib\/compliance\.ts|tools\/(compliance|build-pdf|linkcheck)\.ts|tests\/)/,
+  // (public/models: a language model's vocabulary lists numbers one to a line; three of them in a row are no phone)
+  phone: /^(src\/lib\/compliance\.ts|tools\/(compliance|build-pdf|linkcheck)\.ts|tests\/|public\/models\/)/,
   cjk: /^(src\/lib\/compliance\.ts|tests\/)/,
   pmp: /^(src\/lib\/compliance\.ts|tools\/compliance\.ts|tests\/)/,
   'old-pdf':

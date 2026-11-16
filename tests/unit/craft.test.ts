@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { home } from '@content/pages/home';
 import { work } from '@content/pages/work';
@@ -87,6 +88,13 @@ describe('the corpus (features/craft/corpus)', () => {
     // the six cases stand at six different quays of the town
     const caseU = new Set(craft.corpus.chunks.filter((c) => /^\/work\/.+\//.test(c.href)).map((c) => c.u));
     expect(caseU.size).toBe(6);
+  });
+  it('keeps the index "Ask the painting" answers from as new as the words (npm run build:ask)', () => {
+    const index = JSON.parse(readFileSync('public/ask/index.json', 'utf8')) as { corpusHash: string; lines: unknown[] };
+    expect(index.corpusHash, 'the words changed: run npm run build:ask against a served build').toBe(
+      craft.meta.corpusHash,
+    );
+    expect(index.lines.length).toBe(craft.corpus.chunks.reduce((n, c) => n + c.units.length, 0));
   });
   it('reads MDX bodies as units under their headings', () => {
     const units = bodyUnits('## Context\n\nOne.\n\n<Note term="RAG">Retrieval.</Note>\n\n## Stack\n\nA, B');

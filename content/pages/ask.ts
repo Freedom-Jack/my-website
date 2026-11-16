@@ -2,7 +2,7 @@
  * "Ask the painting" (Home; src/features/ask): every word the line and its trace show.
  * NEW WORDS, written for Jack in his voice (round 6): all of them wait for his approval; they are listed in
  * NEW-WORDS.md at the repo's root. The answers themselves are never written here or by the model: an answer is a
- * passage of the site's own approved words, shown word for word.
+ * line of the site's own approved words, shown word for word.
  * In the trace's lines, {braces} are filled with the run's real numbers.
  */
 export const ask = {
@@ -23,7 +23,8 @@ export const ask = {
     routeQuestion: 'Read as a question ({question} to {scene})',
     scene: 'In it: {found}',
     sceneNone: 'Nothing in it that I can paint yet',
-    search: 'Closest of {n} passages of this site: {score}',
+    guard: 'A private matter: nothing searched',
+    search: 'Closest of {n} lines of this site: {score}',
     travel: 'The painting travels to {place}',
   },
 
@@ -34,6 +35,7 @@ export const ask = {
     answerNote: 'My own words, found by the model, not written by it.',
     from: 'From',
     back: 'Bring the painting back',
+    private: 'I keep that off this site. Ask me about the work instead.',
     unknown: 'Nothing in my words is close enough ({score}, under {floor}), and I would rather not guess.',
     unknownMore: 'The work pages hold the detail; or write to me.',
     error: 'The model could not run in this browser. The search on the Work page needs no model.',

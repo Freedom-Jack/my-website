@@ -92,6 +92,16 @@
   cursor: default;
   color: var(--ink-4);
 }
+/* a finger's target: 44 px on touch screens and narrow ones */
+@media (pointer: coarse), (max-width: 39.99rem) {
+  .tries {
+    gap: 0 0.875rem;
+  }
+  .tries button,
+  .quiet {
+    min-height: 44px;
+  }
+}
 
 /* the inscription (the trace and the answer). Wide screens: in the painting's lower right corner, over its mist, as
    an ink painting carries its inscription in its empty space; it grows upward from the first screen's foot. */
@@ -174,10 +184,22 @@
   line-height: 1.45;
   color: var(--ink-1);
 }
+.answer blockquote p {
+  margin: 0;
+}
+/* the lines beside the answer (a list's other items): the page's own words too, in a lighter ink */
+.answer .beside {
+  font-size: var(--fs-body);
+  color: var(--ink-3);
+}
 .answer figcaption {
   margin-block-start: 0.5rem;
   font-size: var(--fs-small);
   color: var(--ink-3);
+}
+/* (the way back is a line of its own, under the source) */
+.answer figcaption .quiet {
+  display: block;
 }
 @media (prefers-reduced-motion: reduce) {
   .trace li,

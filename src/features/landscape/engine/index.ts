@@ -109,6 +109,9 @@ const AMBIENT_MS = 70;    // drifting mist: < 15 fps on every GPU
 const PLATE_MS = 33;      // their small life: <= 30 fps, and only the part of a plate that holds it is repainted
 const PLATE_IDLE = 300000;   // ...asleep after five minutes without input (a part of a plate costs little)
 const PLATE_TILE = 2048;  // a plate is developed in tiles no larger than this (and never larger than the darkroom)
+/** How far down the far layer's top is held under the header's band (CSS px: the band's foot, the ease below it and
+ *  its billows), which is also the scroll over which the page lets that plate go. */
+const PLATE_BAND = 320;
 const POINTER_MS = 33;    // the wake: <= 30 fps
 const IDLE_MS = 45000;    // no pointer / scroll / key / visibility input for this long: the drift...
 const EASE_OUT_MS = 2000; // ...eases to a stop over ~2 s (the loop then sleeps)
@@ -3526,7 +3529,9 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     return [ux(L[0] - 0.28), uy(L[1] - 0.24), ux(L[0] + 0.345), uy(L[1] + 0.115)];
   }
   /** A plate: its box on the screen at the page's top (CSS px), its window in canvas uv, its size in buffer px. */
-  interface Plate { kind: PlateKind; css: PlateBox; uv: [number, number, number, number]; px: [number, number] }
+  /** (`off`: the plate's foot above the foot of the plate it is a part of, px: its grain and dither are that plate's;
+   *  `as`: the pass it is developed with, where that is not its own kind's) */
+  interface Plate { kind: PlateKind; css: PlateBox; uv: [number, number, number, number]; px: [number, number]; off?: number; as?: PlateKind }
   function plateList(pin: PlateBox | null): Plate[] {
     const out: Plate[] = [];
     const vh = cssH || 1, s = W / (cssW || 1), unroll = unrollOn();
@@ -3534,7 +3539,21 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     const P = (kind: PlateKind, l: number, t: number, w: number, h: number): Plate => ({ kind, css: [l, t, w, h],
       uv: [l / cssW, 1 - (t + h) / vh, w / cssW, h / vh], px: [Math.max(1, Math.round(w * s)), Math.max(1, Math.round(h * s))] });
     // (the camera's far layer never steps sideways: it is the screen's width; the unroll's travels with the rest)
-    out.push(P(1, 0, 0, unroll ? wx : cssW, cssH));
+    const far = P(1, 0, 0, unroll ? wx : cssW, cssH);
+    if (unroll) {
+      // the unroll's far plate only travels west, so it holds the sky whole; its top under the header's paper band
+      // (the sky's way out of the paper: shaders.ts, the band) is a plate of its own over it, the far plate's own
+      // rows, pixel for pixel, so the two meet without a line
+      const bp = Math.min(far.px[1], Math.round(PLATE_BAND * s));
+      out.push(far, { ...P(10, 0, 0, far.css[2], (bp / far.px[1]) * cssH), px: [far.px[0], bp], off: far.px[1] - bp });
+    } else {
+      // the camera's far plate sinks as the camera rises: it is painted that much taller above the screen (the sky
+      // runs on there, as the screen pass's own sample of it does) and its own top keeps that ease into the paper,
+      // so its edge never comes into view
+      const sink = quantized() ? 0 : Math.max(0, ...cameraFrames().map((f) => f.layers[0][1]));
+      const pad = sink > 0 ? Math.ceil(sink) + 8 : 0;
+      out.push({ ...P(1, 0, -pad, cssW, cssH + pad), as: 10 });
+    }
     if (!st.single) for (let j = 1; j < 3; j++) {
       const c = st.layers[j].crop;
       if (c && st.layers[j].painted && c[2] > c[0] && c[3] > c[1]) out.push(P((j + 1) as PlateKind, c[0], c[1], c[2] - c[0], c[3] - c[1]));
@@ -3586,7 +3605,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       for (let tx = x0; tx < x0 + w; tx += TW) {
         const tw = Math.min(TW, x0 + w - tx), th = Math.min(TH, y0 + h - ty);
         const by = ph - ty - th;                    // the tile's foot, plate px from the plate's foot (canvas uv is y up)
-        const src = renderer.plate(U, B.kind, [B.uv[0] + (tx / pw) * B.uv[2], B.uv[1] + (by / ph) * B.uv[3], (tw / pw) * B.uv[2], (th / ph) * B.uv[3]], tw, th, tx, by);
+        const src = renderer.plate(U, B.as ?? B.kind, [B.uv[0] + (tx / pw) * B.uv[2], B.uv[1] + (by / ph) * B.uv[3], (tw / pw) * B.uv[2], (th / ph) * B.uv[3]], tw, th, tx, by + (B.off ?? 0));
         if (!src) return;
         e.x.clearRect(tx, ty, tw, th);
         e.x.drawImage(src, 0, src.height - th, tw, th, tx, ty, tw, th);
@@ -3618,6 +3637,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     return {
       width: cssW, height: cssH, ext: Math.round(st.ext * 100) / 100, boxes, stretch: k, motion: unroll ? 'unroll' : 'camera',
       travel: unroll ? Math.max(0, Math.round(-st.slidePx * 100) / 100) : 0,
+      maxY: Math.max(1, Math.round(pageMaxY)), band: PLATE_BAND,
       camera: unroll || quantized() ? null : cameraFrames(),
       curtain: unroll ? Math.round(st.curtX) : -1, light, still: quantized(),
     };
@@ -3716,8 +3736,11 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
         st.k[3] = k3; st.sea[2] = s2; st.cloud[0] = c0; st.cloud[1] = c1;
         continue;
       }
-      if (all || (e && (e.c.width !== B.px[0] || e.c.height !== B.px[1]))) { develop(Uf, B); if (B.kind === lk && u) plateLast.set(B.kind, platePart(B, u)); continue; }
-      if (B.kind !== lk || !u || !seen) continue;
+      // (the band's plate lies over the far plate's top: what moves on the far plate there moves on it too)
+      const holds = B.kind === lk || (B.kind === 10 && lk === 1);
+      if (all || (e && (e.c.width !== B.px[0] || e.c.height !== B.px[1]))) { develop(Uf, B); if (holds && u) plateLast.set(B.kind, platePart(B, u)); continue; }
+      if (!holds || !u || !seen) continue;
+      if (B.kind === 10 && (window.scrollY || 0) > PLATE_BAND) continue;   // (let go: nothing of it shows)
       const now = platePart(B, u);
       develop(Uf, B, partUnion(plateLast.get(B.kind), now));
       plateLast.set(B.kind, now);
@@ -3736,7 +3759,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       sink!.developed?.(6);
     }
     // a plate the stage does not hold now is blank
-    for (const k of [2, 3, 4, 5, 7, 8, 9] as PlateKind[]) if (!list.some((B) => B.kind === k)) { const e = plateCtx.get(k); if (e && e.c.width > 1) { e.c.width = 1; e.c.height = 1; } }
+    for (const k of [2, 3, 4, 5, 7, 8, 9, 10] as PlateKind[]) if (!list.some((B) => B.kind === k)) { const e = plateCtx.get(k); if (e && e.c.width > 1) { e.c.width = 1; e.c.height = 1; } }
     if (!platesShown) { platesShown = true; sink!.show(true); }
     // the darkroom is only as large as what still moves (every copy out of it copies the whole of it): after the
     // plates were developed whole it shrinks to the largest moving part; a larger part grows it again (gl.ts plate)

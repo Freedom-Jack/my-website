@@ -6,14 +6,14 @@
  *      words a question opens with);
  *   3. a scene: each thing the painting can do is measured against the line (the model's score, and a spelt-out
  *      keyword counting too); what is close enough becomes a mood (features/landscape/types Mood);
- *      a question: the line against every passage of the site's own words, the model's score with the keyword
- *      search's (the hybrid), and under a floor it says it does not know: it never writes an answer of its own;
+ *      a question: a private matter is turned away before anything is searched (the guard); otherwise the line is
+ *      measured against every line of the site's own words and against the questions each line is filed under
+ *      (questions.ts), and under a floor it says it does not know: it never writes an answer of its own;
  *   4. every step is reported as it happens, with its real numbers (the page draws them).
  */
-import type { Chunk } from '@/features/craft/corpus';
-import { buildIndex, search } from '@/features/craft/text';
 import type { Mood } from '@/features/landscape/types';
 import { cosine, unpackVector } from './encoder';
+import { LEANS, linesOf, sentences, type AskChunk, type Line } from './lines';
 import { ANCHORS, clauses, named, QUESTION_CUE, type Anchor } from './scene';
 
 /** A step of the trace, as it happens. */
@@ -23,7 +23,8 @@ export type Step =
   | { kind: 'embed'; dim: number; ms: number }
   | { kind: 'route'; as: 'scene' | 'question'; scene: number; question: number }
   | { kind: 'scene'; found: { label: string; score: number }[] }
-  | { kind: 'search'; passages: number; source: string; score: number; floor: number }
+  | { kind: 'guard' }
+  | { kind: 'search'; lines: number; source: string; score: number; floor: number }
   | { kind: 'travel'; place: string };
 
 export type Answer =
@@ -31,8 +32,11 @@ export type Answer =
   | { kind: 'scene-unknown' }
   | {
       kind: 'answer';
-      text: string;
-      sentence: string;
+      /** the line (or the one sentence of it) that answers, word for word */
+      said: string;
+      /** the short lines that stand beside it on the page (a list's other items), before and after */
+      before: string[];
+      after: string[];
       source: string;
       href: string;
       place: string;
@@ -40,31 +44,44 @@ export type Answer =
       u: number | null;
       score: number;
     }
+  | { kind: 'private' }
   | { kind: 'unknown'; score: number; floor: number }
   | { kind: 'error'; message: string };
 
+/** public/ask/index.json (tools/build-ask.ts): one entry for every line of the corpus, in its order. */
 interface Index {
   dim: number;
   corpusHash: string;
-  passages: { id: string; v: string; s: string[] }[];
+  lines: (null | { v: string; s?: string[]; q?: [sentence: number, vector: string, thing?: string][] })[];
   anchors: Record<string, string[]>;
   kinds: Record<string, string[]>;
 }
 
-/** Under this the closest passage is no answer (the model's own score, 0..1); a passage that also shares a word
- *  with the question may stand a little lower. Set on 2026-11-15 against the site's own questions and ten that it
- *  cannot answer: the questions it can answer score 0.22 to 0.86, the others 0.07 to 0.19 (one, a salary, 0.31). */
-const FLOOR = 0.215;
-const FLOOR_WORD = 0.17;
+/**
+ * Under this the closest line is no answer (the model's own score, 0..1, of the question against the line or
+ * against a question the line is filed under). Set on 2026-11-15 on 39 questions written after the filed ones, in
+ * other words, and 50 the site cannot answer, run in the browser: 33 of the 39 were answered rightly, 1 arguably,
+ * 5 were turned away; of the 50, 49 were turned away (15 by the guard) and 1, about a job, was shown where to
+ * write. The set was the builder's; Jack's own questions replace it (NEW-WORDS.md).
+ */
+const FLOOR = 0.55;
+/** What the site does not hold on purpose: turned away before anything is searched. */
+const PRIVATE =
+  /\b(salary|salaries|income|wage|net worth|how much (are|were) you paid|how much (do|does|did) .*\b(pay|earn|make)|how old|your age|birthday|born|married|are you single|wife|husband|girlfriend|boyfriend|kids?|children|parents|mother|father|religio\w*|god|politic\w*|vote|your health|blood type|home address|street address|phone number|your phone|cell number|mobile number)\b/i;
+/** A line this short is shown with the short lines beside it (a list's other items); a line this long is answered
+ *  with its closest sentence. */
+const SHORT = 110;
+const LONG = 360;
+/** A score under the floor, as it is printed: cut to two places, never rounded up to the floor itself. */
+const under = (score: number) => Math.floor(Math.max(0, score) * 100) / 100;
+/** Whether a line names a thing as a word of its own ("go" in "Do you write Go?", not in "going"). */
+const names = (line: string, thing: string) => {
+  const at = ` ${line.toLowerCase().replace(/[^a-z0-9+#.\-/]+/g, ' ')} `.replace(/[.?!]+ /g, ' ');
+  return at.includes(` ${thing.toLowerCase()} `);
+};
 /** A thing of the scene is taken at this score (the model's, or a spelt-out keyword's standing in for it). */
 const TAKE = { hour: 0.56, weather: 0.58, lamps: 0.6 };
 const NAMED = 0.9;
-
-const sentences = (text: string) =>
-  text
-    .split(/(?<=[.!?])\s+(?=[A-Z0-9“"(])/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 12);
 
 export function createBrain(onStep: (s: Step) => void) {
   let worker: Worker | null = null;
@@ -75,10 +92,12 @@ export function createBrain(onStep: (s: Step) => void) {
     { resolve: (v: { vectors: Float32Array[]; pieces: string[][]; ms: number[] }) => void; reject: (e: Error) => void }
   >();
   let data: Promise<{
-    index: Index;
-    chunks: Chunk[];
-    bm25: ReturnType<typeof buildIndex>;
-    vec: Map<string, { v: Float32Array; s: Float32Array[] }>;
+    lines: Line[];
+    /** a line's vectors, by its place in the corpus (none: a line that is never an answer) */
+    vec: Map<
+      number,
+      { v: Float32Array; s: Float32Array[]; q: [sentence: number, vector: Float32Array, thing?: string][] }
+    >;
     anchors: Map<string, Float32Array[]>;
     kinds: Record<string, Float32Array[]>;
   }> | null = null;
@@ -132,20 +151,33 @@ export function createBrain(onStep: (s: Step) => void) {
     (data ??= (async () => {
       const [index, corpus] = await Promise.all([
         fetch('/ask/index.json').then((r) => r.json() as Promise<Index>),
-        fetch('/craft/corpus.json').then((r) => r.json() as Promise<{ chunks: Chunk[] }>),
+        fetch('/craft/corpus.json').then((r) => r.json() as Promise<{ chunks: AskChunk[] }>),
       ]);
-      const vec = new Map(index.passages.map((p) => [p.id, { v: unpackVector(p.v), s: p.s.map(unpackVector) }]));
+      // the words are the build's own (the corpus); the index only says how they are measured
+      const lines = linesOf(corpus.chunks);
+      if (lines.length !== index.lines.length) throw new Error('the index is older than the words (npm run build:ask)');
+      const vec = new Map(
+        index.lines.flatMap((e, n) =>
+          e
+            ? [
+                [
+                  n,
+                  {
+                    v: unpackVector(e.v),
+                    s: (e.s ?? []).map(unpackVector),
+                    q: (e.q ?? []).map(([j, v, thing]): [number, Float32Array, string?] => [j, unpackVector(v), thing]),
+                  },
+                ] as const,
+              ]
+            : [],
+        ),
+      );
       const anchors = new Map(Object.entries(index.anchors).map(([k, vs]) => [k, vs.map(unpackVector)]));
       const kinds = Object.fromEntries(Object.entries(index.kinds).map(([k, vs]) => [k, vs.map(unpackVector)]));
-      return { index, chunks: corpus.chunks, bm25: buildIndex(corpus.chunks), vec, anchors, kinds };
+      return { lines, vec, anchors, kinds };
     })());
 
   return {
-    /** The model's files may come now (the visitor has turned to the line): nothing is asked of them yet. */
-    warm() {
-      start();
-      void load();
-    },
     get ready() {
       return ready;
     },
@@ -188,38 +220,88 @@ export function createBrain(onStep: (s: Step) => void) {
           return { kind: 'scene', mood, labels: found.map((x) => x.a.label) };
         }
 
-        // a question: the model's score against every passage, with the keyword search's (the hybrid)
-        const hits = new Map(search(D.bm25, line, 12).map((h) => [h.id, h.score]));
-        const top = Math.max(1e-6, ...hits.values());
-        const ranked = D.chunks
-          .map((c) => {
-            const v = D.vec.get(c.id);
-            const dense = v ? cosine(whole, v.v) : 0;
-            return { c, dense, score: dense + 0.2 * ((hits.get(c.id) ?? 0) / top) };
-          })
-          .sort((p, q) => q.score - p.score);
-        const hit = ranked[0];
-        const source = hit ? `${hit.c.page} · ${hit.c.section.split(' · ')[0]}` : '';
-        onStep({ kind: 'search', passages: D.chunks.length, source, score: hit?.dense ?? 0, floor: FLOOR });
-        if (!hit || hit.dense < (hits.has(hit.c.id) ? FLOOR_WORD : FLOOR))
-          return { kind: 'unknown', score: hit?.dense ?? 0, floor: FLOOR };
-        // the passage is the answer, word for word; its closest sentence is marked
-        const ss = sentences(hit.c.text),
-          sv = D.vec.get(hit.c.id)?.s ?? [];
-        let bi = 0;
-        for (let i = 1; i < Math.min(ss.length, sv.length); i++)
-          if (cosine(whole, sv[i]!) > cosine(whole, sv[bi]!)) bi = i;
-        onStep({ kind: 'travel', place: hit.c.place });
+        // a question. The guard first: what the site keeps off its pages is not searched for
+        if (PRIVATE.test(line)) {
+          onStep({ kind: 'guard' });
+          return { kind: 'private' };
+        }
+        // every line that may answer: the question against the line itself, and against each question the line is
+        // filed under (the closer of the two is the line's score)
+        let hit: { l: Line; score: number; sentence: number } | null = null;
+        let count = 0;
+        for (const l of D.lines) {
+          const v = D.vec.get(l.n);
+          if (!v) continue;
+          count += 1;
+          let score = cosine(whole, v.v),
+            sentence = -1;
+          for (const [j, qv, thing] of v.q) {
+            // (a question about a listed thing, "Do you know Java?", counts only when the visitor names the thing)
+            if (thing && !names(line, thing)) continue;
+            const c = cosine(whole, qv);
+            if (c > score) {
+              score = c;
+              sentence = j;
+            }
+          }
+          if (!hit || score > hit.score) hit = { l, score, sentence };
+        }
+        const source = hit ? `${hit.l.chunk.page} · ${hit.l.section}` : '';
+        const shown = hit && hit.score >= FLOOR ? hit.score : under(hit?.score ?? 0);
+        onStep({ kind: 'search', lines: count, source, score: shown, floor: FLOOR });
+        if (!hit || hit.score < FLOOR) return { kind: 'unknown', score: under(hit?.score ?? 0), floor: FLOOR };
+
+        // what is shown, word for word: the sentence the question was filed under; or the line, when it is not
+        // long; or a long line's closest sentence (with the sentence before it, when it leans on it)
+        const { l } = hit;
+        const ss = sentences(l.text);
+        let at = hit.sentence;
+        if (at < 0 && l.text.length > LONG && ss.length > 1) {
+          const sv = D.vec.get(l.n)?.s ?? [];
+          at = 0;
+          for (let i = 1; i < Math.min(ss.length, sv.length); i++)
+            if (cosine(whole, sv[i]!) > cosine(whole, sv[at]!)) at = i;
+        }
+        let said = at < 0 ? l.text : (ss[at] ?? l.text);
+        const prev = at > 0 ? ss[at - 1] : undefined;
+        if (prev && LEANS.test(said) && prev.length + said.length < LONG) said = `${prev} ${said}`;
+        // a list's item stands with the items beside it: a run of three or more short lines under one heading
+        // (a degree and its honours, a diagram's steps), the nearest first, while they fit
+        const before: string[] = [],
+          after: string[] = [];
+        const beside = (x: Line | undefined): x is Line =>
+          !!x && x.answers && x.chunk.page === l.chunk.page && x.section === l.section && x.text.length < SHORT;
+        if (at < 0 && l.text.length < SHORT) {
+          let up = l.n,
+            down = l.n;
+          while (beside(D.lines[up - 1])) up -= 1;
+          while (beside(D.lines[down + 1])) down += 1;
+          if (down - up >= 2) {
+            let room = LONG - l.text.length;
+            for (let d = 1; d <= 3 && before.length + after.length < 3; d++)
+              for (const n of [l.n + d, l.n - d]) {
+                const x = D.lines[n];
+                if (n < up || n > down || !x || x.text.length > room || before.length + after.length >= 3) continue;
+                // (only lines that touch what is already shown: a list is never shown with a gap)
+                if (n > l.n ? after.length !== d - 1 : before.length !== d - 1) continue;
+                room -= x.text.length;
+                if (n > l.n) after.push(x.text);
+                else before.unshift(x.text);
+              }
+          }
+        }
+        onStep({ kind: 'travel', place: l.chunk.place });
         return {
           kind: 'answer',
-          text: hit.c.text,
-          sentence: ss[bi] ?? '',
+          said,
+          before,
+          after,
           source,
-          href: hit.c.anchor ? `${hit.c.href}#${hit.c.anchor}` : hit.c.href,
-          place: hit.c.place,
-          stretch: hit.c.stretch,
-          u: hit.c.u,
-          score: hit.dense,
+          href: l.anchor ? `${l.chunk.href}#${l.anchor}` : l.chunk.href,
+          place: l.chunk.place,
+          stretch: l.chunk.stretch,
+          u: l.chunk.u,
+          score: hit.score,
         };
       } catch (err) {
         return { kind: 'error', message: String((err as Error)?.message || err) };

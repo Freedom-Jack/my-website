@@ -725,7 +725,8 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       gl.useProgram(P.p);
       setPresent(P, U);
       gl.uniform4f(P.u('uPlateW'), uv[0], uv[1], uv[2], uv[3]);
-      gl.uniform4f(P.u('uPlateK'), kind, ox, oy, 0);
+      // (plate 10 is the far plate's top with the sky's way out of the header's band: the far plate's pass, flagged)
+      gl.uniform4f(P.u('uPlateK'), kind === 10 ? 1 : kind, ox, oy, kind === 10 ? 1 : 0);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       return canvas;
     },

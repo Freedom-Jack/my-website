@@ -1082,6 +1082,52 @@ measurement pass, no automatic fix rounds, the Mac kept awake.
 10. Scroll to the tail: the colophon, the build stamp ("Lighthouse mobile, simulated" with the date and commit), Still,
     the five names, the email, the seal once (one map, one seal, an honest ending).
 
+### Round 6 (2026-11-15 on; Jack: "use the live site as the base and make everything on it cool")
+
+On `redesign/v5` (off `origin/master`, the live v3). The record: the brief in `~/.claude/projects/…/v4/next-prompt.md`,
+the measurements and screenshots in `~/.claude/projects/…/v5/`. Nothing here changes a hard rule of §2. Two rounds
+before it failed (the Vanguard build "looks exactly the same"; the v4 looks were rejected), so this one keeps the
+painting, its scroll motion, the Chinese feeling and his words, and adds to them. The Vanguard tests ("subtraction",
+"referent", "one living element per place") and its byte budgets are cancelled; the three gates a visitor feels stay
+(smooth scrolling, readable text at once on a phone, LCP under 2.5 s on a mid-range phone).
+
+- **The plates (the lag fix).** On wide screens the engine no longer lays the stage on one fixed canvas on every
+  scroll frame. It paints each depth layer once, as before, develops each into a canvas of the page's own
+  (`features/landscape/plates`, the shader's plate mode) and the browser moves them with a scroll timeline. Both
+  scroll motions run this way (the unroll; the camera's travel, read off the engine's own choreography as
+  keyframes). The veils and the header's band are page layers cut from the paper's own tile, with torn edges.
+  Measured the same way as before (real Chrome, 1728 × 994, 120 Hz): scrolling Home 21–23 % GPU → about 1 %, idle
+  6 % → 4 % with every element on, no GPU stall over 30 ms. The rule that came out of it: **no CSS mask, filter
+  or blend mode over `.plates` or anything in it, and no opacity on a box that holds plates** (one costs 15–25 %
+  GPU on every scroll frame; the portrait's `mix-blend-mode` did the same and now multiplies inside its own frame).
+  One thing the screen pass did with the scroll is kept by a plate of its own: under the header's paper band the
+  pale sky eases out of the paper, and that ease scrolls away with the header. The far layer's top with the ease
+  is plate 10, over the far plate at the page's top, and the page lets it go over the first 320 px of scroll, so
+  the sky below is whole (the first build baked the ease into the far plate, and a scrolled page was paler than
+  the live site). Phones keep the screen pass.
+- **Back on:** the swallows, the silk ribbon, the falling petals, the plum's gust, the water you can stir, the
+  scroll's wind. Still off: the morning, the mist page change, the old interface effects (they wait for Home's
+  review). QA builds carry a switch panel (`features/qa/Switches`) for every flag and both motions.
+- **The moods** (`features/landscape/mood.ts`, `shaders.ts moodGrade`): the painting keeps the visitor's clock (dawn,
+  day, dusk, night with the lamps lit) and can be asked for snow and rain. A grade of what is painted: no scene is
+  repainted, the paper stays the paper. No hour is a greyer day: while a dusk or a dawn is still coming (an
+  afternoon, a late morning) the air far from the light keeps its own blue and only the air round the light warms.
+- **Ask the painting** (`features/ask`, Home): a sentence-embedding model hosted with the site (all-MiniLM-L6-v2,
+  8-bit, 23 MB, with the ONNX runtime's WebAssembly build: about 38 MB once, only when the line is used) runs in a
+  worker in the visitor's browser. A scene repaints the painting; a question is answered with a line of the
+  site's own words, word for word, and the painting travels to its place. Every step is written in the painting's
+  empty corner with its real numbers. How a question finds its line (measured, 2026-11-15): the model alone, set
+  against the lines themselves, picked the right one for about half of 39 fair questions, and a second "reranker"
+  model did not help (it cannot tie "you" to "I"), so each line is filed under the questions it answers
+  (`features/ask/questions.ts`, an index that is never shown) and a visitor's question is measured against those
+  too: 33 of the 39 right, 5 turned away, and 49 of 50 it cannot answer turned away (a floor; a guard for private
+  matters, which are not searched at all). The 39 and the 50 were the builder's; Jack's own replace them.
+  `npm run build:ask` rebuilds its index whenever the words or the questions change (a unit test fails while the
+  index is older than the words).
+- **Home's first screen:** his seal beside the name, the plum bough in the corner, the day's own warmth, depth under
+  the pointer, falling snow and rain when asked.
+- **Words:** no page prints "DRAFT" any more; every new line is listed in `NEW-WORDS.md` for his approval.
+
 ## 13. Running the demo and its tools
 
 ```bash

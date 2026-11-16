@@ -263,6 +263,6 @@ export interface Renderer {
   /** THE PLATES (WebGL only): paint one depth layer of the stage (1 far, 2 middle, 3 near, 4 the sea of mist, 5 what is pinned
    *  to the frame), or a part of it, into the drawing buffer's lower-left w x h corner, with the screen pass's uniforms; `uv` its window in
    *  canvas uv (x0, y0, width, height), `ox, oy` its pixel origin in its plate. Returns the canvas to copy from. */
-  plate?(U: PresentU, kind: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9, uv: readonly [number, number, number, number], w: number, h: number, ox: number, oy: number): HTMLCanvasElement | null;
+  plate?(U: PresentU, kind: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10, uv: readonly [number, number, number, number], w: number, h: number, ox: number, oy: number): HTMLCanvasElement | null;
   destroy(): void;
 }
