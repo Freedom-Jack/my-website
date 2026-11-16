@@ -3,6 +3,8 @@
 import { useEffect, useRef } from 'react';
 import { isStill } from '@/features/chrome/still';
 import { warmFigureSource } from './engine/figure-source';
+import { createPlateStage, type PlateStage } from './plates/sink';
+import { createVeils, type Veils } from './plates/veils';
 import { watchGlimpseStills } from './glimpse-stills';
 import { cadence, gpuOK, limitFor as limitForState, quietNow, saveData, setLive, watchFrames } from './probe';
 import { landscape } from './store';
@@ -44,6 +46,7 @@ const qaForced = () => QA && (window as unknown as { __inkLive?: boolean }).__in
 
 export function Landscape() {
   const ref = useRef<HTMLCanvasElement>(null);
+  const platesRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const canvas = ref.current;
@@ -53,6 +56,11 @@ export function Landscape() {
     let started = false;
     let handle: LandscapeHandle | null = null;
     let stopWatch: (() => void) | null = null;
+    // THE PLATES (round 6): on wide screens the stage is the page's own layers, moved by the browser (plates/sink.ts)
+    let plates: PlateStage | null = platesRef.current ? createPlateStage(platesRef.current) : null;
+    if (QA && plates) (window as unknown as { __plates?: PlateStage }).__plates = plates;
+    // ...and the paper behind the words is the page's own too (plates/veils.ts), scrolling with them
+    let veils: Veils | null = plates ? createVeils() : null;
     // the windows' stills below the fold get their sources as the reader nears them (R5; the navigation does the same
     // for every later page)
     const stopStills = watchGlimpseStills(currentMain());
@@ -125,6 +133,7 @@ export function Landscape() {
           presence: place?.presence ?? 1,
           palette: 'misted',
           ...(main ? targetsOf(main) : {}),
+          plates,
           still: isStill(),
           arrival: still ? 'none' : 'bloom',
           firstFrame: still ? 'complete' : 'now',
@@ -169,6 +178,9 @@ export function Landscape() {
             while (!dead && busy() && performance.now() - t0 < 8000) await wait(200);
             await wait(1000);
             if (dead) return;
+            // (THE PLATES: no watch. The reading state draws nothing per frame, so a slow frame there is not the
+            // painting's, and the watch itself was a second loop at the display's rate)
+            if ((h.stats() as { plates?: { on?: boolean } }).plates?.on) return;
             mark('watch:start');
             stopWatch = watchFrames(
               (motion) => {
@@ -200,11 +212,28 @@ export function Landscape() {
       stopStills();
       document.removeEventListener('ink:still', onStill);
       handle?.destroy();
+      plates?.destroy();
+      plates = null;
+      veils?.destroy();
+      veils = null;
       landscape.reset();
       html.classList.remove('no-landscape');
       html.removeAttribute('data-live');
     };
   }, []);
 
-  return <canvas ref={ref} className="landscape" aria-hidden="true" />;
+  return (
+    <>
+      <div ref={platesRef} className="plates" aria-hidden="true">
+        <canvas data-plate="1" />
+        <div className="plates__front">
+          <canvas data-plate="2" />
+          <canvas data-plate="3" />
+        </div>
+        <canvas data-plate="4" />
+        <canvas data-plate="5" />
+      </div>
+      <canvas ref={ref} className="landscape" aria-hidden="true" />
+    </>
+  );
 }

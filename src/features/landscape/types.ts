@@ -31,7 +31,57 @@ export interface LandscapeTargets {
   inside?: boolean | number;
 }
 
+/**
+ * THE PLATES (round 6; features/landscape/plates). On wide screens the stage's depth layers are no longer laid on
+ * one fixed canvas on every scroll frame: the engine develops each of them once, at the hero pose, into a canvas of
+ * the page's own (a plate), and the page moves the plates itself with a scroll timeline, so a scroll runs no script
+ * and draws nothing. The sink is the page's side of that: it owns the plates' canvases and lays them out.
+ * A plate's kind: 1 the far layer (the sky, the light and the far ranges; opaque), 2 the middle (the place), 3 the
+ * near (the near crags and their figures), 4 the sea of mist over their feet, 5 what is pinned to the frame while
+ * the stage travels under it (Home's plum bough), 6 the paper itself with its grain (one tile of it: the page's
+ * veils, the paper kept behind the words, are cut from it).
+ */
+export type PlateKind = 1 | 2 | 3 | 4 | 5 | 6;
+/** A box on the screen at the page's top, CSS px: left, top, width, height. */
+export type PlateBox = [left: number, top: number, width: number, height: number];
+export interface PlateGeometry {
+  /** The screen (CSS px), and how far the layers are painted past its right edge (the unroll's travel). */
+  width: number;
+  height: number;
+  ext: number;
+  /** Each plate's box (a kind with no box holds nothing). */
+  boxes: Partial<Record<PlateKind, PlateBox>>;
+  /** The place the plates show (the page's stretch). */
+  stretch: number;
+  /** The scroll's motion: the unroll (the plates travel west, linearly with the page) or the camera's travel. */
+  motion: 'unroll' | 'camera';
+  /** The unroll: how far west the plates travel over the whole page (CSS px). */
+  travel: number;
+  /** The camera's travel: each layer's sink once the camera has settled (far, middle, near; screen heights), over how
+   *  many screens of scroll it settles and that ease's power; the sea's own sink. */
+  camera: { sink: [number, number, number]; reach: number; ease: number; sea: number } | null;
+  /** The standing curtain's edge (CSS px from the screen's left edge; -1: none): left of it the middle and near
+   *  plates are in mist. */
+  curtain: number;
+  /** The place's light on the screen at the page's top (CSS px: x, y, radius), or null. */
+  light: [x: number, y: number, r: number] | null;
+  /** Reduced motion or "Still the landscape": the plates hold the hero pose. */
+  still: boolean;
+}
+export interface PlateSink {
+  /** The canvas of a plate (the engine sizes its buffer and draws into it). */
+  canvas(kind: PlateKind): HTMLCanvasElement | null;
+  /** The plates' geometry changed: lay them out and set their motion. */
+  layout(g: PlateGeometry): void;
+  /** The plates show (the engine's own canvas rests), or the engine's canvas does (a page change, a narrow window). */
+  show(on: boolean): void;
+  /** A plate has been developed whole (the paper tile: the page takes it as an image). */
+  developed?(kind: PlateKind): void;
+}
+
 export interface MountOptions extends Partial<LandscapeTargets> {
+  /** THE PLATES: where the stage goes on wide screens (absent: the engine lays it on its own canvas, as before). */
+  plates?: PlateSink | null;
   stretch?: number;
   distance?: Distance;
   presence?: number;

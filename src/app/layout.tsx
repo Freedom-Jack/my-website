@@ -15,6 +15,7 @@ import { fontFaces } from './fonts';
 import '@/styles/tokens.css';
 import '@/styles/base.css';
 import '@/styles/layout.css';
+import '@/styles/plates.css'; // the stage as the page's own layers on wide screens (features/landscape/plates)
 import '@/styles/effects.css'; // the ink in the UI (links, the action, focus, the row rule, the flow dot: each element behind its el-* class)
 import '@/styles/components.css';
 

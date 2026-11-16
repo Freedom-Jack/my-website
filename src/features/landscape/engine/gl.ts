@@ -31,7 +31,7 @@
 import { VERT, NOISE, NOISE_SIZE, SCENE, PRESENT } from './shaders';
 import { ROWS, LAYERS } from './ridges';
 import { mark } from './marks';
-import type { FigureImage, Renderer, RendererMemory } from './renderer';
+import type { FigureImage, PresentU, Renderer, RendererMemory } from './renderer';
 
 const QA = typeof process !== 'undefined' && process.env.NEXT_PUBLIC_INK_QA === '1';   // (the boot's marks, QA builds only)
 const LINK_GRACE = 60;   // ms: without KHR_parallel_shader_compile, how long poll() lets the links run before it asks (and waits)
@@ -113,8 +113,10 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
   let context: WebGL2RenderingContext | null = null;
   try {
     context = canvas.getContext('webgl2', {
-      alpha: false, antialias: false, depth: false, stencil: false,
-      premultipliedAlpha: false, preserveDrawingBuffer: false, powerPreference: 'low-power',
+      // (alpha, premultiplied: THE PLATES are copied out of the drawing buffer with their coverage; the screen pass
+      // writes alpha 1, so the canvas itself stays opaque wherever it is still shown)
+      alpha: true, antialias: false, depth: false, stencil: false,
+      premultipliedAlpha: true, preserveDrawingBuffer: false, powerPreference: 'low-power',
     });
   } catch { context = null; }
   if (!context) return null;
@@ -414,6 +416,140 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
     return new Float32Array([sw / v.w, sh / v.h, (sw - 0.5) / v.w, (sh - 0.5) / v.h]);
   };
 
+  /** The screen pass's uniforms (present and plate share them; the program is bound). */
+  function setPresent(P: Program, U: PresentU) {
+    if (!R) return;
+    {
+      const wins = U.windows || [];
+      const rect = new Float32Array(8), map = new Float32Array(8), suv = new Float32Array(8), fea = new Float32Array(8), kee = new Float32Array(8), sink = new Float32Array(8)
+      const nuv = new Float32Array(8), part = new Float32Array(8);   // (each window's front depth layer)
+      for (let i = 0; i < 2; i++) {
+        const w = wins[i];
+        const v = w && views.get(w.id);
+        if (!w || !v || !v.tex) { rect.set(NONE4, i * 4); continue; }
+        rect.set(w.rect, i * 4);
+        map.set(w.view, i * 4);
+        suv.set(sceneUV(v), i * 4);
+        fea.set(w.feather, i * 4);
+        kee.set(w.keep || ZERO4, i * 4);
+        sink[i * 4 + 1] = w.sink || 0;
+        const nv = w.near ? views.get(w.near) : null;
+        if (nv && nv.tex && w.part) { nuv.set(sceneUV(nv), i * 4); part.set(w.part, i * 4); }
+      }
+      bindTex(P, 0, 'uWin0', wins[0] && views.get(wins[0].id)?.tex);
+      bindTex(P, 1, 'uWin1', wins[1] && views.get(wins[1].id)?.tex);
+      // the windows' front depth layers (units 11, 12), when parted
+      bindTex(P, 11, 'uWinN0', part[0] > 0 && wins[0]?.near ? views.get(wins[0].near)?.tex : null);
+      bindTex(P, 12, 'uWinN1', part[4] > 0 && wins[1]?.near ? views.get(wins[1].near)?.tex : null);
+      gl.uniform4fv(P.u('uWinNS'), nuv);
+      gl.uniform4fv(P.u('uWinP'), part);
+      const hz = U.horizon && views.get(U.horizon.id);
+      const hzK = hz && hz.tex ? U.horizon!.k : 0;
+      bindTex(P, 2, 'uHzTex', hz?.tex);
+      bindTex(P, 3, 'uNoise', R.noise);
+      gl.uniform4fv(P.u('uWinR'), rect);
+      gl.uniform4fv(P.u('uWinM'), map);
+      gl.uniform4fv(P.u('uWinS'), suv);
+      gl.uniform4fv(P.u('uWinF'), fea);
+      gl.uniform4fv(P.u('uWinK'), kee);
+      gl.uniform4fv(P.u('uWinO'), sink);
+      gl.uniform1f(P.u('uHzK'), hzK);
+      gl.uniform4fv(P.u('uHzS'), hz ? sceneUV(hz) : ZERO4);
+      gl.uniform4fv(P.u('uHzM'), U.horizon ? U.horizon.view : ZERO4);
+      gl.uniform1f(P.u('uAspect'), U.aspect);
+      gl.uniform1f(P.u('uTime'), U.time);
+      gl.uniform1f(P.u('uStillL'), U.stillL || 0);
+      gl.uniform1f(P.u('uMorn'), U.morn ?? 9);
+      gl.uniform4fv(P.u('uVeil'), U.veil);
+      gl.uniform1fv(P.u('uVeilS'), U.veilS);
+      gl.uniform1fv(P.u('uVeilF'), U.veilF);
+      gl.uniform1f(P.u('uVeilR'), U.veilR);
+      gl.uniform4fv(P.u('uTrail'), U.trail);
+      gl.uniform4fv(P.u('uWakeBox'), U.wakeBox);
+      gl.uniform1f(P.u('uWakeR'), U.wakeR);
+      gl.uniform4fv(P.u('uSweep'), U.sweep);
+      gl.uniform1f(P.u('uSweepSeed'), U.sweepSeed);
+      gl.uniform1f(P.u('uSweepK'), U.sweepKeep ?? 0);
+      const hold = prev && prevW === W && prevH === H ? U.hold ?? 0 : 0;
+      gl.uniform1f(P.u('uHold'), hold);
+      bindTex(P, 10, 'uPrev', hold > 0 ? prev : null);
+      gl.uniform1f(P.u('uPx'), U.px);
+      gl.uniform1f(P.u('uPanPx'), U.panPx);
+      gl.uniform1f(P.u('uGrain'), U.grain);
+      gl.uniform1f(P.u('uGrainPx'), U.grainPx);
+      // 4b: the living ground's depth layers (units 4-6) and the living veils
+      const st = U.stage;
+      const sv = st ? st.ids.map((id) => views.get(id)) : [];
+      const stOn = !!st && sv.length === 3 && !!sv[0]?.tex;
+      const ss = new Float32Array(12);
+      for (let i = 0; i < 3; i++) if (stOn && sv[i]?.tex) ss.set(sceneUV(sv[i]), i * 4);
+      bindTex(P, 4, 'uSt0', stOn ? sv[0]!.tex : null);
+      bindTex(P, 5, 'uSt1', stOn ? sv[1]?.tex : null);
+      bindTex(P, 6, 'uSt2', stOn ? sv[2]?.tex : null);
+      gl.uniform4fv(P.u('uStS'), ss);
+      gl.uniform4fv(P.u('uStO'), stOn ? st.offsets : ZERO12);
+      gl.uniform4fv(P.u('uStR'), stOn && st.rects ? st.rects : FULL_RECTS);
+      gl.uniform4fv(P.u('uStM'), stOn ? st.view : ZERO4);
+      gl.uniform4fv(P.u('uSt'), stOn ? st.k : ZERO4);
+      gl.uniform4fv(P.u('uSea'), stOn ? st.sea : ZERO4);
+      gl.uniform4fv(P.u('uStC'), stOn && st.cloud ? st.cloud : ZERO4);
+      gl.uniform4fv(P.u('uStV'), stOn && st.curt ? st.curt : ZERO4);
+      gl.uniform4fv(P.u('uStX'), stOn && st.air ? st.air : ZERO4);   // (an inner place's air, soft crops, footer)
+      gl.uniform4fv(P.u('uStF'), stOn && st.foot ? st.foot : ZERO4);
+      gl.uniform4fv(P.u('uStG'), stOn && st.grade ? st.grade : ZERO4);
+      gl.uniform4fv(P.u('uStK'), stOn && st.rule ? st.rule : ZERO4);   // (the row rules' end)
+      gl.uniform4fv(P.u('uLive'), U.live || ZERO4);
+      gl.uniform4fv(P.u('uLive2'), U.live2 || ZERO4);
+      // the windows into the painting (elements.ts glimpses; units 13, 14: each window's own view, its back
+      // in the lower half and its front in the upper)
+      const G = U.glimpse;
+      const gv = [0, 1].map((i) => (G && G.ids[i] ? views.get(G.ids[i]) : null));
+      const gOn = !!G && !!gv[0]?.tex;
+      const gs = new Float32Array(8);
+      for (let i = 0; i < 2; i++) { const v = gv[i]; if (gOn && v && v.tex) gs.set([1 / v.w, 1 / v.h, 0, 0], i * 4); }
+      bindTex(P, 13, 'uGl0', gOn ? gv[0]!.tex : null);
+      bindTex(P, 14, 'uGl1', gOn && gv[1]?.tex ? gv[1]!.tex : null);
+      const gr = new Float32Array(NONE16.subarray(0, 8));
+      if (gOn) { gr.set(G!.rects); if (!gv[1]?.tex) gr.set(NONE4, 4); }
+      gl.uniform4fv(P.u('uGlS'), gs);
+      gl.uniform4f(P.u('uGlK'), gOn ? 1 : 0, U.paperOut ? 1 : 0, 0, 0);
+      gl.uniform4fv(P.u('uGlR'), gr);
+      gl.uniform4fv(P.u('uGlA'), gOn ? G!.a : ZERO8);
+      gl.uniform4fv(P.u('uGlB2'), gOn ? G!.b : ZERO8);
+      gl.uniform4fv(P.u('uGlF2'), gOn ? G!.f : ZERO8);
+      gl.uniform4fv(P.u('uGlC'), gOn ? G!.c : ZERO8);
+      gl.uniform4fv(P.u('uGlD'), gOn ? G!.d : ZERO8);
+      gl.uniform4fv(P.u('uGlM'), gOn ? G!.m : ZERO8);
+      // the scroll's air (elements.ts air)
+      const A = U.air;
+      gl.uniform4fv(P.u('uAir'), A ? A.a : ZERO4);
+      gl.uniform4fv(P.u('uAir2'), A ? A.b : ZERO4);
+      gl.uniform4fv(P.u('uAir3'), A ? A.c : ZERO4);
+      gl.uniform4fv(P.u('uAirP'), A ? A.petals : ZERO12A);
+      gl.uniform4fv(P.u('uAirQ'), A ? A.petalsB : ZERO12A);
+      // 4b small life (the life program only; units 7-9): its table, the ridges of the view it lies in (where its water
+      // is), the drifting boat's sprite and the figure layer the water's shimmer keeps off (boats, the bridge)
+      const lf = U.life;
+      if (lf) {
+        bindTex(P, 7, 'uLifeRid', (lf.ridge && views.get(lf.ridge)?.ridges) || null);
+        bindTex(P, 8, 'uLifeSpr', lf.sprite ? figs.get(lf.sprite) : null);
+        bindTex(P, 9, 'uLifeFig', lf.fig ? figs.get(lf.fig) : null);
+        gl.uniform4fv(P.u('uLifeU'), lf.union);
+        gl.uniform4fv(P.u('uLifeT'), lf.starts);
+        gl.uniform4fv(P.u('uLifeR'), lf.rect);
+        gl.uniform4fv(P.u('uLifeA'), lf.a);
+        gl.uniform4fv(P.u('uLifeB'), lf.b);
+        gl.uniform4fv(P.u('uLifeK'), lf.k);
+        gl.uniform4fv(P.u('uLifeFigR'), lf.fig && figs.has(lf.fig) ? lf.figR : ZERO4);
+        // the stirred water, the plum's gust (elements.ts)
+        gl.uniform4fv(P.u('uStir'), lf.stir);
+        gl.uniform4fv(P.u('uStirK'), lf.stirK);
+        gl.uniform4fv(P.u('uGust'), lf.gust);
+        gl.uniform4fv(P.u('uGust2'), lf.gust2);
+      }
+    }
+  }
+
   return {
     mode: 'webgl',
     software,
@@ -550,133 +686,8 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.viewport(0, 0, W, H);
       gl.useProgram(P.p);
-      const wins = U.windows || [];
-      const rect = new Float32Array(8), map = new Float32Array(8), suv = new Float32Array(8), fea = new Float32Array(8), kee = new Float32Array(8), sink = new Float32Array(8)
-      const nuv = new Float32Array(8), part = new Float32Array(8);   // (each window's front depth layer)
-      for (let i = 0; i < 2; i++) {
-        const w = wins[i];
-        const v = w && views.get(w.id);
-        if (!w || !v || !v.tex) { rect.set(NONE4, i * 4); continue; }
-        rect.set(w.rect, i * 4);
-        map.set(w.view, i * 4);
-        suv.set(sceneUV(v), i * 4);
-        fea.set(w.feather, i * 4);
-        kee.set(w.keep || ZERO4, i * 4);
-        sink[i * 4 + 1] = w.sink || 0;
-        const nv = w.near ? views.get(w.near) : null;
-        if (nv && nv.tex && w.part) { nuv.set(sceneUV(nv), i * 4); part.set(w.part, i * 4); }
-      }
-      bindTex(P, 0, 'uWin0', wins[0] && views.get(wins[0].id)?.tex);
-      bindTex(P, 1, 'uWin1', wins[1] && views.get(wins[1].id)?.tex);
-      // the windows' front depth layers (units 11, 12), when parted
-      bindTex(P, 11, 'uWinN0', part[0] > 0 && wins[0]?.near ? views.get(wins[0].near)?.tex : null);
-      bindTex(P, 12, 'uWinN1', part[4] > 0 && wins[1]?.near ? views.get(wins[1].near)?.tex : null);
-      gl.uniform4fv(P.u('uWinNS'), nuv);
-      gl.uniform4fv(P.u('uWinP'), part);
-      const hz = U.horizon && views.get(U.horizon.id);
-      const hzK = hz && hz.tex ? U.horizon!.k : 0;
-      bindTex(P, 2, 'uHzTex', hz?.tex);
-      bindTex(P, 3, 'uNoise', R.noise);
-      gl.uniform4fv(P.u('uWinR'), rect);
-      gl.uniform4fv(P.u('uWinM'), map);
-      gl.uniform4fv(P.u('uWinS'), suv);
-      gl.uniform4fv(P.u('uWinF'), fea);
-      gl.uniform4fv(P.u('uWinK'), kee);
-      gl.uniform4fv(P.u('uWinO'), sink);
-      gl.uniform1f(P.u('uHzK'), hzK);
-      gl.uniform4fv(P.u('uHzS'), hz ? sceneUV(hz) : ZERO4);
-      gl.uniform4fv(P.u('uHzM'), U.horizon ? U.horizon.view : ZERO4);
-      gl.uniform1f(P.u('uAspect'), U.aspect);
-      gl.uniform1f(P.u('uTime'), U.time);
-      gl.uniform1f(P.u('uStillL'), U.stillL || 0);
-      gl.uniform1f(P.u('uMorn'), U.morn ?? 9);
-      gl.uniform4fv(P.u('uVeil'), U.veil);
-      gl.uniform1fv(P.u('uVeilS'), U.veilS);
-      gl.uniform1fv(P.u('uVeilF'), U.veilF);
-      gl.uniform1f(P.u('uVeilR'), U.veilR);
-      gl.uniform4fv(P.u('uTrail'), U.trail);
-      gl.uniform4fv(P.u('uWakeBox'), U.wakeBox);
-      gl.uniform1f(P.u('uWakeR'), U.wakeR);
-      gl.uniform4fv(P.u('uSweep'), U.sweep);
-      gl.uniform1f(P.u('uSweepSeed'), U.sweepSeed);
-      gl.uniform1f(P.u('uSweepK'), U.sweepKeep ?? 0);
-      const hold = prev && prevW === W && prevH === H ? U.hold ?? 0 : 0;
-      gl.uniform1f(P.u('uHold'), hold);
-      bindTex(P, 10, 'uPrev', hold > 0 ? prev : null);
-      gl.uniform1f(P.u('uPx'), U.px);
-      gl.uniform1f(P.u('uPanPx'), U.panPx);
-      gl.uniform1f(P.u('uGrain'), U.grain);
-      gl.uniform1f(P.u('uGrainPx'), U.grainPx);
-      // 4b: the living ground's depth layers (units 4-6) and the living veils
-      const st = U.stage;
-      const sv = st ? st.ids.map((id) => views.get(id)) : [];
-      const stOn = !!st && sv.length === 3 && !!sv[0]?.tex;
-      const ss = new Float32Array(12);
-      for (let i = 0; i < 3; i++) if (stOn && sv[i]?.tex) ss.set(sceneUV(sv[i]), i * 4);
-      bindTex(P, 4, 'uSt0', stOn ? sv[0]!.tex : null);
-      bindTex(P, 5, 'uSt1', stOn ? sv[1]?.tex : null);
-      bindTex(P, 6, 'uSt2', stOn ? sv[2]?.tex : null);
-      gl.uniform4fv(P.u('uStS'), ss);
-      gl.uniform4fv(P.u('uStO'), stOn ? st.offsets : ZERO12);
-      gl.uniform4fv(P.u('uStR'), stOn && st.rects ? st.rects : FULL_RECTS);
-      gl.uniform4fv(P.u('uStM'), stOn ? st.view : ZERO4);
-      gl.uniform4fv(P.u('uSt'), stOn ? st.k : ZERO4);
-      gl.uniform4fv(P.u('uSea'), stOn ? st.sea : ZERO4);
-      gl.uniform4fv(P.u('uStC'), stOn && st.cloud ? st.cloud : ZERO4);
-      gl.uniform4fv(P.u('uStV'), stOn && st.curt ? st.curt : ZERO4);
-      gl.uniform4fv(P.u('uStX'), stOn && st.air ? st.air : ZERO4);   // (an inner place's air, soft crops, footer)
-      gl.uniform4fv(P.u('uStF'), stOn && st.foot ? st.foot : ZERO4);
-      gl.uniform4fv(P.u('uStG'), stOn && st.grade ? st.grade : ZERO4);
-      gl.uniform4fv(P.u('uStK'), stOn && st.rule ? st.rule : ZERO4);   // (the row rules' end)
-      gl.uniform4fv(P.u('uLive'), U.live || ZERO4);
-      gl.uniform4fv(P.u('uLive2'), U.live2 || ZERO4);
-      // the windows into the painting (elements.ts glimpses; units 13, 14: each window's own view, its back
-      // in the lower half and its front in the upper)
-      const G = U.glimpse;
-      const gv = [0, 1].map((i) => (G && G.ids[i] ? views.get(G.ids[i]) : null));
-      const gOn = !!G && !!gv[0]?.tex;
-      const gs = new Float32Array(8);
-      for (let i = 0; i < 2; i++) { const v = gv[i]; if (gOn && v && v.tex) gs.set([1 / v.w, 1 / v.h, 0, 0], i * 4); }
-      bindTex(P, 13, 'uGl0', gOn ? gv[0]!.tex : null);
-      bindTex(P, 14, 'uGl1', gOn && gv[1]?.tex ? gv[1]!.tex : null);
-      const gr = new Float32Array(NONE16.subarray(0, 8));
-      if (gOn) { gr.set(G!.rects); if (!gv[1]?.tex) gr.set(NONE4, 4); }
-      gl.uniform4fv(P.u('uGlS'), gs);
-      gl.uniform4f(P.u('uGlK'), gOn ? 1 : 0, U.paperOut ? 1 : 0, 0, 0);
-      gl.uniform4fv(P.u('uGlR'), gr);
-      gl.uniform4fv(P.u('uGlA'), gOn ? G!.a : ZERO8);
-      gl.uniform4fv(P.u('uGlB2'), gOn ? G!.b : ZERO8);
-      gl.uniform4fv(P.u('uGlF2'), gOn ? G!.f : ZERO8);
-      gl.uniform4fv(P.u('uGlC'), gOn ? G!.c : ZERO8);
-      gl.uniform4fv(P.u('uGlD'), gOn ? G!.d : ZERO8);
-      gl.uniform4fv(P.u('uGlM'), gOn ? G!.m : ZERO8);
-      // the scroll's air (elements.ts air)
-      const A = U.air;
-      gl.uniform4fv(P.u('uAir'), A ? A.a : ZERO4);
-      gl.uniform4fv(P.u('uAir2'), A ? A.b : ZERO4);
-      gl.uniform4fv(P.u('uAir3'), A ? A.c : ZERO4);
-      gl.uniform4fv(P.u('uAirP'), A ? A.petals : ZERO12A);
-      gl.uniform4fv(P.u('uAirQ'), A ? A.petalsB : ZERO12A);
-      // 4b small life (the life program only; units 7-9): its table, the ridges of the view it lies in (where its water
-      // is), the drifting boat's sprite and the figure layer the water's shimmer keeps off (boats, the bridge)
-      const lf = U.life;
-      if (lf) {
-        bindTex(P, 7, 'uLifeRid', (lf.ridge && views.get(lf.ridge)?.ridges) || null);
-        bindTex(P, 8, 'uLifeSpr', lf.sprite ? figs.get(lf.sprite) : null);
-        bindTex(P, 9, 'uLifeFig', lf.fig ? figs.get(lf.fig) : null);
-        gl.uniform4fv(P.u('uLifeU'), lf.union);
-        gl.uniform4fv(P.u('uLifeT'), lf.starts);
-        gl.uniform4fv(P.u('uLifeR'), lf.rect);
-        gl.uniform4fv(P.u('uLifeA'), lf.a);
-        gl.uniform4fv(P.u('uLifeB'), lf.b);
-        gl.uniform4fv(P.u('uLifeK'), lf.k);
-        gl.uniform4fv(P.u('uLifeFigR'), lf.fig && figs.has(lf.fig) ? lf.figR : ZERO4);
-        // the stirred water, the plum's gust (elements.ts)
-        gl.uniform4fv(P.u('uStir'), lf.stir);
-        gl.uniform4fv(P.u('uStirK'), lf.stirK);
-        gl.uniform4fv(P.u('uGust'), lf.gust);
-        gl.uniform4fv(P.u('uGust2'), lf.gust2);
-      }
+      setPresent(P, U);
+      gl.uniform4f(P.u('uPlateK'), 0, 0, 0, 0);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       if (U.grab) {
         // keep this frame for a long jump's cross-dissolve (only while one is about to splice)
@@ -691,6 +702,27 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       if (!fence) {
         try { fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0); fenceAt = performance.now(); } catch { fence = null; }
       }
+    },
+    /**
+     * THE PLATES: one depth layer of the stage (kind 1 far, 2 middle, 3 near, 4 the sea of mist), or a part of it,
+     * painted into the drawing buffer's lower-left w x h corner with the screen pass's own uniforms (the hero pose).
+     * `uv` is the part's window in canvas uv (x0, y0, width, height; x may run past 1, the layers being painted wider
+     * than the screen), `ox, oy` its pixel origin in its plate. Returns the canvas to copy from (its rows
+     * canvas.height - h .. canvas.height), or null when nothing was painted.
+     */
+    plate(U, kind, uv, w, h, ox, oy) {
+      if (!R || !R.complete || w < 1 || h < 1) return null;
+      if (w > W || h > H) applySize(Math.max(W, w), Math.max(H, h));
+      const P = U.life ? R.presentL : R.presentP;
+      gl.bindVertexArray(R.vao);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.viewport(0, 0, w, h);
+      gl.useProgram(P.p);
+      setPresent(P, U);
+      gl.uniform4f(P.u('uPlateW'), uv[0], uv[1], uv[2], uv[3]);
+      gl.uniform4f(P.u('uPlateK'), kind, ox, oy, 0);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      return canvas;
     },
     destroy() {
       canvas.removeEventListener('webglcontextlost', onLost);

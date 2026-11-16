@@ -1,0 +1,146 @@
+/* ==========================================================================
+   plates.css — THE PLATES (round 6): the stage as the page's own layers.
+   On wide screens the engine develops each depth layer of the painting once into a canvas here and the browser moves
+   them with a scroll timeline (features/landscape/plates/sink.ts): a scroll runs no script and draws nothing.
+   Shown while html[data-plates="on"]; the engine's own canvas (.landscape) rests then.
+   ========================================================================== */
+
+.plates {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-landscape);
+  width: 100%;
+  height: 100lvh;
+  overflow: hidden;
+  pointer-events: none;
+  visibility: hidden;
+  contain: strict;
+}
+html[data-plates='on'] .plates {
+  visibility: visible;
+}
+html[data-plates='on'] .landscape {
+  visibility: hidden !important; /* the darkroom: it develops the plates and shows nothing */
+}
+html.no-landscape .plates {
+  display: none;
+}
+
+.plates canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  max-width: none;
+  /* each plate is a layer of its own on the compositor: its motion never repaints it */
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* the standing curtain (the unroll): left of the reading column's edge the middle and near plates are in mist, so the
+   place passes in the margin and goes into the mist as it reaches the words; the far ranges run on behind the words */
+.plates__front {
+  position: absolute;
+  inset: 0;
+}
+.plates__front[data-curtain] {
+  /* (a torn edge of mist, plates/edges.ts, then everything right of it) */
+  -webkit-mask-image:
+    var(--edge-l, linear-gradient(to right, transparent, #000)),
+    linear-gradient(to right, transparent calc(var(--curtain) + 39px), #000 calc(var(--curtain) + 39px));
+  mask-image:
+    var(--edge-l, linear-gradient(to right, transparent, #000)),
+    linear-gradient(to right, transparent calc(var(--curtain) + 39px), #000 calc(var(--curtain) + 39px));
+  -webkit-mask-position: calc(var(--curtain) - 181px) 0, 0 0;
+  mask-position: calc(var(--curtain) - 181px) 0, 0 0;
+  -webkit-mask-size: 220px 1536px, 100% 100%;
+  mask-size: 220px 1536px, 100% 100%;
+  -webkit-mask-repeat: repeat-y, no-repeat;
+  mask-repeat: repeat-y, no-repeat;
+  -webkit-mask-composite: source-over;
+  mask-composite: add;
+}
+
+/* ---------- the veils: the paper kept behind the words (features/landscape/plates/veils.ts) ----------
+   Each is a patch of the paper's own tile (the engine's grain) on a block's lines, thinning out at its edges, in the
+   page's flow: it scrolls with the words on the compositor. Only with the plates: elsewhere the engine draws its own. */
+.veils {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 0;
+  z-index: calc(var(--z-landscape) + 1);
+  pointer-events: none;
+  display: none;
+}
+html[data-plates='on'] .veils {
+  display: block;
+}
+/* A patch is two nested masks, so its edges meet without a seam: the outer one ends it sideways (a plain soft edge at
+   its left, where no painting stands; a torn edge of mist at its right, toward the painting), the inner one above and
+   below (the same torn edge lying down). Between the edges: solid paper. */
+.veil {
+  position: absolute;
+  --side: 220px; /* the torn edge beside the band (plates/edges.ts EDGE_W, wider on a wide window) */
+  --ends: 150px; /* ...and above and below it */
+  --left: 90px;
+  --at: 0px;
+  -webkit-mask-image:
+    var(--edge-r, linear-gradient(to right, #000, transparent)),
+    linear-gradient(to right, transparent 0, rgb(0 0 0 / 0.5) calc(var(--left) * 0.5), #000 var(--left), #000 calc(100% - var(--side)), transparent calc(100% - var(--side)));
+  mask-image:
+    var(--edge-r, linear-gradient(to right, #000, transparent)),
+    linear-gradient(to right, transparent 0, rgb(0 0 0 / 0.5) calc(var(--left) * 0.5), #000 var(--left), #000 calc(100% - var(--side)), transparent calc(100% - var(--side)));
+  -webkit-mask-position: 100% var(--at), 0 0;
+  mask-position: 100% var(--at), 0 0;
+  -webkit-mask-size: var(--side) 1536px, 100% 100%;
+  mask-size: var(--side) 1536px, 100% 100%;
+  -webkit-mask-repeat: repeat-y, no-repeat;
+  mask-repeat: repeat-y, no-repeat;
+  -webkit-mask-composite: source-over;
+  mask-composite: add;
+}
+.veil > i {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background: var(--paper) var(--paper-tile, none) 0 0 / var(--paper-tile-size, 512px) var(--paper-tile-size, 512px);
+  -webkit-mask-image:
+    var(--edge-t, linear-gradient(to bottom, transparent, #000)), var(--edge-b, linear-gradient(to bottom, #000, transparent)),
+    linear-gradient(to bottom, transparent var(--ends), #000 var(--ends), #000 calc(100% - var(--ends)), transparent calc(100% - var(--ends)));
+  mask-image:
+    var(--edge-t, linear-gradient(to bottom, transparent, #000)), var(--edge-b, linear-gradient(to bottom, #000, transparent)),
+    linear-gradient(to bottom, transparent var(--ends), #000 var(--ends), #000 calc(100% - var(--ends)), transparent calc(100% - var(--ends)));
+  -webkit-mask-position: var(--at) 0, calc(var(--at) * 0.6) 100%, 0 0;
+  mask-position: var(--at) 0, calc(var(--at) * 0.6) 100%, 0 0;
+  -webkit-mask-size: 1536px var(--ends), 1536px var(--ends), 100% 100%;
+  mask-size: 1536px var(--ends), 1536px var(--ends), 100% 100%;
+  -webkit-mask-repeat: repeat-x, repeat-x, no-repeat;
+  mask-repeat: repeat-x, repeat-x, no-repeat;
+  -webkit-mask-composite: source-over;
+  mask-composite: add;
+}
+/* the header sits on paper, never on the painted sky: a band of paper under it, solid to the header's foot and
+   melting out below it; it scrolls away with the header */
+.veil--head {
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 150px;
+  background: var(--paper) var(--paper-tile, none) 0 0 / var(--paper-tile-size, 512px) var(--paper-tile-size, 512px);
+  -webkit-mask-size: auto;
+  mask-size: auto;
+  -webkit-mask-position: 0 0;
+  mask-position: 0 0;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 70px, rgb(0 0 0 / 0.86) 86px, rgb(0 0 0 / 0.5) 106px, rgb(0 0 0 / 0.12) 128px, transparent 146px);
+  mask-image: linear-gradient(to bottom, #000 0, #000 70px, rgb(0 0 0 / 0.86) 86px, rgb(0 0 0 / 0.5) 106px, rgb(0 0 0 / 0.12) 128px, transparent 146px);
+}
+
+@media print {
+  .plates,
+  .veils {
+    display: none;
+  }
+}

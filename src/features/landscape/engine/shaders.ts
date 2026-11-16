@@ -1172,6 +1172,17 @@ uniform float uPx;           // CSS px per canvas px
 uniform float uPanPx;        // the pan, in CSS px (paper grain unrolls with the scroll)
 uniform float uGrain;
 uniform float uGrainPx;      // CSS px per grain texel (1, finer on dense phone screens)
+// THE PLATES (round 6, features/landscape/plates): on wide screens the stage is no longer laid on one fixed canvas on
+// every scroll frame. Each depth layer is developed once into a plate of its own (a canvas the browser moves with a
+// scroll timeline), at the hero pose: this pass then paints ONE of them, over transparent paper where it holds
+// nothing, with everything the screen pass gave it (its small life, its grade, the drift's lift at rest, the grain,
+// the light's bloom; the far one the silk ribbon too). The mist between the layers, the veils and the curtain are the
+// page's own layers now (plates.css). uPlateK.x: 0 the screen (as before), 1 the far plate (opaque), 2 the middle,
+// 3 the near (premultiplied), 4 the sea of mist (premultiplied), 5 the sprites pinned to the frame, alone, 6 the
+// paper itself with its grain (a tile: the page's veils are cut from it).
+uniform vec4  uPlateW;       // the canvas-uv window this pass paints (x0, y0, width, height): a plate, or a tile of one
+uniform vec4  uPlateK;       // x the plate (above); y, z this pass's pixel origin in its plate (the grain and the
+                             // dither are anchored to the plate, so tiles and repainted parts meet without a seam)
 // 4b, the living ground (body[data-ground="living"], wide screens): the page's own scene painted once into three depth
 // layers (far: the sky and the far ranges, opaque, alpha = mist admittance; middle and near: premultiplied, alpha =
 // coverage), each presented at its own sink as you scroll (the camera rising through cloud), with a haze deck between
@@ -1841,9 +1852,52 @@ vec4 lifeLay(vec4 C, inout float adm) {
   return lifeO + C * (1.0 - lifeO.a);
 }
 
+// THE PLATES: a transparent depth layer's own finish, as the screen pass lays it over the composite: the drift's lift
+// (at rest: the plate holds still, the moving mist is the page's own layer), the paper's grain and the light's bloom,
+// thinner over dark ink. L premultiplied; wp its world point; fc its pixel in the plate.
+vec4 plateFinish(vec4 L, vec2 wp, vec2 fc) {
+  if (L.a <= 0.002) return vec4(0.0);
+  vec3 c = L.rgb / L.a;
+  vec2 mp = wp * vec2(0.26, 0.72);
+  float w = texture(uNoise, mp * 0.7 + vec2(REST_T * 0.0021, 0.0)).g;
+  float m1 = texture(uNoise, mp + vec2(-REST_T * 0.0045, 0.0) + (w - 0.5) * 0.35).r;
+  float m2 = texture(uNoise, mp * 2.3 + vec2(REST_T * 0.0080, REST_T * 0.0007) + (m1 - 0.5) * 0.25).g;
+  float mist = smoothstep(0.36, 0.74, m1 * 0.68 + m2 * 0.42);
+  c = max(c, mix(c, MIST, clamp(mist * stAdm(L) * 0.56, 0.0, 0.75)));
+  vec2 gp = (fc * uPx + vec2(uPanPx, 0.0)) / (${NOISE_SIZE}.0 * uGrainPx);
+  float bpt = uPx / uGrainPx;
+  float gk = 1.0 + 0.2 * smoothstep(0.8, 1.35, bpt) - 0.35 * smoothstep(1.6, 2.4, bpt);
+  c *= 1.0 + (texture(uNoise, gp).b - 0.5) * 0.55 * uGrain * gk + (texture(uNoise, gp * 0.09).r - 0.5) * 0.010;
+#ifdef EL_HALO
+  { float u = wp.x / HSW, kk = floor(u), add = 0.0;
+    for (int j = -1; j <= 1; j++) {
+      vec4 Lj = lightK(kk + float(j));
+      vec2 q = vec2((u - Lj.x) * HSW, wp.y - Lj.y);
+      float r = length(q) / max(Lj.z, 1e-3);
+      float br = 1.0 + 0.08 * sin(uTime * 0.45 + float(j) * 1.7);
+      float mb = (uMorn < 8.0 && homeL(Lj)) ? smoothstep(0.85, 2.1, uMorn) : 1.0;
+      add += (exp(-r * r * 3.2) * 0.075 + exp(-r * 1.5) * 0.04) * abs(Lj.w) * (homeL(Lj) ? 1.0 : 0.5) * br * mb;
+    }
+    c += add * mix(0.3, 1.0, smoothstep(0.35, 0.85, dot(c, vec3(0.299, 0.587, 0.114)))) * vec3(0.975, 0.995, 1.0); }
+#endif
+  c += (hash12(fc) - 0.5) / 255.0;
+  return vec4(clamp(c, 0.0, 1.0) * L.a, L.a);
+}
+
 void main() {
-  vec2 uv = vUv;
+  int plate = int(uPlateK.x + 0.5);
+  vec2 uv = plate > 0 ? uPlateW.xy + vUv * uPlateW.zw : vUv;
+  vec2 fc = gl_FragCoord.xy + (plate > 0 ? uPlateK.yz : vec2(0.0));
   float aspect = uAspect;
+  if (plate == 6) {
+    // THE PLATES: the paper itself with its grain, as a tile (one period of the grain): the page's veils are cut from it
+    vec2 gp6 = (fc * uPx) / (${NOISE_SIZE}.0 * uGrainPx);
+    float bpt6 = uPx / uGrainPx;
+    float gk6 = 1.0 + 0.2 * smoothstep(0.8, 1.35, bpt6) - 0.35 * smoothstep(1.6, 2.4, bpt6);
+    vec3 c6 = PAPER * (1.0 + (texture(uNoise, gp6).b - 0.5) * 0.55 * uGrain * gk6);
+    outColor = vec4(c6 + (hash12(fc) - 0.5) / 255.0, 1.0);
+    return;
+  }
 #ifdef LIFE_ON
   // 4b small life, for the one view it lies in (its world point, scale, ridge column and keep-out worked out here)
   int lv = int(uLifeT[1].y);
@@ -1928,7 +1982,7 @@ void main() {
     }
     float nb = texture(uNoise, vec2(wp.x * 0.31 + uTime * 0.0018, 0.23)).r - 0.5;
     float nc = texture(uNoise, vec2(wp.x * 0.97 - uTime * 0.0026, 0.61)).g - 0.5;
-    if (uSt.w > 0.0) {
+    if (uSt.w > 0.0 && plate == 0) {
       // a pale deck of cloud between the far ranges and the middle ones: it rises as the camera does
       float hy = uSea.z + nb * uSea.w * 1.4 + nc * uSea.w * 0.5;
       float hk = (1.0 - smoothstep(hy - uSea.y * 1.6, hy + uSea.y * 0.7, uv.y)) * uSt.w;   // (not gated by the far layer's admittance, B.a: its vertical texture cuts the deck into columns)
@@ -1942,6 +1996,7 @@ void main() {
     float bxR = aspect * (uStR[1].z - uStR[1].x);   // (a crop's width in viewport heights, for its foot's lobes)
     vec4 Mi = stTapF(uSt1, uStS[1], O1, uStR[1], uv - vec2(lv == 3 ? lifeDx : 0.0, 0.0), bxR);
     float lfa = 0.0;
+    if (plate == 5) Mi = vec4(0.0);   // (THE PLATES: what is pinned to the frame, alone: its sprites over nothing)
     if (lv == 3) Mi = lifeLay(Mi, lfa);
     Mi *= 1.0 - hid;
     // (as the camera lifts, the middle and near layers' ink keeps clear of the row rules' end: within ~40 px of
@@ -1974,15 +2029,22 @@ void main() {
       Mi *= 1.0 - cur;
     }
     if (uStG.y > uStG.x && Mi.a > 0.004) Mi.rgb = stGrade(Mi.rgb / Mi.a, wp, uv.x - O1.x, 0.0, 0.0) * Mi.a;   // (its hills)
+    if (plate == 2 || (plate == 5 && lv == 3)) { outColor = plateFinish(Mi, wp, fc); return; }
+    if (plate == 0) {
     col = col * (1.0 - Mi.a) + Mi.rgb;
     adm = mix(adm, stAdm(Mi), Mi.a);
+    }
     vec4 Ne = stTapF(uSt2, uStS[2], uStO[2], uStR[2], uv - vec2(lv == 4 ? lifeDx : 0.0, 0.0), aspect * (uStR[2].z - uStR[2].x));
     if (uStG.y > uStG.x && Ne.a > 0.004) Ne.rgb = stGrade(Ne.rgb / Ne.a, wp, uv.x - uStO[2].x, 0.0, 0.0) * Ne.a;
+    if (plate == 5) Ne = vec4(0.0);
     if (lv == 4) Ne = lifeLay(Ne, lfa);
     Ne *= (1.0 - cur) * (1.0 - hid) * (1.0 - ruleK);
+    if (plate == 3 || plate == 5) { outColor = plateFinish(Ne, wp, fc); return; }
+    if (plate == 0) {
     col = col * (1.0 - Ne.a) + Ne.rgb;
     adm = mix(adm, stAdm(Ne), Ne.a);
-    if (uStC.x > 0.0) {
+    }
+    if (uStC.x > 0.0 && plate == 0) {
       // the cloud the camera rises through (mid-lift on Work: the scene steps sideways inside it): a sea of cloud from
       // just above the middle layer's crests down into the sea; the far ranges stand clear above it. It is painted the
       // way a painter leaves a cloud: the billows are reserved paper, and a soft grey wash is laid round their tops (on
@@ -2008,11 +2070,23 @@ void main() {
       col = mix(col, vec3(0.78, 0.86, 0.90), tw * uStC.x * (0.5 + 0.16 * cn));
       adm = max(adm, ck * 0.8);
     }
-    if (uSt.z > 0.0) {
+    if (uSt.z > 0.0 && (plate == 0 || plate == 4)) {
       // the sea of mist: a billowing surface (world-anchored, drifting), mist at the surface, paper deeper down
+      // (THE PLATES: its billows at rest; the plate itself drifts)
+      if (plate == 4) { nb = texture(uNoise, vec2(wp.x * 0.31 + REST_T * 0.0018, 0.23)).r - 0.5; nc = texture(uNoise, vec2(wp.x * 0.97 - REST_T * 0.0026, 0.61)).g - 0.5; }
       float sy = uSea.x + nb * uSea.w + nc * uSea.w * 0.45;
       float sea = (1.0 - smoothstep(sy - uSea.y, sy + uSea.y * 0.45, uv.y)) * uSt.z * (1.0 - hid);
       vec3 seaC = mix(mix(MIST, SKY, 0.25), mix(PAPER, SKY, 0.3), smoothstep(0.0, 0.2, sy - uv.y));
+      if (plate == 4) {
+        // (its own grain: under it the far plate's is covered)
+        vec2 gpS = (fc * uPx + vec2(uPanPx, 0.0)) / (${NOISE_SIZE}.0 * uGrainPx);
+        float bptS = uPx / uGrainPx;
+        float gkS = 1.0 + 0.2 * smoothstep(0.8, 1.35, bptS) - 0.35 * smoothstep(1.6, 2.4, bptS);
+        seaC *= 1.0 + (texture(uNoise, gpS).b - 0.5) * 0.55 * uGrain * gkS + (texture(uNoise, gpS * 0.09).r - 0.5) * 0.010;
+        seaC += (hash12(fc) - 0.5) / 255.0;
+        outColor = vec4(clamp(seaC, 0.0, 1.0) * sea, sea);
+        return;
+      }
       col = mix(col, seaC, sea);
       adm = max(adm, sea * 0.85);
       // ...and, as the camera rises into it, its body: the drifting mist, in banks up to MIST2, from just under the
@@ -2020,7 +2094,7 @@ void main() {
       float dd = sy - uv.y;
       seaBody = sea * uStC.w * smoothstep(0.0, 0.06, dd) * (1.0 - smoothstep(0.14, 0.4, dd));
     }
-    if (uStF.z > 0.0) {
+    if (uStF.z > 0.0 && plate == 0) {
       // on an inner place the stage goes back into the paper above the footer, over a lobed edge, so the story map and
       // the footer's lines sit on clean paper
       float nF = (textureLod(uNoise, vec2(uv.x * aspect * 0.7 + uStX.w, 0.83), 2.0).r - 0.5) / 0.13;
@@ -2030,9 +2104,11 @@ void main() {
       adm *= 1.0 - fk;
       seaBody *= 1.0 - fk;
     }
-    p = wp; tm = uTime; inWin = 1.0; wakeOK = 1.0; heroW = 1.0;
+    p = wp; tm = plate > 0 ? REST_T : uTime; inWin = 1.0; wakeOK = plate > 0 ? 0.0 : 1.0; heroW = 1.0;
     wsc = uStM.z;
   }
+  // (a plate that the stage does not paint, the stage being off: nothing)
+  if (plate > 1) { outColor = vec4(0.0); return; }
   if (uHzK > 0.0) {
     vec4 Hs = texture(uHzTex, min(uv * uHzS.xy, uHzS.zw));
     // soft edges: into paper at the sides and a low mist along the bottom
@@ -2456,14 +2532,16 @@ void main() {
   // the header sits on paper, never on the painted sky: a paper band under it, anchored to the page (it scrolls
   // away with the header), solid to the header's foot and melting out over ~64 px (desktops; ~26 px on phones), its
   // edge torn by the drift so it is mist, not a ruled line. The painting rises out of the paper below it.
-  {
+  if (plate <= 1) {
+    // (THE PLATES: the band itself is the page's own layer, scrolling away with the header; the far plate keeps the
+    // sky's own way out of the paper below it, where it stands at the page's top)
     float cssPx = 1.0 / max(uLive2.w, 1e-6);
-    float pageY = ((1.0 - uv.y) + uLive2.x) * cssPx;
+    float pageY = ((1.0 - uv.y) + (plate == 0 ? uLive2.x : 0.0)) * cssPx;
     float wCss = aspect * cssPx;
     float wk2 = smoothstep(520.0, 1000.0, wCss);
     float H0 = mix(56.0, 76.0, wk2), HF = mix(26.0, 64.0, wk2);
     float hv = 1.0 - smoothstep(H0, H0 + HF, pageY + (m1 - 0.5) * HF * 0.7);
-    veil = max(veil, hv);
+    if (plate == 0) veil = max(veil, hv);
     // under the paper band the ice-blue sky comes out of the paper through cloud, not along a ruled box edge: the
     // pale sky only (the ink keeps its value) eases back to paper over ~90-220 CSS px, its line billowing in broad,
     // world-anchored lobes
@@ -2622,7 +2700,7 @@ void main() {
   col = mix(col, PAPER, veil);
 
   // paper: faint mottling, fine tooth and fibres (in CSS px, unrolling with the pan)
-  vec2 gp = (gl_FragCoord.xy * uPx + vec2(uPanPx, 0.0)) / (${NOISE_SIZE}.0 * uGrainPx);
+  vec2 gp = (fc * uPx + vec2(uPanPx, 0.0)) / (${NOISE_SIZE}.0 * uGrainPx);
   float tooth = texture(uNoise, gp).b - 0.5;
   float mott = texture(uNoise, gp * 0.09).r - 0.5;
   // a coarse buffer averages the grain away (mipmaps); give a little of it back
@@ -2779,7 +2857,7 @@ void main() {
     col = mix(col, min(cw, paperG), glA);
   }
   // dither to kill banding in the long mist gradients
-  col += (hash12(gl_FragCoord.xy) - 0.5) / 255.0;
+  col += (hash12(fc) - 0.5) / 255.0;
 #ifdef EL_SILK_VEIL
   // a long jump's cross-dissolve: the last frame before the splice (uPrev, grabbed by gl.ts) dissolves
   // into the new place through an fbm threshold as uHold falls 1 -> 0, with a breath of mist where the two meet
