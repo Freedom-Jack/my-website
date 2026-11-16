@@ -37,27 +37,41 @@ html.no-landscape .plates {
 }
 
 /* the standing curtain (the unroll): left of the reading column's edge the middle and near plates are in mist, so the
-   place passes in the margin and goes into the mist as it reaches the words; the far ranges run on behind the words */
-.plates__front {
+   place passes in the margin and goes into the mist as it reaches the words; the far ranges run on behind the words.
+   A plain clip of the two plates at the curtain's line and a band of the paper's own mist over that line (the wisp:
+   plates/edges.ts). Never a mask: a mask over moving layers makes the browser composite the whole page itself. */
+.plates__front,
+.plates__in {
   position: absolute;
-  inset: 0;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
 }
-.plates__front[data-curtain] {
-  /* (a torn edge of mist, plates/edges.ts, then everything right of it) */
-  -webkit-mask-image:
-    var(--edge-l, linear-gradient(to right, transparent, #000)),
-    linear-gradient(to right, transparent calc(var(--curtain) + 39px), #000 calc(var(--curtain) + 39px));
-  mask-image:
-    var(--edge-l, linear-gradient(to right, transparent, #000)),
-    linear-gradient(to right, transparent calc(var(--curtain) + 39px), #000 calc(var(--curtain) + 39px));
-  -webkit-mask-position: calc(var(--curtain) - 181px) 0, 0 0;
-  mask-position: calc(var(--curtain) - 181px) 0, 0 0;
-  -webkit-mask-size: 220px 1536px, 100% 100%;
-  mask-size: 220px 1536px, 100% 100%;
-  -webkit-mask-repeat: repeat-y, no-repeat;
-  mask-repeat: repeat-y, no-repeat;
-  -webkit-mask-composite: source-over;
-  mask-composite: add;
+.plates__in {
+  width: 100vw;
+}
+.plates[data-curtain] .plates__front {
+  left: calc(var(--curtain) - 72px);
+  width: auto;
+  right: 0;
+  overflow: hidden;
+}
+.plates[data-curtain] .plates__in {
+  left: calc(72px - var(--curtain));
+}
+.plates__wisp {
+  display: none;
+  position: absolute;
+  top: 0;
+  height: 100%;
+  /* (its solid part over the clip's line: edges.ts WISP_AT from its left) */
+  left: calc(var(--curtain) - 72px - 80px);
+  width: 320px;
+  background: var(--wisp, none) 0 0 / 320px 1536px repeat-y;
+}
+.plates[data-curtain] .plates__wisp {
+  display: block;
 }
 
 /* ---------- the veils: the paper kept behind the words (features/landscape/plates/veils.ts) ----------

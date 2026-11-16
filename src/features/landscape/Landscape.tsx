@@ -227,10 +227,13 @@ export function Landscape() {
       <div ref={platesRef} className="plates" aria-hidden="true">
         <canvas data-plate="1" />
         <div className="plates__front">
-          <canvas data-plate="2" />
-          <canvas data-plate="3" />
+          <div className="plates__in">
+            <canvas data-plate="2" />
+            <canvas data-plate="3" />
+          </div>
         </div>
         <canvas data-plate="4" />
+        <div className="plates__wisp" />
         <canvas data-plate="5" />
       </div>
       <canvas ref={ref} className="landscape" aria-hidden="true" />

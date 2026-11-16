@@ -69,6 +69,46 @@ function coverage(calm = false) {
   };
 }
 
+/**
+ * THE CURTAIN'S WISP: the standing curtain of the unroll is a plain clip of the middle and near plates (a mask on
+ * moving layers made the browser composite the whole page the slow way: round 6's measurement) and this band of the
+ * paper's own mist laid over the clip's line. Across it (WISP_W CSS px; the clip's line WISP_AT from its left): it
+ * comes out of the air at its left over about 80 px, is solid for a hand's width over the line, and lets the place
+ * out to its right through a torn edge with tongues. Repeats down its length (EDGE_L).
+ */
+export const WISP_W = 320;
+export const WISP_AT = 80;
+export function wispAlpha(): (u: number, v: number) => number {
+  const cov = coverage();
+  const lift = noise1(9, 71);
+  const lift2 = noise1(31, 83);
+  const a0 = (WISP_AT - 10) / WISP_W; // where its solid part starts
+  const a1 = (WISP_AT + 16) / WISP_W; // ...and ends
+  return (u, v) => {
+    if (u < a0) {
+      const mid = a0 * (0.5 + 0.5 * lift(v) + 0.16 * lift2(v));
+      return smooth(Math.min(1, Math.max(0, (u - mid) / (a0 * 0.62) + 0.5))) * smooth(Math.min(1, u / (a0 * 0.2)));
+    }
+    if (u <= a1) return 1;
+    return cov(1 - (u - a1) / (1 - a1), v + 0.53);
+  };
+}
+
+/** An alpha field as a small canvas (w x h px; u, v in 0..1). */
+export function alphaCanvas(w: number, h: number, alpha: (u: number, v: number) => number): HTMLCanvasElement {
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  const x = c.getContext('2d');
+  if (!x) return c;
+  const img = x.createImageData(w, h);
+  for (let j = 0; j < h; j++) {
+    for (let i = 0; i < w; i++) img.data[(j * w + i) * 4 + 3] = Math.round(255 * alpha((i + 0.5) / w, (j + 0.5) / h));
+  }
+  x.putImageData(img, 0, 0);
+  return c;
+}
+
 function tile(w: number, h: number, alpha: (x: number, y: number) => number): Promise<string> {
   const c = document.createElement('canvas');
   c.width = w;

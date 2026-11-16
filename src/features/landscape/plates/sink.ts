@@ -7,18 +7,27 @@
  *
  *   .plates                      fixed, the screen; shown while html[data-plates="on"] (the engine's canvas rests)
  *     canvas[data-plate="1"]     the far layer: the sky, the light, the far ranges (opaque, with the paper's grain)
- *     .plates__front             the standing curtain: left of it the middle and near plates are in mist (a mask)
- *       canvas[data-plate="2"]   the middle layer: the place
- *       canvas[data-plate="3"]   the near layer: the near crags and their figures
+ *     .plates__front             the standing curtain: left of its line the middle and near plates are clipped away
+ *       .plates__in
+ *         canvas[data-plate="2"] the middle layer: the place
+ *         canvas[data-plate="3"] the near layer: the near crags and their figures
  *     canvas[data-plate="4"]     the sea of mist over their feet
+ *     .plates__wisp              ...and a band of the paper's own mist lies over that line (edges.ts): the place goes
+ *                                into it as it reaches the words; the far ranges run on behind them
  *     canvas[data-plate="5"]     what is pinned to the frame while the stage travels under it (Home's plum bough)
  *
  * The motion (PlateGeometry.motion): the unroll moves every plate west, linearly with the page's scroll, by
  * `travel` px over the whole page; the camera's travel sinks each plate at its own rate over the first screens.
  * Where the browser has no scroll timelines (Firefox), a scroll listener sets the same animations' clocks.
  * Reduced motion and "Still the landscape": the plates hold the hero pose.
+ *
+ * What may stand here (round 6's measurement, on a 120 Hz 3456 x 2234 display): plain layers, each moved by a
+ * transform, and plain rectangular clips cost the compositor nothing while the page scrolls (0 % GPU); one CSS mask
+ * or blend mode over moving layers makes it composite the whole page itself, 15 to 25 % GPU on every scroll frame.
+ * So: no mask, filter, blend mode or opacity on .plates or anything in it.
  */
 import type { PlateGeometry, PlateKind, PlateSink } from '../types';
+import { alphaCanvas, EDGE_L, WISP_W, wispAlpha } from './edges';
 
 const KINDS: PlateKind[] = [1, 2, 3, 4, 5];
 /** One period of the paper's grain, CSS px (the engine's: 512 grain texels of 1 CSS px, at most 2 device px each). */
@@ -48,10 +57,32 @@ export function createPlateStage(root: HTMLElement): PlateStage {
     const c = root.querySelector<HTMLCanvasElement>(`canvas[data-plate="${k}"]`);
     if (c) canvases.set(k, c);
   }
-  const front = root.querySelector<HTMLElement>('.plates__front');
   // the paper tile (kind 6): developed off the page, then the page's own image (the veils are cut from it)
   const tile = document.createElement('canvas');
   let tileUrl = '';
+  let wispUrl = '';
+  /** The curtain's wisp: a band of the paper's own tile (its grain) with the wisp's alpha, as an image for CSS. */
+  function makeWisp() {
+    const s = tile.width / tileSize(); // the tile's px per CSS px
+    const c = document.createElement('canvas');
+    c.width = Math.max(2, Math.round(WISP_W * s));
+    c.height = Math.max(2, Math.round(EDGE_L * s));
+    const x = c.getContext('2d');
+    const pat = x?.createPattern(tile, 'repeat');
+    if (!x || !pat) return;
+    x.fillStyle = pat;
+    x.fillRect(0, 0, c.width, c.height);
+    x.globalCompositeOperation = 'destination-in';
+    x.imageSmoothingQuality = 'high';
+    x.drawImage(alphaCanvas(Math.round(WISP_W / 2), Math.round(EDGE_L / 2), wispAlpha()), 0, 0, c.width, c.height);
+    c.toBlob((blob) => {
+      if (!blob || dead) return;
+      const old = wispUrl;
+      wispUrl = URL.createObjectURL(blob);
+      html.style.setProperty('--wisp', `url("${wispUrl}")`);
+      if (old) setTimeout(() => URL.revokeObjectURL(old), 2000);
+    });
+  }
   const anims = new Map<PlateKind, Animation>();
   const listeners = new Set<(g: PlateGeometry) => void>();
   let geometry: PlateGeometry | null = null;
@@ -106,6 +137,7 @@ export function createPlateStage(root: HTMLElement): PlateStage {
     canvas: (kind) => (kind === 6 ? tile : (canvases.get(kind) ?? null)),
     developed(kind) {
       if (kind !== 6 || dead) return;
+      makeWisp();
       tile.toBlob((blob) => {
         if (!blob || dead) return;
         const old = tileUrl;
@@ -137,10 +169,8 @@ export function createPlateStage(root: HTMLElement): PlateStage {
         setMotion(k, motionOf(g, k));
       }
       // the standing curtain: left of it the middle and near plates are in mist
-      if (front) {
-        if (g.curtain >= 0) front.style.setProperty('--curtain', `${g.curtain}px`);
-        front.toggleAttribute('data-curtain', g.curtain >= 0);
-      }
+      if (g.curtain >= 0) root.style.setProperty('--curtain', `${g.curtain}px`);
+      root.toggleAttribute('data-curtain', g.curtain >= 0);
       root.dataset.motion = g.still ? 'still' : g.motion;
       root.dataset.stretch = String(g.stretch);
       if (!timeline) onScroll();
@@ -167,7 +197,9 @@ export function createPlateStage(root: HTMLElement): PlateStage {
       html.removeAttribute('data-plates');
       html.style.removeProperty('--paper-tile');
       html.style.removeProperty('--paper-tile-size');
+      html.style.removeProperty('--wisp');
       if (tileUrl) URL.revokeObjectURL(tileUrl);
+      if (wispUrl) URL.revokeObjectURL(wispUrl);
     },
   };
 }

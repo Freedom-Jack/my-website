@@ -82,28 +82,32 @@ export async function HomePage() {
         {/* a plain <img>: the portrait sits with About, after the first screen, never on it (next/image would
             re-encode it and costs a client chunk and a request on the first load); its source comes as the reader nears
             it (data-near: features/landscape/glimpse-stills), so it never joins the first load; <noscript> without JS */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          className="hello__photo"
-          data-src={about.photo.src}
-          data-near=""
-          width={about.photo.width}
-          height={about.photo.height}
-          alt={about.photo.alt}
-          loading="lazy"
-          decoding="async"
-        />
-        <noscript>
+        {/* (the frame: the photo is multiplied into its own paper, inside one layer; blended against the page
+            itself, the whole page was composited the slow way while the portrait was on screen) */}
+        <div className="hello__frame">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             className="hello__photo"
-            src={about.photo.src}
+            data-src={about.photo.src}
+            data-near=""
             width={about.photo.width}
             height={about.photo.height}
             alt={about.photo.alt}
+            loading="lazy"
             decoding="async"
           />
-        </noscript>
+          <noscript>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              className="hello__photo"
+              src={about.photo.src}
+              width={about.photo.width}
+              height={about.photo.height}
+              alt={about.photo.alt}
+              decoding="async"
+            />
+          </noscript>
+        </div>
         <div className="hello__text">
           <h2 className="sec__title" id="about-title">
             {about.title}
