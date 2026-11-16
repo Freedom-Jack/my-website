@@ -1,6 +1,8 @@
 import { site } from '@content/site';
 import { Seal } from '@/components/ui/Seal';
+import { elementOn } from '@/features/landscape/elements';
 import { STORY_MAP } from '@/features/landscape/places';
+import { ScrollOpener } from '@/features/scroll/ScrollOpener';
 import { build } from '@/lib/build';
 import { monthYear } from '@/lib/dates';
 import { StillToggle } from './StillToggle';
@@ -13,7 +15,7 @@ import { ScrollMap } from './ScrollMap';
  * it lines up with everything above it, the colophon
  * line and the build stamp in mono at the left (the short commit and the day the pages were built, read at build:
  * lib/build; a measured number only when CI wrote content/measured.json, with its profile named; "Last changed"),
- * and at the right "Still the landscape", the email and the one seal: the only Chinese character on the site, a
+ * and at the right "Still the landscape" (and, with the scroll, held, its opener: features/scroll), the email and the one seal: the only Chinese character on the site, a
  * path. It lies in a bank of mist of its own (plates/veils.ts). After an in-site page change the route announcer
  * reads the new page's title (features/navigation).
  */
@@ -64,6 +66,12 @@ export function Tail() {
           <div className="tail__side">
             <p className="tail__still">
               <StillToggle />
+              {elementOn('scroll') ? (
+                <span className="scroll-opener-wrap">
+                  {' · '}
+                  <ScrollOpener />
+                </span>
+              ) : null}
             </p>
             <p className="tail__mail">
               <a href={`mailto:${site.email}`}>{site.email}</a>

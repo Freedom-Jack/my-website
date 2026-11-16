@@ -468,14 +468,21 @@ main:has(> .closing:last-child) + .site-footer.tail {
   position: absolute;
   inset-block: 0;
 }
-.scrollmap a {
+.scrollmap :is(a, button) {
   position: absolute;
   inset: 0;
   text-decoration: none;
   color: var(--ink-2);
   -webkit-tap-highlight-color: transparent;
 }
-.tail .scrollmap a {
+.scrollmap button {
+  padding: 0;
+  font: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+} /* (the scroll, held: its stops are the same map with buttons, features/scroll) */
+.tail .scrollmap :is(a, button) {
   text-decoration: none;
 }
 /* a page's name, centred under its place */
@@ -495,18 +502,18 @@ main:has(> .closing:last-child) + .site-footer.tail {
   background: linear-gradient(currentColor, currentColor) center calc(50% + 0.85em) / 0% 1.5px no-repeat;
   transition: background-size 380ms var(--ease-wash);
 }
-.scrollmap a:is(:hover, :focus-visible) .scrollmap__name,
-.scrollmap a[aria-current] .scrollmap__name {
+.scrollmap :is(a, button):is(:hover, :focus-visible) .scrollmap__name,
+.scrollmap :is(a, button)[aria-current] .scrollmap__name {
   color: var(--ink-1);
 }
-.scrollmap a:is(:hover, :focus-visible) .scrollmap__name {
+.scrollmap :is(a, button):is(:hover, :focus-visible) .scrollmap__name {
   background-size: 100% 1.5px;
 }
-.scrollmap a:focus-visible {
+.scrollmap :is(a, button):focus-visible {
   outline-offset: -3px;
 }
 /* you are here: a small seal-red square before the current place's name (the tail's cinnabar, beside the seal) */
-.scrollmap a[aria-current] .scrollmap__name::before {
+.scrollmap :is(a, button)[aria-current] .scrollmap__name::before {
   content: '';
   flex: none;
   inline-size: 0.5rem;

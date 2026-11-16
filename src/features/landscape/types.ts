@@ -157,6 +157,10 @@ export interface LandscapeHandle {
    *  compose.ts `cameraFor(k, u)` gives the one that brings world x k + u to the hero's focus column; the search pans
    *  there and back). Under the unroll a pan starts from where the page's slide left the painting. */
   panTo(stretch: number, o?: PanOptions): Promise<void>;
+  /** The camera under the hand (the scroll mode): sets the position at once (level composition), one governed scene
+   *  per call; drag and wheel call it once per animation frame, keys and the stops use panTo. A cut under reduced
+   *  motion and Still. */
+  hold(stretch: number): void;
   sweep(o?: { dir?: 1 | -1; duration?: number }): Promise<void>;
   prepare(stretch: number, o?: { distance?: Distance; presence?: number }): Promise<void>;
   rebind(o: Partial<LandscapeTargets>): void;

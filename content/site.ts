@@ -81,6 +81,20 @@ export const site = {
     names: 'All pages',
   },
 
+  /**
+   * The scroll, held (src/features/scroll): the tail's opener, the sheet's name and hint, the close, the three
+   * distances. Interface words, marked DRAFT until Jack writes his (DESIGN §1: never invent words in his voice).
+   */
+  scroll: {
+    open: 'DRAFT · Open the scroll',
+    close: 'DRAFT · Close',
+    name: 'DRAFT · The scroll',
+    hint: 'DRAFT · Hold the painting: drag it, use the arrow keys, or choose a place. Esc closes it.',
+    level: 'DRAFT · level',
+    high: 'DRAFT · high',
+    deep: 'DRAFT · deep',
+  },
+
   /** "Last changed October 2026" in the tail: the month of the last content change. Change it with the words. */
   updated: '2026-10',
 

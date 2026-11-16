@@ -17,6 +17,8 @@ import { useCurrent } from '@/features/chrome/current';
  * On a wide screen the strip runs the screen's width. Below 1200 px it keeps a height it can be read at and is
  * wider than the screen: it runs sideways under the finger and opens on the current place. The picture is
  * decorative: the names are the links' words.
+ * The scroll, held (features/scroll) shows the same map as its five stops: given `onPick`, each place is a button
+ * that walks the camera there, and `here` (the stretch the camera stands at) is the one sealed.
  */
 const [W, H] = scroll.size as [number, number];
 const AT = scroll.places as Record<string, number>;
@@ -24,9 +26,13 @@ const AT = scroll.places as Record<string, number>;
 export function ScrollMap({
   label,
   places,
+  here: hereStop,
+  onPick,
 }: {
   label: string;
   places: ReadonlyArray<{ readonly href: string; readonly label: string; readonly still: string }>;
+  here?: number;
+  onPick?: (i: number) => void;
 }) {
   const current = useCurrent();
   const path = usePathname();
@@ -34,7 +40,7 @@ export function ScrollMap({
   const at = places.map((p) => AT[p.still] ?? 0);
   // a place's stretch of the strip: from halfway to the place before it to halfway to the next
   const edge = (i: number) => (i <= 0 ? 0 : i >= at.length ? 1 : (at[i - 1]! + at[i]!) / 2);
-  const here = places.findIndex((p) => current(p.href));
+  const here = onPick ? (hereStop ?? -1) : places.findIndex((p) => current(p.href));
   const hereAt = here < 0 ? 0 : at[here]!;
 
   // (where the strip is wider than the screen) it opens on the current place
@@ -46,7 +52,7 @@ export function ScrollMap({
 
   const pc = (v: number) => `${(v * 100).toFixed(2)}%`;
   return (
-    <nav className="scrollmap" aria-label={label}>
+    <nav className={onPick ? 'scrollmap scrollmap--stops' : 'scrollmap'} aria-label={label}>
       <div className="scrollmap__pan" ref={pan}>
         <div className="scrollmap__strip" style={{ '--strip-ratio': `${W} / ${H}` } as React.CSSProperties}>
           {/* a plain <img> whose source comes as the tail nears (features/landscape/glimpse-stills: never in a
@@ -79,11 +85,19 @@ export function ScrollMap({
               const b = edge(i + 1);
               return (
                 <li key={p.href} style={{ insetInlineStart: pc(a), inlineSize: pc(b - a) }}>
-                  <Link href={p.href} aria-current={current(p.href)} prefetch={false}>
-                    <span className="scrollmap__name" style={{ insetInlineStart: pc((at[i]! - a) / (b - a)) }}>
-                      {p.label}
-                    </span>
-                  </Link>
+                  {onPick ? (
+                    <button type="button" aria-current={i === here ? 'location' : undefined} onClick={() => onPick(i)}>
+                      <span className="scrollmap__name" style={{ insetInlineStart: pc((at[i]! - a) / (b - a)) }}>
+                        {p.label}
+                      </span>
+                    </button>
+                  ) : (
+                    <Link href={p.href} aria-current={current(p.href)} prefetch={false}>
+                      <span className="scrollmap__name" style={{ insetInlineStart: pc((at[i]! - a) / (b - a)) }}>
+                        {p.label}
+                      </span>
+                    </Link>
+                  )}
                 </li>
               );
             })}

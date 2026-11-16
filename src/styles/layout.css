@@ -1108,7 +1108,8 @@ main:has(> .closing:last-child) + .site-footer {
 }
 .tail__names a,
 .tail__mail a,
-.tail .still-toggle {
+.tail .still-toggle,
+.tail .scroll-opener {
   display: inline-flex;
   align-items: center;
   min-block-size: 44px;
