@@ -41,6 +41,6 @@ export const build: BuildStamp = {
   measuredOn: typeof measured.measuredOn === 'string' ? measured.measuredOn : null,
   transferKB:
     'transferKB' in measured && typeof (measured as { transferKB?: unknown }).transferKB === 'number'
-      ? (measured as { transferKB: number }).transferKB
+      ? (measured as unknown as { transferKB: number }).transferKB
       : null,
 };

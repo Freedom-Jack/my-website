@@ -73,7 +73,7 @@ export const site = {
    */
   tail: {
     colophon:
-      'DRAFT · Words on paper and one painting, drawn by code in your browser. No analytics, nothing fetched from a third party, and nothing you type is sent anywhere.',
+      'Words on paper and one painting, drawn by code in your browser. No analytics, nothing fetched from a third party, and nothing you type is sent anywhere.',
     build: 'Build',
     lastChanged: 'Last changed',
     /** the measured number's words: "LCP 1.1 s, Lighthouse mobile, simulated" */

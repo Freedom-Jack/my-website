@@ -184,12 +184,18 @@ export const STORY_MAP = [
  * The way on (the vanguard round's endings, components/page/NextPlace): every page but Contact and the 404 ends on
  * the next place downstream. A case ends on the place after the town; a note on the place after the lake. The
  * ending's words come from that page's own content.
+ * `inked`: the next place's name stands INTO the painting (body.css .inked: behind the place's leaf), where the
+ * page's travel has brought the next place under it by the page's end (Home, Writing, a note). Where the travel
+ * holds the page's own place beside the words (the engine's hold: Work, a case, the Résumé), that place still
+ * stands where the name does, and its roofs or its hill would cover the letters: there the name stands in front.
  */
-export const NEXT_PLACE: Readonly<Partial<Record<PageId, { page: PageId; href: string; label: string }>>> = {
-  home: { page: 'work', href: '/work/', label: 'Work' },
-  work: { page: 'writing', href: '/writing/', label: 'Writing' },
-  case: { page: 'writing', href: '/writing/', label: 'Writing' },
-  writing: { page: 'resume', href: '/resume/', label: 'Résumé' },
-  article: { page: 'resume', href: '/resume/', label: 'Résumé' },
-  resume: { page: 'contact', href: '/contact/', label: 'Contact' },
+export const NEXT_PLACE: Readonly<
+  Partial<Record<PageId, { page: PageId; href: string; label: string; inked: boolean }>>
+> = {
+  home: { page: 'work', href: '/work/', label: 'Work', inked: true },
+  work: { page: 'writing', href: '/writing/', label: 'Writing', inked: false },
+  case: { page: 'writing', href: '/writing/', label: 'Writing', inked: false },
+  writing: { page: 'resume', href: '/resume/', label: 'Résumé', inked: true },
+  article: { page: 'resume', href: '/resume/', label: 'Résumé', inked: true },
+  resume: { page: 'contact', href: '/contact/', label: 'Contact', inked: false },
 };

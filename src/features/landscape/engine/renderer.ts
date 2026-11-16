@@ -207,6 +207,11 @@ export interface PresentU {
   /** The scroll's air (elements.ts air): [on, speed, drift, envelope], [plum lean, ribbon bow, strength, 0],
    *  [light swell, warmth, 0, 0], the petals aloft (3 x 2 vec4). null = none (the approved scroll). */
   air?: { a: Float32Array; b: Float32Array; c: Float32Array; petals: Float32Array; petalsB: Float32Array } | null;
+  /** THE MOODS (shaders.ts moodGrade): [dusk, night, dawn, snow, rain, the lamps lit, the plate that carries the
+   *  lamps (2 middle, 3 near), 0], and up to three lamps ([world x in viewport heights, scene height, radius,
+   *  strength] each). Absent: the painting as it was painted. */
+  mood?: Float32Array | null;
+  lamps?: Float32Array | null;
   /** CSS px per buffer px, the pan in CSS px, the grain's strength and its texel. */
   px: number;
   panPx: number;
@@ -255,5 +260,9 @@ export interface Renderer {
   /** Paint view `id`. Canvas2D returns false while a full-quality painting is still being built behind a draft. */
   scene(id: string, U: SceneU): boolean | void;
   present(U: PresentU): void;
+  /** THE PLATES (WebGL only): paint one depth layer of the stage (1 far, 2 middle, 3 near, 4 the sea of mist, 5 what is pinned
+   *  to the frame), or a part of it, into the drawing buffer's lower-left w x h corner, with the screen pass's uniforms; `uv` its window in
+   *  canvas uv (x0, y0, width, height), `ox, oy` its pixel origin in its plate. Returns the canvas to copy from. */
+  plate?(U: PresentU, kind: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10, uv: readonly [number, number, number, number], w: number, h: number, ox: number, oy: number): HTMLCanvasElement | null;
   destroy(): void;
 }

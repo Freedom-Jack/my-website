@@ -43,6 +43,8 @@ const RULES = [
   'image-alt',
 ] as const;
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'];
+/** (Round 7: a token struck through with a brush, [data-struck], is struck by its own ::after; like a line-through,
+ *  the strike is the text's decoration, not the ground under it, so the probe takes it away with the text.) */
 /** §5b's pixel-sampled contrast for the nodes axe could not decide: [selector, worst ratio, needed, note]. A node that
  *  cannot be sampled is never a silent pass (the P6 review): `missing` (its selector finds nothing, or it cannot be
  *  read) fails the test; `hidden` (laid out with no box: nothing on screen to read) is annotated. */
@@ -73,7 +75,7 @@ async function sampledContrast(page: Page, selectors: string[]) {
     await el.evaluate((e) => e.classList.add('__contrast-probe'));
     const style = await page.addStyleTag({
       content:
-        '.__contrast-probe, .__contrast-probe * { color: transparent !important; -webkit-text-fill-color: transparent !important; fill: transparent !important; text-decoration-color: transparent !important; text-shadow: none !important; caret-color: transparent !important; }',
+        '.__contrast-probe, .__contrast-probe * { color: transparent !important; -webkit-text-fill-color: transparent !important; fill: transparent !important; text-decoration-color: transparent !important; text-shadow: none !important; caret-color: transparent !important; } .__contrast-probe::placeholder { color: transparent !important; -webkit-text-fill-color: transparent !important; } .__contrast-probe[data-struck]::after { visibility: hidden !important; }',
     });
     const png = await page.screenshot({ clip: box, animations: 'disabled', caret: 'hide' });
     await style.evaluate((n) => (n as Element).remove());
@@ -131,6 +133,16 @@ for (const [width, height] of [
       test(r.id, async ({ page }) => {
         await page.goto(r.path);
         await fontsReady(page);
+        // (round 7: the page as a reader who has gone down it meets it: the pieces that take their code and data as
+        // they are reached, Ask, the search, Work's live pieces, are in their live form before anything is judged)
+        await page.evaluate(async () => {
+          for (let y = 0; y < document.documentElement.scrollHeight; y += innerHeight / 2) {
+            scrollTo(0, y);
+            await new Promise((done) => setTimeout(done, 80));
+          }
+          scrollTo(0, 0);
+        });
+        await page.waitForTimeout(700);
         const axe = await new AxeBuilder({ page })
           .withTags(TAGS)
           // (every rule §5b names, enabled explicitly: a rename fails the "did not run" check below)
@@ -148,9 +160,20 @@ for (const [width, height] of [
               .map((n) => n.target.join(' '))
               .join(' | ')}`,
         );
-        const undecided = axe.incomplete
+        const all = axe.incomplete
           .filter((x) => x.id === 'color-contrast')
           .flatMap((v) => v.nodes.map((n) => String(n.target[0])));
+        // (round 7: a figure drawn large beside its own sentence is decoration, hidden from assistive technology:
+        // its words are the sentence's, which is checked; an outlined numeral has no fill for the sampler to read)
+        const undecided: string[] = [];
+        for (const sel of all) {
+          const deco = await page
+            .locator(sel)
+            .first()
+            .evaluate((e) => !!e.closest('[aria-hidden="true"]'))
+            .catch(() => false);
+          if (!deco) undecided.push(sel);
+        }
         const sampled = await sampledContrast(page, undecided);
         if (undecided.length > 40) fail.push(`color-contrast undecided on ${undecided.length} nodes (sampled 40)`);
         for (const c of sampled)

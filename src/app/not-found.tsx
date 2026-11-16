@@ -13,8 +13,9 @@ export const metadata: Metadata = {
 
 /**
  * The 404: the lone peak's strip with the title, its one line and the way back in its mist (wide), on paper below
- * it on narrower screens. No closing scene and no ending: the path ends in mist, and the tail's names are the way
- * back.
+ * it on narrower screens. Round 7: under it the page's own number stands large in ink, its foot in the peak's mist
+ * (decorative: the title says it), and the tail's scroll in miniature is the way back to every place. No closing
+ * scene and no ending: the path ends in mist.
  */
 export default function NotFound() {
   const t = notFoundPage;
@@ -32,6 +33,9 @@ export default function NotFound() {
           <InlineLink href={t.secondary.href}>{t.secondary.label}</InlineLink>
         </p>
       </Strip>
+      <p className="num lost-num" aria-hidden="true">
+        404
+      </p>
       <LostMark />
     </PageMain>
   );

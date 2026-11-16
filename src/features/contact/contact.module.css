@@ -1,45 +1,44 @@
-/* Contact's LAYOUT only (SPEC-R4A §10.4): placement and spacing with tokens. Type, ink and weights come from the
-   shared roles (the email takes the section-heading size and the UI weight). The crossing's strip, then the
-   address: "Email" in mono, the address with "Copy email" (a text action) beside it and its one word "Copied", the
-   other ways as a short definition list on hairlines with mono labels, and the time zone. It ends on the crossing's
-   closing scene, then the tail. No form. */
+/* Contact's LAYOUT (round 7): the address written large across the water, the seal pressed when it is copied, the
+   other ways across the frame, the time zone. Type and ink come from the design system; no form, no boxes. */
 
-/* ---------- the address: the focal point ---------- */
-.contact > .contact__label {
-  margin-block-end: 0;
-}
-.contact > .contact__mail {
-  margin-block-start: 0.125rem;
-}
+/* ---------- the address: the focal point, in the name face ---------- */
 .contact__mail {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   column-gap: var(--space-m);
   row-gap: 0.25rem;
+  margin-block-start: 0.25rem;
 }
+/* 40 @ 390 (one line at 320) → 124 @ 1440: the page's one large thing */
 .contact__email {
-  font-size: var(--fs-h2); /* 22 → 26 (SPEC-R4A §10.4) */
-  font-weight: var(--w-ui);
-  line-height: var(--lh-h2);
-  letter-spacing: -0.005em;
+  font-family: var(--font-name);
+  font-weight: 900;
+  font-size: clamp(2.5rem, 0.55rem + 8vw, 7.75rem);
+  line-height: 0.96;
+  letter-spacing: 0.006em;
   font-variant-numeric: lining-nums;
 }
 .contact__email :global(a) {
-  /* a 44 px target around the address */
   display: inline-flex;
   align-items: center;
   min-block-size: 44px;
   color: var(--ink-1);
-  white-space: nowrap; /* the address never breaks (it fits a 320 px screen at 22 px) */
-  text-decoration-thickness: 2px;
-  text-underline-offset: 0.18em;
+  white-space: nowrap; /* the address never breaks */
+  text-decoration: none;
+  /* an ink line under the address, drawn on hover and focus */
+  background: linear-gradient(currentColor, currentColor) left 100% / 0% 2px no-repeat;
+  padding-block-end: 0.06em;
+  transition: background-size 520ms var(--ease-wash);
+}
+.contact__email :global(a):is(:hover, :focus-visible) {
+  background-size: 100% 2px;
 }
 .contact__email :global(a):focus-visible {
   outline-offset: 2px;
 }
-/* Under 240 CSS px (a 390 px phone at 200 % zoom) the address cannot hold one line at 22 px: it breaks after the
-   "@" (the <wbr>), mid-word only as a last resort. */
+/* Under 240 CSS px (a 390 px phone at 200 % zoom) the address cannot hold one line: it breaks after the "@" (the
+   <wbr>), mid-word only as a last resort. */
 @media (max-width: 14.99rem) {
   .contact__email :global(a) {
     white-space: normal;
@@ -47,7 +46,7 @@
   }
 }
 
-/* "Copy email" and its one word, beside the address (below it when the line is too short) */
+/* "Copy email", the seal it presses, and its one word, beside the address (below it when the line is too short) */
 .contact__copy {
   display: flex;
   align-items: center;
@@ -57,36 +56,45 @@
 :global(html:not(.js)) .contact__copy {
   display: none;
 } /* copying needs JS; the address is a mailto link */
+.contact__seal {
+  display: inline-block;
+  inline-size: 2.5rem;
+}
+.contact__seal :global(.seal) {
+  inline-size: 100%;
+}
 .contact__done {
   min-width: 4em;
 }
 .contact__done:empty {
-  visibility: hidden;
+  display: none;
 }
-
-/* ---------- the other ways: label · link, one per line, on hairlines (typographic rules, never boxes) ---------- */
 /* the response line: one quiet sentence under the address */
-.contact > .contact__response {
+.contact__response {
   margin-block-start: var(--space-s);
+  font-size: var(--fs-lead);
   color: var(--ink-2);
 }
-.contact > .contact__list {
-  margin-block-start: var(--space-m);
-  max-width: 30rem;
+
+/* ---------- the other ways: a mono label over its link, three across from 640 ---------- */
+.contact__list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem var(--grid-gap);
+  margin-block-start: var(--space-l);
 }
 .contact__way {
   display: grid;
-  grid-template-columns: 5.5rem minmax(0, 1fr);
-  column-gap: var(--space-s);
-  align-items: baseline;
+  row-gap: 0.125rem;
+  padding-block-start: 0.75rem;
   border-top: 1px solid var(--rule);
-}
-.contact__way:last-child {
-  border-bottom: 1px solid var(--rule);
 }
 .contact__way :global(dd) {
   margin: 0;
   min-width: 0;
+  font-size: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem); /* 20 → 26 */
+  font-weight: var(--w-ui);
+  letter-spacing: -0.008em;
 }
 .contact__way :global(a) {
   display: inline-flex;
@@ -94,22 +102,33 @@
   min-block-size: 44px;
   color: var(--ink-1);
 }
-.contact > .contact__where {
-  margin-block-start: var(--space-s);
+.contact__where {
+  margin-block-start: var(--space-m);
+}
+@media (min-width: 40rem) {
+  .contact__list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (min-width: 75rem) {
+  .contact__list {
+    max-width: calc((100% - 11 * var(--grid-gap)) / 12 * 9 + 8 * var(--grid-gap)); /* nine of the twelve columns */
+  }
 }
 @media (max-width: 14.99rem) {
-  .contact__way {
-    grid-template-columns: minmax(0, 1fr);
-  }
   .contact__way :global(a) {
     overflow-wrap: anywhere;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .contact__email :global(a) {
+    transition: none;
   }
 }
 
 /* ---------- forced colours ---------- */
 @media (forced-colors: active) {
-  .contact__way,
-  .contact__way:last-child {
+  .contact__way {
     border-color: CanvasText;
   }
 }

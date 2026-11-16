@@ -164,6 +164,181 @@
 }
 
 /* ==========================================================================
+   Round 7, SCREEN ONLY (the print rules below are the PDF's and are untouched): the document on the page's twelve
+   columns.
+     letterhead, summary   the left seven columns, while the terraces stand at the right;
+     experience            a timeline the reading draws: a brush line down the roles, as long as the reader has read
+                           (a view timeline on a line 68 % down the screen), a mark per role, the years in their own
+                           column in mono, the title and the organisation beside them, the points under those;
+     skills                four columns across the frame;
+     education, awards     side by side.
+   ========================================================================== */
+@media screen {
+  .cv :global(.sec) {
+    margin-block-start: var(--space-body);
+  }
+  .cv :global(.sec) > :global(.h-ink) + * {
+    margin-block-start: 1.1rem;
+  }
+  .summary > p {
+    font-size: var(--fs-lead);
+    line-height: var(--lh-lead);
+  }
+  /* the timeline */
+  .cv .exp > .timeline__wrap {
+    position: relative;
+    max-width: none;
+    margin-block-start: 1.75rem;
+  }
+  .timeline__wrap > .timeline {
+    max-width: none;
+    row-gap: var(--space-l);
+    padding-inline-start: 1.75rem;
+  }
+  /* the line: a hairline of ink; it runs as far down the roles as the reader has read */
+  .timeline__line {
+    position: absolute;
+    inset-block: 0.55rem 0;
+    inset-inline-start: calc(0.3rem + 1px);
+    inline-size: 1px;
+    background: var(--ink-3);
+    transform-origin: 50% 0;
+  }
+  .timeline__entry {
+    position: relative;
+  }
+  /* a role's mark on the line: a ring of paper round an ink dot; the role he holds now, jade */
+  .timeline__mark {
+    position: absolute;
+    inset-inline-start: calc(-1.75rem + 0.3rem + 1.5px - 0.4375rem);
+    inset-block-start: 0.55rem;
+    inline-size: 0.5625rem;
+    block-size: 0.5625rem;
+    margin-inline-start: 0.15625rem;
+    border-radius: 50%;
+    background: var(--ink-1);
+  }
+  .timeline__entry:first-child > .timeline__mark {
+    background: var(--jade);
+  }
+  .timeline__role {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 0.125rem;
+    font-size: clamp(1.1875rem, 1.1rem + 0.45vw, 1.4375rem); /* 19 → 23 */
+    line-height: 1.25;
+    letter-spacing: -0.008em;
+  }
+  .timeline__years {
+    font-family: var(--font-code);
+    font-size: var(--fs-small);
+    font-weight: 400;
+    letter-spacing: 0;
+    color: var(--ink-3);
+  }
+  .timeline__dot {
+    display: none;
+  }
+  .timeline__points {
+    margin-block-start: 0.875rem;
+    max-width: var(--measure-read);
+  }
+  /* skills: each group under its own name */
+  .cv .skills > .cv-skills {
+    max-width: none;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem var(--grid-gap);
+    margin-block-start: 1.5rem;
+  }
+  .cv-skills > div {
+    display: block;
+    padding-block-start: 0.75rem;
+    border-top: 1px solid var(--rule);
+  }
+  .cv-skills :global(dt) {
+    font-family: var(--font-name);
+    font-weight: 900;
+    font-size: 1.625rem;
+    line-height: 1.05;
+    letter-spacing: 0.005em;
+    margin-block-end: 0.4rem;
+  }
+  .cv-skills :global(dd) {
+    color: var(--ink-2);
+  }
+  .pair {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    column-gap: var(--grid-gap);
+  }
+}
+@media screen and (min-width: 40rem) {
+  .cv .skills > .cv-skills {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media screen and (min-width: 75rem) {
+  .cv-head,
+  .summary {
+    max-width: calc((100% - 11 * var(--grid-gap)) / 12 * 7 + 6 * var(--grid-gap)); /* seven of the twelve columns */
+  }
+  .cv .summary > * {
+    max-width: none;
+  }
+  /* the years in their own column, the title and the organisation beside them, the points under those */
+  .cv .exp > .timeline__wrap {
+    max-width: calc((100% - 11 * var(--grid-gap)) / 12 * 10 + 9 * var(--grid-gap));
+  }
+  .timeline__wrap > .timeline {
+    padding-inline-start: 2.25rem;
+  }
+  .timeline__mark {
+    inset-inline-start: calc(-2.25rem + 0.3rem + 1.5px - 0.4375rem);
+  }
+  .timeline__role {
+    grid-template-columns: 11.5rem minmax(0, 1fr);
+    column-gap: 1.5rem;
+    align-items: baseline;
+  }
+  .timeline__points {
+    margin-inline-start: 13rem;
+  }
+  .cv .skills > .cv-skills {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .pair {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+  .pair > :first-child {
+    grid-column: 1 / span 5;
+  }
+  .pair > :last-child {
+    grid-column: 7 / -1;
+  }
+  .pair :global(.sec) > * {
+    max-width: none;
+  }
+}
+@keyframes line-run {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+@supports (animation-timeline: view()) {
+  @media screen and (prefers-reduced-motion: no-preference) {
+    :global(html.js:not(.is-still)) .timeline__line {
+      animation: line-run linear both;
+      animation-timeline: view(block 68% 32%);
+      animation-range: cover 0% cover 100%;
+    }
+  }
+}
+
+/* ==========================================================================
    Print: the source of the résumé PDF. Ink only. No landscape, no chrome, no strip or closing, nothing
    animated. The same hanging indent as the screen, in millimetres: the headings and the years at the
    margin, the text beside them, the letterhead's contact details stacked on the right. Two pages on
@@ -194,7 +369,9 @@
   .page :global(.closing),
   .page :global(.print-name),
   .cv-head__actions,
-  .cv-head__updated {
+  .cv-head__updated,
+  .timeline__line,
+  .timeline__mark {
     display: none !important;
   }
   .page *,
@@ -296,13 +473,16 @@
     margin-block-start: 1.8mm;
   }
   .page :global(.sec__title) {
+    font-family: var(--font-body);
+    font-weight: var(--w-strong);
     font-size: 12.5pt;
     line-height: 1.2;
     letter-spacing: 0;
     color: #000;
     break-after: avoid;
   }
-  .cv-sec > .timeline {
+  .cv-sec > .timeline__wrap,
+  .cv-sec > .timeline__wrap > .timeline {
     max-width: none;
   }
 

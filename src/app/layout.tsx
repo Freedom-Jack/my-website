@@ -9,14 +9,17 @@ import { Effects } from '@/features/effects/Effects';
 import { elementClasses } from '@/features/landscape/elements';
 import { Landscape } from '@/features/landscape/Landscape';
 import { Navigation } from '@/features/navigation/Navigation';
+import { Switches } from '@/features/qa/Switches';
 import { JsonLd, personLd } from '@/lib/jsonld';
 import { fontFaces } from './fonts';
 // The design system, in order (each feature's CSS Module adds its own layout after these).
 import '@/styles/tokens.css';
 import '@/styles/base.css';
 import '@/styles/layout.css';
+import '@/styles/plates.css'; // the stage as the page's own layers on wide screens (features/landscape/plates)
 import '@/styles/effects.css'; // the ink in the UI (links, the action, focus, the row rule, the flow dot: each element behind its el-* class)
 import '@/styles/components.css';
+import '@/styles/body.css'; // round 7: everything below the first screen (the grid, the ink, the ending, the tail)
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -59,6 +62,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <JsonLd data={personLd()} />
         <Navigation />
         <Effects />
+        {/* the preview's switch panel: QA builds only (never in the production site) */}
+        {process.env.NEXT_PUBLIC_INK_QA === '1' ? <Switches /> : null}
       </body>
     </html>
   );

@@ -1,4 +1,4 @@
-import { readdirSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import type { ComponentType } from 'react';
 import { z } from 'zod';
@@ -55,4 +55,25 @@ export async function loadNote(slug: string): Promise<Note> {
 export async function allNotes(): Promise<NoteMeta[]> {
   const notes = await Promise.all(noteSlugs().map(async (s) => (await loadNote(s)).meta));
   return notes.sort((a, b) => b.published.localeCompare(a.published));
+}
+
+/**
+ * A note's own comparison table, as data (round 7: Writing's index opens the note out with it): the first GFM table
+ * of content/writing/<slug>.mdx, its head and its rows, each cell the file's own words (inline markup and all).
+ * None: the note has no table.
+ */
+export function noteTable(slug: string): { head: string[]; rows: string[][] } | null {
+  const src = readFileSync(path.join(DIR, `${slug}.mdx`), 'utf8');
+  const lines = src.split('\n');
+  const row = (l: string) =>
+    l
+      .trim()
+      .replace(/^\||\|$/g, '')
+      .split('|')
+      .map((c) => c.trim());
+  const at = lines.findIndex((l, i) => /^\s*\|.*\|\s*$/.test(l) && /^\s*\|[\s:|-]+\|\s*$/.test(lines[i + 1] ?? ''));
+  if (at < 0) return null;
+  const rows: string[][] = [];
+  for (let i = at + 2; i < lines.length && /^\s*\|.*\|\s*$/.test(lines[i]!); i += 1) rows.push(row(lines[i]!));
+  return rows.length ? { head: row(lines[at]!), rows } : null;
 }

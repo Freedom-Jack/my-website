@@ -28,13 +28,16 @@ export const workCraft = {
     stillAlt: 'The painting at {place}',
   },
 
-  /** "Under the hood": three folds; each <summary> holds only its title and its size. Each fold's tie to a production
-   *  claim, its case and its long words are content/craft/hood.ts, fetched with the fold (A8, ruling R10). */
+  /** "Under the hood" (round 7: out of the folds, into the page): four real things that run in the visitor's
+   *  browser, laid open on Work: the search, its own test, a grammar holding a model's output, and the record of
+   *  where all of it came from. Each piece's data (and its long words, content/craft/hood.ts) is fetched as the
+   *  reader reaches it, never before. */
   hood: {
     title: 'Under the hood',
-    open: 'about {kb} KB of data, loaded when opened',
+    /** before a piece has been reached: the size of its data, measured at build */
+    open: 'about {kb} KB of data, fetched as you reach it',
     loading: 'Loading…',
-    failed: 'It did not load. Close and open it again.',
+    failed: 'It did not load. Reload the page to try again.',
     lineage: {
       title: 'Where the words came from',
     },

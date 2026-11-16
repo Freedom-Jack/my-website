@@ -203,7 +203,7 @@ export function buildCraft(): Craft {
       { id: 'index', kind: 'dataset', label: 'the lexical index (BM25)' },
       { id: 'vocab', kind: 'dataset', label: `${bpe.vocab.length} byte-pair tokens` },
       { id: 'scores', kind: 'dataset', label: 'the bigram scores' },
-      { id: 'eval', kind: 'dataset', label: `${rows.length} questions (DRAFT)` },
+      { id: 'eval', kind: 'dataset', label: `${rows.length} questions` },
       { id: 'search', kind: 'fold', label: 'Search these pages' },
       { id: 'mask', kind: 'fold', label: 'Constrain the output' },
       { id: 'evalFold', kind: 'fold', label: 'How good is the search?' },

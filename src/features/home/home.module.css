@@ -1,13 +1,155 @@
-/* Home's LAYOUT only: every block is a shared component (layout.css: the first screen; components.css: About, the
-   ledger rows, Now); this file only places them, with tokens: no new colours, fonts, weights, shadows or motion.
-   1 the first screen (the strip) · 2 About me (photo + words) · 3 What I work on · 4 Now · 5 Writing · 6 Say hello ·
-   the ending · the closing scene */
+/* Home's layout below the first screen (round 7): where each block stands on the frame's twelve columns. Colours,
+   faces, sizes and motion come from the design system (styles/body.css); this file only places and spaces. */
 
-/* 2. About me. Tablets (640–1199): the first screen's text sits on paper right above this block, so "About me" would
-   follow the action by only the component's small gap (~28 px) and read as part of the first screen: it gets the
-   section margin. Wide screens don't need it (the first screen owns the viewport); on phones the photo comes first. */
+.page {
+  display: block;
+}
+
+/* ---------- About me and Now ---------- */
+.aboutMain {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: var(--space-m);
+  align-items: start;
+}
+.photo {
+  width: 62%;
+  max-width: 16rem;
+}
+.aboutText > * + * {
+  margin-block-start: var(--space-para);
+}
+.aboutText > :global(.h-ink) + * {
+  margin-block-start: 1.1rem;
+}
+.now {
+  margin-block-start: var(--space-l);
+}
+.nowList {
+  display: grid;
+  gap: 0.625rem;
+}
+@media (min-width: 40rem) {
+  .aboutMain {
+    grid-template-columns: 13rem minmax(0, 1fr);
+    column-gap: 2.25rem;
+  }
+  .photo {
+    width: 100%;
+    max-width: none;
+  }
+}
+@media (min-width: 75rem) {
+  .about > .aboutMain {
+    grid-column: 1 / span 8;
+    grid-template-columns: 14.5rem minmax(0, 1fr);
+    column-gap: 2.5rem;
+  }
+  .about > .now {
+    grid-column: 10 / -1;
+    margin-block-start: 9.5rem; /* (a step down from About's title: its cloud rides lower, across the peaks) */
+  }
+}
+
+/* ---------- What I work on: three steps ---------- */
+.steps {
+  margin-block-start: var(--space-m);
+  row-gap: var(--space-l);
+}
+.step {
+  position: relative;
+  display: grid;
+  row-gap: 0.5rem;
+  align-content: start;
+}
+.stepTitle {
+  margin-block-start: 0.5rem;
+  font-size: var(--fs-item);
+  line-height: var(--lh-item);
+  text-wrap: balance;
+}
+.stepTitle a {
+  text-decoration: none;
+}
+/* the title's link covers the step; a link inside the line stays above it */
+.stepTitle a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+.step:is(:hover, :focus-within) .stepTitle a {
+  text-decoration: underline;
+  text-decoration-color: var(--ink-1);
+}
+.stepLine {
+  color: var(--ink-2);
+}
+.stepLine a {
+  position: relative;
+  z-index: 1;
+}
+/* a projection: the numeral's outline, never filled ink */
+.projected {
+  color: transparent;
+  -webkit-text-stroke: 2px var(--ink-1);
+}
+.projected :global(.num__lead) {
+  -webkit-text-stroke: 0;
+}
+@media (forced-colors: active) {
+  .projected {
+    color: CanvasText;
+    -webkit-text-stroke: 0;
+  }
+}
+.all {
+  margin-block-start: var(--space-m);
+}
 @media (min-width: 40rem) and (max-width: 74.99rem) {
-  .page :global(.strip--home) + :global(.hello) {
-    margin-block-start: var(--space-section);
+  .steps > .step {
+    grid-column: span 3;
+  }
+  .steps > .step:nth-child(3) {
+    grid-column: 1 / span 3;
+  }
+}
+@media (min-width: 75rem) {
+  .steps {
+    margin-block-start: 1.5rem;
+  }
+  .steps > .step {
+    grid-column: span 4;
+  }
+  /* the stairs: each step a little lower than the one before it, as the river falls */
+  .steps > .step:nth-child(2) {
+    margin-block-start: 6.5rem;
+  }
+  .steps > .step:nth-child(3) {
+    margin-block-start: 13rem;
+  }
+  .all {
+    margin-block-start: -1.5rem; /* (it stands in the stairs' open corner, under the first step) */
+  }
+}
+
+/* ---------- Writing and Say hello ---------- */
+.last {
+  row-gap: var(--space-body);
+}
+.notes {
+  margin-block-start: 1.1rem;
+}
+.helloLine {
+  font-size: var(--fs-lead);
+  line-height: var(--lh-lead);
+  max-width: 30em;
+}
+@media (min-width: 75rem) {
+  .last > .writing {
+    grid-column: 1 / span 6;
+  }
+  .last > .hello {
+    grid-column: 8 / -1;
+    margin-block-start: 5rem;
   }
 }

@@ -18,11 +18,11 @@ import styles from '../craft.module.css';
  */
 type State = 'idle' | 'loading' | 'ready' | 'failed';
 
-export function Search({ size }: { size: number }) {
+export function Search({ size, initialValue = '' }: { size: number; initialValue?: string }) {
   const t = workCraft.search;
   const id = useId();
   const [state, setState] = useState<State>('idle');
-  const [q, setQ] = useState('');
+  const [q, setQ] = useState(initialValue);
   const [rt, setRt] = useState<SearchRuntime | null>(null);
   const [bytes, setBytes] = useState(0);
   const [active, setActive] = useState(0);

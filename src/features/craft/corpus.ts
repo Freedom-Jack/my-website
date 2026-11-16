@@ -37,6 +37,13 @@ export interface Chunk {
   /** the content file and the first 8 hex digits of its sha256 */
   file: string;
   hash: string;
+  /**
+   * The passage's verbatim units, in order (a unit is one paragraph, row, step or list item of content/): where each
+   * ends in `text`, which of the passage's sections it stands under (an index into `section` split at " · "), its
+   * own fragment on the page, and `title` when the unit is a heading the page prints over the units after it (a
+   * role, a row's title). For a reader that answers with one unit (features/ask); the text is not repeated.
+   */
+  units: Array<{ end: number; section: number; anchor?: string; title?: true }>;
 }
 
 export interface SourceFile {
@@ -259,12 +266,15 @@ interface Unit {
   file: string;
   /** the unit's stretch-local position (null: the page's own view) */
   u: number | null;
+  /** a heading over the units after it (a role's name, a row's title): no answer on its own */
+  title?: true;
 }
 
 /** Units run together, in order, into passages of at least MIN_WORDS; a short tail joins the passage before it. */
-export function passages(units: Unit[], min = MIN_WORDS): Array<Unit & { parts: string[]; sections: string[] }> {
-  const out: Array<Unit & { parts: string[]; sections: string[] }> = [];
-  let cur: (Unit & { parts: string[]; sections: string[] }) | null = null;
+type Passage = Unit & { parts: string[]; sections: string[]; of: Unit[] };
+export function passages(units: Unit[], min = MIN_WORDS): Passage[] {
+  const out: Passage[] = [];
+  let cur: Passage | null = null;
   const words = (c: { parts: string[] }) => wordsOf(c.parts.join(' '));
   for (const u of units) {
     if (!u.text) continue;
@@ -272,9 +282,10 @@ export function passages(units: Unit[], min = MIN_WORDS): Array<Unit & { parts: 
       out.push(cur);
       cur = null;
     }
-    if (!cur) cur = { ...u, parts: [u.text], sections: [u.section] };
+    if (!cur) cur = { ...u, parts: [u.text], sections: [u.section], of: [u] };
     else {
       cur.parts.push(u.text);
+      cur.of.push(u);
       if (!cur.sections.includes(u.section)) cur.sections.push(u.section);
     }
   }
@@ -282,6 +293,7 @@ export function passages(units: Unit[], min = MIN_WORDS): Array<Unit & { parts: 
     const last = out[out.length - 1];
     if (last && words(cur) < min / 2) {
       last.parts.push(...cur.parts);
+      last.of.push(...cur.of);
       for (const s of cur.sections) if (!last.sections.includes(s)) last.sections.push(s);
     } else out.push(cur);
   }
@@ -311,10 +323,21 @@ export function buildCorpus(): Corpus {
     const stretch = placeForPath(href).stretch;
     passages(units).forEach((p, n) => {
       const src = fileOf(p.file);
+      let end = -1;
+      const units = p.of.map((u) => {
+        end += u.text.length + 1;
+        return {
+          end,
+          section: p.sections.indexOf(u.section),
+          ...(u.anchor ? { anchor: u.anchor } : {}),
+          ...(u.title ? { title: true as const } : {}),
+        };
+      });
       chunks.push({
         id: `${key}:${n}`,
         text: p.parts.join(' '),
         parts: p.parts,
+        units,
         href,
         page,
         section: p.sections.join(' · '),
@@ -336,9 +359,10 @@ export function buildCorpus(): Corpus {
     ...h.hero.lead.map((t) => unit(hf, 'First screen', t, mountain(0))),
     ...h.about.paragraphs.map((t) => unit(hf, 'About me', t, mountain(1), 'about-title')),
     unit('content/site.ts', 'About me', site.bio, mountain(1), 'about-title'),
-    ...h.workOn.rows.flatMap((r) =>
-      [r.title, r.line].map((t) => unit(hf, 'What I work on', t, mountain(2), 'work-on-title')),
-    ),
+    ...h.workOn.rows.flatMap((r) => [
+      { ...unit(hf, 'What I work on', r.title, mountain(2), 'work-on-title'), title: true as const },
+      unit(hf, 'What I work on', r.line, mountain(2), 'work-on-title'),
+    ]),
     ...h.now.lines.map((l) => unit(hf, 'Now', `${l.label}: ${l.text}`, mountain(3), 'now-title')),
     unit(hf, 'Say hello', h.hello.line, mountain(4), 'say-hello-title'),
   ]);
@@ -382,7 +406,10 @@ export function buildCorpus(): Corpus {
   const rf = 'content/resume.json';
   r.work.forEach((w, i) =>
     emit(`resume.role${i}`, '/resume/', 'Résumé', [
-      unit(rf, `Experience: ${w.position}`, w.position, spread(i, r.work.length, 0.3, 0.9), 'cv-exp-title'),
+      {
+        ...unit(rf, `Experience: ${w.position}`, w.position, spread(i, r.work.length, 0.3, 0.9), 'cv-exp-title'),
+        title: true as const,
+      },
       ...w.highlights.map((t) =>
         unit(rf, `Experience: ${w.position}`, t, spread(i, r.work.length, 0.3, 0.9), 'cv-exp-title'),
       ),

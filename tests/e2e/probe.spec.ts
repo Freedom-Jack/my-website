@@ -274,7 +274,8 @@ test.describe('a phone, an inner page', () => {
     expect(src.length).toBeLessThan(1500 * 1.4);
     // (no eager sharp still: the only reference to it is the fallback's background, shown only without JavaScript)
     await expect(page.locator('[data-landscape="strip"] .strip__still--sharp')).toHaveCount(0);
-    expect(html).not.toMatch(/<img[^>]*work-phone@/);
+    // (a real source only: round 7's tail holds the place's still as a data attribute until the reader nears it)
+    expect(html).not.toMatch(/<img[^>]*\ssrc="[^"]*work-phone@/);
     await expect(page.locator('[data-landscape="strip"] .strip__fallback')).toHaveCount(1);
     // (the probe runs after the load and an idle moment: nothing in the first load asks for the sharp still)
     await page.waitForLoadState('load');
@@ -302,8 +303,10 @@ test.describe('a phone, an inner page', () => {
       const { reqs } = watchRequests(page);
       await page.goto('/work/');
       await expect(page.locator('[data-landscape="strip"] .strip__fallback')).toBeVisible();
+      // (the strip's own still; round 7: without JavaScript a browser also fetches the ending's and the tail's
+      // lazy pictures at once, which are not the first screen's)
       await expect
-        .poll(() => reqs.filter((r) => /\/scenes\/hero\//.test(r.url)).map((r) => r.url.replace(/^.*\//, '')))
+        .poll(() => reqs.filter((r) => /\/scenes\/hero\/work-phone/.test(r.url)).map((r) => r.url.replace(/^.*\//, '')))
         .toEqual(['work-phone@2x.webp']);
     });
   });

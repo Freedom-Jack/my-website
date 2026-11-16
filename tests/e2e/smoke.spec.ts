@@ -41,9 +41,9 @@ for (const r of ROUTES) {
     expect(html).not.toMatch(/QijinXu_Resume\.pdf/i);
     expect(html).not.toMatch(/\bPMP\b/);
     expect(await page.evaluate(() => document.body.innerText)).not.toMatch(CJK);
-    // the 404 marks nothing as "you are here"; every other page marks itself or its section, in the tail's names and
-    // on the river line under the header (its mark stands under the current stop)
-    const current = await page.locator('.tail__names a[aria-current]').count();
+    // the 404 marks nothing as "you are here"; every other page marks itself or its section, in the tail's scroll in
+    // miniature and on the river line under the header (its mark stands under the current stop)
+    const current = await page.locator('.scrollmap a[aria-current]').count();
     const mark = await page.locator('.site-header .river').getAttribute('data-here');
     if (r.page === 'not-found') {
       expect(current).toBe(0);
@@ -52,8 +52,10 @@ for (const r of ROUTES) {
       expect(current).toBe(1);
       expect(mark).toMatch(/^[0-4]$/);
     }
-    // the tail signs the page once: one seal on the page, in the tail, and none in the header
+    // the tail signs every page once (the seal is pressed elsewhere only when something is done: an answer found,
+    // an address copied); none in the header or the first screen
     expect(await page.locator('.seal').count()).toBe(1);
+    expect(await page.locator('.site-header .seal, .strip .seal').count()).toBe(0);
     expect(await page.locator('.site-footer .seal').count()).toBe(1);
     expect(errors).toEqual([]);
   });
@@ -117,7 +119,7 @@ test('moving between pages: the painting travels, focus lands on the new title, 
       ),
     )
     .toMatch(/^(1|still)$/);
-  await page.locator(".tail__names a[href='/resume/']").click();
+  await page.locator(".scrollmap a[href='/resume/']").click();
   await expect(page.locator('main')).toHaveAttribute('data-page', 'resume');
   await page.goBack();
   await expect(page.locator('main')).toHaveAttribute('data-page', 'work');

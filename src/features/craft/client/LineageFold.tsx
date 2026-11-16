@@ -2,6 +2,7 @@
 
 import type { Lineage } from '../build';
 import { fill } from './fill';
+import { useSeen } from './Piece';
 import styles from '../craft.module.css';
 
 interface Data extends Lineage {
@@ -10,8 +11,9 @@ interface Data extends Lineage {
 }
 
 /**
- * "Where the words came from" (the attack's A7): the lineage as a list first (each artefact, what it was made from and
- * how), then the same record drawn top to bottom, narrow enough for a phone (the content files drawn as one node).
+ * "Where the words came from" (the attack's A7; round 7: laid open): the lineage drawn top to bottom, narrow enough
+ * for a phone (the content files drawn as one node), its lines drawing themselves in from the files down once it is
+ * on screen; then the same record as a list, one fold away (each artefact, what it was made from and how).
  */
 export function LineageFold({ data }: { data: Data }) {
   const w = data.words;
@@ -47,45 +49,13 @@ export function LineageFold({ data }: { data: Data }) {
   });
   const name = (id: string) => (id === filesId ? filesLabel : (label.get(id) ?? id));
 
+  const [ref, seen] = useSeen<HTMLDivElement>(0.3);
   return (
-    <div className={styles.foldBody}>
+    <div className={styles.lineageView} ref={ref}>
       <p className={styles.result}>
         {fill(w.result, { files: data.meta.files, passages: data.meta.passages, commit: data.meta.commit })}
       </p>
-      <h4 className={styles.subhead}>{w.list}</h4>
-      <ul className={styles.lineage}>
-        {made.map((n) => {
-          const ins = data.edges.filter((e) => e[1] === n.id);
-          if (!ins.length) return null;
-          return (
-            <li key={n.id}>
-              <span className={styles.node}>{n.label}</span>
-              {n.hash ? <span className={styles.hash}> {n.hash}</span> : null}
-              <span className={styles.edgeLine}>
-                {' '}
-                {[...new Set(ins.map((e) => e[2]))]
-                  .map((verb) => {
-                    const from = ins.filter((e) => e[2] === verb).map(([a]) => a);
-                    const named = from.filter((a) => !files.some((f) => f.id === a)).map(name);
-                    if (from.some((a) => files.some((f) => f.id === a))) named.push(filesLabel);
-                    return `${w.edges[verb]} ${named.join(', ')}`;
-                  })
-                  .join('; ')}
-              </span>
-              {n.id === 'passages' ? (
-                <ul className={styles.files}>
-                  {files.map((f) => (
-                    <li key={f.id}>
-                      <code>{f.label}</code> <span className={styles.hash}>{f.hash}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-            </li>
-          );
-        })}
-      </ul>
-      <figure className={styles.dag}>
+      <figure className={styles.dag} data-seen={seen ? '' : undefined}>
         <svg viewBox={`0 0 ${W} ${rows.length * RH}`} role="img" aria-label={w.drawing}>
           {uniq.map(([a, b]) => {
             const [x1, y1] = pos.get(a)!;
@@ -95,6 +65,8 @@ export function LineageFold({ data }: { data: Data }) {
                 key={`${a}>${b}`}
                 d={`M${x1} ${y1 + 10} C${x1} ${y1 + 36} ${x2} ${y2 - 30} ${x2} ${y2 - 14}`}
                 className={styles.edge}
+                pathLength={1}
+                style={{ transitionDelay: `${(depth.get(b) ?? 1) * 260 - 200}ms` }}
               />
             );
           })}
@@ -104,8 +76,42 @@ export function LineageFold({ data }: { data: Data }) {
             </text>
           ))}
         </svg>
-        <figcaption className="small">{w.drawing}</figcaption>
       </figure>
+      <details className={styles.inner}>
+        <summary>{w.listFold}</summary>
+        <ul className={styles.lineage}>
+          {made.map((n) => {
+            const ins = data.edges.filter((e) => e[1] === n.id);
+            if (!ins.length) return null;
+            return (
+              <li key={n.id}>
+                <span className={styles.node}>{n.label}</span>
+                {n.hash ? <span className={styles.hash}> {n.hash}</span> : null}
+                <span className={styles.edgeLine}>
+                  {' '}
+                  {[...new Set(ins.map((e) => e[2]))]
+                    .map((verb) => {
+                      const from = ins.filter((e) => e[2] === verb).map(([a]) => a);
+                      const named = from.filter((a) => !files.some((f) => f.id === a)).map(name);
+                      if (from.some((a) => files.some((f) => f.id === a))) named.push(filesLabel);
+                      return `${w.edges[verb]} ${named.join(', ')}`;
+                    })
+                    .join('; ')}
+                </span>
+                {n.id === 'passages' ? (
+                  <ul className={styles.files}>
+                    {files.map((f) => (
+                      <li key={f.id}>
+                        <code>{f.label}</code> <span className={styles.hash}>{f.hash}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </li>
+            );
+          })}
+        </ul>
+      </details>
     </div>
   );
 }

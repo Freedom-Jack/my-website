@@ -10,12 +10,22 @@
  * moves, ambient motion <= 15 fps and asleep after 45 s, pointer answers <= 30 fps and only while they move, reduced
  * motion and "Still the landscape" = a still frame and still UI, phones calm.
  *
- * The vanguard round (05-synthesis.md): every flag carries its answer to the five questions (subtraction, referent,
- * control, cost and fallback, recall: research/DIGEST.md §5); an element that fails subtraction or referent is off.
- * The surface package (P2) switched off the opening ceremony, the page change's mist, the nav's mark, the swash and
- * the story map's sun; the engine package (P3) ruled on the scroll (the unroll in, the camera's travel and the air
- * out), the pointer answers (out) and, by the attack's A3, one named element per place (the swallows, the ribbon and
- * the falling petals out; the plum kept, moved off the light).
+ * Round 6 (2026-11-15, Jack's brief: "make everything on it cool"; the live site as the base): the vanguard round's
+ * tests (subtraction, referent, one living element per place) are cancelled. The test now is whether the site is more
+ * alive, more beautiful and easier to remember with the thing than without it. What that round switched off is back
+ * on wherever it still fits (the swallows, the silk ribbon, the falling petals, the plum's gust, the water you can
+ * stir, the scroll's wind); what waits for its part of the new Home is still off here and says so. Each flag's older
+ * comment keeps what the element IS; its v3 ruling is history (DESIGN §12 "Vanguard").
+ * On wide screens the stage is THE PLATES now (features/landscape/plates): every element here keeps working on them.
+ *
+ * Round 7 (2026-11-16, Jack: "you're just like messing up the header"; "No bird and no cherry blossom"; "I don't like
+ * the new color theme"): the header is the live site's again. Everything round 6 put into the painting or switched
+ * back on is off (hours, weather, swallows, ribbon, petals, corner, nameSeal, depth, stir, plumGust, air), and so is
+ * the plum bough the live site pinned to the screen's corner (plum): nothing is laid over the painting or pinned in
+ * front of it. Round 6's lag fix (the plates) and the question half of Ask stay. The body below the first screen is
+ * the round's work (styles/body.css; DESIGN §12 "Round 7").
+ *
+ * The preview's panel (features/qa/Switches, QA builds) flips each flag in this browser.
  *
  * QA builds only (NEXT_PUBLIC_INK_QA=1): a flag is switched OFF in that browser with localStorage 'ink-elements' =
  * '{"silkVeil":false}' or window.__elOff = ['morning', ...] (injected before the page's scripts), and ON, against the
@@ -36,9 +46,11 @@ export const ELEMENTS = {
    *  synthesis: "the pointer stir and petals" are cut): off, a visitor loses nothing they came for; its referent was
    *  the pointer itself, which the digest's anti-patterns name; recall: "it rippled when I hovered". The ferry's own
    *  drops (contactLife) keep the ring. */
+  // (round 7: off again, with everything round 6 put into the header's painting)
   stir: false,
   /** The plum answers: a damped nudge of Home's bough, and three to five of its own petals let go one after another
    *  and drift down with the breeze (at most once every 8 s). OFF (P3, with stir: nothing answers the pointer). */
+  // (round 6: back on)
   plumGust: false,
   /** The waterfall falls: broken lights slide down Home's fall, spray breathes at its foot. Home's one living element
    *  (A3): the river's source. */
@@ -53,25 +65,56 @@ export const ELEMENTS = {
    *  first screen is winter. Referent: the season of the one painting. Control: none needed (a still thing that
    *  breathes). Cost: a sprite in the figure layer, 0 frames of its own. Recall: "a plum bough over his mountain".
    *  QA switches it off for Jack's side by side (the brief, A3). */
-  plum: true,
+  plum: false,
+  /** The framing willow boughs of two first screens (the live site's): Work's willow tip out of the top edge over
+   *  the town, and Writing's willow let down from the top-right corner over the lake. On. Off: neither is drawn.
+   *  The tail's strip of the whole scroll (tools/build-scroll.ts) is cut with them off: a bough that frames one
+   *  page's opening would hang in the middle of the sky of a strip. */
+  boughs: true,
   /** The swallows: Home's one swallow gliding across the open sky (and its three far birds), Work's pair low over the
    *  river, the Résumé's one sweeping over the fields. OFF (P3, A3: one named element per place; "no swallow on
    *  Home", "Work's swallows go", "the Résumé's swallow goes"): off, a visitor loses a second moving thing in three
    *  places, none of which is the place's own; the critic read Home's first frame as a collage. */
+  // (round 6: back on)
   swallows: false,
   /** The silk mist-ribbon: one long S from behind Home's host peak through the light, twisting and torn by the mist
    *  (shaders.ts, compiled in with EL_RIBBON). OFF (P3, A3: "no silk ribbon on Home"): off, the light stands alone
    *  as the painting's one bright thing; the ribbon had no referent but ornament, and crossed the plum. */
+  // (round 6: back on)
   ribbon: false,
   /** Falling petals: the few that let go of Home's plum and drift down, and the ones that fall through Writing's air
    *  over the lake (the petals lying on the still water stay: they are paint, not motion). OFF (P3, A3: "Writing's
    *  petals go"; one living element per place: Home's is the fall, Writing's the shimmer). */
+  // (round 6: back on)
   petals: false,
   /** The light's bloom in the present pass: a tight halo and a wide soft glow round each place's light, breathing
    *  slowly, Home's the strongest (shaders.ts, compiled in with EL_HALO; the light's core in the scene is the
    *  painting's). ON: the light is Home's named element with the mountain and the fall. QA switches it off for Jack's
    *  side by side (the brief, A3: Home with and without the plum and the light's halo). */
   halo: true,
+  // ---- round 6: what is new (each on its own switch, for Jack's side by side)
+  /** The painting keeps time: it follows the visitor's own clock. Dawn (rose), the day as it was painted, dusk (the
+   *  low sun's apricot and rose, the hills violet, the hut's lamp lit), night (the air a deep indigo wash round a
+   *  moon, the lamps lit). A grade of what is painted (features/landscape/mood.ts; shaders.ts moodGrade): no scene is
+   *  repainted and the paper stays the paper. Off: always the day. */
+  hours: false,
+  /** Weather on the page's own layers when a scene asks for it: falling snow, rain (plates.css; the painting's own
+   *  snow and rain are part of the mood's grade). */
+  weather: false,
+  /** Depth you can feel: on wide screens each plate of the painting answers the pointer by its own depth (the near
+   *  crags most, the far ranges least), eased with weight. Fine pointers only; never under reduced motion or Still. */
+  depth: false,
+  /** Ask the painting: one line on Home. A small language model in the visitor's own browser (hosted with the site,
+   *  loaded only when they ask) reads what they type: a scene ("snow at dusk, the lanterns lit") repaints the
+   *  painting; a question about the work is answered from the site's own words, and the painting travels to the
+   *  place that holds the answer (features/ask). */
+  ask: true,
+  /** His seal beside his name on Home, as a painter's seal stands by the signature (stamped once as the page
+   *  arrives); the tail keeps its own. */
+  nameSeal: false,
+  /** The screen's top right corner is the painting's: the header's band of paper ends a little past the nav's last
+   *  word, so Home's plum bough comes into the first screen (wide screens). Off: the band runs the screen's width. */
+  corner: false,
   // ---- the scroll
   /**
    * THE UNROLL (P3; direction A, "The handscroll, unrolled", the jury's winner for the scroll). On wide screens the
@@ -89,6 +132,14 @@ export const ELEMENTS = {
    * screen. Recall: "the painting slid along with my reading, and the next page was already there."
    */
   unroll: true,
+  /** The unroll's standing curtain: once the reading starts, the middle and near layers left of the title block's
+   *  column are in mist, so the place passes in the right margin only. OFF (round 7; Jack: "The body is like only
+   *  left side of the page"): the painting runs the whole width behind the page from top to bottom, and the words
+   *  keep only a breath of mist of their own (plates/veils.ts) wherever they lie. The hold stays (the engine's
+   *  unroll: Work, the project pages, the Résumé and Contact stop their travel with the place's last named thing
+   *  beside the reading column, as on the live site): without it a long page slid its place behind its own words
+   *  half way down and read to the end beside open water. */
+  curtain: false,
   /** The camera travels (the approved round-5 motion): on wide screens the scene's depth layers part as you scroll
    *  (near crags and the plum drop away fastest, the middle settles over a sea of mist, the far range barely moves),
    *  the place parks beside the reading column and the camera comes down to the closing view at the end, with each
@@ -104,6 +155,7 @@ export const ELEMENTS = {
    *  scroll motion only, the unroll; a second one, whose referent ("the scroll is a wind") no reader is told, fails
    *  subtraction (off, nothing is lost but a stir) and recall. The figures' own small life (the willows' sway, the
    *  rushes in the breeze, the bough's swing) stays: it is the painting's, not the scroll's. */
+  // (round 6: back on)
   air: false,
   /** Windows into the painting, below 1200 px only: at the page's major section breaks a short, full-bleed
    *  window of the page's own place opens in the gap (<Glimpse>, [data-landscape="glimpse"]), each one further along

@@ -35,10 +35,18 @@
     display: none; /* (the <noscript> twin shows the portrait) */
   }
 }
-.hello__photo {
-  display: block;
+/* The frame is the photo's own sheet of paper: the multiply happens inside it, when the page is painted, and never
+   against the painting behind the page (a blend against the page itself made the browser composite the whole page
+   the slow way, on every scroll frame, while the portrait was on screen: round 6's measurement). */
+.hello__frame {
   width: 72%;
   max-width: 20rem;
+  isolation: isolate;
+  background: var(--paper) var(--paper-tile, none) 0 0 / var(--paper-tile-size, 512px) var(--paper-tile-size, 512px);
+}
+.hello__photo {
+  display: block;
+  width: 100%;
   height: auto;
   aspect-ratio: 4 / 5;
   /* The shoulders' fade is IN THE FILE (tools/build-photo.swift, step 3d): the body dissolves into white along its
@@ -61,7 +69,7 @@
     grid-template-columns: 15rem minmax(0, 37.5rem);
     column-gap: 2.5rem;
   }
-  .hello__photo {
+  .hello__frame {
     width: 100%;
     max-width: none;
   }

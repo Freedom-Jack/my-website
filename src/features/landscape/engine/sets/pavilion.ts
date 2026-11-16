@@ -324,7 +324,7 @@ export function* draw(env: Env) {
   // looser than the river town's tip); a few petals that have drifted down lie on the still water, each with its own
   // broken rings and their lit arcs; more petals fall through the air (life: the present pass).
   // The light on the water is the shader's (a glassy glitter column under the low light).
-  if (!env.still) {
+  if (!env.still && el('boughs')) {
     // (it comes in from the right, under the window's top feather, so the whole of it is seen. THE UNROLL (the
     // vanguard round's fix round): drawn as its own sprite, pinned to the frame (figures.ts LifeParams.pinned, as
     // Home's plum bough is): its root lies just past the wide hero's east edge, on the layer's eastern reach, and

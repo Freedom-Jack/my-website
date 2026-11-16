@@ -9,6 +9,10 @@
  * LCP counted it. Called by the landscape at its mount and by the
  * navigation on every page change (both already client code: no island of its own, no request for one); without
  * JavaScript the <noscript> twin shows the still from the first paint.
+ * Round 7: the ending's picture of the next place (below 1200 px) and the tail's scroll in miniature are held the
+ * same way (as lazy images they joined the first load of every page on a phone, 80 KB before the first screen had
+ * settled, and Lighthouse's simulated LCP went past 2.5 s); such an image may name a second source for 640 px and
+ * up (`data-src-wide`). The landscape watches the tail once (it stays across pages).
  */
 export function watchGlimpseStills(main: HTMLElement | null): () => void {
   if (!main) return () => {};
@@ -20,7 +24,8 @@ export function watchGlimpseStills(main: HTMLElement | null): () => void {
     if (img.getAttribute('src')) return;
     const set = img.dataset.srcset;
     if (set) img.srcset = set;
-    img.src = img.dataset.src || '';
+    const wide = img.dataset.srcWide && matchMedia('(min-width: 40rem)').matches;
+    img.src = (wide ? img.dataset.srcWide : img.dataset.src) || '';
   };
   if (typeof IntersectionObserver !== 'function') {
     imgs.forEach(show);

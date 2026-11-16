@@ -1,13 +1,15 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { Seal } from '@/components/ui/Seal';
 import styles from './contact.module.css';
 
 /**
- * "Copy email": copies the address and says "Copied" beside the button, plainly, in mono (no stamp). The word is also
- * the live region: empty at rest, written on every copy, so screen readers hear it each time; it rests 2.4 s and
- * empties. If the clipboard is unavailable the address is selected instead, so it can be copied by hand (and nothing
- * claims it was copied). Hidden without JS (contact.module.css): the address stays a mailto link.
+ * "Copy email": copies the address; the seal is pressed beside it (round 7: Contact's moment; the stamp says the
+ * thing is done, as a seal does) and "Copied" is said in mono. The word is also the live region: empty at rest,
+ * written on every copy, so screen readers hear it each time; the word and the seal rest 2.4 s and go. If the
+ * clipboard is unavailable the address is selected instead, so it can be copied by hand (and nothing claims it was
+ * copied). Hidden without JS (contact.module.css): the address stays a mailto link.
  */
 const REST_MS = 2400;
 
@@ -65,6 +67,11 @@ export function CopyEmail({ email, label, done }: { email: string; label: string
       <button className="action action--button" type="button" onClick={onClick}>
         {label}
       </button>
+      {word ? (
+        <span className={`${styles.contact__seal} stamp`} aria-hidden="true">
+          <Seal id="seal-carve-copy" />
+        </span>
+      ) : null}
       <span className={`mono ${styles.contact__done}`} role="status">
         {word}
       </span>

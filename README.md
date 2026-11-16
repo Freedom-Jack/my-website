@@ -50,6 +50,7 @@ reached it falls back to `content/github/snapshot.json`.
 | `npm run build:stills`       | cuts the phone bands' (the windows') stills (needs a QA build; `-- --check` in CI)                                                                                                                              |
 | `npm run build:og`           | cuts the link-preview cards (`public/og/`) from each page's hero (needs a QA build; `-- --check`)                                                                                                               |
 | `npm run build:heroes`       | cuts each page's hero still and the phones' inline seeds (`public/scenes/hero/`) from the engine's own first frame (needs a QA build; `-- --check` in CI)                                                       |
+| `npm run build:scroll`       | cuts the tail's strip of the whole scroll (`public/scenes/scroll/`) from the engine's camera travelling Home to Contact (needs a QA build served: `-- --base http://127.0.0.1:3106`)                            |
 | `npm run format`             | Prettier                                                                                                                                                                                                        |
 
 A **QA build** (`NEXT_PUBLIC_INK_QA=1 npm run build`) exposes the painting to the test tools as `window.__ink` and
@@ -61,17 +62,35 @@ A **QA build** (`NEXT_PUBLIC_INK_QA=1 npm run build`) exposes the painting to th
 content/                 every word: site.ts, resume.json, pages/*.ts, work/*.mdx, writing/*.mdx, github/
 src/app/                 thin routes: metadata, data loading, and one feature component each
 src/components/          shared building blocks
-  layout/                the header and its river line (RiverLine), the tail (Tail, TailNames: the colophon, the build
-                         stamp, "Still the landscape", the five names, the email, the seal), the boot script, ink filters
+  layout/                the header and its river line (RiverLine), the tail (Tail, ScrollMap: the whole scroll in
+                         miniature as one strip of the painting, each page's name under its place and the current
+                         one marked; the colophon, the build stamp, "Still the landscape", the email, the seal),
+                         the boot script, ink filters
   page/                  PageMain (every page's <main>), Strip (its opening scene and first screen), NextPlace (the
-                         ending: "Downstream · <next place> →"), Closing (its end scene), Glimpse (an empty depth
-                         band at a section break, painted below 1200 px)
-  ui/                    Seal, TextAction (the one action on a screen, with its drawn arrow), MarginNote, Diagram
+                         ending: the next place's name inked into the painting; below 1200 px over that place's own
+                         picture), Closing (its end scene), Glimpse (an empty depth band at a section break, painted
+                         below 1200 px)
+  ui/                    Seal, TextAction (the one action on a screen, with its drawn arrow), MarginNote, Diagram,
+                         LazyIsland (a server-rendered shell that takes its client code only as the reader
+                         nears it: Ask, the search)
 src/features/            one folder per feature, each owning its components, logic and CSS Module
   landscape/             the painting: places.ts (where each page stands), Landscape.tsx (the one persistent
                          canvas), elements.ts (THE switch table of Spring ink's elements and scroll motion),
                          engine/ (the WebGL2 engine; types.ts is its contract, lights.ts the one table of each
-                         place's light, sets/ the places' figures, sets/young.ts the plum, swallow and willow)
+                         place's light, sets/ the places' figures, sets/young.ts the plum, swallow and willow);
+                         plates/ (round 6: on wide screens the stage is the page's own layers, developed once by
+                         the engine and moved by the browser; the veils and their torn edges); mood.ts and
+                         mood-control.ts (the painting keeps the visitor's hour; snow and rain when asked)
+  ask/                   "Ask the painting" in Home's body: a sentence-embedding model in the visitor's browser (a
+                         worker; its files in public/models, fetched only when the line is used), the tokenizer and
+                         encoder shared with tools/build-ask.ts, and the retrieval (lines.ts: the corpus's units as
+                         lines; questions.ts: the questions each line is filed under, never shown). Questions only:
+                         the answer is a line of the site's own words, and the painting travels to its place
+  craft/                 Work's live pieces (round 7: open on the page, not under folds; client/Piece loads each as
+                         the reader reaches it): the search, its test run again in the browser, a grammar writing a
+                         record token by token, the lineage; three of them also stand on the project page they are
+                         tied to
+  qa/                    the preview's switch panel (QA builds only)
   navigation/            route changes as pans along the painting under a plain crossfade of the words
   chrome/                current page, the returning header, Still, the 404's lost mark
   effects/               diagram draw-in, row rules and the diagram's flow dot (finish.ts)
@@ -80,14 +99,17 @@ src/lib/                 typography, inline markup, dates, figures (the poster n
                          SEO and JSON-LD, redirects, the compliance patterns, the MDX plugin (mdx/rehype-site.mjs)
 src/styles/              the design system: tokens, base, layout, effects, components (global, from the demo);
                          effects.css holds the interface elements, each behind its html.el-* class (focus, the row
-                         rule, the flow dot)
-tools/                   build-pdf, build-stills, build-heroes, build-og, compliance, linkcheck (TypeScript, run by Node 24
-                         directly); glsl-loader.cjs (the build's loader for the engine's shaders: comments out)
+                         rule, the flow dot); plates.css the stage's layers and the mist; body.css (round 7)
+                         everything below the first screen: the twelve-column grid, the name-face titles, the ink
+                         numerals, the pointer's wash, the seal pressed, the ending, the tail
+tools/                   build-pdf, build-stills, build-heroes, build-og, build-ask (the ask line's index, with the
+                         same model the browser runs), compliance, linkcheck (TypeScript, run by Node 24 directly);
+                         glsl-loader.cjs (the build's loader for the engine's shaders: comments out)
 tests/unit/              content schemas and counts, GitHub rules, the engine's pure parts (Vitest)
-tests/e2e/               smoke, navigation and the DESIGN §6 budgets (Playwright; support/measure.js is the
-                         demo's own probe); scroll.spec.ts (the scroll motion: quiet modes, smoothness, seams,
-                         memory); glimpse.spec.ts (the phone and tablet depth bands); probe.spec.ts (the live
-                         probe: the quiet forms fetch no engine byte, the still is in the HTML and hands over)
+tests/e2e/               a smoke test per route and the hard rules on the rendered pages, navigation, axe and tap
+                         targets (Playwright); glimpse.spec.ts (the phone and tablet depth bands); probe.spec.ts (the
+                         live probe: the quiet forms fetch no engine byte, the still is in the HTML and hands over).
+                         (Round 6 removed the Vanguard round's budget and scroll-present suites with what they guarded.)
 design-demo/             the approved static demo, its notes and its QA tools: reference only, never deployed
 ```
 
@@ -95,6 +117,16 @@ design-demo/             the approved static demo, its notes and its QA tools: r
 place from `src/features/landscape/places.ts` (its stretch of the painting, how strongly the scene shows, whether
 it ends on a closing scene, and the next place downstream for its ending) and writes it onto `<main>`. The
 navigation reads the same table to prepare the next page's painting before it arrives, so the two never disagree.
+
+**Below the first screen** (round 7, `design-demo/DESIGN.md` §12 "Round 7"): the painting runs the whole width
+behind the page (`elements.ts` `curtain`, off) at full strength, and the words lie across the header's 1200 frame
+on twelve columns (`styles/body.css`) with only a breath of mist behind them. A block of words carries `data-veil`;
+`features/landscape/plates/veils.ts` computes one field of mist for the page from where those blocks' lines stand
+(strong behind small text, faint behind titles and numerals, nothing elsewhere, thinning out in bands) and lays it
+as the mask of one sheet of the paper's own tile. No brush bars anywhere: a line is a hairline.
+The plates stand in two leaves, and `.inked` words stand between them (a page's ending, a project's figure), so the
+place passes in front of the letters. What moves is drawn by scroll timelines or by one small listener
+(`features/effects/finish.ts`); everything stands finished without them.
 
 **The surface** (the vanguard round, `design-demo/DESIGN.md` §12): two faces (the name face for the name, the page
 titles and the figures as poster numerals; Familjen Grotesk for everything read or pressed) and the system mono for
