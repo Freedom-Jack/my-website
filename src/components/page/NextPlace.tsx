@@ -14,6 +14,9 @@ import { Inline, InlineLink } from '@/lib/inline';
  * the letters; the label (content/site.ts `ending`) and the next page's own sentence lie in a cloud at the left. A
  * real anchor: the page change is the painting's own pan (features/navigation).
  */
+/** A 1 × 1 transparent GIF: the still's source on wide screens (no request there: the painting itself is the picture). */
+const BLANK = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
 const LINES: Partial<Record<PageId, string>> = {
   work: work.intro,
   writing: writing.intro,
@@ -41,6 +44,21 @@ export function NextPlace({ page }: { page: PageId }) {
           <span className="action__arrow" aria-hidden="true" />
         </InlineLink>
       </p>
+      {/* below 1200 px no stage stands behind the page: the next place's own first frame (the hero still build:heroes
+          cuts) lies under its name instead, the screen's width; fetched only as the ending nears. Art only. */}
+      <picture className="next__still" aria-hidden="true">
+        <source media="(min-width: 75rem)" srcSet={BLANK} />
+        <source media="(min-width: 40rem)" srcSet={`/scenes/hero/${next.page}-tablet@1x.webp`} width={1000} height={220} />
+        {/* eslint-disable-next-line @next/next/no-img-element -- a static WebP the heroes tool cut; lazy */}
+        <img
+          src={`/scenes/hero/${next.page}-phone@2x.webp`}
+          alt=""
+          width={430}
+          height={169}
+          loading="lazy"
+          decoding="async"
+        />
+      </picture>
     </aside>
   );
 }

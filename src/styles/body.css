@@ -356,7 +356,37 @@ main a.next__link {
 .next__link:is(:hover, :focus-visible) .action__arrow {
   translate: 0.14em -0.12em;
 }
+/* below 1200 px: the next place's own first frame under its name, the screen's width; the name stands in its sky.
+   The page's own closing scene is not laid out there (the ending's picture is the last one). */
+.next__still {
+  display: block;
+  position: relative;
+  z-index: 0;
+  margin-inline: calc(-1 * var(--gutter-x));
+  margin-block-start: -2.25rem;
+  pointer-events: none;
+}
+.next__still img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.next__name {
+  position: relative;
+  z-index: 1;
+}
+@media (max-width: 74.99rem) {
+  .next + .closing {
+    display: none;
+  }
+  main:has(> .next) + .site-footer.tail {
+    margin-block-start: 0;
+  }
+}
 @media (min-width: 75rem) {
+  .next__still {
+    display: none;
+  }
   .next {
     align-items: start;
   }

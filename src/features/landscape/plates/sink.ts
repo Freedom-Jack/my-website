@@ -16,7 +16,8 @@
  *     canvas[data-plate="4"]     the sea of mist over their feet
  *     .plates__wisp              ...and a band of the paper's own mist lies over that line (edges.ts): the place goes
  *                                into it as it reaches the words; the far ranges run on behind them
- *     canvas[data-plate="5"]     what is pinned to the frame while the stage travels under it (Home's plum bough)
+ *     canvas[data-plate="5"]     what is pinned to the frame while the stage travels under it (Writing's willow); round 7:
+ *                                it leaves with the first screen, at the page's own rate
  *
  * The motion (PlateGeometry.motion): the unroll moves every plate west, linearly with the page's scroll, by
  * `travel` px over the whole page; the camera's travel sinks each plate at its own rate over the first screens.
@@ -74,7 +75,22 @@ function motionOf(g: PlateGeometry, kind: PlateKind): Key[] {
     const ps = [...new Set([...far.map((k) => k[0]), p1])].sort((a, b) => a - b);
     return ps.map(at);
   }
-  if (g.still || kind === 5) return [[0, 0, 0]];
+  if (kind === 5) {
+    // what is pinned to the frame (Writing's willow, the near framing bough of the first screen): round 7, it leaves
+    // with the first screen, at the page's own rate, as the header above it does (Jack: nothing stays pinned to the
+    // screen in front of the painting once the page scrolls). Under reduced motion and Still too: the page still
+    // scrolls.
+    const b = g.boxes[5];
+    const out = b ? b[1] + b[3] + 24 : 0;
+    if (!(out > 0) || !(g.maxY > 0)) return [[0, 0, 0]];
+    const p1 = Math.min(1, out / g.maxY);
+    return [
+      [0, 0, 0],
+      [p1, 0, -p1 * g.maxY],
+      [1, 0, -p1 * g.maxY],
+    ];
+  }
+  if (g.still) return [[0, 0, 0]];
   if (g.motion === 'unroll')
     return [
       [0, 0, 0],
