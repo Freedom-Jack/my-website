@@ -41,8 +41,6 @@ export async function HomePage() {
       <Strip variant="home" labelledBy="name" still="home" veil={0.9}>
         <h1 className="name" id="name">
           {site.name}
-          {/* round 6: his seal beside his name, as a painter signs (decorative; the tail keeps its own) */}
-          <Seal id="seal-carve-name" />
         </h1>
         <p className="first__verb">
           <Inline text={first.verb} />
@@ -80,8 +78,6 @@ export async function HomePage() {
             {first.action.label}
           </TextAction>
         </p>
-        {/* round 6: the one line a visitor can speak to the painting through (a real model, in their browser) */}
-        <Ask />
       </Strip>
 
       <section className="hello wide" aria-labelledby="about-title" data-veil="0.88">
