@@ -11,12 +11,16 @@ import { bareUrl, resume } from './resume';
 import styles from './resume.module.css';
 
 /**
- * The Résumé (/resume/), rendered from content/resume.json. The terraced fields' hero with the name and the title
- * (the same hero as every subpage), then the rest of the letterhead on paper with "Updated" (the content's own date)
- * and three actions (the PDF, the JSON, the email), and the document as one dense column: each role one line,
- * "years · title · organisation" (the title carries its own scope, as the résumé words it), its points under it; it
- * ends on the fields once more. This page's
- * print stylesheet IS the PDF (tools/build-pdf.ts prints it), so the page and the PDF never disagree.
+ * The Résumé (/resume/), rendered from content/resume.json. The first screen is the live site's: the terraced fields'
+ * hero with the name and the title.
+ *
+ * Below it (round 7), on screen: the letterhead (the contact line, "Updated", three actions: the PDF, the JSON, the
+ * email) and the summary at the left while the terraces stand at the right; Experience as a timeline the reading
+ * draws (a brush line down the roles that runs as far as the reader has read, a mark per role, the years in their
+ * own column in mono, the title and the organisation, the points under them); Skills in four columns across the
+ * frame; Education beside Awards and certifications; then the ending downstream (Contact).
+ * This page's print stylesheet IS the PDF (tools/build-pdf.ts prints it), so the page and the PDF never disagree:
+ * every screen rule of round 7 is inside `@media screen`, and the document's order and words are untouched.
  * No phone number, ever: the schema refuses one (features/resume/schema.ts).
  */
 
@@ -92,8 +96,8 @@ export function ResumePage() {
           </p>
         </div>
 
-        <section className={`sec ${styles['cv-sec']}`} aria-labelledby="cv-summary-title" data-veil="">
-          <h2 className="sec__title" id="cv-summary-title">
+        <section className={`sec ${styles['cv-sec']} ${styles.summary}`} aria-labelledby="cv-summary-title" data-veil="">
+          <h2 className="sec__title h-ink" id="cv-summary-title">
             {t.sections.summary}
           </h2>
           <p>
@@ -102,8 +106,8 @@ export function ResumePage() {
         </section>
 
         <Glimpse still="resume-0" />
-        <section className={`sec ${styles['cv-sec']}`} aria-labelledby="cv-exp-title" data-veil="">
-          <h2 className="sec__title" id="cv-exp-title">
+        <section className={`sec ${styles['cv-sec']} ${styles.exp}`} aria-labelledby="cv-exp-title" data-veil="">
+          <h2 className="sec__title h-ink" id="cv-exp-title">
             {t.sections.experience}
           </h2>
           <ol className={styles.timeline} role="list">
@@ -113,10 +117,12 @@ export function ResumePage() {
                   <span className={styles.timeline__years}>
                     <Dates start={w.startDate} end={w.endDate} />
                   </span>
-                  {' · '}
-                  {w.position}
-                  {' · '}
-                  <span className={styles.timeline__org}>{w.name}</span>
+                  <span className={styles.timeline__dot}>{' · '}</span>
+                  <span className={styles.timeline__what}>
+                    {w.position}
+                    {' · '}
+                    <span className={styles.timeline__org}>{w.name}</span>
+                  </span>
                 </h3>
                 <ul className={styles.timeline__points} role="list">
                   {w.highlights.map((h) => (
@@ -131,8 +137,8 @@ export function ResumePage() {
         </section>
 
         <Glimpse still="resume-1" />
-        <section className={`sec ${styles['cv-sec']}`} aria-labelledby="cv-skills-title" data-veil="">
-          <h2 className="sec__title" id="cv-skills-title">
+        <section className={`sec ${styles['cv-sec']} ${styles.skills}`} aria-labelledby="cv-skills-title" data-veil="">
+          <h2 className="sec__title h-ink" id="cv-skills-title">
             {t.sections.skills}
           </h2>
           <dl className={styles['cv-skills']}>
@@ -145,8 +151,9 @@ export function ResumePage() {
           </dl>
         </section>
 
+        <div className={styles.pair}>
         <section className={`sec ${styles['cv-sec']}`} aria-labelledby="cv-edu-title" data-veil="">
-          <h2 className="sec__title" id="cv-edu-title">
+          <h2 className="sec__title h-ink h-ink--s" id="cv-edu-title">
             {t.sections.education}
           </h2>
           {r.education.map((e) => (
@@ -170,7 +177,7 @@ export function ResumePage() {
         </section>
 
         <section className={`sec ${styles['cv-sec']}`} aria-labelledby="cv-certs-title" data-veil="">
-          <h2 className="sec__title" id="cv-certs-title">
+          <h2 className="sec__title h-ink h-ink--s" id="cv-certs-title">
             {t.sections.certifications}
           </h2>
           <ul className={`rows rows--plain ${styles['cv-certs']}`} role="list">
@@ -186,6 +193,7 @@ export function ResumePage() {
             ))}
           </ul>
         </section>
+        </div>
 
         <footer className={styles['cv-print-foot']}>
           <p>

@@ -9,10 +9,13 @@ import { LocalTime } from './LocalTime';
 import styles from './contact.module.css';
 
 /**
- * Contact (/contact/): the crossing's strip with the title and its one sentence in the mist; then the address,
- * the page's focal point, with "Copy email" beside it ("Copied" said once, plainly); the response line (DRAFT); the other ways, one per line on
- * hairlines, their labels in mono; the time zone with the hour where he is. A short page: it ends on the crossing's
- * closing scene and then on the full tail (no ending line: Contact is the last place).
+ * Contact (/contact/). The first screen is the live site's: the crossing's strip with the title and its one sentence
+ * in the mist.
+ *
+ * Below it (round 7): the address, the page's focal point, written large in the name face across the water, with
+ * "Copy email" beside it: pressing it presses the seal ("Copied" said once, plainly); the response line; the other
+ * ways across the frame, each a mono label over its link; the time zone with the hour where he is. A short page: it
+ * ends on the crossing's closing scene and then on the full tail (no ending line: Contact is the last place).
  * Words: content/pages/contact.ts.
  */
 export function ContactPage() {
@@ -33,42 +36,48 @@ export function ContactPage() {
         </p>
       </Strip>
 
-      <section className={`sec ${styles.contact}`} data-veil="">
-        <p className={`mono ${styles.contact__label}`}>{contact.emailLabel}</p>
-        <div className={styles.contact__mail}>
-          <p className={styles.contact__email}>
-            <a href={`mailto:${site.email}`}>
-              {user}@<wbr />
-              {domain}
-            </a>
-          </p>
-          <CopyEmail email={site.email} label={contact.copy.label} done={contact.copy.done} />
+      <section className={`part ${styles.contact}`} aria-label={contact.emailLabel}>
+        <div className={styles.contact__address} data-veil="">
+          <p className="tag">{contact.emailLabel}</p>
+          <div className={styles.contact__mail}>
+            <p className={styles.contact__email}>
+              <a href={`mailto:${site.email}`}>
+                {user}@<wbr />
+                {domain}
+              </a>
+            </p>
+            <CopyEmail email={site.email} label={contact.copy.label} done={contact.copy.done} />
+          </div>
+          <p className={styles.contact__response}>{contact.response}</p>
         </div>
-        <p className={styles.contact__response}>{contact.response}</p>
-        <dl className={styles.contact__list}>
+        <dl className={styles.contact__list} data-veil="">
           <div className={styles.contact__way}>
             <dt className="mono">{contact.ways.github}</dt>
             <dd>
-              <a href={site.links.github.url}>{site.links.github.handle}</a>
+              <a className="brush-link" href={site.links.github.url}>
+                {site.links.github.handle}
+              </a>
             </dd>
           </div>
           <div className={styles.contact__way}>
             <dt className="mono">{contact.ways.linkedin}</dt>
             <dd>
-              <a href={site.links.linkedin.url}>{site.name}</a>
+              <a className="brush-link" href={site.links.linkedin.url}>
+                {site.name}
+              </a>
             </dd>
           </div>
           <div className={styles.contact__way}>
             <dt className="mono">{contact.ways.resume}</dt>
             <dd>
-              <a href="/resume.pdf" target="_blank" rel="noopener" type="application/pdf">
+              <a className="brush-link" href="/resume.pdf" target="_blank" rel="noopener" type="application/pdf">
                 {resumePage.pdf}
                 <span className="visually-hidden">, opens in a new tab</span>
               </a>
             </dd>
           </div>
         </dl>
-        <p className={`small ${styles.contact__where}`}>
+        <p className={`small ${styles.contact__where}`} data-veil="">
           {whereA}
           <LocalTime zone={site.timeZoneId} text={contact.time} />
           {whereB}

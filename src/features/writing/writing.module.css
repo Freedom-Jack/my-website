@@ -1,7 +1,127 @@
-/* Writing's LAYOUT only (SPEC-R4A §10.5). The page is built from shared parts: the lake's strip (title and intro in
-   its mist on wide screens), one dated list of ledger rows (components.css). */
+/* Writing's LAYOUT (round 7): each note opened out on the lake. The title in the name face, the note's own
+   comparison turned aspect by aspect. Type and ink come from the design system. */
 
-/* the list follows the strip at the section rhythm; the row's hairline opens it */
-.list > :global(.ledger) {
-  margin-block-start: 0;
+.leaf__main {
+  position: relative;
+}
+/* the note's title: 44 @ 390 → 88 @ 1440, the row's link */
+.leaf__title {
+  margin-block-start: 0.5rem;
+  font-family: var(--font-name);
+  font-weight: 900;
+  font-size: clamp(2.75rem, 1.73rem + 4.2vw, 5.5rem);
+  line-height: 0.95;
+  letter-spacing: 0.004em;
+  text-wrap: balance;
+}
+.leaf__title a {
+  text-decoration: none;
+}
+.leaf__title a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+.leaf__line {
+  margin-block-start: 0.875rem;
+  font-size: var(--fs-lead);
+  line-height: var(--lh-lead);
+  color: var(--ink-2);
+  max-width: 30em;
+}
+.leaf__read {
+  position: relative;
+  z-index: 1;
+  margin-block-start: 0.75rem;
+}
+
+/* ---------- the comparison: aspects at the left, the two sides beside them ---------- */
+.compare {
+  margin-block-start: var(--space-l);
+}
+.compare__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem var(--grid-gap);
+  margin-block-start: 0.75rem;
+}
+.aspects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.25rem;
+}
+.aspects button {
+  position: relative;
+  min-block-size: 44px;
+  border: 0;
+  background: none;
+  padding: 0;
+  font-family: var(--font-code);
+  font-size: var(--fs-small);
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+  cursor: pointer;
+  text-align: start;
+  /* the picked aspect: a brush stroke under its word */
+  background: url('../../styles/svg/stroke-b.svg') left calc(50% + 0.85em) / 0% 0.4em no-repeat;
+  transition: background-size 380ms var(--ease-wash);
+}
+.aspects button[aria-pressed='true'] {
+  color: var(--ink-1);
+  background-size: 100% 0.4em;
+}
+.sides {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem var(--grid-gap);
+}
+.cell {
+  font-size: var(--fs-lead);
+  line-height: var(--lh-lead);
+  color: var(--ink-1);
+  max-width: 24em;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cell {
+    animation: cell-in 420ms var(--ease-out) both;
+  }
+}
+@keyframes cell-in {
+  from {
+    opacity: 0;
+    translate: 0 0.35rem;
+  }
+}
+.feed {
+  margin-block-start: var(--space-l);
+}
+:global(html:not(.js)) .aspects {
+  display: none;
+}
+@media (min-width: 40rem) {
+  .sides {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 75rem) {
+  .leaf__main {
+    max-width: calc((100% - 11 * var(--grid-gap)) / 12 * 8 + 7 * var(--grid-gap)); /* eight of the twelve columns */
+  }
+  .compare__body {
+    grid-template-columns: 9.5rem minmax(0, 1fr);
+    column-gap: 3rem;
+    align-items: start;
+  }
+  .aspects {
+    flex-direction: column;
+    gap: 0;
+  }
+  .sides {
+    min-block-size: 11rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .aspects button {
+    transition: none;
+  }
 }

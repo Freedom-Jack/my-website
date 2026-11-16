@@ -572,6 +572,27 @@ main:has(> .closing:last-child) + .site-footer.tail {
     scale: 1;
   }
 }
+/* ==========================================================================
+   The 404's number (src/app/not-found.tsx): large, in ink, at the frame's right edge under the lone peak, its foot in
+   the mist. Global, not a CSS Module: the root not-found boundary sits in every page's tree.
+   ========================================================================== */
+.lost-num {
+  margin-block-start: var(--space-m);
+  font-size: clamp(8rem, 4.3rem + 15.2vw, 15rem); /* 128 @ 390 → 240 */
+  line-height: 0.8;
+  text-align: end;
+  color: var(--ink-1);
+}
+@media (min-width: 75rem) {
+  /* (it stands in the strip's own mist, under the peak: the page keeps to one screen, the tail at its foot) */
+  .lost-num {
+    margin-block-start: -9.5rem;
+  }
+}
+body:has(> main[data-page='not-found']) > .site-footer.tail {
+  margin-block-start: var(--space-m);
+}
+
 @media (forced-colors: active) {
   .stroke,
   .h-ink::after {
