@@ -249,16 +249,34 @@
   margin-block-start: var(--space-2xs);
   color: var(--ink-3);
 }
-/* the figure itself: one numeral, the largest thing on the page, inked into the painting (it stands behind the
-   town's roofs as the page scrolls): 112 @ 390 → 272 @ 1440 */
+/* the figure itself: one numeral, the largest thing on the page: 112 @ 390 → 272 @ 1440. It stands in full view
+   beside the summary. Where the plates are the stage it is also inked INTO the painting: as the page scrolls, the
+   numeral in front goes into the mist at the town's shore (a soft edge that stays on the shore's line: a scroll
+   timeline on the numeral itself, body.css --rise) while its twin, behind the place's leaf (body.css .inked),
+   rises over the roofs. Without scroll timelines, under reduced motion, on a still painting and below 1200 px
+   there is only the one in front, and it never changes. */
+.figureBox {
+  position: relative; /* (no z-index: a stacking context here would keep the twin in front of the place) */
+  margin-block-start: var(--space-m);
+}
 .figure {
   font-size: clamp(7rem, 3.3rem + 15.2vw, 17rem);
   line-height: 0.8;
-  margin-block-start: var(--space-m);
 }
 .figure :global(.num__lead) {
   font-size: 0.875rem;
   margin-block-end: 0.75rem;
+}
+.figureInk {
+  display: none;
+}
+@keyframes sink {
+  from {
+    --rise: 130%;
+  }
+  to {
+    --rise: 0%;
+  }
 }
 @media (min-width: 75rem) {
   .lede {
@@ -269,11 +287,27 @@
     grid-column: 1 / span 6;
     margin-block-start: 1rem;
   }
-  .lede > .figure {
+  .lede > .figureBox {
     grid-column: 7 / -1;
     justify-self: end;
     text-align: end;
     margin-block-start: 0;
+  }
+}
+@supports (animation-timeline: view()) {
+  @media (min-width: 75rem) and (prefers-reduced-motion: no-preference) {
+    :global(html[data-plates='on']) .figureBox > .figureInk {
+      display: block;
+      position: absolute;
+      inset: 0;
+    }
+    /* the shore's line: the foot of the first screen's band. The soft edge is 30 % of the numeral tall (body.css
+       .num), so the range runs 15 % of it either side of the numeral's own crossing and the edge stays on the line */
+    :global(html[data-plates='on']) .figureBox > .figure:not(.figureInk) {
+      animation: sink linear both;
+      animation-timeline: view(block calc(var(--header-h) + var(--strip-sub) + 0.5rem) 0px);
+      animation-range: exit -15% exit 115%;
+    }
   }
 }
 .drawing :global(.diagram) {

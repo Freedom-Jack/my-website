@@ -26,9 +26,10 @@ import styles from './work.module.css';
  *
  * Below it (round 7):
  *   the case's summary set large at the left, with its figure in words, where the figure comes from and the NDA line
- *   where there is no public evidence; and at the right the page's moment: the figure itself as one large numeral
- *   INKED INTO THE PAINTING (body.css .inked: between the painting's two leaves), so that as the page scrolls it
- *   rises behind the town's roofs (a projection as an outline, never filled ink: it is not yet real);
+ *   where there is no public evidence; and at the right the page's moment: the figure itself as one large numeral,
+ *   in full view beside the summary and INKED INTO THE PAINTING: as the page scrolls it sinks into the mist at the
+ *   town's shore and rises again behind the roofs (its twin stands between the painting's two leaves, body.css
+ *   .inked; a projection is an outline, never filled ink: it is not yet real);
  *   its brush diagram across the frame (the flagships; on phones it folds behind "Read as steps");
  *   its labelled body (Problem · My part · Outcome and status · Evidence · Stack; a missing part is left out) with
  *   the glossary notes in the margin rail;
@@ -99,13 +100,25 @@ export function CasePage({ c }: { c: Case }) {
           </p>
           {meta.evidence.length ? null : <p className={`small ${styles.nda}`}>{casePage.nda}</p>}
         </div>
-        <p
-          className={projected ? `num inked ${styles.figure} ${styles.outline}` : `num inked ${styles.figure}`}
-          aria-hidden="true"
-        >
-          {fig.lead ? <span className="num__lead">{fig.lead}</span> : null}
-          {fig.value}
-        </p>
+        {/* the numeral in full view, and its twin behind the town (work.module.css .figureBox) */}
+        <div className={styles.figureBox} aria-hidden="true" data-veil-clear="">
+          {(['front', 'inked'] as const).map((leaf) => (
+            <p
+              key={leaf}
+              className={[
+                'num',
+                leaf === 'inked' ? `inked ${styles.figureInk}` : '',
+                styles.figure,
+                projected ? styles.outline : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+            >
+              {fig.lead ? <span className="num__lead">{fig.lead}</span> : null}
+              {fig.value}
+            </p>
+          ))}
+        </div>
       </section>
 
       {meta.diagram ? (

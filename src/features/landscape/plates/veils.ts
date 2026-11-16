@@ -22,6 +22,8 @@
  *   of the paper's tile the size of the page, and drawn again whenever the words move (a new page, a new layout, a
  *   fold opened).
  *   A margin note, and anything that asks for its own paper ([data-veil-own]), is veiled on its own lines.
+ *   Words inked INTO the painting (body.css .inked; [data-veil-clear] names a box that holds some) stand behind this
+ *   sheet, so the mist opens round them: a neighbour's cloud never greys a letter of them.
  */
 
 import { EDGE_W, mountEdges } from './edges';
@@ -39,6 +41,7 @@ const THIN = 125; // ...then thins out to nothing over about this much more,
 const SWELL = 80; // swelling and shrinking by up to this much in slow billows (about 330 px each)
 const RIPPLE = 34; // ...with smaller ones riding on them (about 110 px)
 const BANK_PAD = 30; // a bank's solid paper above its section's first line and below its last
+const CLEAR = 80; // the mist closes again over about this much round words inked into the painting (it billows too)
 
 type Box = [left: number, top: number, right: number, bottom: number];
 
@@ -149,9 +152,10 @@ function noise2(seed: number) {
 
 /**
  * The body's field of mist for a page `w` x `h` CSS px whose words stand in `cores` (page px: left, top, right,
- * bottom): a small canvas whose alpha is the paper's strength, one sample per CELL px.
+ * bottom), open over `clear` (words inked into the painting): a small canvas whose alpha is the paper's strength,
+ * one sample per CELL px.
  */
-function drawField(w: number, h: number, cores: Box[]): HTMLCanvasElement | null {
+function drawField(w: number, h: number, cores: Box[], clear: Box[]): HTMLCanvasElement | null {
   const gw = Math.max(1, Math.ceil(w / CELL)),
     gh = Math.max(1, Math.ceil(h / CELL));
   const c = document.createElement('canvas');
@@ -215,6 +219,25 @@ function drawField(w: number, h: number, cores: Box[]): HTMLCanvasElement | null
       }
       img.data[i * 4 + 3] = Math.round(255 * a);
     }
+  // the clearings: no paper over words inked into the painting, the mist closing again over about CLEAR px round
+  // them (a billowing edge, never a ruled one); the lines of a neighbour keep their own paper whole
+  const FAR = CLEAR + RIPPLE;
+  for (const [l, t, r, b] of clear) {
+    const x0 = Math.max(0, Math.floor((l - FAR) / CELL)),
+      x1 = Math.min(gw, Math.ceil((r + FAR) / CELL));
+    const y0 = Math.max(0, Math.floor((t - FAR) / CELL)),
+      y1 = Math.min(gh, Math.ceil((b + FAR) / CELL));
+    for (let y = y0; y < y1; y++)
+      for (let x = x0; x < x1; x++) {
+        if (d[y * gw + x] === 0) continue;
+        const cx = (x + 0.5) * CELL,
+          cy = (y + 0.5) * CELL;
+        const reach = CLEAR + RIPPLE * ripple(cx / 110, cy / 110);
+        const k = Math.min(1, Math.hypot(Math.max(l - cx, 0, cx - r), Math.max(t - cy, 0, cy - b)) / reach);
+        const j = (y * gw + x) * 4 + 3;
+        img.data[j] = Math.round(img.data[j]! * k * k * (3 - 2 * k));
+      }
+  }
   ctx.putImageData(img, 0, 0);
   return c;
 }
@@ -314,7 +337,11 @@ export function createVeils(): Veils {
       }
       for (const b of bandsOf(el)) cores.push([b[0] + x - CORE, b[1] + y - CORE, b[2] + x + CORE, b[3] + y + CORE]);
     }
-    const fkey = `${docW}|${end}|${JSON.stringify(cores.map((b) => b.map(Math.round)))}`;
+    const clear: Box[] = [];
+    if (main)
+      for (const el of main.querySelectorAll('.inked, [data-veil-clear]'))
+        for (const b of bandsOf(el)) clear.push([b[0] + x, b[1] + y, b[2] + x, b[3] + y]);
+    const fkey = `${docW}|${end}|${JSON.stringify([cores, clear].map((bs) => bs.map((b) => b.map(Math.round))))}`;
     if (fkey === lastField) return;
     lastField = fkey;
     field.style.height = `${end}px`;
@@ -322,7 +349,7 @@ export function createVeils(): Veils {
       field.style.display = 'none';
       return;
     }
-    const canvas = drawField(docW, end, cores);
+    const canvas = drawField(docW, end, cores, clear);
     if (!canvas) return;
     const seq = ++fieldSeq;
     canvas.toBlob((blob) => {

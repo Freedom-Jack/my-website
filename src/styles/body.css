@@ -406,8 +406,9 @@ main a.next__link {
   .next + .closing .closing__art {
     min-height: 17rem;
   }
+  /* (three columns: the longest name, Contact, starts in the fifth, and the mist opens round it) */
   .next > .next__text {
-    grid-column: 1 / span 4;
+    grid-column: 1 / span 3;
     align-self: start;
     margin-block-start: 4.5rem;
   }
