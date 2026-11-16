@@ -400,7 +400,9 @@ test.describe('glimpses: a short page ends on its place, uncovered', () => {
     { width: 768, height: 1024, dpr: 2, mobile: true },
     { width: 1024, height: 768, dpr: 1, mobile: false },
   ])
-    for (const path of ['/writing/', '/contact/'])
+    // (round 7: below 1200 px Writing ends on the next place's own picture under its name, not on a window of its
+    // own; Contact, the last place, keeps its end)
+    for (const path of ['/contact/'])
       test(`${path} at ${vp.width}: the end painted at the page's end`, async ({ browser }) => {
         const ctx = await browser.newContext({
           viewport: { width: vp.width, height: vp.height },

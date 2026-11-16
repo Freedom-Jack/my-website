@@ -53,6 +53,7 @@
 .aspects button {
   position: relative;
   min-block-size: 44px;
+  min-inline-size: 44px;
   border: 0;
   background: none;
   padding: 0;
@@ -82,7 +83,7 @@
   max-width: 24em;
 }
 @media (prefers-reduced-motion: no-preference) {
-  .cell {
+  .turned {
     animation: cell-in 420ms var(--ease-out) both;
   }
 }

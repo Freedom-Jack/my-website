@@ -82,7 +82,6 @@ export function Ask() {
       brain.current?.destroy();
       if (away.current) void travel(null);
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- once: the page is leaving
     [],
   );
   // the words keep their own mist behind them (plates/veils.ts): it is laid again as the answer grows
@@ -251,7 +250,11 @@ export function Ask() {
             <div className={styles.cols}>
               <ol className={styles.trace}>
                 {steps.map((s, i) => (
-                  <li key={`${s.kind}-${i}`} data-kind={s.kind} data-run={s.kind === 'load' && !s.done ? '' : undefined}>
+                  <li
+                    key={`${s.kind}-${i}`}
+                    data-kind={s.kind}
+                    data-run={s.kind === 'load' && !s.done ? '' : undefined}
+                  >
                     {s.kind === 'load' && !s.done ? (
                       <i style={{ inlineSize: `${Math.round((s.loaded / s.total) * 100)}%` }} />
                     ) : null}
@@ -276,7 +279,6 @@ export function Ask() {
           </div>
         ) : null}
       </div>
-
     </section>
   );
 }

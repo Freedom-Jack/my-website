@@ -148,9 +148,20 @@ for (const [width, height] of [
               .map((n) => n.target.join(' '))
               .join(' | ')}`,
         );
-        const undecided = axe.incomplete
+        const all = axe.incomplete
           .filter((x) => x.id === 'color-contrast')
           .flatMap((v) => v.nodes.map((n) => String(n.target[0])));
+        // (round 7: a figure drawn large beside its own sentence is decoration, hidden from assistive technology:
+        // its words are the sentence's, which is checked; an outlined numeral has no fill for the sampler to read)
+        const undecided: string[] = [];
+        for (const sel of all) {
+          const deco = await page
+            .locator(sel)
+            .first()
+            .evaluate((e) => !!e.closest('[aria-hidden="true"]'))
+            .catch(() => false);
+          if (!deco) undecided.push(sel);
+        }
         const sampled = await sampledContrast(page, undecided);
         if (undecided.length > 40) fail.push(`color-contrast undecided on ${undecided.length} nodes (sampled 40)`);
         for (const c of sampled)

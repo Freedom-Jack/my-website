@@ -12,6 +12,12 @@ import styles from './writing.module.css';
  */
 export function Compare({ label, head, rows }: { label: string; head: string[]; rows: string[][] }) {
   const [at, setAt] = useState(0);
+  // (the sides come in with a short settle only once the reader has turned an aspect: nothing fades in at first paint)
+  const [turned, setTurned] = useState(false);
+  const pick = (i: number) => {
+    if (i !== at) setTurned(true);
+    setAt(i);
+  };
   const row = rows[at] ?? rows[0]!;
   return (
     <div className={styles.compare} data-veil="">
@@ -23,9 +29,9 @@ export function Compare({ label, head, rows }: { label: string; head: string[]; 
               <button
                 type="button"
                 aria-pressed={i === at}
-                onClick={() => setAt(i)}
-                onMouseEnter={() => setAt(i)}
-                onFocus={() => setAt(i)}
+                onClick={() => pick(i)}
+                onMouseEnter={() => pick(i)}
+                onFocus={() => pick(i)}
               >
                 {r[0]}
               </button>
@@ -36,7 +42,7 @@ export function Compare({ label, head, rows }: { label: string; head: string[]; 
           {[1, 2].map((c) => (
             <div className={styles.side} key={c}>
               <h3 className="h-ink h-ink--s">{head[c]}</h3>
-              <p key={`${at}-${c}`} className={styles.cell}>
+              <p key={`${at}-${c}`} className={turned ? `${styles.cell} ${styles.turned}` : styles.cell}>
                 <Inline text={row[c] ?? ''} />
               </p>
             </div>

@@ -8,9 +8,8 @@
  *            light). Once per hover, with a 4 s rest; it never loops. Labels and nodes never move. It reads its flag
  *            at the moment it acts (fxOn), so a runtime toggle is honoured, and does nothing under reduced motion or
  *            Still.
- *   wash     (round 7) a row answers the pointer with a pale wash of wet ink that blooms where the pointer stands
- *            (body.css .ink-row::before): one listener on the page tells the row under the pointer where it is
- *            (--mx, --my, px from the row's own corner), at most once a frame. Fine pointers only.
+ *   wash     (round 7) a row answers the pointer with a pale blot of wet ink that stands where the pointer is
+ *            (body.css .wash): one element for the page, moved at most once a frame. Fine pointers only.
  */
 import { fxOn } from '@/features/landscape/elements';
 
@@ -131,32 +130,52 @@ function flows(root: ParentNode, signal: AbortSignal) {
 }
 
 // ------------------------------------------------------------------------------------------------ wash
+/** One blot of pale wet ink for the page (body.css .wash): it stands under the pointer while the pointer is over a
+ *  row (.ink-row) and fades when it leaves. A real element, not a pseudo-element on each row (a pseudo-element with a
+ *  ground of its own over a row's words leaves a contrast checker unable to decide any of them). */
 function washes(root: ParentNode, signal: AbortSignal) {
   if (!(root instanceof HTMLElement) || !matchMedia('(hover: hover)').matches) return;
+  let wash: HTMLElement | null = null;
   let raf = 0;
-  let row: HTMLElement | null = null;
+  let on = false;
   let x = 0;
   let y = 0;
-  const set = () => {
+  const place = () => {
     raf = 0;
-    if (!row) return;
-    const r = row.getBoundingClientRect();
-    row.style.setProperty('--mx', `${Math.round(x - r.left)}px`);
-    row.style.setProperty('--my', `${Math.round(y - r.top)}px`);
+    if (!wash) return;
+    if (on) wash.style.translate = `${Math.round(x)}px ${Math.round(y)}px`;
+    wash.toggleAttribute('data-on', on);
   };
   root.addEventListener(
     'pointermove',
     (e) => {
       if (e.pointerType !== 'mouse') return;
-      row = (e.target as Element | null)?.closest?.('.ink-row') ?? null;
-      if (!row) return;
-      x = e.clientX;
-      y = e.clientY;
-      if (!raf) raf = requestAnimationFrame(set);
+      on = !!(e.target as Element | null)?.closest?.('.ink-row');
+      if (on && !wash) {
+        wash = document.createElement('i');
+        wash.className = 'wash';
+        wash.setAttribute('aria-hidden', 'true');
+        root.append(wash);
+      }
+      // (the page's own coordinates: the blot scrolls with the rows)
+      x = e.pageX;
+      y = e.pageY;
+      if (!raf) raf = requestAnimationFrame(place);
     },
     { signal, passive: true },
   );
-  signal.addEventListener('abort', () => raf && cancelAnimationFrame(raf));
+  root.addEventListener(
+    'pointerleave',
+    () => {
+      on = false;
+      if (!raf) raf = requestAnimationFrame(place);
+    },
+    { signal },
+  );
+  signal.addEventListener('abort', () => {
+    if (raf) cancelAnimationFrame(raf);
+    wash?.remove();
+  });
 }
 
 export function initFinish(root: ParentNode): () => void {

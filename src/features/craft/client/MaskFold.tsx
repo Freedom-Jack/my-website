@@ -120,7 +120,9 @@ export function MaskFold({ data }: { data: Data }) {
             <li key={t} data-blocked={view.m[t] ? undefined : ''} data-best={t === best ? '' : undefined}>
               <span className={styles.tok}>{show(vocab[t]!)}</span>
               <span className={styles.share} aria-hidden="true">
-                <i style={{ inlineSize: `${view.m[t] ? Math.max(6, Math.round((view.share(t) / widest) * 100)) : 0}%` }} />
+                <i
+                  style={{ inlineSize: `${view.m[t] ? Math.max(6, Math.round((view.share(t) / widest) * 100)) : 0}%` }}
+                />
               </span>
               <span className={styles.tokNote}>{view.m[t] ? pctOf(t) : w.blocked}</span>
             </li>
@@ -140,7 +142,11 @@ export function MaskFold({ data }: { data: Data }) {
       ) : null}
       <p className={styles.actions}>
         {!view.done ? (
-          <button type="button" className="action action--button" onClick={() => setRun(run === 'auto' ? 'paused' : 'auto')}>
+          <button
+            type="button"
+            className="action action--button"
+            onClick={() => setRun(run === 'auto' ? 'paused' : 'auto')}
+          >
             {run === 'auto' ? w.pause : w.resume}
           </button>
         ) : null}

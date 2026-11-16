@@ -220,39 +220,34 @@ html[data-plates='on'] .inked {
 }
 
 /* ---------- a wash under the pointer ----------
-   A row answers the pointer with a pale wash of wet ink that blooms where the pointer stands (features/effects/
-   finish.ts sets --mx, --my on the row) and a brush rule drawn along its foot; nothing sits behind the words but
-   the faintest tint (ink-1 on it stays over 14:1). Rows: .ink-row. */
-.ink-row {
-  isolation: isolate;
-}
-.ink-row::before {
-  content: '';
+   A row answers the pointer with a pale blot of wet ink that stands where the pointer is and follows it (one element
+   for the page, features/effects/finish.ts), and a jade rule drawn along its foot (effects.css, the row rule).
+   Nothing sits behind the words but the faintest tint (ink-1 on it stays over 14:1). It lies over the mist and under
+   the words. Rows: .ink-row. */
+.wash {
   position: absolute;
-  inset: -3rem -4rem;
+  left: 0;
+  top: 0;
+  inline-size: 36rem;
+  block-size: 17rem;
+  margin: -8.5rem 0 0 -18rem;
   z-index: -1;
   pointer-events: none;
-  /* (the blot stands where the pointer is, in the row's own box: the pseudo-element reaches 4 rem and 3 rem past it) */
-  background: radial-gradient(
-    17rem 8rem at calc(var(--mx, 30%) + 4rem) calc(var(--my, 50%) + 3rem),
-    rgb(27 89 96 / 0.15),
-    rgb(27 89 96 / 0.07) 48%,
-    transparent 100%
-  );
+  background: radial-gradient(closest-side, rgb(27 89 96 / 0.15), rgb(27 89 96 / 0.07) 48%, transparent 100%);
   opacity: 0;
   transition: opacity 520ms var(--ease-wash);
 }
-.ink-row:is(:hover, :focus-within)::before {
+.wash[data-on] {
   opacity: 1;
 }
-@media (hover: none) {
-  .ink-row::before {
-    display: none;
+@media (prefers-reduced-motion: reduce) {
+  .wash {
+    transition: none;
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  .ink-row::before {
-    transition: none;
+@media print {
+  .wash {
+    display: none;
   }
 }
 

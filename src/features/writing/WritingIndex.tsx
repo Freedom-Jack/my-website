@@ -52,7 +52,9 @@ export async function WritingIndex() {
                 </TextAction>
               </p>
             </div>
-            {table && table.head.length >= 3 ? <Compare label={writing.from} head={table.head} rows={table.rows} /> : null}
+            {table && table.head.length >= 3 ? (
+              <Compare label={writing.from} head={table.head} rows={table.rows} />
+            ) : null}
           </section>
         );
       })}

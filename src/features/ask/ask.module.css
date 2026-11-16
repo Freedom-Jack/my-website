@@ -15,7 +15,7 @@
   gap: 1rem;
   /* the line itself: one dry-brush stroke under the words */
   background: url('../../styles/svg/stroke-a.svg') left bottom / 100% 0.6rem no-repeat;
-  padding-block-end: 0.5rem;
+  padding-block-end: 0.8rem; /* (the stroke lies under the box, never in it) */
 }
 .input {
   flex: 1;

@@ -185,16 +185,18 @@
     line-height: var(--lh-lead);
   }
   /* the timeline */
-  .cv .exp > .timeline {
+  .cv .exp > .timeline__wrap {
     position: relative;
     max-width: none;
     margin-block-start: 1.75rem;
+  }
+  .timeline__wrap > .timeline {
+    max-width: none;
     row-gap: var(--space-l);
     padding-inline-start: 1.75rem;
   }
   /* the line: ink, a little heavier at its head; it runs as far down the roles as the reader has read */
-  .timeline::before {
-    content: '';
+  .timeline__line {
     position: absolute;
     inset-block: 0.55rem 0;
     inset-inline-start: 0.3rem;
@@ -207,8 +209,7 @@
     position: relative;
   }
   /* a role's mark on the line: a ring of paper round an ink dot; the role he holds now, jade */
-  .timeline__entry::before {
-    content: '';
+  .timeline__mark {
     position: absolute;
     inset-inline-start: calc(-1.75rem + 0.3rem + 1.5px - 0.4375rem);
     inset-block-start: 0.42rem;
@@ -218,7 +219,7 @@
     background: var(--ink-1);
     box-shadow: 0 0 0 4px var(--paper);
   }
-  .timeline__entry:first-child::before {
+  .timeline__entry:first-child > .timeline__mark {
     background: var(--jade);
   }
   .timeline__role {
@@ -287,11 +288,13 @@
     max-width: none;
   }
   /* the years in their own column, the title and the organisation beside them, the points under those */
-  .cv .exp > .timeline {
-    padding-inline-start: 2.25rem;
+  .cv .exp > .timeline__wrap {
     max-width: calc((100% - 11 * var(--grid-gap)) / 12 * 10 + 9 * var(--grid-gap));
   }
-  .timeline__entry::before {
+  .timeline__wrap > .timeline {
+    padding-inline-start: 2.25rem;
+  }
+  .timeline__mark {
     inset-inline-start: calc(-2.25rem + 0.3rem + 1.5px - 0.4375rem);
   }
   .timeline__role {
@@ -328,7 +331,7 @@
 }
 @supports (animation-timeline: view()) {
   @media screen and (prefers-reduced-motion: no-preference) {
-    :global(html.js:not(.is-still)) .timeline::before {
+    :global(html.js:not(.is-still)) .timeline__line {
       animation: line-run linear both;
       animation-timeline: view(block 68% 32%);
       animation-range: cover 0% cover 100%;
@@ -367,7 +370,9 @@
   .page :global(.closing),
   .page :global(.print-name),
   .cv-head__actions,
-  .cv-head__updated {
+  .cv-head__updated,
+  .timeline__line,
+  .timeline__mark {
     display: none !important;
   }
   .page *,
@@ -477,7 +482,8 @@
     color: #000;
     break-after: avoid;
   }
-  .cv-sec > .timeline {
+  .cv-sec > .timeline__wrap,
+  .cv-sec > .timeline__wrap > .timeline {
     max-width: none;
   }
 

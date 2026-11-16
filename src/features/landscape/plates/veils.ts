@@ -250,8 +250,7 @@ export function createVeils(): Veils {
 
     // ---- the first screen's patches (round 6's)
     const hero = new Set<Element>();
-    if (main)
-      for (const el of main.querySelectorAll('[data-landscape="keepout"], .strip [data-veil]')) hero.add(el);
+    if (main) for (const el of main.querySelectorAll('[data-landscape="keepout"], .strip [data-veil]')) hero.add(el);
     // (beside a block the paper reaches further on a wide window, where the painting is larger)
     const wide = Math.min(1.5, Math.max(1, innerWidth / 1440));
     const boxes: number[][] = [];

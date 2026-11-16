@@ -4,7 +4,7 @@ import { fontsReady, isSoftware, settle } from './support/pages';
 
 /**
  * The craft on Work (features/craft; the brief's P4 acceptance and the attack's A2, A5, A8, A11, A15): nothing of it is
- * fetched before the box's first focus or a fold's first opening; the status line says what was downloaded, measured;
+ * fetched before the reader reaches it (round 7: the pieces lie open, each fetching its data as it nears); the status line says what was downloaded, measured;
  * every request of a search session is a same-origin GET that carries none of the typed text; the keyboard (a roving
  * tabindex, Enter opens, Escape clears); the submit at a 460 px tall viewport; axe on Work; the pan and back.
  */
@@ -20,32 +20,22 @@ async function open(page: Page) {
   return urls;
 }
 
-test('nothing of the craft loads before the first focus or the first fold', async ({ page }) => {
+test('nothing of the craft loads before the reader reaches it', async ({ page }) => {
   const urls = await open(page);
   await page.waitForTimeout(500);
   expect(urls.filter(isCraft)).toEqual([]);
-  const before = urls.length;
-
-  await box(page).focus();
-  await expect(page.getByRole('status').filter({ hasText: 'downloaded' })).toBeVisible();
-  expect(
-    urls
-      .slice(before)
-      .filter(isCraft)
-      .map((u) => new URL(u).pathname),
-  ).toEqual(['/craft/corpus.json']);
-
-  await page.locator('#hood-mask summary').click();
-  await expect(page.locator('#hood-mask table')).toBeVisible();
+  // (round 7: the pieces lie open on the page; each fetches its data as the reader comes within half a screen of it)
+  await page.locator('#hood-mask').scrollIntoViewIfNeeded();
+  await expect(page.locator('#hood-mask ol').first()).toBeVisible();
   expect(urls.filter(isCraft).map((u) => new URL(u).pathname)).toContain('/craft/mask.json');
-  expect(urls.filter((u) => /\/craft\/(lineage|eval)\.json/.test(u))).toEqual([]);
 });
 
 test('the status line says the bytes it measured; no request carries what is typed', async ({ page }) => {
   await open(page);
   const seen: Array<{ url: string; method: string; body: string | null }> = [];
   page.on('request', (r) => seen.push({ url: r.url(), method: r.method(), body: r.postData() }));
-  const typed = 'lineage';
+  // (a word no address of the site holds: the pieces' own JSON and a result's page are fetched in this session too)
+  const typed = 'insurers';
   await box(page).fill(typed);
   const status = page.getByRole('status').filter({ hasText: 'downloaded' });
   await expect(status).toHaveText(/downloaded [1-9]\d* KB from this site · nothing you type is sent anywhere/);
@@ -131,11 +121,11 @@ test.describe('on a phone with the keyboard up (390 × 460)', () => {
   });
 });
 
-test('axe finds nothing on Work, folds open', async ({ page }) => {
+test('axe finds nothing on Work, its live pieces loaded', async ({ page }) => {
   await open(page);
   await box(page).fill('lineage');
-  for (const k of ['lineage', 'mask', 'eval']) await page.locator(`#hood-${k} summary`).click();
-  await expect(page.locator('#hood-eval table')).toBeVisible();
+  for (const k of ['mask', 'eval', 'lineage']) await page.locator(`#hood-${k}`).scrollIntoViewIfNeeded();
+  await expect(page.locator('#hood-eval ol').first()).toBeVisible();
   await expect(page.locator('#hood-lineage svg')).toBeVisible();
   const require = createRequire(import.meta.url);
   await page.addScriptTag({ path: require.resolve('axe-core/axe.min.js') });

@@ -61,7 +61,10 @@ export async function WorkIndex() {
             return (
               // the row keeps the case's old anchor (/work/#rag-assistant), so links from before land here
               <li className={`${styles.project} ink-row`} key={c.slug} id={c.slug}>
-                <p className={projected ? `num ${styles.numeral} ${styles.outline}` : `num ${styles.numeral}`} aria-hidden="true">
+                <p
+                  className={projected ? `num ${styles.numeral} ${styles.outline}` : `num ${styles.numeral}`}
+                  aria-hidden="true"
+                >
                   {f.lead ? <span className="num__lead">{f.lead}</span> : null}
                   {f.value}
                 </p>

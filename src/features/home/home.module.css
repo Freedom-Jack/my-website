@@ -91,7 +91,10 @@
 /* a projection: the numeral's outline, never filled ink */
 .projected {
   color: transparent;
-  -webkit-text-stroke: 1.5px var(--ink-2);
+  -webkit-text-stroke: 2px var(--ink-1);
+}
+.projected :global(.num__lead) {
+  -webkit-text-stroke: 0;
 }
 @media (forced-colors: active) {
   .projected {

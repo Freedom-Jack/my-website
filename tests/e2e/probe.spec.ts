@@ -302,8 +302,10 @@ test.describe('a phone, an inner page', () => {
       const { reqs } = watchRequests(page);
       await page.goto('/work/');
       await expect(page.locator('[data-landscape="strip"] .strip__fallback')).toBeVisible();
+      // (the strip's own still; round 7: without JavaScript a browser also fetches the ending's and the tail's
+      // lazy pictures at once, which are not the first screen's)
       await expect
-        .poll(() => reqs.filter((r) => /\/scenes\/hero\//.test(r.url)).map((r) => r.url.replace(/^.*\//, '')))
+        .poll(() => reqs.filter((r) => /\/scenes\/hero\/work-phone/.test(r.url)).map((r) => r.url.replace(/^.*\//, '')))
         .toEqual(['work-phone@2x.webp']);
     });
   });

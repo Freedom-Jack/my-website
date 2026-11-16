@@ -25,7 +25,7 @@
   align-items: flex-end;
   gap: var(--space-s);
   background: url('../../styles/svg/stroke-a.svg') left bottom / 100% 0.55rem no-repeat;
-  padding-block-end: 0.45rem;
+  padding-block-end: 0.75rem; /* (the stroke lies under the box, never in it) */
 }
 .field:focus-within {
   box-shadow: 0 2px 0 var(--jade);
@@ -178,6 +178,16 @@
 }
 .pieceBody > * + * {
   margin-block-start: var(--space-s);
+}
+/* a piece keeps about its loaded height from the start, so the page under it does not move when its data arrives */
+.pieceBody[data-piece='mask'] {
+  min-block-size: 34rem;
+}
+.pieceBody[data-piece='eval'] {
+  min-block-size: 23rem;
+}
+.pieceBody[data-piece='lineage'] {
+  min-block-size: 31rem;
 }
 @media (min-width: 40rem) and (max-width: 74.99rem) {
   .pieces > .pieceEval,

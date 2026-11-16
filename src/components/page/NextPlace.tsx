@@ -46,10 +46,14 @@ export function NextPlace({ page }: { page: PageId }) {
       </p>
       {/* below 1200 px no stage stands behind the page: the next place's own first frame (the hero still build:heroes
           cuts) lies under its name instead, the screen's width; fetched only as the ending nears. Art only. */}
-      <picture className="next__still" aria-hidden="true">
+      <picture className="next__still">
         <source media="(min-width: 75rem)" srcSet={BLANK} />
-        <source media="(min-width: 40rem)" srcSet={`/scenes/hero/${next.page}-tablet@1x.webp`} width={1000} height={220} />
-        {/* eslint-disable-next-line @next/next/no-img-element -- a static WebP the heroes tool cut; lazy */}
+        <source
+          media="(min-width: 40rem)"
+          srcSet={`/scenes/hero/${next.page}-tablet@1x.webp`}
+          width={1000}
+          height={220}
+        />
         <img
           src={`/scenes/hero/${next.page}-phone@2x.webp`}
           alt=""

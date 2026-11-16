@@ -29,14 +29,13 @@ export function EvalFold({ data }: { data: Data }) {
   // each question's rank as run here (undefined: not yet run); the build's, where no run is possible
   const [ranks, setRanks] = useState<(number | undefined)[]>(() => data.rows.map(() => undefined));
   const [ms, setMs] = useState<number | null>(null);
-  const [state, setState] = useState<'waiting' | 'running' | 'ran' | 'build'>('waiting');
+  const [state, setState] = useState<'waiting' | 'ran' | 'build'>('waiting');
   const [pick, setPick] = useState<number | null>(null);
 
   useEffect(() => {
     if (!seen || state !== 'waiting') return;
     let dead = false;
     const timers: ReturnType<typeof setTimeout>[] = [];
-    setState('running');
     void (async () => {
       try {
         const [mod, corpus] = await Promise.all([
@@ -122,7 +121,7 @@ export function EvalFold({ data }: { data: Data }) {
           <span className="mono">
             {state === 'ran' && ms !== null
               ? fill(w.ran, { n: data.n, ms })
-              : state === 'running'
+              : seen && state === 'waiting'
                 ? fill(w.running, { n: data.n })
                 : ' '}
           </span>

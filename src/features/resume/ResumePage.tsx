@@ -96,7 +96,11 @@ export function ResumePage() {
           </p>
         </div>
 
-        <section className={`sec ${styles['cv-sec']} ${styles.summary}`} aria-labelledby="cv-summary-title" data-veil="">
+        <section
+          className={`sec ${styles['cv-sec']} ${styles.summary}`}
+          aria-labelledby="cv-summary-title"
+          data-veil=""
+        >
           <h2 className="sec__title h-ink" id="cv-summary-title">
             {t.sections.summary}
           </h2>
@@ -110,30 +114,35 @@ export function ResumePage() {
           <h2 className="sec__title h-ink" id="cv-exp-title">
             {t.sections.experience}
           </h2>
-          <ol className={styles.timeline} role="list">
-            {r.work.map((w) => (
-              <li className={styles.timeline__entry} key={`${w.position}-${w.startDate}`}>
-                <h3 className={`sec__sub ${styles.timeline__role}`}>
-                  <span className={styles.timeline__years}>
-                    <Dates start={w.startDate} end={w.endDate} />
-                  </span>
-                  <span className={styles.timeline__dot}>{' · '}</span>
-                  <span className={styles.timeline__what}>
-                    {w.position}
-                    {' · '}
-                    <span className={styles.timeline__org}>{w.name}</span>
-                  </span>
-                </h3>
-                <ul className={styles.timeline__points} role="list">
-                  {w.highlights.map((h) => (
-                    <li key={h}>
-                      <Inline text={h} />
-                    </li>
-                  ))}
-                </ul>
-              </li>
-            ))}
-          </ol>
+          {/* (the line the reading draws and each role's mark: empty elements, screen only) */}
+          <div className={styles.timeline__wrap}>
+            <span className={styles.timeline__line} aria-hidden="true" />
+            <ol className={styles.timeline} role="list">
+              {r.work.map((w) => (
+                <li className={styles.timeline__entry} key={`${w.position}-${w.startDate}`}>
+                  <span className={styles.timeline__mark} aria-hidden="true" />
+                  <h3 className={`sec__sub ${styles.timeline__role}`}>
+                    <span className={styles.timeline__years}>
+                      <Dates start={w.startDate} end={w.endDate} />
+                    </span>
+                    <span className={styles.timeline__dot}>{' · '}</span>
+                    <span className={styles.timeline__what}>
+                      {w.position}
+                      {' · '}
+                      <span className={styles.timeline__org}>{w.name}</span>
+                    </span>
+                  </h3>
+                  <ul className={styles.timeline__points} role="list">
+                    {w.highlights.map((h) => (
+                      <li key={h}>
+                        <Inline text={h} />
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
+            </ol>
+          </div>
         </section>
 
         <Glimpse still="resume-1" />
@@ -152,47 +161,47 @@ export function ResumePage() {
         </section>
 
         <div className={styles.pair}>
-        <section className={`sec ${styles['cv-sec']}`} aria-labelledby="cv-edu-title" data-veil="">
-          <h2 className="sec__title h-ink h-ink--s" id="cv-edu-title">
-            {t.sections.education}
-          </h2>
-          {r.education.map((e) => (
-            <Fragment key={e.institution}>
-              <p className={styles['cv-edu']}>
-                <b>{e.institution}</b>
-                {e.location ? `, ${e.location}` : ''}. {e.degree},{' '}
-                <span className="nowrap">
-                  <time dateTime={e.startDate.slice(0, 4)}>{e.startDate.slice(0, 4)}</time> –{' '}
-                  <time dateTime={e.endDate.slice(0, 4)}>{e.endDate.slice(0, 4)}</time>
-                </span>
-                .
-              </p>
-              {e.score || e.honors?.length ? (
-                <p className={styles['cv-edu__detail']}>
-                  {[e.score ? `GPA ${e.score}` : null, ...(e.honors ?? [])].filter(Boolean).join(' · ')}
+          <section className={`sec ${styles['cv-sec']}`} aria-labelledby="cv-edu-title" data-veil="">
+            <h2 className="sec__title h-ink h-ink--s" id="cv-edu-title">
+              {t.sections.education}
+            </h2>
+            {r.education.map((e) => (
+              <Fragment key={e.institution}>
+                <p className={styles['cv-edu']}>
+                  <b>{e.institution}</b>
+                  {e.location ? `, ${e.location}` : ''}. {e.degree},{' '}
+                  <span className="nowrap">
+                    <time dateTime={e.startDate.slice(0, 4)}>{e.startDate.slice(0, 4)}</time> –{' '}
+                    <time dateTime={e.endDate.slice(0, 4)}>{e.endDate.slice(0, 4)}</time>
+                  </span>
+                  .
                 </p>
-              ) : null}
-            </Fragment>
-          ))}
-        </section>
+                {e.score || e.honors?.length ? (
+                  <p className={styles['cv-edu__detail']}>
+                    {[e.score ? `GPA ${e.score}` : null, ...(e.honors ?? [])].filter(Boolean).join(' · ')}
+                  </p>
+                ) : null}
+              </Fragment>
+            ))}
+          </section>
 
-        <section className={`sec ${styles['cv-sec']}`} aria-labelledby="cv-certs-title" data-veil="">
-          <h2 className="sec__title h-ink h-ink--s" id="cv-certs-title">
-            {t.sections.certifications}
-          </h2>
-          <ul className={`rows rows--plain ${styles['cv-certs']}`} role="list">
-            {r.awards.map((a) => (
-              <li key={`${a.title}-${a.date}`}>
-                {a.title} ({a.date.slice(0, 4)}){a.note ? `, ${a.note}` : ''}
-              </li>
-            ))}
-            {r.certificates.map((c) => (
-              <li key={c.name}>
-                {c.name} ({c.date.slice(0, 4)})
-              </li>
-            ))}
-          </ul>
-        </section>
+          <section className={`sec ${styles['cv-sec']}`} aria-labelledby="cv-certs-title" data-veil="">
+            <h2 className="sec__title h-ink h-ink--s" id="cv-certs-title">
+              {t.sections.certifications}
+            </h2>
+            <ul className={`rows rows--plain ${styles['cv-certs']}`} role="list">
+              {r.awards.map((a) => (
+                <li key={`${a.title}-${a.date}`}>
+                  {a.title} ({a.date.slice(0, 4)}){a.note ? `, ${a.note}` : ''}
+                </li>
+              ))}
+              {r.certificates.map((c) => (
+                <li key={c.name}>
+                  {c.name} ({c.date.slice(0, 4)})
+                </li>
+              ))}
+            </ul>
+          </section>
         </div>
 
         <footer className={styles['cv-print-foot']}>
