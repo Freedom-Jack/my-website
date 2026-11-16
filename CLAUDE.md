@@ -33,7 +33,7 @@ check, unit tests, stills check) · `npm run test:e2e` (needs a build on port 31
 `npm run check:links` · `npm run check:budgets` (the HTML gate, Lighthouse and the phone profile against the
 budgets; `-- --write` stamps the tail, the local release step) · `npm run build:pdf` · `npm run build:stills` ·
 `npm run build:heroes` · `npm run build:og` · `npm run build:ask` (the ask line's index; needs the build served) ·
-`npm run preview` (the QA build with the switch panel, on port 3105; it only says so when one is already running
+`npm run preview` (the QA build with the switch panel, on port 3106; it only says so when one is already running
 there). The table in README.md says what each does.
 
 ## How the code is organised

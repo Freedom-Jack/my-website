@@ -68,7 +68,9 @@ src/components/          shared building blocks
                          ending: the next place's name inked into the painting; below 1200 px over that place's own
                          picture), Closing (its end scene), Glimpse (an empty depth band at a section break, painted
                          below 1200 px)
-  ui/                    Seal, TextAction (the one action on a screen, with its drawn arrow), MarginNote, Diagram
+  ui/                    Seal, TextAction (the one action on a screen, with its drawn arrow), MarginNote, Diagram,
+                         LazyIsland (a server-rendered shell that takes its client code only as the reader
+                         nears it: Ask, the search)
 src/features/            one folder per feature, each owning its components, logic and CSS Module
   landscape/             the painting: places.ts (where each page stands), Landscape.tsx (the one persistent
                          canvas), elements.ts (THE switch table of Spring ink's elements and scroll motion),

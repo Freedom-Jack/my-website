@@ -1154,7 +1154,8 @@ Nothing here changes a hard rule of §2. **It waits for Jack's verdict.**
   torn edges left scraps of mountain between neighbours.) The first screen keeps round 6's patches untouched.
 - **Words inked into the painting** (`.inked`): the plates stand in two leaves (what lies behind the place; the
   place and what is in front of it) and a page's display words stand between them, so a peak or a roof passes in
-  front of the letters: every page's ending (the next place's name, large) and a project page's figure.
+  front of the letters: every page's ending (the next place's name, large) and a project page's figure. The mist
+  opens round such words (`veils.ts`, the clearings), so a neighbour's cloud never greys a letter of them.
 - **What moves is ink, wash, mist, paper or the seal.** Section titles in the name face with a dry-brush rule that
   draws itself; figures as ink numerals that rise as they come up the screen (a projection is an outline under its
   "Projected" label, never filled ink); a blot of wet ink under the pointer on a row; the seal pressed when something
@@ -1168,9 +1169,12 @@ Nothing here changes a hard rule of §2. **It waits for Jack's verdict.**
   - Work: six rows with ink figures; How I build beside its wide drawing; **Under the hood out of its folds**: a
     grammar writing a case record token by token (the forbidden tokens struck with a brush), the search's test run
     again in the reader's browser (a mark per question), the search, the lineage drawing itself; In the open.
-  - A project page: the summary set large, **its figure inked into the painting behind the town's roofs**, the
-    drawing, the labelled body with its margin notes, and the live piece tied to it (the grammar on the agent's
-    page, the search and its test on the assistant's, the lineage on the data operations').
+  - A project page: the summary set large and beside it **its figure, one numeral in full view that the scroll
+    takes into the painting**: it goes into the mist at the town's shore and rises again behind the roofs (two
+    copies: one in front whose soft edge stays on the shore's line, its twin between the leaves; at first the only
+    copy stood behind the place, so the numeral showed for two seconds while the still stood and then vanished);
+    the drawing, the labelled body with its margin notes, and the live piece tied to it (the grammar on the
+    agent's page, the search and its test on the assistant's, the lineage on the data operations').
   - Writing: the note opened out, with its own comparison turned aspect by aspect. The note: its quotation set
     large, its comparison the frame's width, the brush stroke along the top edge that fills as it is read.
   - Résumé: on screen a timeline the reading draws, skills in four columns, education beside the awards; every
@@ -1181,12 +1185,21 @@ Nothing here changes a hard rule of §2. **It waits for Jack's verdict.**
     marked), the colophon and the build stamp at the left, Still, the email and the seal at the right.
   - Below 1200 px: the same sections stacked, the windows into the painting between them, and each page ends on
     the next place's own picture under its name.
-- **Measured** (real Chrome, 1728 × 994, the production build): scrolling any page 0 to 5 % GPU, no frame over
-  20 ms (the live site: 21 to 23 %). Lighthouse's phone profile (simulated, median of 5): Work 1.05 s, Writing and
-  Contact 2.38 s, the Résumé 2.45 s; Home, a project page and the note give 2.1 s or 2.6 s from run to run, as
-  round 6's build does on the same machine (the simulation flips on pages whose LCP is the inline still). To hold
-  that, the plates' and veils' code now loads with the engine, and the tail's and the ending's pictures get their
-  sources only as the reader nears them.
+- **Measured** on the last build (the production build, this Mac):
+  - Scrolling, real Chrome at 1728 × 994: 0 % GPU on every page (Work 6 % on the way down), no frame over 20 ms
+    (the live site: 21 to 23 %).
+  - A phone, throttled (390 × 844, CPU 4× slower, slow 4G; `check:budgets`' phone run, what the page really
+    did): the words at 0.64 to 0.68 s on every page, the largest paint at 0.65 to 1.13 s, no task over 58 ms,
+    CLS 0, scrolling at a p95 of 16.7 ms.
+  - Lighthouse's own phone simulation (median of 5): Work 1.05 s, Writing and Contact 2.38 s, Home and the Résumé
+    2.45 s, the note 2.53 s, a project page 2.60 s. Where the LCP is the inline still the simulation lands in one
+    of two modes about 0.5 s apart from run to run (2.1 or 2.6 s on a project page); round 6's build on the same
+    machine gave Home 2.57 s, a project page 2.45 s, the note 2.53 s.
+  - To hold that, the plates' and veils' code loads with the engine, the tail's and the ending's pictures get
+    their sources only as the reader nears them, Ask and the search are server-rendered shells that take their
+    code as the reader nears them (`components/ui/LazyIsland`), and the two brush strokes are inline in the
+    stylesheet. The Vanguard byte gates are no longer CI's (round 6): Work's and the assistant's HTML are 30.6
+    and 31.3 KB gzip against the old 30 KB.
 - **Tests:** `npm run ci` green; 86 browser tests green (a smoke test per route with the hard rules, axe, tap
   targets, the probe, the craft, the windows). Tests that guarded the folds, Writing's own end window and the
   no-JS fetch list follow what changed on purpose.
