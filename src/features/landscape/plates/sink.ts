@@ -29,7 +29,7 @@
 import type { PlateGeometry, PlateKind, PlateSink } from '../types';
 import { alphaCanvas, EDGE_L, WISP_W, wispAlpha } from './edges';
 
-const KINDS: PlateKind[] = [1, 2, 3, 4, 5];
+const KINDS: PlateKind[] = [1, 2, 3, 4, 5, 7, 8, 9];
 /** One period of the paper's grain, CSS px (the engine's: 512 grain texels of 1 CSS px, at most 2 device px each). */
 const tileSize = () => 512 * Math.min(1, 2 / Math.max(1, devicePixelRatio || 1));
 
@@ -43,11 +43,33 @@ export interface PlateStage extends PlateSink {
   destroy(): void;
 }
 
-/** Each plate's keyframes for a geometry: a list of [progress 0..1, x px, y px] (the scroll's progress over the page). */
-function motionOf(g: PlateGeometry, kind: PlateKind): [number, number, number][] {
+/** A keyframe of a layer's motion: the scroll's progress over the page, where it stands (px) and how strong it is. */
+type Key = [p: number, x: number, y: number, opacity?: number];
+
+/** Each plate's keyframes for a geometry. */
+function motionOf(g: PlateGeometry, kind: PlateKind): Key[] {
   if (g.still || kind === 5) return [[0, 0, 0]];
   if (g.motion === 'unroll') return [[0, 0, 0], [1, -g.travel, 0]];
-  return [[0, 0, 0]];
+  const F = g.camera;
+  if (!F || F.length < 2) return [[0, 0, 0]];
+  // the camera's travel: the engine's own choreography, sample by sample
+  if (kind === 9) return F.map((f): Key => [f.p, f.layers[0][0], f.layers[0][1]]); // (the ribbon rides the far layer)
+  if (kind <= 3) return F.map((f): Key => [f.p, f.layers[kind - 1][0], f.layers[kind - 1][1]]);
+  if (kind === 4) return F.map((f): Key => [f.p, f.layers[1][0], f.sea]); // (its billows ride with the middle layer)
+  if (kind === 7) return F.map((f): Key => [f.p, 0, f.haze[0], f.haze[1]]);
+  return F.map((f): Key => [f.p, 0, f.cloud[0], f.cloud[1]]);
+}
+/** The camera's curtain (a place with an anchor: Work): its line where it stands once the place has stepped, and how
+ *  far from there it stands at each sample (it comes in from the west under the cloud, and clears away west again
+ *  at the end: the bridge comes out of the mist). */
+function curtainOf(g: PlateGeometry): { at: number; keys: Key[] } | null {
+  const F = g.camera;
+  if (g.still || g.motion !== 'camera' || !F) return null;
+  let at = -1;
+  let best = 0;
+  for (const f of F) if (f.curtain[1] > best) [best, at] = [f.curtain[1], f.curtain[0]];
+  if (at < 0 || best < 0.5) return null;
+  return { at, keys: F.map((f): Key => [f.p, f.curtain[1] > 0.02 ? f.curtain[0] - at : -at - 400, 0, Math.min(1, f.curtain[1] * 1.3)]) };
 }
 
 export function createPlateStage(root: HTMLElement): PlateStage {
@@ -83,7 +105,10 @@ export function createPlateStage(root: HTMLElement): PlateStage {
       if (old) setTimeout(() => URL.revokeObjectURL(old), 2000);
     });
   }
-  const anims = new Map<PlateKind, Animation>();
+  const anims = new Map<PlateKind | string, Animation>();
+  const front = root.querySelector<HTMLElement>('.plates__front');
+  const inner = root.querySelector<HTMLElement>('.plates__in');
+  const wisp = root.querySelector<HTMLElement>('.plates__wisp');
   const listeners = new Set<(g: PlateGeometry) => void>();
   let geometry: PlateGeometry | null = null;
   let dead = false;
@@ -112,21 +137,25 @@ export function createPlateStage(root: HTMLElement): PlateStage {
     addEventListener('resize', onScroll, { passive: true });
   }
 
-  function setMotion(kind: PlateKind, frames: [number, number, number][]) {
-    const c = canvases.get(kind);
-    if (!c) return;
-    anims.get(kind)?.cancel();
-    anims.delete(kind);
-    if (frames.length < 2) return;
-    const kf = frames.map(([offset, x, y]) => ({ offset, transform: `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0)` }));
+  /** Give an element its motion along the page's scroll (transform, and opacity where the keys carry one). */
+  function setMotion(id: PlateKind | string, el: HTMLElement | undefined | null, keys: Key[], flip = false) {
+    anims.get(id)?.cancel();
+    anims.delete(id);
+    if (!el || keys.length < 2) return;
+    const fade = keys.some((k) => k[3] !== undefined);
+    const kf = keys.map(([offset, x, y, o]) => ({
+      offset: Math.min(1, Math.max(0, offset)),
+      transform: `translate3d(${((flip ? -1 : 1) * x).toFixed(2)}px, ${((flip ? -1 : 1) * y).toFixed(2)}px, 0)`,
+      ...(fade && !flip ? { opacity: String(Math.min(1, Math.max(0, o ?? 1))) } : {}),
+    }));
     try {
       const a = timeline
-        ? c.animate(kf, { timeline, fill: 'both', easing: 'linear' } as KeyframeAnimationOptions)
-        : c.animate(kf, { duration: SPAN, fill: 'both', easing: 'linear' });
+        ? el.animate(kf, { timeline, fill: 'both', easing: 'linear' } as KeyframeAnimationOptions)
+        : el.animate(kf, { duration: SPAN, fill: 'both', easing: 'linear' });
       if (!timeline) a.pause();
-      anims.set(kind, a);
+      anims.set(id, a);
     } catch {
-      /* no Web Animations: the plate holds the hero pose */
+      /* no Web Animations: the layer holds the hero pose */
     }
   }
 
@@ -166,11 +195,18 @@ export function createPlateStage(root: HTMLElement): PlateStage {
         c.style.top = `${b[1]}px`;
         c.style.width = `${b[2]}px`;
         c.style.height = `${b[3]}px`;
-        setMotion(k, motionOf(g, k));
+        setMotion(k, c, motionOf(g, k));
       }
-      // the standing curtain: left of it the middle and near plates are in mist
-      if (g.curtain >= 0) root.style.setProperty('--curtain', `${g.curtain}px`);
-      root.toggleAttribute('data-curtain', g.curtain >= 0);
+      // the curtain: left of its line the middle and near plates are in mist. The unroll's stands; the camera's (a
+      // place with an anchor) comes in from the west and clears away again: its clip and its wisp move together, and
+      // the plates inside the clip move back by as much, so only the line travels
+      const cam = curtainOf(g);
+      const at = cam ? cam.at : g.curtain;
+      if (at >= 0) root.style.setProperty('--curtain', `${at}px`);
+      root.toggleAttribute('data-curtain', at >= 0);
+      setMotion('curtain', front, cam ? cam.keys.map((k): Key => [k[0], k[1], 0]) : []);
+      setMotion('curtain-in', inner, cam ? cam.keys.map((k): Key => [k[0], k[1], 0]) : [], true);
+      setMotion('wisp', wisp, cam ? cam.keys : []);
       root.dataset.motion = g.still ? 'still' : g.motion;
       root.dataset.stretch = String(g.stretch);
       if (!timeline) onScroll();

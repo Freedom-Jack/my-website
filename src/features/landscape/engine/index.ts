@@ -36,7 +36,7 @@ import type { Distance, Framing, Resolved, Spec, WidthClass, WindowKind } from '
 import type { FigureMeta, LifeKind, LifeOut, Pt } from './figures';
 import type { FigureImage, FigureSlot, LifeTable, PresentGlimpse, PresentU, PresentWindow, Renderer, SceneBase, StageU } from './renderer';
 import { elementOn } from '../elements';
-import type { LandscapeHandle, LandscapeStats, LandscapeTargets, Mode, MountOptions, PanOptions, PlateBox, PlateGeometry, PlateKind } from '../types';
+import type { LandscapeHandle, LandscapeStats, LandscapeTargets, Mode, MountOptions, PanOptions, PlateBox, PlateFrame, PlateGeometry, PlateKind } from '../types';
 import { LIGHTS } from './lights';
 
 // (the figure sets are the worker's: the main thread keeps their metas only, figure-meta.ts; the fallback without a
@@ -1054,6 +1054,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
   const plateLast = new Map<PlateKind, number[]>();   // the part of each plate repainted last (plate px)
   let plateLifeCss: number[] | null = null;           // where the free life lies on the screen at the page's top (CSS px)
   let platePin = false;                                // something is pinned to the frame
+  let plateRibbon = false;                             // the silk ribbon turns on the far plate
   const plateCounts = { developed: 0, parts: 0, px: 0 };
 
   // ---------------------------------------------------------------- life that answers you (elements.ts)
@@ -1793,21 +1794,22 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
   // read them). The camera's progress follows the scroll and settles (prog = 1 - (1 - s/reach)^ease, s = viewports
   // scrolled; still once s >= reach) and comes back down as the closing comes up, ending exactly at the page's end
   // whatever the viewport. Reduced motion and still: one quiet change at half a viewport (and back at the end).
-  function readStage() {
+  function readStage(yAt?: number) {
     placeT();
-    const y = window.scrollY || 0;
+    // (yAt: the pose at another scroll position than the page's own: THE PLATES sample the camera's travel with it)
+    const yReal = window.scrollY || 0, y = yAt ?? yReal;
     const vh = cssH || innerHeight || 1;
     const s = wins[0], c = wins[1];
     st.stripVis = s.vis;
     st.y = y;
-    if (s.box) { st.topDoc = s.box.top + y; st.bottomDoc = s.box.top + s.box.height + y; }
+    if (s.box) { st.topDoc = s.box.top + yReal; st.bottomDoc = s.box.top + s.box.height + yReal; }
     let sv = Math.max(0, y / vh);
     let desc = 0, f = 1, p = 0;
     st.endSink = st.endMid = st.jump = 0;
     const maxYAll = Math.max(0, document.documentElement.scrollHeight - innerHeight);
     pageMaxY = maxYAll;
     st.span = 0;
-    if (platesOn()) {
+    if (platesOn() && yAt === undefined) {
       // THE PLATES: the stage is developed at the hero pose whatever the scroll; the scroll's motion is the page's own
       st.descP = 0; st.liftF = 1;
       st.descT = st.progT = st.stairT = st.cloudT = st.midT = st.jumpT = st.hideT = st.slideT = 0;
@@ -1830,7 +1832,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     }
     if (c.box && T.descend > 0) {
       const maxY = maxYAll;
-      const ctEnd = c.box.top - (maxY - y);           // the closing's top once the page is at its end
+      const ctEnd = c.box.top - (maxY - yReal);       // the closing's top once the page is at its end
       // the end pose wanted: the opening composition lowered so its strip's bottom edge lies on the closing's bottom edge
       const E0 = Math.max(0, (ctEnd + c.box.height) - (st.bottomDoc)) / vh;
       const D0 = Math.min(T.sink[0], T.sink[1], T.sink[2]);
@@ -2357,7 +2359,8 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
   function spawnStir(x: number, y: number, kind: number, now: number) {
     const h = lifeHit;
     if (!h || !(el('stir'))) return false;
-    const u = (x - rect.left) / (cssW || 1), v = 1 - (y - rect.top) / (cssH || 1);
+    // (THE PLATES: the stage stands at the hero pose in the engine; on the screen the page's scroll has carried it west)
+    const u = (x - rect.left + plateSlide()) / (cssW || 1), v = 1 - (y - rect.top) / (cssH || 1);
     const c = h.clip;
     if (u < c[0] || u > c[2] || v < c[1] || v > c[3] || !waterAt(h, u, v)) return false;
     const w = h.inv(u, v);
@@ -2428,6 +2431,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
   const onPointer = (e: PointerEvent) => {
     onInput();
     pointerLife(e);
+    if (platesShown) wake.inWin = true;   // (THE PLATES: no wake, but the pointer is over the painting: the water may be stirred)
     if (e.pointerType === 'touch' || !wakeOn()) return;
     wake.tx = e.clientX;
     wake.ty = e.clientY;
@@ -3451,13 +3455,27 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
    *  curtain, or off the screen's edge); what is pinned to the frame is always there. */
   function plateLifeSeen() {
     if (platePin || !unrollOn()) return true;
+    if (plateRibbon) { const rb = ribbonBox(); if (rb && plateSeenX(rb[0] * cssW, rb[2] * cssW)) return true; }
     return plateFreeSeen();
   }
+  /** How far west the page's scroll has carried the plates now (CSS px; the unroll). */
+  function plateSlide() {
+    if (!platesShown || !unrollOn() || quantized()) return 0;
+    return -st.slidePx * clamp01((window.scrollY || 0) / Math.max(1, pageMaxY));
+  }
+  /** Is a box of the stage (screen CSS px at the page's top: x0, x1) on screen now, right of the curtain? */
+  const plateSeenX = (x0: number, x1: number) => { const sl = plateSlide(); return x1 - sl > Math.max(0, st.curtX > 0 && unrollOn() ? st.curtX - 72 : 0) && x0 - sl < cssW; };
   function plateFreeSeen() {
     if (!plateLifeCss) return false;
-    if (!unrollOn()) return true;
-    const slide = -st.slidePx * clamp01((window.scrollY || 0) / Math.max(1, pageMaxY));
-    return plateLifeCss[2] - slide > Math.max(0, st.curtX > 0 ? st.curtX - 60 : 0) && plateLifeCss[0] - slide < cssW;
+    return plateSeenX(plateLifeCss[0], plateLifeCss[2]);
+  }
+  /** The silk ribbon's band on the far plate (canvas uv: x0, y0, x1, y1), Home's hero only (shaders.ts EL_RIBBON:
+   *  from behind the host peak through the light, 0.47 scene units either side of it). */
+  function ribbonBox(): number[] | null {
+    if (!el('ribbon') || Math.round(stretch) !== 0 || quantized()) return null;
+    const M = st.view, L = LIGHTS[0];
+    const ux = (u: number) => (u * HS - M[0]) / M[3], uy = (y: number) => 1 - (M[1] - y) / M[2];
+    return [ux(L[0] - 0.28), uy(L[1] - 0.24), ux(L[0] + 0.345), uy(L[1] + 0.115)];
   }
   /** A plate: its box on the screen at the page's top (CSS px), its window in canvas uv, its size in buffer px. */
   interface Plate { kind: PlateKind; css: PlateBox; uv: [number, number, number, number]; px: [number, number] }
@@ -3479,6 +3497,20 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       if (top < cssH - 2) out.push(P(4, 0, top, wx, cssH - top));
     }
     if (pin) out.push(P(5, pin[0], pin[1], pin[2], pin[3]));
+    // the silk ribbon's band (Home): a plate of its own over the far one, so the far plate stays as it was developed
+    const rb = ribbonBox();
+    if (rb) {
+      const l = Math.max(0, Math.floor(rb[0] * cssW)), r = Math.min(unroll ? wx : cssW, Math.ceil(rb[2] * cssW));
+      const t = Math.max(0, Math.floor((1 - rb[3]) * vh)), b = Math.min(cssH, Math.ceil((1 - rb[1]) * vh));
+      if (r > l && b > t) out.push(P(9, l, t, r - l, b - t));
+    }
+    if (!unroll && !quantized()) {
+      // the camera's travel: the haze deck between the far and the middle layers, where it stands once the camera has
+      // settled (the page lowers it to its rest and lets it in with the lift), and the cloud bank a place's step is
+      // taken in, from just above the middle layer's crests (the page moves it with them)
+      if (T.hazeK > 0) { const top = Math.max(0, Math.floor((T.haze - T.soft * 0.7 - T.billow * 1.2) * vh) - 4); out.push(P(7, 0, top, cssW, cssH - top)); }
+      if (T.cloud > 0) { const top = Math.max(0, Math.floor((st.crest / vh - 0.03 - 0.09) * vh) - 4); out.push(P(8, 0, top, cssW, cssH - top)); }
+    }
     return out;
   }
   function plateCanvas(kind: PlateKind) {
@@ -3538,9 +3570,52 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     return {
       width: cssW, height: cssH, ext: Math.round(st.ext * 100) / 100, boxes, stretch: k, motion: unroll ? 'unroll' : 'camera',
       travel: unroll ? Math.max(0, Math.round(-st.slidePx * 100) / 100) : 0,
-      camera: unroll ? null : { sink: [T.sink[0], T.sink[1], T.sink[2]], reach: T.reach, ease: T.ease, sea: seaSink() },
+      camera: unroll || quantized() ? null : cameraFrames(),
       curtain: unroll ? Math.round(st.curtX) : -1, light, still: quantized(),
     };
+  }
+  /** THE CAMERA'S TRAVEL on the plates: the stage's pose read off at samples of the page's scroll (the engine's own
+   *  choreography: the lift, a place's sideways step under its cloud, the stairs, the descent), which the page turns
+   *  into each plate's keyframes. The samples are closer where the pose moves: over the lift and over the descent. */
+  let camKey = '', camFrames: PlateFrame[] = [];
+  function cameraFrames(): PlateFrame[] {
+    const vh = cssH || 1, maxY = Math.max(1, pageMaxY);
+    const key = [Math.round(stretch * 100), cssW, cssH, Math.round(maxY), Math.round(st.bottomDoc), Math.round(st.slidePx), Math.round(st.curtX), wins[1].box ? Math.round(wins[1].box.height) : 0].join('|');
+    if (key === camKey) return camFrames;
+    camKey = key;
+    const ys = new Set<number>([0, maxY]);
+    const lift = Math.min(maxY, (T.reach + 0.3) * vh * 1.2), tail = Math.max(0, maxY - 1.7 * vh);
+    for (let i = 1; i <= 36; i++) ys.add(Math.round((lift * i) / 36));
+    for (let i = 0; i <= 36; i++) ys.add(Math.round(tail + ((maxY - tail) * i) / 36));
+    for (let i = 1; i < 24; i++) ys.add(Math.round((maxY * i) / 24));
+    const list = [...ys].filter((y) => y >= 0 && y <= maxY).sort((a, b) => a - b);
+    const snap = () => { st.prog = st.progT; st.desc = st.descT; st.slideK = st.slideT; st.stairK = st.stairT; st.cloudK = st.cloudT; st.midK = st.midT; st.jumpK = st.jumpT; st.hideK = st.hideT; st.revK = st.revT; };
+    platesHold = true;
+    let rest: { sea: number; ctop: number } | null = null;
+    const out: PlateFrame[] = [];
+    for (const y of list) {
+      readStage(y);
+      snap();
+      stageU();
+      const o = st.offsets;
+      const surf = 1 - st.sea[0], hz = 1 - st.sea[2], ctop = 1 - st.cloud[1];
+      rest ??= { sea: surf, ctop };
+      const r = (v: number) => Math.round(v * 100) / 100;
+      out.push({
+        p: y / maxY,
+        layers: [[r(o[0] * cssW), r(o[1] * vh)], [r(o[4] * cssW), r(o[5] * vh)], [r(o[8] * cssW), r(o[9] * vh)]],
+        sea: r((surf - rest.sea) * vh),
+        haze: [r((hz - T.haze) * vh), T.hazeK > 0 ? r(st.k[3] / T.hazeK) : 0],
+        cloud: [r((ctop - rest.ctop) * vh), r(st.cloud[0])],
+        curtain: [r(st.curt[0] * cssW), r(st.curt[1])],
+      });
+    }
+    platesHold = false;
+    readStage();   // (back to the hero pose the plates are developed at)
+    snap();
+    stageU();
+    camFrames = out;
+    return out;
   }
   /** Leaving the plates (a pan starts): the stage takes the pose the page's scroll has given them, so the first frame
    *  laid on this canvas is the picture on screen. */
@@ -3581,14 +3656,28 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     plateLifeCss = u ? [u[0] * cssW, (1 - u[3]) * cssH, u[2] * cssW, (1 - u[1]) * cssH] : null;
     const seen = plateFreeSeen();
     for (const B of list) {
-      if (B.kind === 5) continue;
+      if (B.kind === 5 || B.kind === 9) continue;
       const e = plateCanvas(B.kind);
+      if (B.kind === 7 || B.kind === 8) {
+        // (each developed alone, at full strength, where the page will move it from: the haze deck settled, the bank
+        // at rest)
+        if (!(all || (e && (e.c.width !== B.px[0] || e.c.height !== B.px[1])))) continue;
+        const k3 = st.k[3], s2 = st.sea[2], c0 = st.cloud[0], c1 = st.cloud[1];
+        if (B.kind === 7) { st.k[3] = T.hazeK; st.sea[2] = 1 - T.haze; } else { st.cloud[0] = 1; st.cloud[1] = 1 - (st.crest / (cssH || 1) - 0.03); }
+        develop(Uf, B);
+        st.k[3] = k3; st.sea[2] = s2; st.cloud[0] = c0; st.cloud[1] = c1;
+        continue;
+      }
       if (all || (e && (e.c.width !== B.px[0] || e.c.height !== B.px[1]))) { develop(Uf, B); if (B.kind === lk && u) plateLast.set(B.kind, platePart(B, u)); continue; }
       if (B.kind !== lk || !u || !seen) continue;
       const now = platePart(B, u);
       develop(Uf, B, partUnion(plateLast.get(B.kind), now));
       plateLast.set(B.kind, now);
     }
+    // the silk ribbon turns on its own plate (over the far one, behind the peaks): repainted whole while it is in view
+    const rbP = list.find((B) => B.kind === 9);
+    plateRibbon = !!rbP;
+    if (rbP && (all || plateSeenX(rbP.css[0], rbP.css[0] + rbP.css[2]))) develop(Uf, rbP);
     // the paper tile (one period of the grain, 512 CSS px a side): once per buffer scale
     const tileKey = `${W}/${cssW}|${grainK}`;
     if (tileKey !== plateTile) {
@@ -3599,7 +3688,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       sink!.developed?.(6);
     }
     // a plate the stage does not hold now is blank
-    for (const k of [2, 3, 4, 5] as PlateKind[]) if (!list.some((B) => B.kind === k)) { const e = plateCtx.get(k); if (e && e.c.width > 1) { e.c.width = 1; e.c.height = 1; } }
+    for (const k of [2, 3, 4, 5, 7, 8, 9] as PlateKind[]) if (!list.some((B) => B.kind === k)) { const e = plateCtx.get(k); if (e && e.c.width > 1) { e.c.width = 1; e.c.height = 1; } }
     if (!platesShown) { platesShown = true; sink!.show(true); }
     void all;
   }

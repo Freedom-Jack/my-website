@@ -9,6 +9,7 @@ import { Effects } from '@/features/effects/Effects';
 import { elementClasses } from '@/features/landscape/elements';
 import { Landscape } from '@/features/landscape/Landscape';
 import { Navigation } from '@/features/navigation/Navigation';
+import { Switches } from '@/features/qa/Switches';
 import { JsonLd, personLd } from '@/lib/jsonld';
 import { fontFaces } from './fonts';
 // The design system, in order (each feature's CSS Module adds its own layout after these).
@@ -60,6 +61,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <JsonLd data={personLd()} />
         <Navigation />
         <Effects />
+        {/* the preview's switch panel: QA builds only (never in the production site) */}
+        {process.env.NEXT_PUBLIC_INK_QA === '1' ? <Switches /> : null}
       </body>
     </html>
   );

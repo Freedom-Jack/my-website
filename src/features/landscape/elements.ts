@@ -10,12 +10,15 @@
  * moves, ambient motion <= 15 fps and asleep after 45 s, pointer answers <= 30 fps and only while they move, reduced
  * motion and "Still the landscape" = a still frame and still UI, phones calm.
  *
- * The vanguard round (05-synthesis.md): every flag carries its answer to the five questions (subtraction, referent,
- * control, cost and fallback, recall: research/DIGEST.md §5); an element that fails subtraction or referent is off.
- * The surface package (P2) switched off the opening ceremony, the page change's mist, the nav's mark, the swash and
- * the story map's sun; the engine package (P3) ruled on the scroll (the unroll in, the camera's travel and the air
- * out), the pointer answers (out) and, by the attack's A3, one named element per place (the swallows, the ribbon and
- * the falling petals out; the plum kept, moved off the light).
+ * Round 6 (2026-11-15, Jack's brief: "make everything on it cool"; the live site as the base): the vanguard round's
+ * tests (subtraction, referent, one living element per place) are cancelled. The test now is whether the site is more
+ * alive, more beautiful and easier to remember with the thing than without it. What that round switched off is back
+ * on wherever it still fits (the swallows, the silk ribbon, the falling petals, the plum's gust, the water you can
+ * stir, the scroll's wind); what waits for its part of the new Home is still off here and says so. Each flag's older
+ * comment keeps what the element IS; its v3 ruling is history (DESIGN §12 "Vanguard").
+ * On wide screens the stage is THE PLATES now (features/landscape/plates): every element here keeps working on them.
+ *
+ * The preview's panel (features/qa/Switches, QA builds) flips each flag in this browser.
  *
  * QA builds only (NEXT_PUBLIC_INK_QA=1): a flag is switched OFF in that browser with localStorage 'ink-elements' =
  * '{"silkVeil":false}' or window.__elOff = ['morning', ...] (injected before the page's scripts), and ON, against the
@@ -36,10 +39,12 @@ export const ELEMENTS = {
    *  synthesis: "the pointer stir and petals" are cut): off, a visitor loses nothing they came for; its referent was
    *  the pointer itself, which the digest's anti-patterns name; recall: "it rippled when I hovered". The ferry's own
    *  drops (contactLife) keep the ring. */
-  stir: false,
+  // (round 6: back on)
+  stir: true,
   /** The plum answers: a damped nudge of Home's bough, and three to five of its own petals let go one after another
    *  and drift down with the breeze (at most once every 8 s). OFF (P3, with stir: nothing answers the pointer). */
-  plumGust: false,
+  // (round 6: back on)
+  plumGust: true,
   /** The waterfall falls: broken lights slide down Home's fall, spray breathes at its foot. Home's one living element
    *  (A3): the river's source. */
   waterfall: true,
@@ -58,15 +63,18 @@ export const ELEMENTS = {
    *  river, the Résumé's one sweeping over the fields. OFF (P3, A3: one named element per place; "no swallow on
    *  Home", "Work's swallows go", "the Résumé's swallow goes"): off, a visitor loses a second moving thing in three
    *  places, none of which is the place's own; the critic read Home's first frame as a collage. */
-  swallows: false,
+  // (round 6: back on)
+  swallows: true,
   /** The silk mist-ribbon: one long S from behind Home's host peak through the light, twisting and torn by the mist
    *  (shaders.ts, compiled in with EL_RIBBON). OFF (P3, A3: "no silk ribbon on Home"): off, the light stands alone
    *  as the painting's one bright thing; the ribbon had no referent but ornament, and crossed the plum. */
-  ribbon: false,
+  // (round 6: back on)
+  ribbon: true,
   /** Falling petals: the few that let go of Home's plum and drift down, and the ones that fall through Writing's air
    *  over the lake (the petals lying on the still water stay: they are paint, not motion). OFF (P3, A3: "Writing's
    *  petals go"; one living element per place: Home's is the fall, Writing's the shimmer). */
-  petals: false,
+  // (round 6: back on)
+  petals: true,
   /** The light's bloom in the present pass: a tight halo and a wide soft glow round each place's light, breathing
    *  slowly, Home's the strongest (shaders.ts, compiled in with EL_HALO; the light's core in the scene is the
    *  painting's). ON: the light is Home's named element with the mountain and the fall. QA switches it off for Jack's
@@ -104,7 +112,8 @@ export const ELEMENTS = {
    *  scroll motion only, the unroll; a second one, whose referent ("the scroll is a wind") no reader is told, fails
    *  subtraction (off, nothing is lost but a stir) and recall. The figures' own small life (the willows' sway, the
    *  rushes in the breeze, the bough's swing) stays: it is the painting's, not the scroll's. */
-  air: false,
+  // (round 6: back on)
+  air: true,
   /** Windows into the painting, below 1200 px only: at the page's major section breaks a short, full-bleed
    *  window of the page's own place opens in the gap (<Glimpse>, [data-landscape="glimpse"]), each one further along
    *  the place (the unroll: east, level; the camera's travel: higher in one climb). Present-only: painted once at

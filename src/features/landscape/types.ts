@@ -39,9 +39,11 @@ export interface LandscapeTargets {
  * A plate's kind: 1 the far layer (the sky, the light and the far ranges; opaque), 2 the middle (the place), 3 the
  * near (the near crags and their figures), 4 the sea of mist over their feet, 5 what is pinned to the frame while
  * the stage travels under it (Home's plum bough), 6 the paper itself with its grain (one tile of it: the page's
- * veils, the paper kept behind the words, are cut from it).
+ * veils, the paper kept behind the words, are cut from it), 7 the haze deck between the far and the middle layers and
+ * 8 the cloud bank the camera rises through (the camera's travel only), 9 Home's silk ribbon (over the far layer,
+ * behind the peaks: it turns, so it has a small plate of its own and the far plate stays as it was developed).
  */
-export type PlateKind = 1 | 2 | 3 | 4 | 5 | 6;
+export type PlateKind = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 /** A box on the screen at the page's top, CSS px: left, top, width, height. */
 export type PlateBox = [left: number, top: number, width: number, height: number];
 export interface PlateGeometry {
@@ -57,9 +59,10 @@ export interface PlateGeometry {
   motion: 'unroll' | 'camera';
   /** The unroll: how far west the plates travel over the whole page (CSS px). */
   travel: number;
-  /** The camera's travel: each layer's sink once the camera has settled (far, middle, near; screen heights), over how
-   *  many screens of scroll it settles and that ease's power; the sea's own sink. */
-  camera: { sink: [number, number, number]; reach: number; ease: number; sea: number } | null;
+  /** The camera's travel: the stage's pose at samples of the page's scroll (the engine's own choreography, read off
+   *  for every sample: the lift, the place's sideways step, the stairs, the descent), which the page turns into each
+   *  plate's keyframes. */
+  camera: PlateFrame[] | null;
   /** The standing curtain's edge (CSS px from the screen's left edge; -1: none): left of it the middle and near
    *  plates are in mist. */
   curtain: number;
@@ -67,6 +70,21 @@ export interface PlateGeometry {
   light: [x: number, y: number, r: number] | null;
   /** Reduced motion or "Still the landscape": the plates hold the hero pose. */
   still: boolean;
+}
+/** The camera's travel at one sample of the page's scroll: where each plate stands from the hero pose (CSS px). */
+export interface PlateFrame {
+  /** The scroll's progress over the whole page, 0..1. */
+  p: number;
+  /** The far, middle and near layers: [x right, y down]. */
+  layers: [[number, number], [number, number], [number, number]];
+  /** The sea of mist: y down. */
+  sea: number;
+  /** The haze deck: [y down from where it was developed, strength 0..1]. */
+  haze: [number, number];
+  /** The cloud bank: [y down from where it was developed, strength 0..1]. */
+  cloud: [number, number];
+  /** The curtain (a place with an anchor): [its edge, CSS px from the screen's left; strength 0..1]. */
+  curtain: [number, number];
 }
 export interface PlateSink {
   /** The canvas of a plate (the engine sizes its buffer and draws into it). */

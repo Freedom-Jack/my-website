@@ -1179,7 +1179,9 @@ uniform float uGrainPx;      // CSS px per grain texel (1, finer on dense phone 
 // the light's bloom; the far one the silk ribbon too). The mist between the layers, the veils and the curtain are the
 // page's own layers now (plates.css). uPlateK.x: 0 the screen (as before), 1 the far plate (opaque), 2 the middle,
 // 3 the near (premultiplied), 4 the sea of mist (premultiplied), 5 the sprites pinned to the frame, alone, 6 the
-// paper itself with its grain (a tile: the page's veils are cut from it).
+// paper itself with its grain (a tile: the page's veils are cut from it), 7 the haze deck between the far and middle
+// layers and 8 the cloud bank the camera rises through (the camera's travel; premultiplied, each alone), 9 the silk
+// ribbon alone (over the far plate, behind the peaks).
 uniform vec4  uPlateW;       // the canvas-uv window this pass paints (x0, y0, width, height): a plate, or a tile of one
 uniform vec4  uPlateK;       // x the plate (above); y, z this pass's pixel origin in its plate (the grain and the
                              // dither are anchored to the plate, so tiles and repainted parts meet without a seam)
@@ -1337,11 +1339,12 @@ float stAdm(vec4 c) {
   return mix(0.1, 0.72, smoothstep(0.55, 0.92, lm));
 }
 // the cloud bank's billowing top (uv y, up) at screen x bx (uv x times the aspect): from the noise's coarse mips, drifting
-float stCloudTop(float bx) {
-  float b1 = (textureLod(uNoise, vec2(bx * 0.7 + uTime * 0.0016, 0.37), 3.0).r - 0.5) / 0.13;
-  float b2 = (textureLod(uNoise, vec2(bx * 1.7 - uTime * 0.0021, 0.83), 2.0).r - 0.5) / 0.14;
+float stCloudTopT(float bx, float tc) {
+  float b1 = (textureLod(uNoise, vec2(bx * 0.7 + tc * 0.0016, 0.37), 3.0).r - 0.5) / 0.13;
+  float b2 = (textureLod(uNoise, vec2(bx * 1.7 - tc * 0.0021, 0.83), 2.0).r - 0.5) / 0.14;
   return uStC.y + 0.035 * b1 + 0.012 * b2;
 }
+float stCloudTop(float bx) { return stCloudTopT(bx, uTime); }
 // a bank of mist as a painter leaves it: a pale body a breath deeper toward its foot (a bank has
 // volume, never a flat sheet), coming out of the air over a soft edge with a faint cool wash just above it (its lit top).
 // c the colour under it, cov how much mist stands here, t how far above the bank's edge (box uv; < 0 inside), cn a noise.
@@ -1982,10 +1985,14 @@ void main() {
     }
     float nb = texture(uNoise, vec2(wp.x * 0.31 + uTime * 0.0018, 0.23)).r - 0.5;
     float nc = texture(uNoise, vec2(wp.x * 0.97 - uTime * 0.0026, 0.61)).g - 0.5;
-    if (uSt.w > 0.0 && plate == 0) {
+    if (uSt.w > 0.0 && (plate == 0 || plate == 7)) {
       // a pale deck of cloud between the far ranges and the middle ones: it rises as the camera does
-      float hy = uSea.z + nb * uSea.w * 1.4 + nc * uSea.w * 0.5;
+      // (THE PLATES, 7: the deck alone, at rest; the page raises it and lets it in with the camera's lift)
+      float nbH = plate == 7 ? texture(uNoise, vec2(wp.x * 0.31 + REST_T * 0.0018, 0.23)).r - 0.5 : nb;
+      float ncH = plate == 7 ? texture(uNoise, vec2(wp.x * 0.97 - REST_T * 0.0026, 0.61)).g - 0.5 : nc;
+      float hy = uSea.z + nbH * uSea.w * 1.4 + ncH * uSea.w * 0.5;
       float hk = (1.0 - smoothstep(hy - uSea.y * 1.6, hy + uSea.y * 0.7, uv.y)) * uSt.w;   // (not gated by the far layer's admittance, B.a: its vertical texture cuts the deck into columns)
+      if (plate == 7) { outColor = vec4(mix(MIST, SKY, 0.35) * (hk * 0.82), hk * 0.82); return; }
       col = mix(col, mix(MIST, SKY, 0.35), hk * 0.82);
       adm = max(adm, hk * 0.8);
     }
@@ -2044,7 +2051,10 @@ void main() {
     col = col * (1.0 - Ne.a) + Ne.rgb;
     adm = mix(adm, stAdm(Ne), Ne.a);
     }
-    if (uStC.x > 0.0 && plate == 0) {
+    if (uStC.x > 0.0 && (plate == 0 || plate == 8)) {
+      float tC = plate == 8 ? REST_T : uTime;   // (THE PLATES, 8: the bank alone, at rest, over nothing)
+      if (plate == 8) col = vec3(0.0);
+      float aC = 0.0;
       // the cloud the camera rises through (mid-lift on Work: the scene steps sideways inside it): a sea of cloud from
       // just above the middle layer's crests down into the sea; the far ranges stand clear above it. It is painted the
       // way a painter leaves a cloud: the billows are reserved paper, and a soft grey wash is laid round their tops (on
@@ -2052,14 +2062,15 @@ void main() {
       // billowing edge and form, never a flat grey. Anchored to the screen (the step inside it never shows), drifting.
       float bx = uv.x * aspect;
       // (contours from the noise's coarse mip: broad billows, no ragged small teeth)
-      float b3 = (textureLod(uNoise, vec2(bx * 0.9 + 3.1 - uTime * 0.0012, 0.11), 3.0).r - 0.5) / 0.13;
-      float b4 = (textureLod(uNoise, vec2(bx * 0.8 + 7.7 + uTime * 0.0010, 0.64), 3.0).r - 0.5) / 0.13;
-      float cy = stCloudTop(bx);                                  // the bank's top (uv y, up)
+      float b3 = (textureLod(uNoise, vec2(bx * 0.9 + 3.1 - tC * 0.0012, 0.11), 3.0).r - 0.5) / 0.13;
+      float b4 = (textureLod(uNoise, vec2(bx * 0.8 + 7.7 + tC * 0.0010, 0.64), 3.0).r - 0.5) / 0.13;
+      float cy = stCloudTopT(bx, tC);                             // the bank's top (uv y, up)
       float c2 = cy - 0.13 + 0.04 * b3;                           // a nearer billow in front of it...
       float c3 = cy - 0.28 + 0.045 * b4;                          // ...and a third, lower
       float ck = (1.0 - smoothstep(cy - uStC.z * 0.3, cy + uStC.z * 0.1, uv.y)) * uStC.x;
-      float cn = texture(uNoise, vec2(bx * 0.42 - uTime * 0.0022, uv.y * 1.3 + 0.17)).r;
+      float cn = texture(uNoise, vec2(bx * 0.42 - tC * 0.0022, uv.y * 1.3 + 0.17)).r;
       col = mix(col, mix(MIST, SKY, 0.45 + 0.3 * cn), ck * (0.94 + 0.06 * cn));
+      aC = ck * (0.94 + 0.06 * cn);
       // the wash: just above each billow's top, fading upward over ~10% of the view (the top one on the sky over the bank)
       float tw = 0.0;
       for (int j = 0; j < 3; j++) {
@@ -2068,6 +2079,14 @@ void main() {
         tw = max(tw, smoothstep(-0.004, 0.014, t) * (1.0 - smoothstep(0.014, 0.1, t)) * (j == 0 ? 0.85 : 1.0));
       }
       col = mix(col, vec3(0.78, 0.86, 0.90), tw * uStC.x * (0.5 + 0.16 * cn));
+      if (plate == 8) {
+        // (premultiplied: the bank's body, then its wash laid over it)
+        float aW = tw * uStC.x * (0.5 + 0.16 * cn);
+        float aT = 1.0 - (1.0 - aC) * (1.0 - aW);
+        vec3 pm = mix(MIST, SKY, 0.45 + 0.3 * cn) * aC * (1.0 - aW) + vec3(0.78, 0.86, 0.90) * aW;
+        outColor = vec4(pm, aT);
+        return;
+      }
       adm = max(adm, ck * 0.8);
     }
     if (uSt.z > 0.0 && (plate == 0 || plate == 4)) {
@@ -2107,8 +2126,9 @@ void main() {
     p = wp; tm = plate > 0 ? REST_T : uTime; inWin = 1.0; wakeOK = plate > 0 ? 0.0 : 1.0; heroW = 1.0;
     wsc = uStM.z;
   }
-  // (a plate that the stage does not paint, the stage being off: nothing)
-  if (plate > 1) { outColor = vec4(0.0); return; }
+  // (a plate that the stage does not paint, the stage being off: nothing; 9, the ribbon's, is worked out over the
+  // far plate's own picture, below)
+  if (plate > 1 && plate != 9) { outColor = vec4(0.0); return; }
   if (uHzK > 0.0) {
     vec4 Hs = texture(uHzTex, min(uv * uHzS.xy, uHzS.zw));
     // soft edges: into paper at the sides and a low mist along the bottom
@@ -2532,7 +2552,7 @@ void main() {
   // the header sits on paper, never on the painted sky: a paper band under it, anchored to the page (it scrolls
   // away with the header), solid to the header's foot and melting out over ~64 px (desktops; ~26 px on phones), its
   // edge torn by the drift so it is mist, not a ruled line. The painting rises out of the paper below it.
-  if (plate <= 1) {
+  if (plate <= 1 || plate == 9) {
     // (THE PLATES: the band itself is the page's own layer, scrolling away with the header; the far plate keeps the
     // sky's own way out of the paper below it, where it stands at the page's top)
     float cssPx = 1.0 / max(uLive2.w, 1e-6);
@@ -2716,11 +2736,15 @@ void main() {
   // drifting slowly along its length; painted only over the pale air and mist (so it passes BEHIND the ink of the
   // peaks), never under text, never on another page.
   p.y += dyB;   // (from here on, the light and the ribbon are the back's: they stay with the sky as the layers part)
+  // (THE PLATES, 9: the ribbon alone. Every stroke below is a mix over what lies under it, so what is left of that
+  // (rKeep) and the difference are the ribbon as a layer of its own, premultiplied)
+  float rKeep = 1.0;
+  vec3 rBase = col;
 #ifdef EL_RIBBON
   // (elements.ts ribbon: compiled in only when the ribbon is on; the vanguard round's A3 switched it off)
   float pxp = max(abs(dFdy(p.y)), 1e-5);
   // (suspended while a page change crosses the view, so it is never drawn over a painting that is fading)
-  if (heroW > 0.0 && tm > 0.0 && uSweep.z <= 0.0) {
+  if (heroW > 0.0 && tm > 0.0 && uSweep.z <= 0.0 && plate != 1) {   // (THE PLATES: the ribbon has a plate of its own, 9: the far plate holds none)
     // a twisting strip. Two selvedges y = c +- W cos(ph) that cross where the silk turns
     // edge-on (the twist travels slowly along it); between them a translucent body, pale cyan where its face is toward
     // us, a deeper jade-cyan where we see its back. Never a vector point at its ends: the breadth
@@ -2786,7 +2810,7 @@ void main() {
         rk *= smoothstep(mix(-1.3, 1.25, uf), mix(-1.3, 1.25, uf) - 0.35, s) * smoothstep(0.0, 0.35, uf); }
       float bodyK = brk * mix(inB, strK, frE);
       float lineK = brk * (1.0 - frE);
-      col = mix(col, vec3(0.985, 0.995, 1.0), clamp(halo * 0.3 * brk * rk * (1.0 - 0.6 * frE), 0.0, 1.0));   // the clearing of light round it
+      { float kq = clamp(halo * 0.3 * brk * rk * (1.0 - 0.6 * frE), 0.0, 1.0); col = mix(col, vec3(0.985, 0.995, 1.0), kq); rKeep *= 1.0 - kq; }   // the clearing of light round it
       // the body: pale cyan silk on its face, a deeper jade-cyan on its back; its white heart only where the face turns
       // up toward the light (the twist's phase), so the white is light on silk, not a core line
       float vb = clamp(abs(p.y - 0.5 * (lo + hi)) / max(0.5 * (hi - lo), 1e-4), 0.0, 1.0);
@@ -2795,7 +2819,7 @@ void main() {
       faceC = mix(faceC, vec3(0.985, 1.0, 1.0), turnL * (1.0 - vb * vb));
       vec3 backC = mix(vec3(0.70, 0.90, 0.90), vec3(0.45, 0.76, 0.78), vb);
       float dens = mix(0.42, 0.62, 1.0 - abs(cph));
-      col = mix(col, mix(backC, faceC, frontF), clamp(bodyK * dens * rk, 0.0, 1.0));
+      { float kq = clamp(bodyK * dens * rk, 0.0, 1.0); col = mix(col, mix(backC, faceC, frontF), kq); rKeep *= 1.0 - kq; }
       // the selvedges: 0.6 px hairs, at most 0.45, each broken by its own gaps (~20 % of its length), heavier where the
       // silk folds; the light beside them only where the face turns to the light
       float l1 = exp(-pow((p.y - e1) / (0.6 * pxp), 2.0)), l2 = exp(-pow((p.y - e2) / (0.6 * pxp), 2.0));
@@ -2803,18 +2827,19 @@ void main() {
       float gp1 = smoothstep(0.405, 0.435, texture(uNoise, vec2(s * 1.3 + 0.21, 0.29)).g);
       float gp2 = smoothstep(0.405, 0.435, texture(uNoise, vec2(s * 1.3 + 0.67, 0.71)).g);
       float lw = mix(0.2, 0.45, 1.0 - abs(cph)) * (0.75 + 0.25 * sin(s * 13.0 + 0.7));
-      col = mix(col, vec3(1.0), clamp((g1 * gp1 + g2 * gp2) * 0.3 * turnL * lineK * rk, 0.0, 1.0));
-      col = mix(col, vec3(0.25, 0.60, 0.66), clamp(max(l1 * gp1, l2 * gp2) * lw * lineK * rk, 0.0, 1.0));
+      { float kq = clamp((g1 * gp1 + g2 * gp2) * 0.3 * turnL * lineK * rk, 0.0, 1.0); col = mix(col, vec3(1.0), kq); rKeep *= 1.0 - kq; }
+      { float kq = clamp(max(l1 * gp1, l2 * gp2) * lw * lineK * rk, 0.0, 1.0); col = mix(col, vec3(0.25, 0.60, 0.66), kq); rKeep *= 1.0 - kq; }
       // a fine companion thread that weaves round the silk, coming out of and going back into the mist (no ends)
       float yt = cy + 0.024 * sin(s * 3.3 + 2.1 - uTime * 0.05) * taper + 0.004 * sin(s * 9.0 + uTime * 0.11);
       float tk = smoothstep(-0.75, -0.4, s) * (1.0 - smoothstep(0.55, 0.9, s)) * (0.55 + 0.45 * sin(s * 6.0 + 1.3));
       tk *= smoothstep(0.38, 0.5, texture(uNoise, vec2(s * 1.1 + 0.43, 0.12)).g);
       float thr = exp(-pow((p.y - yt) / (0.6 * pxp), 2.0)), thg = exp(-pow((p.y - yt) / (2.6 * pxp), 2.0));
-      col = mix(col, vec3(1.0), clamp(thg * 0.25 * tk * brk * rk, 0.0, 1.0));
-      col = mix(col, vec3(0.36, 0.70, 0.74), clamp(thr * 0.4 * tk * brk * rk, 0.0, 1.0));
+      { float kq = clamp(thg * 0.25 * tk * brk * rk, 0.0, 1.0); col = mix(col, vec3(1.0), kq); rKeep *= 1.0 - kq; }
+      { float kq = clamp(thr * 0.4 * tk * brk * rk, 0.0, 1.0); col = mix(col, vec3(0.36, 0.70, 0.74), kq); rKeep *= 1.0 - kq; }
     }
   }
 #endif
+  if (plate == 9) { outColor = vec4(max(col - rBase * rKeep, 0.0), 1.0 - rKeep); return; }
   // the light's bloom, added after the grain, inside the painting only and never under the
   // text: a tight halo and a wide soft glow round each place's light (Home's the strongest), breathing slowly; it wraps
   // what stands in front of the light (thinner over dark ink), so the sun reads as a source, not a haze
