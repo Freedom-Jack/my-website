@@ -3295,7 +3295,8 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     // the gust, Still settling and the stirred water ask for presents while they move
     if (fxFast(now) || stirs.length) need |= S_PRESENT;
     // the scroll's air settles at the display's rate (a settle at <= 30 fps looks stepped beside the scroll)
-    if (airStep(dt, now)) { need |= S_PRESENT; animating = true; }
+    // (THE PLATES: at the plates' own rate; what the wind moves is a small part of a plate, never the scroll itself)
+    if (airStep(dt, now)) { need |= S_PRESENT; if (!platesShown) animating = true; }
 
     // the scenes: a window repaints when its framing, palette, keep-out or figures change, while it is in motion,
     // and once at full quality after motion stops. Never while the page merely scrolls (its key stays the same).
@@ -3424,6 +3425,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       const t = performance.now();
       if (platesOn() && st.ok) platesOut();
       else {
+        if (platesShown) renderer!.resize(W, H);   // (the darkroom is the screen again)
         renderer!.present(presentU());
         if (platesShown) { platesShown = false; platesAll = true; sink!.show(false); }
       }
@@ -3630,7 +3632,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
   /** The plates' frame: every plate when the stage was painted (or the plates come back on show), else only the part
    *  of the plate that holds what moves. */
   function platesOut() {
-    let all = platesAll || !platesShown;
+    const all = platesAll || !platesShown;
     platesAll = false;
     // what is pinned to the frame (the unroll: Home's plum bough, Writing's willow): a plate of its own, where it stands
     // (its table first: the life tables share their arrays)
@@ -3690,7 +3692,15 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
     // a plate the stage does not hold now is blank
     for (const k of [2, 3, 4, 5, 7, 8, 9] as PlateKind[]) if (!list.some((B) => B.kind === k)) { const e = plateCtx.get(k); if (e && e.c.width > 1) { e.c.width = 1; e.c.height = 1; } }
     if (!platesShown) { platesShown = true; sink!.show(true); }
-    void all;
+    // the darkroom is only as large as what still moves (every copy out of it copies the whole of it): after the
+    // plates were developed whole it shrinks to the largest moving part; a larger part grows it again (gl.ts plate)
+    if (all) {
+      let dw = 256, dh = 128;
+      for (const B of list) if (B.kind === 5 || B.kind === 9) { dw = Math.max(dw, B.px[0]); dh = Math.max(dh, B.px[1]); }
+      const lp = lk ? plateLast.get(lk as PlateKind) : undefined;
+      if (lp) { dw = Math.max(dw, lp[2]); dh = Math.max(dh, lp[3]); }
+      renderer!.resize(Math.min(W, Math.ceil(dw / 128) * 128), Math.min(H, Math.ceil(dh / 128) * 128));
+    }
   }
 
   // ---------------------------------------------------------------- 4b small life (the present pass)
