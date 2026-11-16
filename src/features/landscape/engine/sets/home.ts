@@ -173,7 +173,7 @@ export function* draw(env: Env) {
   // life: a thread of smoke from the ridge's far end, rising and leaning a little downwind
   const src: Pt = [mix(hut.rL[0], hut.rR[0], 0.72), hut.rL[1] - 0.5 * bh];
   // (THE MOODS) the lamp in the hut's open room: lit at dusk and at night
-  anchor(env, 'smoke', { x: hx, y: y0 - 12 * bh, w: HW, h: 12 * bh }, { lamp: [hx + HW * 0.36, y0 - 4.2 * bh], lampR: 24 * bh });
+  anchor(env, 'smoke', { x: hx, y: y0 - 12 * bh, w: HW, h: 12 * bh }, { lamp: [hx + HW * 0.36, y0 - 4.2 * bh], lampR: 15 * bh });
   anchor(env, 'smoke', { x: src[0] - 9 * bh, y: src[1] - 36 * bh, w: 24 * bh, h: 36 * bh }, { src });
   yield;
 

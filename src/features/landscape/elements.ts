@@ -97,6 +97,12 @@ export const ELEMENTS = {
    *  painting; a question about the work is answered from the site's own words, and the painting travels to the
    *  place that holds the answer (features/ask). */
   ask: true,
+  /** His seal beside his name on Home, as a painter's seal stands by the signature (stamped once as the page
+   *  arrives); the tail keeps its own. */
+  nameSeal: true,
+  /** The screen's top right corner is the painting's: the header's band of paper ends a little past the nav's last
+   *  word, so Home's plum bough comes into the first screen (wide screens). Off: the band runs the screen's width. */
+  corner: true,
   // ---- the scroll
   /**
    * THE UNROLL (P3; direction A, "The handscroll, unrolled", the jury's winner for the scroll). On wide screens the

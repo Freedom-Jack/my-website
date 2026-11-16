@@ -47,7 +47,9 @@ function noise2(nu: number, nv: number, seed: number) {
     const j = Math.floor(y);
     const fx = smooth(x - i);
     const fy = smooth(y - j);
-    return (at(i, j) * (1 - fx) + at(i + 1, j) * fx) * (1 - fy) + (at(i, j + 1) * (1 - fx) + at(i + 1, j + 1) * fx) * fy;
+    return (
+      (at(i, j) * (1 - fx) + at(i + 1, j) * fx) * (1 - fy) + (at(i, j + 1) * (1 - fx) + at(i + 1, j + 1) * fx) * fy
+    );
   };
 }
 

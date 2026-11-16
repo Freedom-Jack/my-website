@@ -230,10 +230,11 @@ export function Landscape() {
     <>
       <div ref={platesRef} className="plates" aria-hidden="true">
         <canvas data-plate="1" />
-        <canvas data-plate="9" />
         <canvas data-plate="7" />
         <div className="plates__front">
           <div className="plates__in">
+            {/* (the ribbon: behind the peaks, and inside the curtain's clip: it never trails across the words) */}
+            <canvas data-plate="9" />
             <canvas data-plate="2" />
             <canvas data-plate="3" />
           </div>
@@ -244,6 +245,12 @@ export function Landscape() {
         <canvas data-plate="5" />
       </div>
       <canvas ref={ref} className="landscape" aria-hidden="true" />
+      {/* the weather a scene may ask for: falling snow, rain (plates.css; over the painting, under the words' paper) */}
+      <div className="weather" aria-hidden="true">
+        <i className="weather__b" />
+        <i className="weather__a" />
+        <i className="weather__c" />
+      </div>
     </>
   );
 }

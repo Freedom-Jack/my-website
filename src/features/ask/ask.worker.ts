@@ -84,7 +84,13 @@ self.onmessage = (e: MessageEvent<{ type: string; id?: number; texts?: string[] 
       if (m.type !== 'embed' || !m.texts) return;
       const out = [];
       for (const t of m.texts) out.push(await enc.embed(t));
-      post({ type: 'vectors', id: m.id, vectors: out.map((o) => o.vector), pieces: out.map((o) => o.pieces), ms: out.map((o) => o.ms) });
+      post({
+        type: 'vectors',
+        id: m.id,
+        vectors: out.map((o) => o.vector),
+        pieces: out.map((o) => o.pieces),
+        ms: out.map((o) => o.ms),
+      });
     } catch (err) {
       encoder = null;
       post({ type: 'error', id: m.id, message: String((err as Error)?.message || err) });

@@ -24,7 +24,11 @@ const MODEL = path.join(ROOT, 'public/models/minilm');
 
 (ort as unknown as { env: { wasm: { numThreads: number } } }).env.wasm.numThreads = 1;
 const tokenizer = createTokenizer(fs.readFileSync(path.join(MODEL, 'vocab.txt'), 'utf8'));
-const encoder = await createEncoder(ort as unknown as Ort, fs.readFileSync(path.join(MODEL, 'model_quantized.onnx')), tokenizer);
+const encoder = await createEncoder(
+  ort as unknown as Ort,
+  fs.readFileSync(path.join(MODEL, 'model_quantized.onnx')),
+  tokenizer,
+);
 const embed = async (t: string) => (await encoder.embed(t)).vector;
 
 /** A passage's sentences (the answer's closest one is marked on the page). */
@@ -56,8 +60,12 @@ if (test) {
 }
 
 const res = await fetch(new URL('/craft/corpus.json', BASE));
-if (!res.ok) throw new Error(`build-ask: ${BASE}/craft/corpus.json answered ${res.status} (is the build being served?)`);
-const corpus = (await res.json()) as { meta: { corpusHash: string }; chunks: { id: string; text: string; page: string; section: string }[] };
+if (!res.ok)
+  throw new Error(`build-ask: ${BASE}/craft/corpus.json answered ${res.status} (is the build being served?)`);
+const corpus = (await res.json()) as {
+  meta: { corpusHash: string };
+  chunks: { id: string; text: string; page: string; section: string }[];
+};
 
 const t0 = performance.now();
 const passages: { id: string; v: string; s: string[] }[] = [];
@@ -65,12 +73,17 @@ for (const c of corpus.chunks) {
   const ss = sentences(c.text);
   // (a passage is measured with its own heading: "Contact. Say hello. …": a question names the subject more often
   // than the passage's first words do)
-  passages.push({ id: c.id, v: packVector(await embed(`${c.page}. ${c.section.replace(/ · /g, ', ')}. ${c.text}`)), s: await Promise.all(ss.map(async (s) => packVector(await embed(s)))) });
+  passages.push({
+    id: c.id,
+    v: packVector(await embed(`${c.page}. ${c.section.replace(/ · /g, ', ')}. ${c.text}`)),
+    s: await Promise.all(ss.map(async (s) => packVector(await embed(s)))),
+  });
 }
 const anchors: Record<string, string[]> = {};
 for (const a of ANCHORS) anchors[a.key] = await Promise.all(a.phrases.map(async (p) => packVector(await embed(p))));
 const kinds: Record<string, string[]> = {};
-for (const [k, phrases] of Object.entries(KINDS)) kinds[k] = await Promise.all(phrases.map(async (p) => packVector(await embed(p))));
+for (const [k, phrases] of Object.entries(KINDS))
+  kinds[k] = await Promise.all(phrases.map(async (p) => packVector(await embed(p))));
 
 const out = {
   model: 'all-MiniLM-L6-v2 (8-bit weights)',
@@ -83,4 +96,6 @@ const out = {
 const file = path.join(ROOT, 'public/ask/index.json');
 fs.mkdirSync(path.dirname(file), { recursive: true });
 fs.writeFileSync(file, JSON.stringify(out));
-console.log(`build-ask: ${passages.length} passages, ${passages.reduce((n, p) => n + p.s.length, 0)} sentences, ${ANCHORS.length} anchors in ${Math.round(performance.now() - t0)} ms -> public/ask/index.json (${Math.round(fs.statSync(file).size / 1024)} KB)`);
+console.log(
+  `build-ask: ${passages.length} passages, ${passages.reduce((n, p) => n + p.s.length, 0)} sentences, ${ANCHORS.length} anchors in ${Math.round(performance.now() - t0)} ms -> public/ask/index.json (${Math.round(fs.statSync(file).size / 1024)} KB)`,
+);

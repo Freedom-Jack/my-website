@@ -1299,6 +1299,19 @@ uniform vec4  uMoodA;        // x dusk, y night, z dawn, w snow (each 0..1; all 
 uniform vec4  uMoodB;        // x rain, y the lamps lit, z the plate that carries them (2 the middle, 3 the near), w unused
 uniform vec4  uLamp[3];      // a lamp: its world point (viewport heights across, scene height up), its glow's
                              // radius (scene heights), its strength (0: none)
+// how near the mood's light this point stands: the nearest real light of the three places round it, in its own radii
+// (lightNear also counts the table's empty entry, a light of no strength a whole scene wide, which steps at a place's
+// border: fine for the inner places' grade, which never reaches one; not here)
+float moodLight(vec2 wp, float s) {
+  float u = wp.x / HSW, k = floor(u), m = 0.0;
+  for (int j = -1; j <= 1; j++) {
+    vec4 L = lightK(k + float(j));
+    if (L.w == 0.0) continue;
+    float r = length(vec2((u - L.x) * HSW, wp.y - L.y)) / max(L.z * mix(1.6, 1.0, step(0.0, L.w)), 1e-3);
+    m = max(m, exp(-r * r * s));
+  }
+  return m;
+}
 vec3 moodGrade(vec3 c, vec2 wp) {
   if (uMoodA.x + uMoodA.y + uMoodA.z + uMoodA.w + uMoodB.x <= 0.0) return c;
   float lum = dot(c, vec3(0.299, 0.587, 0.114));
@@ -1307,7 +1320,7 @@ vec3 moodGrade(vec3 c, vec2 wp) {
   // would stand as grey patches behind the words)
   float airK = smoothstep(0.24, 0.66, blue) * smoothstep(0.58, 0.84, lum);   // the pale air and the washes
   float hillK = blue * (1.0 - smoothstep(0.58, 0.84, lum)); // the hills' own blues
-  float nearL = lightNear(wp, 0.3);
+  float nearL = moodLight(wp, 0.16);
   if (uMoodA.x > 0.0) {
     // dusk: the low sun warms the air round it (apricot, then rose), the air far from it goes lavender, the hills'
     // blue goes to violet and a breath deeper

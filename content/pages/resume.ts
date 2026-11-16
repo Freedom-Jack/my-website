@@ -28,5 +28,5 @@ export const resumePage = {
    * DRAFT (for Jack): the one sentence the page before it ends on ("Downstream · Résumé →"). The counts are
    * content/resume.json's: five roles since the 2019 internship, two CGI Impact Awards, two cloud certifications.
    */
-  line: 'DRAFT · Five roles since 2019, two CGI Impact Awards and two cloud certifications: on one page, as a PDF and as JSON.',
+  line: 'Five roles since 2019, two CGI Impact Awards and two cloud certifications: on one page, as a PDF and as JSON.',
 } satisfies PageWords & Record<string, unknown>;

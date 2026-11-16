@@ -30,7 +30,8 @@ function apply(ms: number) {
   landscape.get()?.setMood?.(m, ms);
   // (the page's own layers follow the mood too: the falling snow, the rain: plates.css reads these)
   const html = document.documentElement;
-  html.dataset.mood = (m.night ?? 0) > 0.5 ? 'night' : (m.dusk ?? 0) > 0.5 ? 'dusk' : (m.dawn ?? 0) > 0.5 ? 'dawn' : 'day';
+  html.dataset.mood =
+    (m.night ?? 0) > 0.5 ? 'night' : (m.dusk ?? 0) > 0.5 ? 'dusk' : (m.dawn ?? 0) > 0.5 ? 'dawn' : 'day';
   html.toggleAttribute('data-snow', (m.snow ?? 0) > 0.3);
   html.toggleAttribute('data-rain', (m.rain ?? 0) > 0.3);
   for (const f of listeners) f(m, !!asked);

@@ -29,7 +29,17 @@ export type Step =
 export type Answer =
   | { kind: 'scene'; mood: Mood; labels: string[] }
   | { kind: 'scene-unknown' }
-  | { kind: 'answer'; text: string; sentence: string; source: string; href: string; place: string; stretch: number; u: number | null; score: number }
+  | {
+      kind: 'answer';
+      text: string;
+      sentence: string;
+      source: string;
+      href: string;
+      place: string;
+      stretch: number;
+      u: number | null;
+      score: number;
+    }
   | { kind: 'unknown'; score: number; floor: number }
   | { kind: 'error'; message: string };
 
@@ -60,13 +70,35 @@ export function createBrain(onStep: (s: Step) => void) {
   let worker: Worker | null = null;
   let ready = false;
   let seq = 0;
-  const waiting = new Map<number, { resolve: (v: { vectors: Float32Array[]; pieces: string[][]; ms: number[] }) => void; reject: (e: Error) => void }>();
-  let data: Promise<{ index: Index; chunks: Chunk[]; bm25: ReturnType<typeof buildIndex>; vec: Map<string, { v: Float32Array; s: Float32Array[] }>; anchors: Map<string, Float32Array[]>; kinds: Record<string, Float32Array[]> }> | null = null;
+  const waiting = new Map<
+    number,
+    { resolve: (v: { vectors: Float32Array[]; pieces: string[][]; ms: number[] }) => void; reject: (e: Error) => void }
+  >();
+  let data: Promise<{
+    index: Index;
+    chunks: Chunk[];
+    bm25: ReturnType<typeof buildIndex>;
+    vec: Map<string, { v: Float32Array; s: Float32Array[] }>;
+    anchors: Map<string, Float32Array[]>;
+    kinds: Record<string, Float32Array[]>;
+  }> | null = null;
 
   function start() {
     if (worker) return;
     worker = new Worker(new URL('./ask.worker.ts', import.meta.url), { type: 'module', name: 'ask' });
-    worker.onmessage = (e: MessageEvent<{ type: string; id?: number; loaded?: number; total?: number; ms?: number | number[]; bytes?: number; vectors?: Float32Array[]; pieces?: string[][]; message?: string }>) => {
+    worker.onmessage = (
+      e: MessageEvent<{
+        type: string;
+        id?: number;
+        loaded?: number;
+        total?: number;
+        ms?: number | number[];
+        bytes?: number;
+        vectors?: Float32Array[];
+        pieces?: string[][];
+        message?: string;
+      }>,
+    ) => {
       const m = e.data;
       if (m.type === 'progress') onStep({ kind: 'load', loaded: m.loaded!, total: m.total!, done: false });
       else if (m.type === 'ready') {
@@ -124,10 +156,12 @@ export function createBrain(onStep: (s: Step) => void) {
         onStep({ kind: 'read', tokens: E.pieces[0]!.length, pieces: E.pieces[0]! });
         onStep({ kind: 'embed', dim: E.vectors[0]!.length, ms: E.ms[0]! });
         const whole = E.vectors[0]!;
-        const best = (vs: Float32Array[], qs: Float32Array[] = [whole]) => Math.max(...vs.flatMap((v) => qs.map((q) => cosine(q, v))));
+        const best = (vs: Float32Array[], qs: Float32Array[] = [whole]) =>
+          Math.max(...vs.flatMap((v) => qs.map((q) => cosine(q, v))));
 
         // the router
-        const sceneK = best(D.kinds.scene!), questionK = best(D.kinds.question!);
+        const sceneK = best(D.kinds.scene!),
+          questionK = best(D.kinds.question!);
         const taken = (a: Anchor) => Math.max(best(D.anchors.get(a.key) ?? [], E.vectors), named(line, a) ? NAMED : 0);
         const scores = ANCHORS.map((a) => ({ a, score: taken(a) }));
         const anyScene = scores.some((x) => x.score >= TAKE[x.a.group]);
@@ -137,14 +171,18 @@ export function createBrain(onStep: (s: Step) => void) {
 
         if (as === 'scene') {
           // one hour and one weather at most (the closest of each), and the lamps
-          const pick = (g: Anchor['group']) => scores.filter((x) => x.a.group === g && x.score >= TAKE[g]).sort((p, q) => q.score - p.score)[0];
-          const hour = pick('hour'), weather = pick('weather'), lamps = pick('lamps');
+          const pick = (g: Anchor['group']) =>
+            scores.filter((x) => x.a.group === g && x.score >= TAKE[g]).sort((p, q) => q.score - p.score)[0];
+          const hour = pick('hour'),
+            weather = pick('weather'),
+            lamps = pick('lamps');
           const found = [hour, weather, lamps].filter(Boolean) as { a: Anchor; score: number }[];
           onStep({ kind: 'scene', found: found.map((x) => ({ label: x.a.label, score: Math.min(1, x.score) })) });
           if (!found.length) return { kind: 'scene-unknown' };
           const mood: Mood = {};
           if (hour && hour.a.key !== 'day') mood[hour.a.key as 'dawn' | 'dusk' | 'night'] = 1;
-          if (weather && weather.a.key !== 'clear') mood[weather.a.key as 'snow' | 'rain'] = hour?.a.key === 'night' ? 0.75 : 0.9;
+          if (weather && weather.a.key !== 'clear')
+            mood[weather.a.key as 'snow' | 'rain'] = hour?.a.key === 'night' ? 0.75 : 0.9;
           // (the lamps: when they are named; and a night or a dusk lights them itself)
           mood.lamps = lamps ? 1 : hour?.a.key === 'night' ? 1 : hour?.a.key === 'dusk' ? 0.8 : 0;
           return { kind: 'scene', mood, labels: found.map((x) => x.a.label) };
@@ -163,15 +201,25 @@ export function createBrain(onStep: (s: Step) => void) {
         const hit = ranked[0];
         const source = hit ? `${hit.c.page} · ${hit.c.section.split(' · ')[0]}` : '';
         onStep({ kind: 'search', passages: D.chunks.length, source, score: hit?.dense ?? 0, floor: FLOOR });
-        if (!hit || hit.dense < (hits.has(hit.c.id) ? FLOOR_WORD : FLOOR)) return { kind: 'unknown', score: hit?.dense ?? 0, floor: FLOOR };
+        if (!hit || hit.dense < (hits.has(hit.c.id) ? FLOOR_WORD : FLOOR))
+          return { kind: 'unknown', score: hit?.dense ?? 0, floor: FLOOR };
         // the passage is the answer, word for word; its closest sentence is marked
-        const ss = sentences(hit.c.text), sv = D.vec.get(hit.c.id)?.s ?? [];
+        const ss = sentences(hit.c.text),
+          sv = D.vec.get(hit.c.id)?.s ?? [];
         let bi = 0;
-        for (let i = 1; i < Math.min(ss.length, sv.length); i++) if (cosine(whole, sv[i]!) > cosine(whole, sv[bi]!)) bi = i;
+        for (let i = 1; i < Math.min(ss.length, sv.length); i++)
+          if (cosine(whole, sv[i]!) > cosine(whole, sv[bi]!)) bi = i;
         onStep({ kind: 'travel', place: hit.c.place });
         return {
-          kind: 'answer', text: hit.c.text, sentence: ss[bi] ?? '', source, href: hit.c.anchor ? `${hit.c.href}#${hit.c.anchor}` : hit.c.href,
-          place: hit.c.place, stretch: hit.c.stretch, u: hit.c.u, score: hit.dense,
+          kind: 'answer',
+          text: hit.c.text,
+          sentence: ss[bi] ?? '',
+          source,
+          href: hit.c.anchor ? `${hit.c.href}#${hit.c.anchor}` : hit.c.href,
+          place: hit.c.place,
+          stretch: hit.c.stretch,
+          u: hit.c.u,
+          score: hit.dense,
         };
       } catch (err) {
         return { kind: 'error', message: String((err as Error)?.message || err) };

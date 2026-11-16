@@ -25,6 +25,8 @@ const GROUPS: { title: string; items: [ElementName, string][] }[] = [
       ['weather', 'Falling snow and rain when a scene asks for them'],
       ['depth', 'Depth: the layers answer the pointer'],
       ['ask', 'Ask the painting: the line on Home (a real model in the browser)'],
+      ['nameSeal', 'The seal beside the name'],
+      ['corner', 'The plum bough in the first screen’s corner'],
     ],
   },
   {
@@ -130,13 +132,23 @@ export function Switches() {
       <fieldset className={styles.group}>
         <legend>The scroll’s motion</legend>
         <label className={styles.row}>
-          <input type="radio" name="ink-motion" checked={!camera} onChange={() => write({ ...over, unroll: true, cameraTravels: false })} />
+          <input
+            type="radio"
+            name="ink-motion"
+            checked={!camera}
+            onChange={() => write({ ...over, unroll: true, cameraTravels: false })}
+          />
           <span>
             <b>The unroll</b> (live now): the painting slides along the river as you read
           </span>
         </label>
         <label className={styles.row}>
-          <input type="radio" name="ink-motion" checked={camera} onChange={() => write({ ...over, unroll: false, cameraTravels: true })} />
+          <input
+            type="radio"
+            name="ink-motion"
+            checked={camera}
+            onChange={() => write({ ...over, unroll: false, cameraTravels: true })}
+          />
           <span>
             <b>The camera travels</b> (round 5): the layers part, the camera rises through mist and comes back down
           </span>

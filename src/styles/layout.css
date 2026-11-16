@@ -690,6 +690,32 @@ html.no-landscape .closing__art {
   margin-inline-start: -0.03em; /* the Q's side bearing: the stem sits on the frame's edge */
   padding-block-end: 0.06em; /* the Q's tail and the j's descender clear the lead */
 }
+/* his seal beside his name (round 6): on the name's baseline, a quarter of its height, as a painter's seal stands by
+   the signature; stamped once as the page arrives */
+html:not(.el-nameSeal) .name .seal {
+  display: none;
+}
+.name .seal {
+  display: inline-block;
+  width: 0.215em;
+  margin-inline-start: 0.07em;
+  vertical-align: 0.015em;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.is-still) .name .seal {
+    animation: seal-stamp 560ms cubic-bezier(0.2, 0.9, 0.3, 1) 700ms both;
+  }
+}
+@keyframes seal-stamp {
+  from {
+    opacity: 0;
+    scale: 1.28;
+    rotate: -5deg;
+  }
+  60% {
+    opacity: 1;
+  }
+}
 
 .lead {
   font-size: var(--fs-lead);

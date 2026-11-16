@@ -24,7 +24,10 @@ export interface Encoder {
 }
 
 export async function createEncoder(ort: Ort, model: Uint8Array | ArrayBuffer, tokenizer: Tokenizer): Promise<Encoder> {
-  const session = await ort.InferenceSession.create(model, { executionProviders: ['wasm'], graphOptimizationLevel: 'all' });
+  const session = await ort.InferenceSession.create(model, {
+    executionProviders: ['wasm'],
+    graphOptimizationLevel: 'all',
+  });
   return {
     async embed(text) {
       const { ids, pieces } = tokenizer.encode(text);

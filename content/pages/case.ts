@@ -9,11 +9,11 @@ export const casePage = {
    * `public-source` figure needs none (its measure may link to the page that prints it); a `projected` one is never
    * shown as a figure (it stays in prose, with the word "projected").
    */
-  basis: { internal: 'DRAFT · internal figure' },
+  basis: { internal: 'internal figure' },
   /**
    * DRAFT (for Jack): the line on a case with no public evidence (its `evidence` is empty). It adds only what the
    * case's own Evidence line ("Client work, no public page.", the MDX body) does not say, and must be true on every
    * case that shows it: two of them print their figure above it and one names the client.
    */
-  nda: 'DRAFT · Under NDA: the figures here come from my own record of the work.',
+  nda: 'Under NDA: the figures here come from my own record of the work.',
 } as const;

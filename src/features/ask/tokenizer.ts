@@ -71,7 +71,9 @@ export function createTokenizer(vocabText: string): Tokenizer {
   }
   return {
     encode(text, max = 128) {
-      const ps = words(text).flatMap(pieces).slice(0, max - 2);
+      const ps = words(text)
+        .flatMap(pieces)
+        .slice(0, max - 2);
       return { ids: [CLS, ...ps.map((p) => id(p) ?? UNK), SEP], pieces: ps };
     },
   };

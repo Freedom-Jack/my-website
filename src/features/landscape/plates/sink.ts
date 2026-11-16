@@ -49,7 +49,11 @@ type Key = [p: number, x: number, y: number, opacity?: number];
 /** Each plate's keyframes for a geometry. */
 function motionOf(g: PlateGeometry, kind: PlateKind): Key[] {
   if (g.still || kind === 5) return [[0, 0, 0]];
-  if (g.motion === 'unroll') return [[0, 0, 0], [1, -g.travel, 0]];
+  if (g.motion === 'unroll')
+    return [
+      [0, 0, 0],
+      [1, -g.travel, 0],
+    ];
   const F = g.camera;
   if (!F || F.length < 2) return [[0, 0, 0]];
   // the camera's travel: the engine's own choreography, sample by sample
@@ -69,7 +73,15 @@ function curtainOf(g: PlateGeometry): { at: number; keys: Key[] } | null {
   let best = 0;
   for (const f of F) if (f.curtain[1] > best) [best, at] = [f.curtain[1], f.curtain[0]];
   if (at < 0 || best < 0.5) return null;
-  return { at, keys: F.map((f): Key => [f.p, f.curtain[1] > 0.02 ? f.curtain[0] - at : -at - 400, 0, Math.min(1, f.curtain[1] * 1.3)]) };
+  return {
+    at,
+    keys: F.map((f): Key => [
+      f.p,
+      f.curtain[1] > 0.02 ? f.curtain[0] - at : -at - 400,
+      0,
+      Math.min(1, f.curtain[1] * 1.3),
+    ]),
+  };
 }
 
 export function createPlateStage(root: HTMLElement): PlateStage {
@@ -136,6 +148,30 @@ export function createPlateStage(root: HTMLElement): PlateStage {
     addEventListener('scroll', onScroll, { passive: true });
     addEventListener('resize', onScroll, { passive: true });
   }
+
+  // depth you can feel (elements.ts depth; plates.css): where the pointer is, as two numbers on the stage; each
+  // plate's own depth and the easing are CSS, the move is the compositor's
+  let praf = 0;
+  let px = 0;
+  let py = 0;
+  const setDepth = () => {
+    praf = 0;
+    root.style.setProperty('--px', px.toFixed(3));
+    root.style.setProperty('--py', py.toFixed(3));
+  };
+  const onPointer = (e: PointerEvent) => {
+    if (e.pointerType === 'touch' || !html.classList.contains('el-depth') || html.getAttribute('data-plates') !== 'on')
+      return;
+    px = Math.min(1, Math.max(-1, (e.clientX / Math.max(1, innerWidth)) * 2 - 1));
+    py = Math.min(1, Math.max(-1, (e.clientY / Math.max(1, innerHeight)) * 2 - 1));
+    if (!praf) praf = requestAnimationFrame(setDepth);
+  };
+  const onLeave = () => {
+    px = py = 0;
+    if (!praf) praf = requestAnimationFrame(setDepth);
+  };
+  addEventListener('pointermove', onPointer, { passive: true });
+  html.addEventListener('pointerleave', onLeave);
 
   /** Give an element its motion along the page's scroll (transform, and opacity where the keys carry one). */
   function setMotion(id: PlateKind | string, el: HTMLElement | undefined | null, keys: Key[], flip = false) {
@@ -230,6 +266,9 @@ export function createPlateStage(root: HTMLElement): PlateStage {
       if (raf) cancelAnimationFrame(raf);
       removeEventListener('scroll', onScroll);
       removeEventListener('resize', onScroll);
+      removeEventListener('pointermove', onPointer);
+      html.removeEventListener('pointerleave', onLeave);
+      if (praf) cancelAnimationFrame(praf);
       html.removeAttribute('data-plates');
       html.style.removeProperty('--paper-tile');
       html.style.removeProperty('--paper-tile-size');

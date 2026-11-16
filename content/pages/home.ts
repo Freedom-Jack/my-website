@@ -36,7 +36,7 @@ export const home = {
     /** The approved hero sentence with the title moved after the verb (the lead's ruling 1): his words, this order. */
     verb: '{I design} and ship {production AI} for banks and insurers: {LLM agents,} {retrieval systems,} and the data platforms underneath them.',
     /** DRAFT: the title as a byline (content/resume.json basics.label, the employer, the city). */
-    title: 'DRAFT · Lead AI/ML Architect, CGI AI Center of Excellence, Toronto.',
+    title: 'Lead AI/ML Architect, CGI AI Center of Excellence, Toronto.',
     /**
      * The one counted proof: the approved "What I work on" line (workOn.rows[0].line) split round its figure, which is
      * the case's own (content/work/rag-assistant.mdx `figure`; a unit test keeps the three equal). `case`: the case the

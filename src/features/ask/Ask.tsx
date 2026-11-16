@@ -15,7 +15,8 @@ import styles from './ask.module.css';
  * question is answered with a passage of the site's own words, word for word, and the painting travels to the place
  * that holds it. Nothing is fetched until the line is used; nothing typed leaves the browser.
  */
-const fill = (s: string, v: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (_, k: string) => String(v[k] ?? ''));
+const fill = (s: string, v: Record<string, string | number>) =>
+  s.replace(/\{(\w+)\}/g, (_, k: string) => String(v[k] ?? ''));
 const mb = (bytes: number) => (bytes / 1e6).toFixed(bytes < 1e7 ? 1 : 0);
 const two = (x: number) => Math.max(0, x).toFixed(2);
 
@@ -23,15 +24,22 @@ function line(s: Step): string {
   const t = words.trace;
   switch (s.kind) {
     case 'load':
-      return s.done ? fill(t.loaded, { total: mb(s.total) }) : fill(t.loading, { got: mb(s.loaded), total: mb(s.total) });
+      return s.done
+        ? fill(t.loaded, { total: mb(s.total) })
+        : fill(t.loading, { got: mb(s.loaded), total: mb(s.total) });
     case 'read':
       return fill(t.read, { n: s.tokens });
     case 'embed':
       return fill(t.embed, { dim: s.dim, ms: Math.max(1, Math.round(s.ms)) });
     case 'route':
-      return fill(s.as === 'scene' ? t.routeScene : t.routeQuestion, { scene: two(s.scene), question: two(s.question) });
+      return fill(s.as === 'scene' ? t.routeScene : t.routeQuestion, {
+        scene: two(s.scene),
+        question: two(s.question),
+      });
     case 'scene':
-      return s.found.length ? fill(t.scene, { found: s.found.map((f) => `${f.label} ${two(f.score)}`).join(' · ') }) : t.sceneNone;
+      return s.found.length
+        ? fill(t.scene, { found: s.found.map((f) => `${f.label} ${two(f.score)}`).join(' · ') })
+        : t.sceneNone;
     case 'search':
       return fill(t.search, { n: s.passages, score: two(s.score) });
     case 'travel':
@@ -160,7 +168,9 @@ export function Ask() {
           <ol className={styles.trace}>
             {steps.map((s, i) => (
               <li key={`${s.kind}-${i}`} data-kind={s.kind} data-run={s.kind === 'load' && !s.done ? '' : undefined}>
-                {s.kind === 'load' && !s.done ? <i style={{ inlineSize: `${Math.round((s.loaded / s.total) * 100)}%` }} /> : null}
+                {s.kind === 'load' && !s.done ? (
+                  <i style={{ inlineSize: `${Math.round((s.loaded / s.total) * 100)}%` }} />
+                ) : null}
                 <span>{line(s)}</span>
               </li>
             ))}

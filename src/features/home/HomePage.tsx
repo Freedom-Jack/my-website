@@ -3,6 +3,7 @@ import { site } from '@content/site';
 import { PageMain } from '@/components/page/PageMain';
 import { Glimpse } from '@/components/page/Glimpse';
 import { Strip } from '@/components/page/Strip';
+import { Seal } from '@/components/ui/Seal';
 import { TextAction } from '@/components/ui/TextAction';
 import { Ask } from '@/features/ask/Ask';
 import { allCases } from '@/features/work/cases';
@@ -40,6 +41,8 @@ export async function HomePage() {
       <Strip variant="home" labelledBy="name" still="home" veil={0.9}>
         <h1 className="name" id="name">
           {site.name}
+          {/* round 6: his seal beside his name, as a painter signs (decorative; the tail keeps its own) */}
+          <Seal id="seal-carve-name" />
         </h1>
         <p className="first__verb">
           <Inline text={first.verb} />

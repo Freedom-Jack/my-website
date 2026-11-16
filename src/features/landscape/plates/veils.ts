@@ -51,10 +51,12 @@ function bandsOf(el: Element): Box[] {
     const own = pe?.closest('.margin-note, [data-veil-own]');
     if (!pe || pe.closest('svg') || (own && own !== el && el.contains(own)) || unrendered(pe)) continue;
     range.selectNodeContents(n);
-    for (const q of range.getClientRects()) if (q.width >= 2 && q.height >= 2 && inside(q)) items.push([q.left, q.top, q.right, q.bottom]);
+    for (const q of range.getClientRects())
+      if (q.width >= 2 && q.height >= 2 && inside(q)) items.push([q.left, q.top, q.right, q.bottom]);
   }
   items.sort((a, b) => a[1] - b[1]);
-  const uni = (a: Box | null, b: Box): Box => (a ? [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[2], b[2]), Math.max(a[3], b[3])] : [...b]);
+  const uni = (a: Box | null, b: Box): Box =>
+    a ? [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[2], b[2]), Math.max(a[3], b[3])] : [...b];
   const bands: Box[] = [];
   let cur: Box | null = null;
   let nar: Box | null = null;
@@ -127,7 +129,10 @@ export function createVeils(): Veils {
     const main = document.getElementById('main');
     const els = new Set<Element>();
     if (main) for (const el of main.querySelectorAll('[data-veil], [data-landscape="keepout"]')) els.add(el);
-    for (const el of document.querySelectorAll('.site-footer .tail__colophon, .site-footer .tail__stamp, .site-footer .tail__base')) els.add(el);
+    for (const el of document.querySelectorAll(
+      '.site-footer .tail__colophon, .site-footer .tail__stamp, .site-footer .tail__base',
+    ))
+      els.add(el);
     for (const el of [...els]) for (const n of el.querySelectorAll('.margin-note, [data-veil-own]')) els.add(n);
     const y = window.scrollY || 0;
     const x = window.scrollX || 0;
@@ -139,7 +144,13 @@ export function createVeils(): Veils {
       if (!el.isConnected) continue;
       for (const b of bandsOf(el)) {
         // (the patch: the band's lines and CORE round them, solid; then its edges)
-        boxes.push([Math.round(b[0] + x - CORE - LEFT), Math.round(b[1] + y - CORE - ENDS), Math.round(b[2] + x + CORE + side), Math.round(b[3] + y + CORE + ENDS), side]);
+        boxes.push([
+          Math.round(b[0] + x - CORE - LEFT),
+          Math.round(b[1] + y - CORE - ENDS),
+          Math.round(b[2] + x + CORE + side),
+          Math.round(b[3] + y + CORE + ENDS),
+          side,
+        ]);
       }
     }
     const key = JSON.stringify(boxes);
