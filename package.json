@@ -11,7 +11,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "preview": "NEXT_PUBLIC_INK_QA=1 next build && NEXT_PUBLIC_INK_QA=1 next start -p 3105",
+    "preview": "if curl -s -o /dev/null -m 2 http://localhost:3105/; then echo 'The preview is already running: http://localhost:3105 (stop it first to build it again)'; else NEXT_PUBLIC_INK_QA=1 next build && NEXT_PUBLIC_INK_QA=1 next start -p 3105; fi",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
