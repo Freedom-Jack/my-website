@@ -274,7 +274,8 @@ test.describe('a phone, an inner page', () => {
     expect(src.length).toBeLessThan(1500 * 1.4);
     // (no eager sharp still: the only reference to it is the fallback's background, shown only without JavaScript)
     await expect(page.locator('[data-landscape="strip"] .strip__still--sharp')).toHaveCount(0);
-    expect(html).not.toMatch(/<img[^>]*work-phone@/);
+    // (a real source only: round 7's tail holds the place's still as a data attribute until the reader nears it)
+    expect(html).not.toMatch(/<img[^>]*\ssrc="[^"]*work-phone@/);
     await expect(page.locator('[data-landscape="strip"] .strip__fallback')).toHaveCount(1);
     // (the probe runs after the load and an idle moment: nothing in the first load asks for the sharp still)
     await page.waitForLoadState('load');

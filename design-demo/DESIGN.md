@@ -25,6 +25,9 @@ scroll motion, phone depth bands; not merged, not pushed).
   (https://claude.ai/code/artifact/65a17a60-ad11-432d-a4dd-6cd2563a472d) waits for his answers.
 - **2026-10-20 to 22: the polish round** (§12 "The polish round"): Jack asked for "absolutely the best" with full
   freedom; an eight-lens audit, then every fix that needs no new fact. Uncommitted on `redesign/v2`.
+- **2026-11-16: round 7** (§12 "Round 7"), on `redesign/v6`: the header is the live site's again; everything below
+  it, on every page, and the footer are redesigned (the painting the whole width, the words in its mist). It waits
+  for Jack's verdict.
 - **Next:** Jack's content answers → drafts beside their pages → a Vercel preview and a real-phone check → launch on
   **qijinxu.com** through the §2 launch gate.
 - This order changes the earlier plan, in which the build started at 4a. On 2026-10-14 Jack accepted a short 4b round first ("Sure continue").
@@ -1127,6 +1130,71 @@ painting, its scroll motion, the Chinese feeling and his words, and adds to them
 - **Home's first screen:** his seal beside the name, the plum bough in the corner, the day's own warmth, depth under
   the pointer, falling snow and rain when asked.
 - **Words:** no page prints "DRAFT" any more; every new line is listed in `NEW-WORDS.md` for his approval.
+
+### Round 7 (2026-11-16; Jack: "completely redesign everything else", the header stays)
+
+On `redesign/v6` (off `redesign/v5`, local, not pushed). Round 6 changed only the header, the one part Jack likes,
+and he rejected it: "the rest of the page has no visual effects and it's all terrible … The body is like only left
+side of the page … even the footer is not perfectly aligned with the page"; "the whole idea is this is the whole big
+scroll. It's one big painting"; "No bird and no cherry blossom"; "I don't like the new color theme". The brief is in
+`~/.claude/projects/…/v5/next-prompt.md`; screenshots, scripts and numbers are in `~/.claude/projects/…/v6/`.
+Nothing here changes a hard rule of §2. **It waits for Jack's verdict.**
+
+- **The header is the live site's again.** Off in `elements.ts`: `hours`, `weather`, `swallows`, `ribbon`, `petals`,
+  `corner`, `nameSeal`, `depth`, `stir`, `plumGust`, `air`, and `plum` (the bough the live site pinned to the corner).
+  Writing's framing willow now leaves with the first screen (it stayed pinned to the screen's corner). Nothing is
+  laid over the painting or pinned in front of it. Round 6's lag fix (the plates) stays. The stills were re-cut.
+- **The painting runs the whole width behind the page** (`elements.ts curtain`, off: the unroll's standing curtain
+  hid the place left of the text column, and with it went the hold that stopped a page's travel short). It still
+  slides west as the page is read; by a page's end the next place has come into view.
+- **The words lie in the painting's mist, across the whole frame** (`styles/body.css`, one twelve-column grid on
+  the header's 1200 frame). The paper behind the body's words is ONE FIELD OF MIST computed from where the words
+  stand (`plates/veils.ts`): solid behind every line, thinning out in billows with the distance to the nearest
+  words, so neighbours share a cloud, a wide gap opens onto the painting and no edge is a ruled line. (Patches with
+  torn edges left scraps of mountain between neighbours.) The first screen keeps round 6's patches untouched.
+- **Words inked into the painting** (`.inked`): the plates stand in two leaves (what lies behind the place; the
+  place and what is in front of it) and a page's display words stand between them, so a peak or a roof passes in
+  front of the letters: every page's ending (the next place's name, large) and a project page's figure.
+- **What moves is ink, wash, mist, paper or the seal.** Section titles in the name face with a dry-brush rule that
+  draws itself; figures as ink numerals that rise as they come up the screen (a projection is an outline under its
+  "Projected" label, never filled ink); a blot of wet ink under the pointer on a row; the seal pressed when something
+  is done (an answer found, the address copied). Scroll timelines, so a scroll runs no script; without them, under
+  reduced motion and under Still everything simply stands finished. Nothing is hidden at first paint.
+- **Each page** (first screens untouched):
+  - Home: About me (the approved paragraph the Vanguard budget held back is back) with Now in a cloud of its own;
+    What I work on as three steps down the page; **Ask the painting in the body**, questions only (the half that
+    repainted the painting by hour and weather is gone), the right of the frame kept open so the place that holds
+    the answer is seen to arrive; Writing beside Say hello.
+  - Work: six rows with ink figures; How I build beside its wide drawing; **Under the hood out of its folds**: a
+    grammar writing a case record token by token (the forbidden tokens struck with a brush), the search's test run
+    again in the reader's browser (a mark per question), the search, the lineage drawing itself; In the open.
+  - A project page: the summary set large, **its figure inked into the painting behind the town's roofs**, the
+    drawing, the labelled body with its margin notes, and the live piece tied to it (the grammar on the agent's
+    page, the search and its test on the assistant's, the lineage on the data operations').
+  - Writing: the note opened out, with its own comparison turned aspect by aspect. The note: its quotation set
+    large, its comparison the frame's width, the brush stroke along the top edge that fills as it is read.
+  - Résumé: on screen a timeline the reading draws, skills in four columns, education beside the awards; every
+    screen rule is inside `@media screen`, so the print stylesheet (the PDF) is as it was.
+  - Contact: the address large in the name face across the water; copying it presses the seal. 404: its number
+    under the lone peak.
+  - The tail, on the page's grid: a brush rule, **the whole scroll in miniature** (five places, the current one
+    marked), the colophon and the build stamp at the left, Still, the email and the seal at the right.
+  - Below 1200 px: the same sections stacked, the windows into the painting between them, and each page ends on
+    the next place's own picture under its name.
+- **Measured** (real Chrome, 1728 × 994, the production build): scrolling any page 0 to 5 % GPU, no frame over
+  20 ms (the live site: 21 to 23 %). Lighthouse's phone profile (simulated, median of 5): Work 1.05 s, Writing and
+  Contact 2.38 s, the Résumé 2.45 s; Home, a project page and the note give 2.1 s or 2.6 s from run to run, as
+  round 6's build does on the same machine (the simulation flips on pages whose LCP is the inline still). To hold
+  that, the plates' and veils' code now loads with the engine, and the tail's and the ending's pictures get their
+  sources only as the reader nears them.
+- **Tests:** `npm run ci` green; 86 browser tests green (a smoke test per route with the hard rules, axe, tap
+  targets, the probe, the craft, the windows). Tests that guarded the folds, Writing's own end window and the
+  no-JS fetch list follow what changed on purpose.
+- **Words:** every new line is in `NEW-WORDS.md`; nothing prints "DRAFT".
+- **Rules that came out of it:** never a pseudo-element with a ground of its own over a block of words (a contrast
+  checker can no longer decide any of them): use a real element; a lazy image within 2500 px of a phone's first
+  screen joins the first load: hold its source until it nears (`glimpse-stills.ts`); the dev server's cache can keep
+  an old CSS Module's class list (classes come out `undefined`): restart it with `.next/dev` removed.
 
 ## 13. Running the demo and its tools
 

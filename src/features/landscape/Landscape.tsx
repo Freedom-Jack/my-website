@@ -3,8 +3,8 @@
 import { useEffect, useRef } from 'react';
 import { isStill } from '@/features/chrome/still';
 import { warmFigureSource } from './engine/figure-source';
-import { createPlateStage, type PlateStage } from './plates/sink';
-import { createVeils, type Veils } from './plates/veils';
+import type { PlateStage } from './plates/sink';
+import type { Veils } from './plates/veils';
 import { watchGlimpseStills } from './glimpse-stills';
 import { cadence, gpuOK, limitFor as limitForState, quietNow, saveData, setLive, watchFrames } from './probe';
 import { moods } from './mood-control';
@@ -57,14 +57,17 @@ export function Landscape() {
     let started = false;
     let handle: LandscapeHandle | null = null;
     let stopWatch: (() => void) | null = null;
-    // THE PLATES (round 6): on wide screens the stage is the page's own layers, moved by the browser (plates/sink.ts)
-    let plates: PlateStage | null = platesRef.current ? createPlateStage(platesRef.current) : null;
-    if (QA && plates) (window as unknown as { __plates?: PlateStage }).__plates = plates;
-    // ...and the paper behind the words is the page's own too (plates/veils.ts), scrolling with them
-    let veils: Veils | null = plates ? createVeils() : null;
+    // THE PLATES (round 6): on wide screens the stage is the page's own layers, moved by the browser (plates/sink.ts),
+    // and the paper behind the words is the page's own too (plates/veils.ts), scrolling with them. Round 7: both
+    // modules come with the engine's request, after the probe (they serve nothing before the painting comes, and
+    // every kilobyte of script before the first screen has settled counts on a phone).
+    let plates: PlateStage | null = null;
+    let veils: Veils | null = null;
     // the windows' stills below the fold get their sources as the reader nears them (R5; the navigation does the same
     // for every later page)
     const stopStills = watchGlimpseStills(currentMain());
+    // (round 7: the tail's scroll in miniature gets its pictures the same way; the tail stays across pages)
+    const stopTail = watchGlimpseStills(document.querySelector<HTMLElement>('.site-footer'));
     // QA builds only: the boot's marks (engine/marks.ts), read by the vanguard round's boot profile
     const mark = (name: string) => {
       if (QA) performance.mark(`ink:${name}`);
@@ -114,9 +117,17 @@ export function Landscape() {
         // engine's and the page's figures are drawn by the time the engine mounts (the engine takes the source over)
         warmFigureSource();
         // (typed as the contract, so the engine's real signature is checked against it)
-        const mod: EngineModule = await import('./engine');
+        const [mod, sink, veiling]: [EngineModule, typeof import('./plates/sink'), typeof import('./plates/veils')] =
+          await Promise.all([import('./engine'), import('./plates/sink'), import('./plates/veils')]);
         mark('import:done');
         if (dead) return;
+        // (the plates and the veils are made in a task of their own, at an idle moment: with the engine's evaluation
+        // they made one task of 230 ms on a throttled phone)
+        await whenIdle(500);
+        if (dead) return;
+        plates ??= platesRef.current ? sink.createPlateStage(platesRef.current) : null;
+        if (QA && plates) (window as unknown as { __plates?: PlateStage }).__plates = plates;
+        veils ??= plates ? veiling.createVeils() : null;
         // the module's evaluation was one task; the mount is another, at the next idle moment and after a rendered
         // frame, so its reads of the page's boxes find the layout clean (a font swap or a style change laid out inside
         // the mount's task cost it 50-70 ms on a phone)
@@ -213,6 +224,7 @@ export function Landscape() {
       dead = true;
       stopWatch?.();
       stopStills();
+      stopTail();
       document.removeEventListener('ink:still', onStill);
       moods.stop();
       handle?.destroy();

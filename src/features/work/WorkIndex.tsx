@@ -47,7 +47,7 @@ export async function WorkIndex() {
       </Strip>
 
       <section className={`part ${styles.six}`} aria-labelledby="glance-title">
-        <div className={styles.head} data-veil="0.9">
+        <div data-veil="0.9">
           <h2 className="h-ink" id="glance-title">
             {index.title}
           </h2>
@@ -68,7 +68,7 @@ export async function WorkIndex() {
                   {f.lead ? <span className="num__lead">{f.lead}</span> : null}
                   {f.value}
                 </p>
-                <div className={styles.what}>
+                <div>
                   <h3 className={styles.title}>
                     <InlineLink href={c.href}>
                       <Inline text={c.title} />

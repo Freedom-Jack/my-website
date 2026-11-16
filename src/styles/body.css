@@ -357,14 +357,22 @@ main a.next__link {
   display: block;
   position: relative;
   z-index: 0;
+  inline-size: calc(100% + 2 * var(--gutter-x));
+  max-inline-size: none;
+  block-size: auto;
+  aspect-ratio: 430 / 169;
+  object-fit: cover;
   margin-inline: calc(-1 * var(--gutter-x));
   margin-block-start: -2.25rem;
   pointer-events: none;
 }
-.next__still img {
-  display: block;
-  width: 100%;
-  height: auto;
+.next__still:not([src]) {
+  visibility: hidden; /* (its source comes as the ending nears: no broken-image mark meanwhile) */
+}
+@media (min-width: 40rem) and (max-width: 74.99rem) {
+  .next__still {
+    aspect-ratio: 1000 / 220;
+  }
 }
 .next__name {
   position: relative;
@@ -458,20 +466,35 @@ main:has(> .closing:last-child) + .site-footer.tail {
   aspect-ratio: 240 / 124;
   overflow: hidden;
 }
-/* (the place stands in the right half of its first frame: the picture is laid twice the cell's width, from its right) */
+/* phones: the place's phone still fills the cell */
 .scrollmap__art img {
   position: absolute;
-  right: 0;
-  top: 50%;
-  width: 215%;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   max-width: none;
-  height: auto;
-  translate: 0 -50%;
+  object-fit: cover;
+  object-position: 68% 50%;
   opacity: 0.78;
   transition:
     opacity 380ms var(--ease-wash),
     scale 900ms var(--ease-wash);
   transform-origin: 75% 50%;
+}
+.scrollmap__art img:not([src]) {
+  visibility: hidden;
+}
+/* from 640 px: the place stands in the right half of its wide first frame: the picture is laid twice the cell's
+   width, from its right */
+@media (min-width: 40rem) {
+  .scrollmap__art img {
+    inset: auto 0 auto auto;
+    top: 50%;
+    width: 215%;
+    height: auto;
+    translate: 0 -50%;
+    object-fit: fill;
+  }
 }
 .scrollmap a:is(:hover, :focus-visible) img,
 .scrollmap a[aria-current] img {
@@ -553,10 +576,6 @@ main:has(> .closing:last-child) + .site-footer.tail {
   }
   .scrollmap__art {
     aspect-ratio: 78 / 60;
-  }
-  .scrollmap__art img {
-    width: 330%;
-    right: -18%;
   }
 }
 @media (prefers-reduced-motion: reduce) {

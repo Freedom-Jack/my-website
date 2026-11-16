@@ -16,6 +16,11 @@ Guidance for Claude Code in this repository. @AGENTS.md holds Next.js's own note
   (the moods, "Ask the painting"). Its brief cancels the Vanguard round's tests and byte budgets, and for this round
   the "approved look" and the frozen design system below are where the work starts, not a fence. New words wait in
   [NEW-WORDS.md](NEW-WORDS.md).
+- Round 7 (2026-11-16, DESIGN §12 "Round 7") is on `redesign/v6` and waits for Jack's verdict: the first screen of
+  every page is the live site's; everything below it and the footer are new (`src/styles/body.css`: the painting
+  the whole width, the words in its mist on one twelve-column grid, words inked between the painting's two leaves,
+  the tail with the scroll in miniature). New words are listed in [NEW-WORDS.md](NEW-WORDS.md). Its preview:
+  `NEXT_PUBLIC_INK_QA=1 npx next build && NEXT_PUBLIC_INK_QA=1 npx next start -p 3106`.
 - The approved look is the build on `round5/spring-ink` itself (DESIGN §12 "Round 5": the one painting, the style
   "Spring ink", its scroll motion and phone depth bands), and demo 4b in `design-demo/` for everything round 5 did not
   change. Any visual change is checked side by side with them, on the real GPU (DESIGN §13); the screenshots stay
@@ -60,6 +65,16 @@ there). The table in README.md says what each does.
 - `src/features/qa/` is the preview's switch panel (QA builds only).
 - `places.ts` is the one table of where each page stands in the painting. `PageMain` and the navigation both read
   it.
+- `src/styles/body.css` is the body's design system (round 7): the grid, the name-face titles and their brush
+  rules, the ink numerals, the pointer's wash, the ending, the tail. A page's CSS Module only places its blocks on
+  the grid. A block of words below the first screen carries `data-veil` so the mist lies behind it
+  (`features/landscape/plates/veils.ts`); `.inked` puts display words between the painting's two leaves.
+- Never a CSS mask, filter or blend mode on the plates or anything in them, and no opacity on a box that holds
+  plates (15 to 25 % GPU on every scroll frame). Never a pseudo-element with a ground of its own over a block of
+  words (axe can no longer decide their contrast): use a real element. An image below the first screen gets its
+  source through `data-src` and `data-near` (`glimpse-stills.ts`), not `loading="lazy"` alone.
+- The first screen of every page (the navigation, the title, the opening lines, the painting beside them and its
+  scroll motion) is the part Jack likes: change nothing there without his word, and add nothing to the painting.
 
 ## Rules that are not negotiable (DESIGN §1, §2)
 

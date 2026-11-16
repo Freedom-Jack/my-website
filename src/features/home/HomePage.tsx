@@ -150,8 +150,8 @@ export async function HomePage() {
       <Glimpse still="home-0" />
       {/* What I work on: three steps down the page, left to right; each step keeps its own cloud, so his mountain
           shows between them as it crosses the screen */}
-      <section className={`part ${styles.workOn}`} aria-labelledby="work-on-title">
-        <div className={styles.workOnHead} data-veil="">
+      <section className="part" aria-labelledby="work-on-title">
+        <div data-veil="">
           <h2 className="h-ink" id="work-on-title">
             {workOn.title}
           </h2>

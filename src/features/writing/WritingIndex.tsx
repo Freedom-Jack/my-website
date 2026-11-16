@@ -19,7 +19,7 @@ import styles from './writing.module.css';
 export async function WritingIndex() {
   const notes = await allNotes();
   return (
-    <PageMain page="writing" className={styles.page} glimpseEnd>
+    <PageMain page="writing" glimpseEnd>
       <Strip variant="sub" labelledBy="writing-title" still="writing">
         <h1 className="page-title" id="writing-title">
           {writing.title}
@@ -31,7 +31,7 @@ export async function WritingIndex() {
       {notes.map((n) => {
         const table = noteTable(n.slug);
         return (
-          <section className={`part ${styles.leaf}`} key={n.slug} aria-labelledby={`note-${n.slug}`}>
+          <section className="part" key={n.slug} aria-labelledby={`note-${n.slug}`}>
             <div className={`${styles.leaf__main} ink-row`} data-veil="">
               <p className="mono">
                 {n.kind} · <time dateTime={n.published}>{longDate(n.published)}</time>

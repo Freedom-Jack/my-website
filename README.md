@@ -61,11 +61,13 @@ A **QA build** (`NEXT_PUBLIC_INK_QA=1 npm run build`) exposes the painting to th
 content/                 every word: site.ts, resume.json, pages/*.ts, work/*.mdx, writing/*.mdx, github/
 src/app/                 thin routes: metadata, data loading, and one feature component each
 src/components/          shared building blocks
-  layout/                the header and its river line (RiverLine), the tail (Tail, TailNames: the colophon, the build
-                         stamp, "Still the landscape", the five names, the email, the seal), the boot script, ink filters
+  layout/                the header and its river line (RiverLine), the tail (Tail, ScrollMap: a brush rule, the whole
+                         scroll in miniature with the current place marked, the colophon, the build stamp, "Still the
+                         landscape", the email, the seal), the boot script, ink filters
   page/                  PageMain (every page's <main>), Strip (its opening scene and first screen), NextPlace (the
-                         ending: "Downstream · <next place> →"), Closing (its end scene), Glimpse (an empty depth
-                         band at a section break, painted below 1200 px)
+                         ending: the next place's name inked into the painting; below 1200 px over that place's own
+                         picture), Closing (its end scene), Glimpse (an empty depth band at a section break, painted
+                         below 1200 px)
   ui/                    Seal, TextAction (the one action on a screen, with its drawn arrow), MarginNote, Diagram
 src/features/            one folder per feature, each owning its components, logic and CSS Module
   landscape/             the painting: places.ts (where each page stands), Landscape.tsx (the one persistent
@@ -75,11 +77,15 @@ src/features/            one folder per feature, each owning its components, log
                          plates/ (round 6: on wide screens the stage is the page's own layers, developed once by
                          the engine and moved by the browser; the veils and their torn edges); mood.ts and
                          mood-control.ts (the painting keeps the visitor's hour; snow and rain when asked)
-  ask/                   "Ask the painting" on Home: a sentence-embedding model in the visitor's browser (a worker;
-                         its files in public/models, fetched only when the line is used), the tokenizer and encoder
-                         shared with tools/build-ask.ts, the routing (a scene or a question) and the retrieval
-                         (lines.ts: the corpus's units as lines; questions.ts: the questions each line is filed
-                         under, never shown)
+  ask/                   "Ask the painting" in Home's body: a sentence-embedding model in the visitor's browser (a
+                         worker; its files in public/models, fetched only when the line is used), the tokenizer and
+                         encoder shared with tools/build-ask.ts, and the retrieval (lines.ts: the corpus's units as
+                         lines; questions.ts: the questions each line is filed under, never shown). Questions only:
+                         the answer is a line of the site's own words, and the painting travels to its place
+  craft/                 Work's live pieces (round 7: open on the page, not under folds; client/Piece loads each as
+                         the reader reaches it): the search, its test run again in the browser, a grammar writing a
+                         record token by token, the lineage; three of them also stand on the project page they are
+                         tied to
   qa/                    the preview's switch panel (QA builds only)
   navigation/            route changes as pans along the painting under a plain crossfade of the words
   chrome/                current page, the returning header, Still, the 404's lost mark
@@ -89,7 +95,9 @@ src/lib/                 typography, inline markup, dates, figures (the poster n
                          SEO and JSON-LD, redirects, the compliance patterns, the MDX plugin (mdx/rehype-site.mjs)
 src/styles/              the design system: tokens, base, layout, effects, components (global, from the demo);
                          effects.css holds the interface elements, each behind its html.el-* class (focus, the row
-                         rule, the flow dot)
+                         rule, the flow dot); plates.css the stage's layers and the mist; body.css (round 7)
+                         everything below the first screen: the twelve-column grid, the name-face titles with their
+                         brush rules, the ink numerals, the pointer's wash, the seal pressed, the ending, the tail
 tools/                   build-pdf, build-stills, build-heroes, build-og, build-ask (the ask line's index, with the
                          same model the browser runs), compliance, linkcheck (TypeScript, run by Node 24 directly);
                          glsl-loader.cjs (the build's loader for the engine's shaders: comments out)
@@ -105,6 +113,15 @@ design-demo/             the approved static demo, its notes and its QA tools: r
 place from `src/features/landscape/places.ts` (its stretch of the painting, how strongly the scene shows, whether
 it ends on a closing scene, and the next place downstream for its ending) and writes it onto `<main>`. The
 navigation reads the same table to prepare the next page's painting before it arrives, so the two never disagree.
+
+**Below the first screen** (round 7, `design-demo/DESIGN.md` §12 "Round 7"): the painting runs the whole width
+behind the page (`elements.ts` `curtain`, off) and the words lie in its mist across the header's 1200 frame, on
+twelve columns (`styles/body.css`). A block of words carries `data-veil`; `features/landscape/plates/veils.ts`
+computes one field of mist for the page from where those blocks' lines stand (solid behind every line, thinning out
+in billows with the distance to the nearest words) and lays it as the mask of one sheet of the paper's own tile.
+The plates stand in two leaves, and `.inked` words stand between them (a page's ending, a project's figure), so the
+place passes in front of the letters. What moves is drawn by scroll timelines or by one small listener
+(`features/effects/finish.ts`); everything stands finished without them.
 
 **The surface** (the vanguard round, `design-demo/DESIGN.md` §12): two faces (the name face for the name, the page
 titles and the figures as poster numerals; Familjen Grotesk for everything read or pressed) and the system mono for

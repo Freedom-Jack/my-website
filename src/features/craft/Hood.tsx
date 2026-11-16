@@ -27,8 +27,8 @@ export function Hood({ craft }: { craft: Pick<Craft, 'sizes' | 'mask'> }) {
     </article>
   );
   return (
-    <section className={`part ${styles.hood}`} id="hood" aria-labelledby="hood-title">
-      <div className={styles.hoodHead} data-veil="">
+    <section className="part" id="hood" aria-labelledby="hood-title">
+      <div data-veil="">
         <h2 className="h-ink" id="hood-title">
           {h.title}
         </h2>
