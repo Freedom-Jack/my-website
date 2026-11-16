@@ -48,6 +48,16 @@ export const QUESTIONS: [opens: string, questions: string[]][] = [
     ],
   ],
   [
+    'I’m optimistic about AI because',
+    [
+      'Are you optimistic about AI?',
+      'Why are you optimistic about AI?',
+      'Is AI overhyped?',
+      'Is AI a bubble?',
+      'What do you think about the AI hype?',
+    ],
+  ],
+  [
     'I also build for myself.',
     ['Do you build your own tools?', 'Do you have side projects?', 'What do you build for yourself?'],
   ],
