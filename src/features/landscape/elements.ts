@@ -66,6 +66,11 @@ export const ELEMENTS = {
    *  breathes). Cost: a sprite in the figure layer, 0 frames of its own. Recall: "a plum bough over his mountain".
    *  QA switches it off for Jack's side by side (the brief, A3). */
   plum: false,
+  /** The framing willow boughs of two first screens (the live site's): Work's willow tip out of the top edge over
+   *  the town, and Writing's willow let down from the top-right corner over the lake. On. Off: neither is drawn.
+   *  The tail's strip of the whole scroll (tools/build-scroll.ts) is cut with them off: a bough that frames one
+   *  page's opening would hang in the middle of the sky of a strip. */
+  boughs: true,
   /** The swallows: Home's one swallow gliding across the open sky (and its three far birds), Work's pair low over the
    *  river, the Résumé's one sweeping over the fields. OFF (P3, A3: one named element per place; "no swallow on
    *  Home", "Work's swallows go", "the Résumé's swallow goes"): off, a visitor loses a second moving thing in three

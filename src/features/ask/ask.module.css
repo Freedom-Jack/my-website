@@ -13,9 +13,9 @@
   display: flex;
   align-items: flex-end;
   gap: 1rem;
-  /* the line itself: one dry-brush stroke under the words */
-  background: var(--stroke-a) left bottom / 100% 0.6rem no-repeat;
-  padding-block-end: 0.8rem; /* (the stroke lies under the box, never in it) */
+  /* the line itself: a hairline under the words */
+  border-block-end: 1px solid var(--ink-3);
+  padding-block-end: 0.35rem;
 }
 .input {
   flex: 1;
@@ -32,13 +32,14 @@
   color: var(--ink-4);
   opacity: 1;
 }
-/* the line in use: no box round it; its brush stroke is joined by a second, jade line (the site's focus mark) */
+/* the line in use: no box round it; its hairline turns jade and thickens (the site's focus mark) */
 :global(html) .input:focus-visible {
   outline: none;
   box-shadow: none;
 }
 .line:focus-within {
-  box-shadow: 0 2px 0 var(--jade);
+  border-block-end-color: var(--jade);
+  box-shadow: 0 1px 0 var(--jade);
 }
 .go {
   flex: none;
@@ -241,12 +242,13 @@
 }
 .bar {
   display: block;
-  block-size: 0.5rem;
+  block-size: 3px;
 }
 .bar > i {
   display: block;
   block-size: 100%;
-  background: var(--stroke-b) left center / 100% 100% no-repeat;
+  border-radius: 2px;
+  background: var(--ink-1);
   opacity: 0.4;
 }
 .top li[data-first] .bar > i {

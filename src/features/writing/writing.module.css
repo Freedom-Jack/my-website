@@ -63,13 +63,13 @@
   color: var(--ink-3);
   cursor: pointer;
   text-align: start;
-  /* the picked aspect: a brush stroke under its word */
-  background: var(--stroke-b) left calc(50% + 0.85em) / 0% 0.4em no-repeat;
+  /* the picked aspect: an ink line under its word */
+  background: linear-gradient(currentColor, currentColor) left calc(50% + 0.8em) / 0% 1.5px no-repeat;
   transition: background-size 380ms var(--ease-wash);
 }
 .aspects button[aria-pressed='true'] {
   color: var(--ink-1);
-  background-size: 100% 0.4em;
+  background-size: 100% 1.5px;
 }
 .sides {
   display: grid;

@@ -26,13 +26,13 @@
   color: var(--ink-1);
   white-space: nowrap; /* the address never breaks */
   text-decoration: none;
-  /* a dry-brush stroke under the address, drawn on hover and focus */
-  background: var(--stroke-a) left 100% / 0% 0.14em no-repeat;
-  padding-block-end: 0.12em;
+  /* an ink line under the address, drawn on hover and focus */
+  background: linear-gradient(currentColor, currentColor) left 100% / 0% 2px no-repeat;
+  padding-block-end: 0.06em;
   transition: background-size 520ms var(--ease-wash);
 }
 .contact__email :global(a):is(:hover, :focus-visible) {
-  background-size: 100% 0.14em;
+  background-size: 100% 2px;
 }
 .contact__email :global(a):focus-visible {
   outline-offset: 2px;

@@ -7,9 +7,10 @@ import { StillToggle } from './StillToggle';
 import { ScrollMap } from './ScrollMap';
 
 /**
- * The tail of the scroll (the footer, on every page, the 404 included). Round 7: it stands on the page's own grid,
- * so it lines up with everything above it. A brush rule the frame's width; the whole scroll in miniature (ScrollMap:
- * the five places in the painting's order, the current one sealed); then, on the same twelve columns, the colophon
+ * The tail of the scroll (the footer, on every page, the 404 included). Round 7: the whole scroll in miniature
+ * (ScrollMap: one strip of the painting the screen's width, Home's peaks to the crossing with the stretches between
+ * them, each page's name under its own place and the current one sealed); then, on the page's own twelve columns, so
+ * it lines up with everything above it, the colophon
  * line and the build stamp in mono at the left (the short commit and the day the pages were built, read at build:
  * lib/build; a measured number only when CI wrote content/measured.json, with its profile named; "Last changed"),
  * and at the right "Still the landscape", the email and the one seal: the only Chinese character on the site, a
@@ -20,9 +21,8 @@ export function Tail() {
   const lcp = build.lcpMs === null ? null : `${(build.lcpMs / 1000).toFixed(1)} s`;
   return (
     <footer className="site-footer tail" data-veil="bank" data-veil-foot="0">
+      <ScrollMap label={site.tail.names} places={STORY_MAP} />
       <div className="frame">
-        <span className="stroke stroke--heavy" aria-hidden="true" />
-        <ScrollMap label={site.tail.names} places={STORY_MAP} />
         <div className="tail__base spread">
           <div className="tail__words">
             <p className="tail__colophon">{site.tail.colophon}</p>

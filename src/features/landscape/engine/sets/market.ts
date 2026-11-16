@@ -1463,7 +1463,7 @@ export function* draw(env: Env) {
   if (!env.still) {
     // (in the windows too: the first shows its tip as the tuft by the swallow; the second window is framed west of it,
     // on the town's lower bank, so it never floats there like a sticker)
-    willowTip(env, [[2672, 340], [2635, 409], [2575, 454], [2515, 479], [2458, 489]], [[2635, 411], [2685, 439], [2728, 449]], 1.1, 574, own('d5 willow'));
+    if (el('boughs')) willowTip(env, [[2672, 340], [2635, 409], [2575, 454], [2515, 479], [2458, 489]], [[2635, 411], [2685, 439], [2728, 449]], 1.1, 574, own('d5 willow'));
     yield;
     // (elements.ts swallows: Work's pair, off since the vanguard round's A3: the town keeps its willows and the boat
     // lowering its mast as its one named life)

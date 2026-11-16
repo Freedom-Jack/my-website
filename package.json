@@ -26,6 +26,7 @@
     "build:og": "node tools/build-og.ts",
     "build:ask": "node tools/build-ask.ts",
     "build:heroes": "node tools/build-heroes.ts",
+    "build:scroll": "node tools/build-scroll.ts",
     "check:budgets": "node tools/check-budgets.ts",
     "ci": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run build:stills -- --check && npm run build:heroes -- --check"
   },

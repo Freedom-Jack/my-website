@@ -195,14 +195,13 @@
     row-gap: var(--space-l);
     padding-inline-start: 1.75rem;
   }
-  /* the line: ink, a little heavier at its head; it runs as far down the roles as the reader has read */
+  /* the line: a hairline of ink; it runs as far down the roles as the reader has read */
   .timeline__line {
     position: absolute;
     inset-block: 0.55rem 0;
-    inset-inline-start: 0.3rem;
-    inline-size: 3px;
-    border-radius: 2px;
-    background: linear-gradient(to bottom, var(--ink-1), var(--ink-2) 70%, var(--ink-4));
+    inset-inline-start: calc(0.3rem + 1px);
+    inline-size: 1px;
+    background: var(--ink-3);
     transform-origin: 50% 0;
   }
   .timeline__entry {
@@ -212,12 +211,12 @@
   .timeline__mark {
     position: absolute;
     inset-inline-start: calc(-1.75rem + 0.3rem + 1.5px - 0.4375rem);
-    inset-block-start: 0.42rem;
-    inline-size: 0.875rem;
-    block-size: 0.875rem;
+    inset-block-start: 0.55rem;
+    inline-size: 0.5625rem;
+    block-size: 0.5625rem;
+    margin-inline-start: 0.15625rem;
     border-radius: 50%;
     background: var(--ink-1);
-    box-shadow: 0 0 0 4px var(--paper);
   }
   .timeline__entry:first-child > .timeline__mark {
     background: var(--jade);

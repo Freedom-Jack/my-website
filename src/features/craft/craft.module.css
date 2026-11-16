@@ -24,11 +24,12 @@
   display: flex;
   align-items: flex-end;
   gap: var(--space-s);
-  background: var(--stroke-a) left bottom / 100% 0.55rem no-repeat;
-  padding-block-end: 0.75rem; /* (the stroke lies under the box, never in it) */
+  border-block-end: 1px solid var(--ink-3);
+  padding-block-end: 0.3rem;
 }
 .field:focus-within {
-  box-shadow: 0 2px 0 var(--jade);
+  border-block-end-color: var(--jade);
+  box-shadow: 0 1px 0 var(--jade);
 }
 .input {
   flex: 1;
@@ -310,9 +311,9 @@
   content: '';
   position: absolute;
   inset-inline: -0.3em;
-  inset-block-start: 46%;
-  block-size: 0.42em;
-  background: var(--stroke-a) left center / 100% 100% no-repeat;
+  inset-block-start: 54%;
+  block-size: 1.5px;
+  background: var(--ink-2);
 }
 @media (prefers-reduced-motion: no-preference) {
   .tokens li[data-blocked] .tok[data-struck]::after {
@@ -329,12 +330,13 @@
 }
 .share {
   display: block;
-  block-size: 0.45rem;
+  block-size: 3px;
 }
 .share > i {
   display: block;
   block-size: 100%;
-  background: var(--stroke-b) left center / 100% 100% no-repeat;
+  border-radius: 2px;
+  background: var(--ink-1);
   opacity: 0.55;
   transition: inline-size 420ms var(--ease-wash);
 }

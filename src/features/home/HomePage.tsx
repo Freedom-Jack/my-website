@@ -122,8 +122,8 @@ export async function HomePage() {
             <h2 className="h-ink" id="about-title">
               {about.title}
             </h2>
-            {about.paragraphs.map((p) => (
-              <p key={p}>
+            {about.paragraphs.map((p, i) => (
+              <p key={p} className={i === 0 ? 'say' : undefined}>
                 <Inline text={p} />
               </p>
             ))}
