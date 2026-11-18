@@ -15,7 +15,7 @@ page structure. Earlier rounds' choices are not rules.
 What Jack has disliked before: a "webinar" look, bold brush bars, washing the painting out white behind the text,
 birds, cherry blossom, colour themes.
 
-## Hard rules (privacy and safety, checked in CI)
+## Hard rules (most are checked in CI)
 
 - No phone number anywhere (pages, PDF, JSON, comments). No street address (Toronto, ON, Canada only). No PMP.
 - Public email: qxjack@gmail.com.
@@ -28,6 +28,22 @@ birds, cherry blossom, colour themes.
   purged (or the repo goes private), and only then is `job-application` made private. Until then the "Source code"
   link stays hidden (`content/site.ts` `showSourceCode`).
 - Never bypass the corporate web filter. Never change system, security or TLS settings.
+- Every fact, figure and claim about Jack comes from `content/` (the résumé, the pages, the cases). Never invent one.
+  New words in his voice go into [NEW-WORDS.md](NEW-WORDS.md) for his approval. Search and AI data say only what the
+  page says: no hidden text, no instructions to AI agents.
+
+## Performance (not negotiable)
+
+Fast and smooth everywhere, with the painting running. On Jack's laptop: no scroll lag, never a frozen tab. On a phone
+(390 px, CPU 4× slower, slow 4G): LCP ≤ 2.5 s, CLS ≤ 0.05, no task over 100 ms, INP ≤ 200 ms, under 2 % of scroll
+frames over 20 ms. Lighthouse mobile ≥ 95, desktop ≥ 99. Nothing runs when nothing moves. Design for this from the
+start, and never buy speed by cutting the beauty. Measure with `npm run check:budgets` on a QA build, on the real GPU,
+with the machine quiet (CI doesn't run it). Its byte limits are guides, not the bar.
+
+## Tests
+
+Tests serve the site, not the old design: rewrite or delete any test that only guards a layout or feature being
+replaced. Keep the hard-rule checks: `check:compliance`, the résumé PDF gate and the content schemas.
 
 ## Working with Jack
 
