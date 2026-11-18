@@ -22,7 +22,7 @@ export const ROUTES = [
   { id: '404', path: '/no-such-page/', title: 'Qijin (Jack) Xu · Page not found', page: 'not-found' },
 ] as const;
 
-/** The viewports the budgets are set for (DESIGN §6): 1440 × 900, 1280 × 720, 390 × 844 at DPR 3. */
+/** The viewports the budgets are set for: 1440 × 900, 1280 × 720, 390 × 844 at DPR 3. */
 export const VIEWPORTS = {
   '1440': { width: 1440, height: 900, dpr: 1, mobile: false },
   '1280': { width: 1280, height: 720, dpr: 1, mobile: false },
@@ -32,7 +32,7 @@ export const VIEWPORTS = {
 /**
  * Whether this browser paints with a software rasteriser (SwiftShader, llvmpipe...), probed on the blank page before
  * the app loads: once the painting runs it can hold the main thread for a long time, so a hardware-only test must
- * skip first, never wait for a scene it will not get. The approved look is judged on a real GPU (DESIGN §13).
+ * skip first, never wait for a scene it will not get. The approved look is judged on a real GPU.
  */
 export async function isSoftware(page: Page): Promise<boolean> {
   return page.evaluate(() => {
@@ -50,7 +50,7 @@ export async function isSoftware(page: Page): Promise<boolean> {
 }
 
 /**
- * Wait until the fonts are loaded and the document complete: the type budgets (DESIGN §6) measure the fonts, not the
+ * Wait until the fonts are loaded and the document complete: the type budgets measure the fonts, not the
  * painting, and a software rasteriser can keep the painting busy for minutes while the DOM is ready at once.
  */
 export async function fontsReady(page: Page, timeout = 30_000) {

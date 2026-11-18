@@ -1,5 +1,5 @@
 /**
- * Where each page stands in the one painting (DESIGN.md §7, design-demo/README "The pages").
+ * Where each page stands in the one painting.
  *
  * One river runs the whole scroll (round 5): it falls from his mountain (Home), runs past the river town where
  * the work gets done (Work and its cases), opens into the still lake by the pavilion where he writes (Writing, the

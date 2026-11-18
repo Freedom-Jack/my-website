@@ -5,7 +5,7 @@ import { landscape } from '@/features/landscape/store';
 /**
  * "Still the landscape" (WCAG 2.2.2 Pause, Stop, Hide): stops all ambient motion (the drift, the wake, the
  * sweeps, the bloom, the pans, the small life) and turns route changes into their quiet form. Remembered across
- * visits (Jack, DESIGN §11.E answer 9: "have an option to toggle it off"): localStorage 'ink:still' = '1';
+ * visits (Jack: "have an option to toggle it off"): localStorage 'ink:still' = '1';
  * the boot script puts html.is-still on before first paint. Dispatches 'ink:still' ({ detail: { on } }).
  */
 export const STILL_KEY = 'ink:still';

@@ -15,7 +15,7 @@ import { OldAnchors } from './OldAnchors';
 import styles from './work.module.css';
 
 /**
- * Work (/work/): a concise index (DESIGN §11.E answer 2). The first screen is the live site's: the market-town strip
+ * Work (/work/): a concise index. The first screen is the live site's: the market-town strip
  * with the title and intro in its mist.
  *
  * Below it (round 7) the page follows the river town as it crosses the screen:

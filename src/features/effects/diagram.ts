@@ -1,5 +1,5 @@
 /**
- * Diagram strokes draw in, once (SPEC-R4A §9.7; they are not text, so they keep their draw-in).
+ * Diagram strokes draw in, once (they are not text, so they keep their draw-in).
  *   <svg data-draw> … <path class="diagram__edge" pathLength="1" data-order="1" d="…"/> …
  * When the element's top crosses 90% of the viewport its strokes draw in flow order (stroke-dashoffset 1 → 0
  * over --dur-draw each, --draw-step apart; strokes sharing a data-order draw together), and everything is drawn by

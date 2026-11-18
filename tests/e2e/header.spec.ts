@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { isSoftware } from './support/pages';
 
 /**
- * The header keeps one row on the phone widths the budgets suite does not visit (DESIGN §4.9: one row at 360 px and
+ * The header keeps one row on the phone widths the budgets suite does not visit (one row at 360 px and
  * up; the iPhone SE, mini and 8 are 375 wide). The nav's row is the home link's row; every target is 44 px tall; the
  * river line runs under the row with a tick per stop and its mark under the current one (Home).
  */

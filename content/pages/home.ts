@@ -1,7 +1,7 @@
 import type { PageWords } from './types';
 
 /**
- * Home (/): Jack's "about me" page (COPY.md §1; approved by Jack 2026-10-16), with the vanguard round's first screen
+ * Home (/): Jack's "about me" page (approved by Jack 2026-10-16), with the vanguard round's first screen
  * (`first`, 2026-11-12): the name, the verb line, the title line, one counted proof with its measure, the dated line
  * and one action. The words of the first screen are the approved ones, re-cut; where the cut is new it is marked
  * DRAFT (for Jack). The figures and the years come from the cases' own front matter (content/work/*.mdx), never
@@ -18,7 +18,7 @@ export const home = {
     modified: '2026-10-22',
   },
 
-  /** The approved hero sentences (COPY.md §1), kept as the record and for the search data (content/pages/llms.ts). */
+  /** The approved hero sentences, kept as the record and for the search data (content/pages/llms.ts). */
   hero: {
     lead: [
       'Lead AI/ML Architect at CGI’s AI Center of Excellence in Toronto. {I design} and ship {production AI} for banks and insurers: {LLM agents,} {retrieval systems,} and the data platforms underneath them.',
@@ -29,7 +29,7 @@ export const home = {
   },
 
   /**
-   * The first screen (the vanguard round, 05-synthesis.md "The first screen"): every word is an approved sentence of
+   * The first screen: every word is an approved sentence of
    * this file or a case's front matter, re-ordered; the title line is the one new cut, marked DRAFT where it shows.
    */
   first: {
@@ -70,7 +70,7 @@ export const home = {
     ],
     /**
      * (Round 7, 2026-11-16: the approved paragraph the vanguard round held back for its 400-word budget, "I’m
-     * optimistic about AI…", is back where COPY §1 has it, second; that budget went with the round, and Jack asks
+     * optimistic about AI…", is back second, where the copy deck had it; that budget went with the round, and Jack asks
      * for pages that are full.)
      */
   },

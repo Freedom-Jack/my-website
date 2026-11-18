@@ -39,14 +39,14 @@ const config: NextConfig = {
   trailingSlash: true,
   poweredByHeader: false,
   reactStrictMode: true,
-  // The old site's URLs, as permanent 301s (DESIGN §5).
+  // The old site's URLs, as permanent 301s.
   async redirects() {
     return redirects.map((r) => ({ source: r.from, destination: r.to, statusCode: 301 as const }));
   },
   async headers() {
     return [
       {
-        // the résumé opens in the tab (DESIGN §5) and saves under his name, not as "resume.pdf"
+        // the résumé opens in the tab and saves under his name, not as "resume.pdf"
         source: '/resume.pdf',
         headers: [{ key: 'Content-Disposition', value: 'inline; filename="Qijin-Xu-Resume.pdf"' }],
       },

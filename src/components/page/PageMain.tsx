@@ -11,7 +11,7 @@ import { NextPlace } from './NextPlace';
  * there; the landscape and the navigation read them), ends on the way on (NextPlace: one line
  * pointing downstream, every page but Contact and the 404) and then on the page's own closing scene (every page but
  * the 404, which lies off the map). The print-only name line opens it (every page but the Résumé, which has its own
- * letterhead): printed pages hide the header (DESIGN §11.E answer 12). The page's own structured data (`ld`) goes
+ * letterhead): printed pages hide the header. The page's own structured data (`ld`) goes
  * first, so the closing stays <main>'s last child and the tail its next sibling (layout.css).
  */
 export function PageMain({

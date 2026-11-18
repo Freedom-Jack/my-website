@@ -27,7 +27,7 @@ export function creativeWork(c: CaseMeta) {
   };
 }
 
-/** /work/ (COPY.md §8.6): the index as a CollectionPage of the cases. */
+/** /work/: the index as a CollectionPage of the cases. */
 export function collectionLd(cases: CaseMeta[]) {
   return {
     '@context': 'https://schema.org',

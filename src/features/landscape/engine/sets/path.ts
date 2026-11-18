@@ -3,14 +3,14 @@
 // (a pale strip the brush left bare, the shade of its bank below it, broken dry edges, a few stone steps where it is
 // steep, a rock or a tuft beside it), past one bare winter tree leaning out from a turn, fainter as it goes; partway
 // up, a cloud rises off the right flank and the path goes into it and does not come out. The summit stands clear above
-// the cloud. Nobody on it. Ink only (DESIGN §7: the lone peak takes no pigment).
+// the cloud. Nobody on it. Ink only (the lone peak takes no pigment).
 //
 // Painted with the host's plane (2) before its own mist band (phase 0), so the plane's band softens the path's foot;
 // the cloud it ends in is this layer's own (soft gradient washes in the shader's mist colour). At wide sizes the
 // strip's bottom feather and the "Draft art" note keep its lower switchbacks (y < 0.33) out of sight: the wide picture is
 // the upper three legs, the tree and the cloud; phones and tablets see the whole climb. No life anchor (the engine's
 // own drifting mist already passes over the cloud).
-// A figure set (figures.ts, THE SET API; guide: README "Figure sets and small life"): meta + draw(env), in world px.
+// A figure set (figures.ts, THE SET API): meta + draw(env), in world px.
 
 import { REF_PX, VH_PX, planeTop, streams, vnoise, mix, smooth, stroke, wash, type Env, type FigureMeta, type Pt, type RGB, type Rng } from '../figures';
 

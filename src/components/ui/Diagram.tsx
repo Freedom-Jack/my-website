@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fillTokens, typeset } from '@/lib/typography';
 
 /**
- * A brush diagram (SPEC-R4A §9.7): two drawings of the same nodes from content/work/diagrams/<name>.wide.svg
+ * A brush diagram: two drawings of the same nodes from content/work/diagrams/<name>.wide.svg
  * (left to right, from a 60rem container) and <name>.tall.svg (stacked, never taller than a phone screen; only
  * one is rendered, so only one is in the accessibility tree), a caption, and its text equivalent, "Read as
  * steps". Each drawing carries its own <title> and <desc>; its edges draw in once (features/effects/diagram).

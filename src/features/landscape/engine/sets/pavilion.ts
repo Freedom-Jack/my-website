@@ -9,7 +9,7 @@ import { el } from '../../elements';
 // shader mirrors only the far shore: the reflection is drawn here). Ink only: ink greys on every palette.
 // Life: the faintest shimmer in the reflection.
 //
-// A figure set (figures.ts, THE SET API; guide: README "Figure sets and small life"): meta + draw(env), in world
+// A figure set (figures.ts, THE SET API): meta + draw(env), in world
 // px. Painted after plane 2's mist band and the water (phase 1), so the lake lies under the spit.
 //
 // Where: the spit's waterline at scene height 0.214, in open water in front of the far shore (its waterline is

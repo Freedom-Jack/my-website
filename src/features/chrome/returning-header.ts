@@ -3,7 +3,7 @@
 import { type RefObject, useEffect } from 'react';
 
 /**
- * The returning header (SPEC-R4A §4). At rest at the top the header sits in normal flow, on paper, above the
+ * The returning header. At rest at the top the header sits in normal flow, on paper, above the
  * strip. Once the strip's art box ([data-landscape="strip"]) has scrolled away (its bottom <= 0) it is armed:
  * sticky and hidden (.is-unpinned, placed without a slide because it is off screen then). From then on,
  * scrolling up >= 8 px (24 on a touch screen) brings it back SOLID (.is-pinned: paper and a 1 px mist rule,

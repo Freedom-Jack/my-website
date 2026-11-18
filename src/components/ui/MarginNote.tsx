@@ -9,7 +9,7 @@ const slug = (s: string) =>
     .replace(/^-|-$/g, '');
 
 /**
- * A glossary note beside the text it explains (SPEC-R4A §9.8): a definition of a public tool, never a claim about
+ * A glossary note beside the text it explains: a definition of a public tool, never a claim about
  * Jack. It comes right after the paragraph it annotates (in MDX: <Note term="vLLM">An open-source engine …</Note>).
  *   ≥ 75rem  in the margin rail of its .has-rail block, beside its paragraph, simply shown
  *   < 75rem  a "Note: {term}" toggle opens it inline (components.css; without JS it shows inline, always open)

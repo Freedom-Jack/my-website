@@ -1,5 +1,5 @@
 /**
- * The hard rules as patterns (DESIGN.md §2), shared by the content checks, the GitHub rules, the PDF gate and
+ * The hard rules as patterns (CLAUDE.md), shared by the content checks, the GitHub rules, the PDF gate and
  * tools/compliance.ts. No phone number anywhere; no street address; no PMP; never the old résumé PDF; the only
  * Chinese character on the site is the seal's (and the seal is an outline, so no CJK text at all ships).
  */
@@ -36,7 +36,7 @@ export const CJK = new RegExp(
   'u',
 );
 
-/** PMP (dropped everywhere, DESIGN §2), as a word. */
+/** PMP (dropped everywhere, CLAUDE.md, hard rules), as a word. */
 export const PMP = /\bPMP\b|Project Management Professional/;
 
 /** The old résumé file (it carries a phone number): never linked, never shipped. */

@@ -1,4 +1,4 @@
-// strip.ts — a tiny static thumbnail of the whole handscroll, for the footer's scroll map (SPEC-R3 §8.6).
+// strip.ts — a tiny static thumbnail of the whole handscroll, for the footer's scroll map.
 // DOM-free and deterministic: the same world ridges and scene rows the painting is built from
 // (compose.ts / ridges.ts), sampled once at a fixed level composition, in three planes of silhouettes
 // (far: planes 0-1, middle: plane 2, near: planes 3-4). Over the lake and the crossing the far shore stands

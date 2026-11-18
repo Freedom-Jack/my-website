@@ -18,12 +18,6 @@
         "export PATH=\"$HOME/.local/share/fnm/aliases/default/bin:$PATH\" NEXT_TELEMETRY_DISABLED=1 NEXT_PUBLIC_INK_QA=1; node node_modules/next/dist/bin/next build && exec node node_modules/next/dist/bin/next start -p 3106"
       ],
       "port": 3106
-    },
-    {
-      "name": "design-demo",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["design-demo/_tools/serve.py", "4173"],
-      "port": 4173
     }
   ]
 }

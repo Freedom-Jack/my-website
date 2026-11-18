@@ -48,7 +48,7 @@ const STRETCHES: Massif[][] = [
   // each seam (the near crags), the far range running on above.
   // 1 · river: the market town at the rainbow bridge on the river's far bank (sets/market.ts), the hills behind it out
   // of the mist, lower than the home peak (4b: the hill behind the east end of the town is a broad, rounded hill, u .77;
-  // as a narrow cone it read as a spire, a pagoda's, beside the reading column: DESIGN §4.6). At its east end a low
+  // as a narrow cone it read as a spire, a pagoda's, beside the reading column). At its east end a low
   // headland where the river turns and opens into the lake.
   [
     [0, 0.30, 0.26, 0.30, 'far'], [0, 0.80, 0.24, 0.36, 'far'],
@@ -126,12 +126,12 @@ const tableFor = (k: number) => (k < 0 || k >= STRETCH_COUNT ? QUIET : STRETCHES
 // field is a smooth window along world x (SEAM feather), so a pan between scenes never cuts. Only
 // stretches 0..5 exist here (no wrap-around), so the home view never meets water.
 //
-// Round 4a added, per scene: `page` (the page's own composition, SPEC-R4A §10.0: distance, presence; round 5: WORLD for
+// Round 4a added, per scene: `page` (the page's own composition: distance, presence; round 5: WORLD for
 // every place), `frame` (how its strip and closing windows look at it: see framingAt), and on the river a near bank
 // (`near`, the waterline of the near shore: land below it) and `shore: 0` (its far planes keep their own misty feet
 // above the town instead of standing on the water). `figures` (figures.ts) are the scene's figure layer.
 //
-// Round 5, one world (DESIGN §12 "Round 5"): every page paints the scroll with one composition, the river runs through
+// Round 5, one world: every page paints the scroll with one composition, the river runs through
 // every place (its waters meet at each seam and add up to one; the near bank blends over a wider seam, so the river
 // opens and narrows gradually), `amp` gives a place its own relief, and every window but Home's frames its place by
 // the one hero rule (HERO): the shared horizon (the river's waterline) at one height in the box, one scale per width
@@ -630,7 +630,7 @@ function skewHash(i: number) {
 }
 
 
-// ---------------------------------------------------------------- windows (round 4a, SPEC-R4A §7, §12.4)
+// ---------------------------------------------------------------- windows (round 4a)
 // A window (the page's strip, its closing) is a box on the page that the painting shows through. Inside a window
 // the scene keeps natural proportions (HS viewport heights per stretch, a 1440 x 900 view's) at its own scale,
 // and always uses the desktop composition (no portrait transforms): a phone sees a crop of the same painting.
@@ -650,7 +650,7 @@ export const KEEP_GAP = 180;
 
 const clampK = (k: number) => Math.min(STRETCH_COUNT - 1, Math.max(0, k));
 
-/** The width class of a viewport (SPEC-R4A §2.4): 'wide' >= 1200, 'short' < 500 tall, 'tablet' >= 640, else 'phone'. */
+/** The width class of a viewport: 'wide' >= 1200, 'short' < 500 tall, 'tablet' >= 640, else 'phone'. */
 export function widthClass(w: number, h: number): WidthClass {
   if (w >= 1200) return 'wide';
   if (h > 0 && h < 500) return 'short';
@@ -693,7 +693,7 @@ export interface Framing {
  *   box (wide screens); doc = a document's low strip (strip--doc; unused since round 5: every inner page has the one hero);
  *   twin = (a closing) the page's strip and its closing share a screen (a short page), so the closing frames a
  *   different view of the place (frame.closing.twin) instead of a small version of the opening
- * @param {'strip'|'closing'} kind  the closing shows the page's own place once more (DESIGN 11.B), never the next one
+ * @param {'strip'|'closing'} kind  the closing shows the page's own place once more, never the next one
  * @returns {{worldLeft:number, worldTop:number, scale:number, focus:[number, number], nominal:number}}  world x
  *   (stretches) at the box's left edge, scene height (viewport heights) at its top edge, CSS px per stretch, the focus
  *   in box px, and the nominal scale (CSS px per stretch) this window's figure layer is drawn at.
@@ -714,7 +714,7 @@ export function framingAt(stretch: number, cls: WidthClass = 'wide', box: Framin
   if (kind === 'closing' && !own) {
     // the place once more, a little further away, its focus in the middle (nothing stands over a closing); a short page's
     // twin, on the same screen as its strip, looks closer at another part of the place (its own u), so the strip's
-    // landmark and figures are never shown twice (DESIGN 4.6)
+    // landmark and figures are never shown twice
     const twin = !!box.twin && F.twinU !== undefined;
     scale = nominal = heroScale(cls, width) * (twin ? HERO.twin : HERO.closing);
     fu = twin ? F.twinU! : (F.closingU ?? F.focus[0]);
@@ -784,7 +784,7 @@ export function framingAt(stretch: number, cls: WidthClass = 'wide', box: Framin
 }
 
 /**
- * Round 5, one hero system (DESIGN §12 "Round 5"): every page's opening frames its place the same way, so from page to
+ * Round 5, one hero system: every page's opening frames its place the same way, so from page to
  * page the scenes line up as the titles do. The river's waterline, the scroll's one horizon (`horizon`, scene heights),
  * sits `at` down the box; one stretch is the box's width on wide screens (to 1700 px) and a fixed `scale` below (CSS px
  * per stretch); the place's focus stands `fx` across the box (the keep-out rule may move it right of the text). Home's
@@ -823,7 +823,7 @@ export function layerScaleAt(k: number, cls: WidthClass, width: number): number 
   return heroScale(cls, width);
 }
 
-// The closing's framing for a width class (DESIGN 11.B): a short page's twin (a different view of the place, when the
+// The closing's framing for a width class: a short page's twin (a different view of the place, when the
 // strip and the closing share a screen), else the class's own closing (wide: authored; narrower: the opening's own
 // framing, under any overrides), so the page ends on its own place, never on the next one.
 const CLOSING_WIDE: ClosingView = { scale: 900, band: [0.12, 0.5], right: 1 };

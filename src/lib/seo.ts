@@ -24,7 +24,7 @@ export function card(path: string): { url: string; width: number; height: number
 }
 
 /**
- * A page's <head>: title, description, canonical, Open Graph and the Twitter card (COPY.md §8.1), with the page's
+ * A page's <head>: title, description, canonical, Open Graph and the Twitter card, with the page's
  * link-preview image. Titles lead with the exact search phrase "Qijin (Jack) Xu"; og:type is profile on Home,
  * article on a note, website elsewhere.
  */

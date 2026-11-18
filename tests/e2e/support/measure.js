@@ -1,9 +1,9 @@
-// Ported unchanged from design-demo/tools/qa/measure.js (demo 4b's layout probe), so the build is measured exactly as
+// Ported unchanged from the old static demo's layout probe, so the build is measured exactly as
 // the approved demo was. Evaluated in the page by tests/e2e/budgets.spec.ts. (Not reformatted: .prettierignore.)
 // measure.js: the layout probe for the demo-4b QA tools (budget.py, gaps.py, contrast.py). Evaluated in the page
 // as one expression:  (<this file>)({taps: true})  ->  a Promise of a plain JSON object.
-// It rebuilds the lost round-4 audit probe (definitions: _notes/r4/audit.md; schema of its output:
-// _notes/r4/prototypes/proposal-check/data/*.json) plus the 4a budget probes (DESIGN section 6, SPEC-R4A 15.2).
+// It rebuilds the lost round-4 audit probe
+// plus the 4a budget probes.
 //
 // Definitions (all CSS px; the page is measured at its current state, after boot and settle):
 // - Text lines = the client rects of every text node in <main> (one rect per line fragment), skipping hidden,

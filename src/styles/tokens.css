@@ -5,9 +5,9 @@
    Load order (src/app/layout.tsx): tokens → base → layout → effects → components; each feature's own CSS Module
    comes after (layout only, with these tokens).
 
-   Reading first, then the art (DESIGN.md §6, SPEC-R4A §2): a calm reading column on cool paper, with a
+   Reading first, then the art: a calm reading column on cool paper, with a
    painted strip at the top of every page.
-   Colour in the interface (the vanguard round, 05-synthesis.md): every word, title and rule is ink on cool paper;
+   Colour in the interface: every word, title and rule is ink on cool paper;
    jade is a mark, never a word: the river line's dot under the current page, the second line of a focus ring whose
    first line is ink, the rule drawn under a row on hover, the diagram's flow dot, the selection tint. Cinnabar is
    the seal's only, once per page, at the tail. The landscape's pigments (azurite, malachite, timber brown) are
@@ -147,7 +147,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   The type scale (the vanguard round, 05-synthesis.md; SPEC-R4A §2.1 before it).
+   The type scale.
    Fluid between 390 and 640 px, constant above 640 (phone → tablet/wide values), except the name and the titles,
    which scale to 1440. Four type sizes on the first screen (the lead's ruling R1): the name, the poster numeral, one
    reading size (--fs-first) and the small size (the title line, the mono facts). Figures inside sentences are bold at
@@ -193,7 +193,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   Space, the frame and the chrome (SPEC-R4A §2.2–§2.4, §6.2).
+   Space, the frame and the chrome.
    Breakpoints: phone < 40rem (640) · tablet 40–74.99rem · wide ≥ 75rem (1200) ·
    short: max-height 31.25rem (500) and below 75rem wide · tight header ≤ 23.4375rem (375) ·
    narrow gutter ≤ 22.5rem (360) · header wrap ≤ 22.25rem (356).
@@ -202,7 +202,7 @@
   /* the margin between sections: 42 @ ≤ 390 → 52 @ 640; 58 from 1200. This is the MARGIN; the visible gap
      the budget measures (last text line → next heading; 40–56 phone, 56–72 at 1280, 56–80 at 1440) adds the
      leading, and a row's padding when a section ends in rows. Measured on the specimen: a section ending in a
-     text line ≈ 41 / 56 / 56, one ending in rows ≈ 55 / 72 / 72. (SPEC-R4A's 36 / 52 / 56 came from a
+     text line ≈ 41 / 56 / 56, one ending in rows ≈ 55 / 72 / 72. (The first spec's 36 / 52 / 56 came from a
      wireframe whose sections all ended in padded rows; ending in a line, they read 35 / 54.) */
   --space-section: clamp(2.625rem, 1.65rem + 4vw, 3.25rem);
   --space-head: 0.75rem; /* h2 → its first line: 12; 14 from 640 */
@@ -284,7 +284,7 @@
     --strip-home: 522px; /* (was 58svh clamped 440-540: 522 at 900 tall; fixed so the still is exact) */
     --strip-sub: 360px; /* (was 40svh clamped 300-360) */
     --scroll-band: var(--strip-sub); /* (opens cut-free from the inner heroes) */
-    --strip-doc: 180px; /* the low end of SPEC-R4A's 180–220: documents open on their text */
+    --strip-doc: 180px; /* the low end of 180–220: documents open on their text */
     --closing-h: 240px;
   }
 }

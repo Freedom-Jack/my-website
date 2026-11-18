@@ -1,7 +1,7 @@
 {
   "fetched": "2026-10-21T00:00:00Z",
   "source": "https://api.github.com/users/Freedom-Jack/repos?per_page=100&sort=pushed",
-  "note": "Build-time snapshot of the public candidates for Work's \"In the open\" (design-demo/tools/sync-projects.py --discover; logic-foundry added by hand from the API on 2026-10-21). Never fetched by the browser.",
+  "note": "Build-time snapshot of the public candidates for Work's \"In the open\" (from the GitHub API; logic-foundry added by hand from the API on 2026-10-21). Never fetched by the browser.",
   "repos": [
     {
       "name": "logic-foundry",

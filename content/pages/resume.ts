@@ -2,7 +2,7 @@ import type { PageWords } from './types';
 
 /**
  * The Résumé (/resume/): its facts live in content/resume.json (the single source of this page, /resume.pdf,
- * /resume.json and the JSON-LD). This file holds the page's own words (COPY.md §5).
+ * /resume.json and the JSON-LD). This file holds the page's own words.
  */
 export const resumePage = {
   meta: {

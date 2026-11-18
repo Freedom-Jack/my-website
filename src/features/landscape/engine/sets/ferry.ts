@@ -72,7 +72,7 @@ export function* draw(env: Env) {
   jetty(env, jet, own('jetty'), sz);
   rootMist(env, jet, own('mist'), sz);                              // the jetty's root goes into the shore's mist
   yield;
-  // the moored ferry, drawn on its own (ownSprite): it rises and falls a little with the water (DESIGN §11.E answer 9),
+  // the moored ferry, drawn on its own (ownSprite): it rises and falls a little with the water,
   // under a CSS px, slowly, and nothing of the jetty moves with it (the box is a generous hint: the pole, the hat and the
   // rope to the head post all lie inside it). Still wherever the layer never moves its sprites.
   const fb = boat.box;
