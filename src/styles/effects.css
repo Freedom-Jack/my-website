@@ -2,7 +2,7 @@
    effects.css — where the ink lives in the UI: links, the text action, the focus ring, the row rule, the
    diagram draw-ins and the flow dot, route changes. Each block names the JS module that drives it (if any).
    Everything works without JS; JS only adds entry points, timing and one-shot triggers.
-   The vanguard round (05-synthesis.md): no brush strokes, no blooms, no stamps; one plain underline, one drawn
+   The vanguard round: no brush strokes, no blooms, no stamps; one plain underline, one drawn
    arrow, and jade only as marks (the second line of the focus ring, the row rule, the flow dot, the selection).
    No text fades in on scroll, and nothing is hidden at first paint.
    Shared file: do not edit from a page.

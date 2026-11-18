@@ -30,7 +30,7 @@ file (the schemas, the hard rules, the counts below).
 
 Its facts follow Jack's own résumé, `resume_ats.tex` in [Freedom-Jack/career-kit](https://github.com/Freedom-Jack/career-kit):
 when that changes, bring the facts across here (titles, dates, figures, awards). Where the tex only condenses a role
-to fit one page, this file keeps its fuller wording. Never copy its phone number, and never link its PDF (DESIGN §2).
+to fit one page, this file keeps its fuller wording. Never copy its phone number, and never link its PDF (CLAUDE.md, hard rules).
 
 After changing it, regenerate the PDF:
 
@@ -101,8 +101,8 @@ Work's "In the open" section lists public repositories, fetched from GitHub at b
 never runs in the visitor's browser. `content/github/overrides.json` gives a repository its year and its one line,
 or hides it (`"hidden": true`). Without an override, a repository shows its own GitHub description, as long as that
 reads as a proper sentence; placeholders and near-empty repositories are skipped. Older repositories fold behind
-"Early work". `snapshot.json` is the fallback when GitHub cannot be reached (refresh it with
-`python3 design-demo/tools/sync-projects.py --discover`, or add a repository's API record by hand). Two
+"Early work". `snapshot.json` is the fallback when GitHub cannot be reached (refresh it by hand from
+`https://api.github.com/users/Freedom-Jack/repos`). Two
 repositories are never shown until the launch gate is cleared (`src/features/github/rules.ts`).
 
 ## The rules every word follows
@@ -118,6 +118,6 @@ These are checked on every push (`npm run check:compliance`, and the unit tests)
   "Qijin (Jack) Xu" lives in page titles and search data only.
 - Any new Chinese text is shown to Jack before it is used.
 - New words in Jack's voice that he has not approved are listed in `NEW-WORDS.md` at the repo's root, for his
-  approval; no page prints "DRAFT" (since round 6).
+  approval.
 - Approved words taken off a page are held, word for word, beside the ones shown (`held` in
   `content/pages/home.ts`: Now's off-hours line, which About's last paragraph already says), for Jack's call.

@@ -1331,7 +1331,7 @@ export function* draw(env: Env) {
   yield;
 
   // ---- life: one slow walker crossing the bridge mid-deck, from the near bank's stall over the crown to the far one,
-  // out of the mist and into it again (DESIGN §11.E answer 9: "Yes but have an option to toggle it off": "Still the
+  // out of the mist and into it again ("Yes but have an option to toggle it off": "Still the
   // landscape" stops him). He is drawn on his own (ownSprite), so nothing of the bridge travels with him; mid-deck he
   // keeps clear of the near rail. Where the layer never moves its sprites he stands, still, on the near flight.
   {

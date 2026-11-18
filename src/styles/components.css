@@ -1,5 +1,5 @@
 /* ==========================================================================
-   components.css — the shared components (SPEC-R4A §9; the vanguard round's ledger).
+   components.css — the shared components.
    The photo and "About me" (.hello), Now, figures, the ledger rows, the seal, cases, the table, the brush diagram
    and margin notes. Behaviour lives in their components (components/ui). A feature's CSS Module may only add
    LAYOUT for its own sections, with tokens: no new colours, fonts, weights, shadows or motion.
@@ -8,7 +8,7 @@
    ========================================================================== */
 
 /* ==========================================================================
-   The photo and "About me" (Home; SPEC-R4A §9.2). Directly below the strip.
+   The photo and "About me" (Home). Directly below the strip.
      <section class="hello wide" aria-labelledby="about-title" data-veil="0.88">
        <img class="hello__photo" src="/assets/img/qijin-xu-colour.jpg" width="720" height="900" alt="…"
             decoding="async" fetchpriority="high">
@@ -120,7 +120,7 @@
 }
 
 /* ==========================================================================
-   Now (Home; SPEC-R4A §9.4): dated, three lines, body size, no links.
+   Now (Home): dated, three lines, body size, no links.
      <section class="sec now" aria-labelledby="now-title" data-veil>
        <h2 class="sec__title" id="now-title">Now <span class="sec__date small">· <time datetime="2026-10">October 2026</time></span></h2>
        <ul class="rows rows--plain" role="list"><li><b>Building:</b> …</li> …</ul>
@@ -254,7 +254,7 @@
 }
 
 /* ==========================================================================
-   Cases (Work; SPEC-R4A §9.9, §10.2).
+   Cases (Work).
    Flagship: article.sec.case.case--flagship.has-rail#id > h2.sec__title, p.case__meta.small,
      p.case__fig (b.fig + span.small), p.case__summary, figure.diagram.wide, div.case__body.
    Compact: details.case.case--compact[data-collapse="always"][open]#id >

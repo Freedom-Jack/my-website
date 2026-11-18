@@ -5,7 +5,7 @@ import resume from './resume.json' with { type: 'json' };
  * are told about him. The facts themselves (name, title, email, city, profiles) come from content/resume.json,
  * the single source: change them there. How to edit anything: CONTENT.md.
  *
- * Hard rules (DESIGN.md §2): no phone number anywhere, no street address (the city only), no project-management credential, the public
+ * Hard rules (CLAUDE.md): no phone number anywhere, no street address (the city only), no project-management credential, the public
  * email is qxjack@gmail.com, and the only Chinese character on the site is the seal's.
  */
 
@@ -34,7 +34,7 @@ export const site = {
   timeZoneId: 'America/Toronto',
 
   /**
-   * The canonical origin. The custom domain qijinxu.com is parked until launch (DESIGN §12): at launch this one
+   * The canonical origin. The custom domain qijinxu.com is parked until launch: at launch this one
    * line changes, and every canonical URL, the JSON-LD, llms.txt, resume.json, the PDF's letterhead and the print
    * name line follow it.
    */
@@ -46,7 +46,7 @@ export const site = {
   },
 
   /**
-   * The header's nav, in the painting's order (DESIGN §12, round 5): the nav, the handscroll and the footer's
+   * The header's nav, in the painting's order (round 5): the nav, the handscroll and the footer's
    * story map all run Work → Writing → Résumé → Contact, so moving along the nav moves along the painting.
    */
   nav: [
@@ -83,7 +83,7 @@ export const site = {
 
   /**
    * The scroll, held (src/features/scroll): the tail's opener, the sheet's name and hint, the close, the three
-   * distances. Interface words, marked DRAFT until Jack writes his (DESIGN §1: never invent words in his voice).
+   * distances. Interface words, marked DRAFT until Jack writes his (never invent words in his voice).
    */
   scroll: {
     open: 'DRAFT · Open the scroll',
@@ -100,12 +100,12 @@ export const site = {
 
   /**
    * The footer's "Source code" link and Work's entry for this repository stay withheld until the public repo no
-   * longer holds the old résumé file (DESIGN §2, the launch gate). Set to true only after Jack confirms.
+   * longer holds the old résumé file (CLAUDE.md, hard rules, the launch gate). Set to true only after Jack confirms.
    */
   showSourceCode: false,
   sourceCodeUrl: 'https://github.com/Freedom-Jack/my-website',
 
-  /** Person JSON-LD (COPY.md §8.2): third person, the same claims as the visible text. */
+  /** Person JSON-LD: third person, the same claims as the visible text. */
   seo: {
     description:
       'Lead AI/ML Architect at CGI’s AI Center of Excellence in Toronto. Designs and ships production AI for banks and insurers: LLM agents, retrieval-augmented generation (RAG) systems, and the data platforms beneath them.',

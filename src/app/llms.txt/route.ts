@@ -6,7 +6,7 @@ import { monthYear } from '@/lib/dates';
 import { plain } from '@/lib/markup';
 import { absolute } from '@/lib/seo';
 
-/** /llms.txt (COPY.md §8.8): facts only, each one also visible on the site; never instructions to AI agents. */
+/** /llms.txt: facts only, each one also visible on the site; never instructions to AI agents. */
 export const dynamic = 'force-static';
 
 export async function GET() {

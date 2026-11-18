@@ -16,7 +16,7 @@ import { VIEWPORTS, isSoftware, settle } from './support/pages';
  * without a live painting (no renderer, or the static fallback), so each test skips there. On a software rasteriser
  * (CI's GPU-less runners) the painting runs still, as the page's own DOM tests run it (budgets.spec.ts): every walk
  * is then the engine's cut, which is what the keys, the stops and Escape are judged on here; the hand itself (the
- * phone's swipe, the camera moving under it) is judged on a hardware GPU only (DESIGN §13), and its waits are longer
+ * phone's swipe, the camera moving under it) is judged on a hardware GPU only, and its waits are longer
  * there, never fixed.
  */
 type S = Record<string, any>;

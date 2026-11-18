@@ -15,7 +15,7 @@
  * alive, more beautiful and easier to remember with the thing than without it. What that round switched off is back
  * on wherever it still fits (the swallows, the silk ribbon, the falling petals, the plum's gust, the water you can
  * stir, the scroll's wind); what waits for its part of the new Home is still off here and says so. Each flag's older
- * comment keeps what the element IS; its v3 ruling is history (DESIGN §12 "Vanguard").
+ * comment keeps what the element IS; its v3 ruling is history.
  * On wide screens the stage is THE PLATES now (features/landscape/plates): every element here keeps working on them.
  *
  * Round 7 (2026-11-16, Jack: "you're just like messing up the header"; "No bird and no cherry blossom"; "I don't like
@@ -23,7 +23,7 @@
  * back on is off (hours, weather, swallows, ribbon, petals, corner, nameSeal, depth, stir, plumGust, air), and so is
  * the plum bough the live site pinned to the screen's corner (plum): nothing is laid over the painting or pinned in
  * front of it. Round 6's lag fix (the plates) and the question half of Ask stay. The body below the first screen is
- * the round's work (styles/body.css; DESIGN §12 "Round 7").
+ * the round's work (styles/body.css).
  *
  * The preview's panel (features/qa/Switches, QA builds) flips each flag in this browser.
  *

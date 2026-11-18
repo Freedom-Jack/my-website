@@ -1,4 +1,4 @@
-// figures.worker.ts — draws a figure layer off the main thread (SPEC-R4A §7.6, §12.5): an OffscreenCanvas at the
+// figures.worker.ts — draws a figure layer off the main thread: an OffscreenCanvas at the
 // layer's size, the brushwork of figures.ts (whose figure sets, sets/*.ts, load with it), then one of:
 //   out 'gpu'     (WebGL, 4b) an ImageBitmap of the layer (transferToImageBitmap: no readback; gl.ts uploads it
 //                 premultiplied), with its moving things apart in one sprite atlas (buildSprites): a boat marked

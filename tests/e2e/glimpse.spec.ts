@@ -244,7 +244,7 @@ test.describe('glimpses: laptops are the approved page', () => {
         const probePage = await probe.newPage();
         const sw = await isSoftware(probePage);
         await probe.close();
-        // (DESIGN §13 judges the approved page on a real GPU; a software rasteriser paints less, and at 1440 it can
+        // (the page is judged on a real GPU; a software rasteriser paints less, and at 1440 it can
         // hold the main thread long enough that the page cannot be measured at all)
         test.skip(sw, 'the approved page is judged on a real GPU');
         const shots: Buffer[] = [];

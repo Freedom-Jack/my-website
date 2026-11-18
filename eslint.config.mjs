@@ -9,7 +9,6 @@ const config = [
       '.next/**',
       '.claude/**', // (Claude Code's own worktrees and settings: not the site's code)
       'node_modules/**',
-      'design-demo/**',
       'public/**',
       'next-env.d.ts',
       'test-results/**',

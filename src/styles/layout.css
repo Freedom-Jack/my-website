@@ -1,6 +1,6 @@
 /* ==========================================================================
    layout.css — the frame, the header and its river line, the painted strip and the first screen, sections, rows,
-   the ending, the closing scene and the tail (SPEC-R4A §3–§8; the vanguard round's surface, 05-synthesis.md).
+   the ending, the closing scene and the tail.
    A calm reading column on cool paper, with a painted strip at the top of every page. No cards, no boxes, no
    frames: structure comes from type, space and hairlines. Shared file: do not edit from a page.
    ========================================================================== */
@@ -187,7 +187,7 @@ main {
   }
 }
 
-/* below 357 px: the nav takes a row of its own under the home link (one row is the promise from 360, DESIGN 4.9) */
+/* below 357 px: the nav takes a row of its own under the home link (one row is the promise from 360) */
 @media (max-width: 22.25rem) {
   .site-header__inner {
     padding-block: 0.25rem var(--river-h);
@@ -271,7 +271,7 @@ main {
 }
 
 /* ==========================================================================
-   The painted strip (SPEC-R4A §6; the vanguard round's first screen). Every page opens on a short, unframed,
+   The painted strip (the vanguard round's first screen). Every page opens on a short, unframed,
    full-bleed band of its own scene; the engine paints it into .strip__art's box.
      <header class="strip strip--home|sub|doc" aria-labelledby="…">
        <div class="strip__art bleed" data-landscape="strip" data-wake aria-hidden="true"><picture class="strip__still">…</picture></div>
@@ -435,7 +435,7 @@ html.no-landscape .closing__art {
 }
 
 /* ==========================================================================
-   The first screen (Home; 05-synthesis.md "The first screen"): inside the home strip's text block, in this order:
+   The first screen (Home): inside the home strip's text block, in this order:
    the name, the verb line, the title line (small, DRAFT), the counted proof (the figure as a poster numeral in the
    name face beside its measure, then its mono line: the years and "the case →", one 44 px link row), the dated line
    with its mono line, and the one action. Four type sizes: the name, the numeral, --fs-first and --fs-small.
@@ -596,7 +596,7 @@ html.no-landscape .closing__art {
 }
 
 /* ==========================================================================
-   Sections, the reading column, rows (SPEC-R4A §3).
+   Sections, the reading column, rows.
      <section class="sec" aria-labelledby="x-title" data-veil>
        <h2 class="sec__title" id="x-title">…</h2> <p>…</p> …
      </section>
@@ -733,7 +733,7 @@ html:not(.el-nameSeal) .name .seal {
   color: var(--ink-4);
 } /* 5.1:1: plain paper only */
 
-/* ---------- tap targets (SPEC-R4A §1.4: every link and button >= 44 × 44) ----------
+/* ---------- tap targets (every link and button >= 44 × 44) ----------
    A standalone link shorter than 44 px (an action row's quiet link, a "… →" line) gets an invisible
    hit area: a pseudo-element centred on it, max(44 px, its own height) tall. Nothing moves. Links inside sentences
    keep WCAG 2.5.8's inline exception (the tail repeats the key ones). */
@@ -1173,7 +1173,7 @@ html:not(.js) .tail__still {
   }
 }
 
-/* The 404 (SPEC-R4A §10.7): the far end of the handscroll (stretch 5). The page is short, so the tail (its names are
+/* The 404: the far end of the handscroll (stretch 5). The page is short, so the tail (its names are
    the way onto every page) rests at the bottom of the screen instead of floating halfway up it. Global, not in a CSS
    Module: the root not-found boundary sits in every page's tree, so its module would be preloaded on all. */
 body:has(> main[data-page='not-found']) {
@@ -1189,7 +1189,7 @@ body:has(> main[data-page='not-found']) > .site-footer {
 }
 
 /* Print: the page's text only, so every printed page but the Résumé (which has its own letterhead) carries a
-   small name line (DESIGN §11.E answer 12). Never on screen. */
+   small name line. Never on screen. */
 .print-name {
   display: none;
 }

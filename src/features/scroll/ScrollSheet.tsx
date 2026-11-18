@@ -15,7 +15,7 @@ import type { ScrollStop } from './types';
 import { LAST, clampX, detent, durationFor, dxToStretch, nearest, stepFrom } from './walk';
 
 /**
- * The scroll, held (elements.ts `scroll`; DESIGN: the "beyond" round). After the words, the footer's opener folds the
+ * The scroll, held (elements.ts `scroll`). After the words, the footer's opener folds the
  * page into the paper (the route exit's own way, <main> inert) and this sheet stands over it: the painting in the
  * hero's own band, bound to the one persistent canvas (rebind: the band is the strip window; no closing, no veils, no
  * keep-out, no stage), the place's name and what its page holds under it (the server-built index: existing strings,

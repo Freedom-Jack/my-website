@@ -102,7 +102,7 @@ describe('compliance patterns (lib/compliance)', () => {
   });
 });
 
-describe('redirects (DESIGN §5)', () => {
+describe('redirects', () => {
   it('sends the old résumé PDF to the résumé page, never to the new PDF', () => {
     const r = redirects.find((x) => /QijinXu_Resume\.pdf/.test(x.from));
     expect(r?.to).toBe('/resume/');

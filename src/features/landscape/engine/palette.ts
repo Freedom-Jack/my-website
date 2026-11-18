@@ -1,4 +1,4 @@
-// palette.ts — the painting's pigments and how strongly each scene takes them (SPEC-R4A §12.3).
+// palette.ts — the painting's pigments and how strongly each scene takes them.
 // DOM-free. Engine-only: these colours never become CSS tokens, text or UI colours.
 //
 // Two registers, as in the paintings themselves:

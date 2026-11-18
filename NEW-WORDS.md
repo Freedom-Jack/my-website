@@ -97,7 +97,7 @@ the questions you would expect visitors to ask replaces them.
 - `content/pages/home.ts`: Lead AI/ML Architect, CGI AI Center of Excellence, Toronto.
 - `content/pages/resume.ts`: Five roles since 2019, two CGI Impact Awards and two cloud certifications: on one page, as a PDF and as JSON.
 
-## 3. Still yours to supply (unchanged from the Vanguard record, DESIGN §12)
+## 3. Still yours to supply
 
 - The 20 evaluation questions behind "How good is the search?" on Work (`content/craft/eval.ts`) were written by the
   site's author, not by you. Your own held-out set replaces them. Today the search finds the right passage first on

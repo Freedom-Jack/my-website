@@ -5,7 +5,7 @@ import { allNotes } from '@/features/writing/notes';
 import { resume } from '@/features/resume/resume';
 import { absolute } from '@/lib/seo';
 
-/** /sitemap.xml (COPY.md §8.9): every page, the PDF and the JSON Resume; never the 404 or the old addresses. */
+/** /sitemap.xml: every page, the PDF and the JSON Resume; never the 404 or the old addresses. */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [cases, notes] = await Promise.all([allCases(), allNotes()]);
   const changed = resume.meta.lastModified;

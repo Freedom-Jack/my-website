@@ -1,4 +1,4 @@
-// figures.ts — the figure layers: what in the painting is not a mountain (SPEC-R4A §12.5). DOM-free Canvas2D
+// figures.ts — the figure layers: what in the painting is not a mountain. DOM-free Canvas2D
 // brushwork, seeded and deterministic, drawn once per (stretch, scale, palette, resolution) on an OffscreenCanvas
 // in a module worker (figures.worker.ts), or on the main thread in idle chunks of <= 8 ms where that is missing.
 // The layer covers a world rectangle (figureMeta); the scene shader paints it *into* the painting at its plane,
@@ -13,8 +13,7 @@
 //   sets/terraces.ts  stretch 4  Résumé: the terraced fields and the farmhouse
 //   sets/ferry.ts     stretch 5  Contact: the ferry at the jetty
 //   sets/path.ts      stretch 6  404: the path into mist
-// How to add a set and test one alone: README "Figure sets and small life"; the lessons behind these rules:
-// _notes/r4b/RECORD.md section 3.
+// How to add a set: src/features/landscape/ENGINE.md, and the API below.
 //
 // ---- THE SET API -----------------------------------------------------------------------------------------------
 // A set module exports two things:
@@ -74,7 +73,7 @@
 //     shimmer  { waterline: [[x, y], ...] }            open water below that line; boats and bridges stay still
 //     walker   { path: [[x, y], ...], home: [x, y], speed }   one slow figure walking a path (Work's bridge deck):
 //              drawn with ownSprite at `home`, its feet; it walks the path at `speed` world px per second, comes into
-//              view out of the mist at the path's start and goes into it at the end (DESIGN §11.E answer 9)
+//              view out of the mist at the path's start and goes into it at the end
 //   ownSprite(env, kind, box, params, paint): a moving thing that cannot be cut out of the layer because something
 //   lies behind it (a walker on a bridge, a ferry at its jetty). paint(env) draws it in world px. In the WebGL 'gpu'
 //   output the worker paints it on a canvas of its own (box: a generous hint of where it is drawn; the sprite is
@@ -92,7 +91,7 @@
 // white robes, willows in misted malachite. Under 'ink', everything is drawn in ink greys.
 //
 // Structure studied (not copied) from LingDong Huang's {Shan, Shui}* (MIT, 2018); the brush kit and the scenes grew
-// out of the round-4 research sketch (_notes/r4/prototypes/sketch/).
+// out of the round-4 research sketch.
 
 import { resolve, spec, sceneField, SCENE_FIELDS, REF_PX, HS, LAYERS, type Resolved, type WidthClass } from './compose';
 import { planeTop } from './ridges';

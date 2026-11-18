@@ -1,7 +1,7 @@
 /**
  * Small typographic rules applied to every string from content/, so the content files stay plain to edit:
  * a number keeps its unit on its line ("200 ms", "2 TB", "12 months"), and "≥" keeps its number.
- * Plus the computed career length (COPY: "five years counts full-time work from Aug 2021; compute it").
+ * Plus the computed career length ("five years counts full-time work from Aug 2021; compute it").
  */
 
 const NBSP = '\u00A0';

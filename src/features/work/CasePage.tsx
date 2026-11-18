@@ -21,7 +21,7 @@ import { caseLd } from './jsonld';
 import styles from './work.module.css';
 
 /**
- * One Work case, on its own page (/work/<slug>/; DESIGN §11.E answer 2), opening inside the town. The first screen is
+ * One Work case, on its own page (/work/<slug>/), opening inside the town. The first screen is
  * the live site's: the market's strip with the case's title (the long title size) and its meta line in the mist.
  *
  * Below it (round 7):

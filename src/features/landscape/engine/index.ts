@@ -5,7 +5,7 @@
 // palette.ts (pigments), figures.ts + figures.worker.ts (the figure layers), gl.ts + shaders.ts (WebGL2 painter),
 // canvas2d.ts (fallback), strip.ts (the footer's story map).
 //
-// Round 4a (SPEC-R4A §7, §12): one fixed canvas paints into *windows*, boxes on the page: the page's strip
+// Round 4a: one fixed canvas paints into *windows*, boxes on the page: the page's strip
 // ([data-landscape="strip"]) and its closing ([data-landscape="closing"]). Each window is its own painting of the
 // one handscroll at its own framing (framingAt), rendered once into its own buffer and presented at the box's live
 // position, so it moves 1:1 with the page and never re-renders while you scroll. Between them, on desktops, the
@@ -138,7 +138,7 @@ const HZ_BAND = 0.17;
 const HZ_SQUASH = 0.55;
 const HZ_STEP = 0.12;     // hzK eases at most this much per frame (a fast scroll never pops the band in)
 const HZ_MEDIA = '(min-width: 64rem) and (min-aspect-ratio: 1/1)';
-// The wake (SPEC-R3 §8.5, made local in 4a): its radius is a share of the viewport's height in CSS px, clamped
+// The wake (made local in 4a): its radius is a share of the viewport's height in CSS px, clamped
 // (WAKE_VH, WAKE_PX: ~115 px at 900 tall, half strength ~95 px from the path), so it opens the mist around the
 // pointer inside a strip instead of reaching across the whole band (round 3's 0.29 vh filled a 520 px strip);
 // position lag, strength attack and release (time constants, ms: ~120 ms and ~700 ms to settle), trail points'
@@ -516,7 +516,7 @@ const GL = () => (unrollOn() ? GLIMPSE_UNROLL : GLIMPSE);
 const NONE16 = new Float32Array([2, 2, -1, -1, 2, 2, -1, -1, 2, 2, -1, -1, 2, 2, -1, -1]);
 const live = new WeakMap<HTMLCanvasElement, EngineHandle>(); // canvas -> controller: one live landscape per canvas
 // QA builds only (the probes' judging hooks: setState, qa, and stats().veils / memory). The bundler inlines the flag,
-// so a production build carries none of them (design-demo/README "Port to Next.js": never ported to production).
+// so a production build carries none of them (never ported to production).
 const QA = typeof process !== 'undefined' && process.env.NEXT_PUBLIC_INK_QA === '1';
 
 /**
@@ -535,8 +535,8 @@ const QA = typeof process !== 'undefined' && process.env.NEXT_PUBLIC_INK_QA === 
  * @param {number}  [opts.presence=1]      0..1. How strongly the landscape shows (round 5: WORLD's, on every page).
  * @param {Element|null} [opts.strip]      [data-landscape="strip"]: window 1, the page's own scene at its strip framing,
  *                                         palette and figures, the drifting mist and the cursor's wake. Alias: `head`.
- * @param {Element|null} [opts.closing]    [data-landscape="closing"]: window 2, the page's own place once more (DESIGN
- *                                         11.B), never the road to the next one: a small version of its opening, with
+ * @param {Element|null} [opts.closing]    [data-landscape="closing"]: window 2, the page's own place once more,
+ *                                         never the road to the next one: a small version of its opening, with
  *                                         its figures; on a short page whose closing shares a screen with its strip, a
  *                                         different view of the same place without the strip's figures (compose.ts frame.closing.twin). Its
  *                                         figure layer is drawn at its own scale when that differs from the strip's.
@@ -2179,7 +2179,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
       w.keepR = null;
       w.doc = !!w.el?.closest?.('.strip--doc');
       w.wakeOK = fullMode && w.kind === 'strip' ? wakeEls.length > 0 : !!w.el && (wakeEls.includes(w.el) || w.el.hasAttribute('data-wake'));
-      // the strip's small "Draft art" note (SPEC-R4A §6.1) sits in the art's bottom feather: the engine keeps paper behind
+      // the strip's small "Draft art" note sits in the art's bottom feather: the engine keeps paper behind
       // its line (a reserve) and no figure or pigment under it
       w.noteEl = w.kind === 'strip' && w.el ? w.el.parentElement?.querySelector(':scope > .strip__note') || null : null;
       w.note = null;
@@ -4062,7 +4062,7 @@ function controller(canvas: HTMLCanvasElement, opts: EngineOptions): EngineHandl
   let qaHold = false;   // QA: stop the loop on the first present (tools/build-heroes.ts captures that frame)
   function presentU(pick = 0): PresentU {
     // 4b, every page: the veil's tear moves only its edge, the drift keeps off the paper under text, and the sky deck
-    // lets the mist drift gently perceptibly in open sky (_notes/r4b/RECORD.md §2.3). Living (the stage): a solid core of T.core
+    // lets the mist drift gently perceptibly in open sky. Living (the stage): a solid core of T.core
     // px round the text's own lines, then a torn edge that swells in and out with the words, and a clearing beyond it
     // (viewport heights).
     const vhPx = cssH || 1;

@@ -1,5 +1,5 @@
 /**
- * /llms.txt (COPY.md §8.8): a plain-language summary of the site for AI agents, following the llms.txt
+ * /llms.txt: a plain-language summary of the site for AI agents, following the llms.txt
  * convention. Facts only, each one also visible on the site. Never instructions to the reader.
  * Page addresses are added from content/site.ts `url`; the case pages and the "Now" line's month come from
  * content/work/ and content/pages/home.ts (src/app/llms.txt/route.ts); the "Now" line is Home's own.

@@ -124,7 +124,7 @@ describe('content/work/*.mdx', () => {
   });
 });
 
-describe('the hard rules, across every content file (DESIGN §2)', () => {
+describe('the hard rules, across every content file (CLAUDE.md)', () => {
   const files = walk(path.join(process.cwd(), 'content')).filter((f) => /\.(ts|json|mdx|svg)$/.test(f));
   for (const f of files) {
     it(`${path.relative(process.cwd(), f)}: no phone, street address, PMP, CJK or old PDF`, () => {

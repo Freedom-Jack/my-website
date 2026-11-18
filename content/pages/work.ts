@@ -1,9 +1,9 @@
 import type { PageWords } from './types';
 
 /**
- * Work (/work/): a concise index (Jack, DESIGN §11.E answer 2: "keep it concise and have dedicated pages for the
+ * Work (/work/): a concise index (Jack: "keep it concise and have dedicated pages for the
  * rest"). The six projects come from content/work/*.mdx (one file per case, each its own page); this file holds
- * the index's own words (COPY.md §3). The How I build drawing is content/work/diagrams/how-i-build.{wide,tall}.svg.
+ * the index's own words. The How I build drawing is content/work/diagrams/how-i-build.{wide,tall}.svg.
  */
 export const work = {
   meta: {
@@ -56,6 +56,6 @@ export const work = {
     all: { label: 'All repositories on GitHub →', href: 'https://github.com/Freedom-Jack' },
   },
 
-  /** On a case page: the way back to the index (COPY §1.3's words). */
+  /** On a case page: the way back to the index. */
   back: { label: 'All six projects →', href: '/work/' },
 } satisfies PageWords & Record<string, unknown>;

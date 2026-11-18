@@ -1,7 +1,7 @@
 import type { PageWords } from './types';
 
 /**
- * Writing (/writing/) and a note's page (COPY.md §4). The pieces themselves: content/writing/*.mdx.
+ * Writing (/writing/) and a note's page. The pieces themselves: content/writing/*.mdx.
  * Writing joins the header's nav once there are three pieces (content/site.ts).
  */
 export const writing = {

@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { isSoftware, ROUTES, settle } from './support/pages';
 
 // A smoke test per route: it answers, says what it is, holds one <main> and one h1, is marked as the page it is,
-// paints (or falls back), and logs no errors. Plus the hard rules on the rendered page (DESIGN §2).
+// paints (or falls back), and logs no errors. Plus the hard rules on the rendered page (CLAUDE.md).
 // (a software rasteriser repaints the ambient painting forever and stalls the page's main thread; the checks here
 // are DOM-only, so on software the painting runs still — reduced motion — and the page answers at once)
 test.beforeEach(async ({ page }) => {

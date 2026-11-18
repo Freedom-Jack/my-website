@@ -18,7 +18,7 @@ import styles from './home.module.css';
 const span = (years: string, to: string) => years.replace(' – ', ` ${to} `);
 
 /**
- * Home (/): Jack's "about me" page (COPY §1).
+ * Home (/): Jack's "about me" page.
  *
  * The first screen is the live site's (the vanguard round's: the name at a fifth of the screen in his mountain's
  * mist, the verb line, the title line, one counted proof, the dated line, the one action), untouched by round 7.

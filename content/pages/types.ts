@@ -1,4 +1,4 @@
-/** What every page's words carry: its <title> and meta description (COPY.md §8.1). */
+/** What every page's words carry: its <title> and meta description. */
 export interface PageMeta {
   /** "Qijin (Jack) Xu · Page": the exact search phrase first. */
   title: string;

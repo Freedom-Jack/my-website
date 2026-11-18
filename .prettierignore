@@ -1,6 +1,5 @@
 .next
 node_modules
-design-demo
 public
 package-lock.json
 src/features/landscape/engine

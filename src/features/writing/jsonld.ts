@@ -2,7 +2,7 @@ import { personRef, websiteRef } from '@/lib/jsonld';
 import { absolute, card } from '@/lib/seo';
 import type { NoteMeta } from './notes';
 
-/** A note as schema.org BlogPosting (COPY.md §8.5): dateModified follows the byline's "Updated" date; its image is
+/** A note as schema.org BlogPosting: dateModified follows the byline's "Updated" date; its image is
  *  its link-preview card. */
 export function blogPostingLd(n: NoteMeta) {
   const url = absolute(n.href);

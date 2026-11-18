@@ -1,6 +1,6 @@
 import type { PageWords } from './types';
 
-/** The 404 (COPY.md §7): the lone peak, the path running into mist. noindex. */
+/** The 404: the lone peak, the path running into mist. noindex. */
 export const notFoundPage = {
   meta: {
     title: 'Qijin (Jack) Xu · Page not found',

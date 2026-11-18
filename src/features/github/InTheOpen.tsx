@@ -5,7 +5,7 @@ import { openSource } from './fetch';
 import type { Entry } from './rules';
 
 /**
- * Work's "In the open" (COPY.md §3.4): rendered on the server from Jack's public repositories (features/github).
+ * Work's "In the open": rendered on the server from Jack's public repositories (features/github).
  * Featured and Recent as rows; the older ones as a quiet table, "Early work, 2019 – 2020", folded behind its
  * heading (course work on request, never the section's face). An empty group renders
  * nothing: no heading, no placeholder. No stars, heatmaps, widgets or language dots.

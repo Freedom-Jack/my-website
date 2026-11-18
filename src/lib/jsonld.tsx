@@ -4,7 +4,7 @@ import { home } from '@content/pages/home';
 import { absolute } from './seo';
 
 /**
- * Structured data (COPY.md §8): honest, the same claims as the visible text, built from content/ only.
+ * Structured data: honest, the same claims as the visible text, built from content/ only.
  * Person on every page (root layout); WebSite and ProfilePage on Home; CollectionPage on Work; CreativeWork on a
  * case; BlogPosting on a note.
  */
