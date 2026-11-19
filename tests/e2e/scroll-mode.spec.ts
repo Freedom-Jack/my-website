@@ -125,10 +125,7 @@ test.describe('the scroll, held (1440)', () => {
     expect((await stats(page)).stretch, 'the camera at the page’s own place').toBeCloseTo(3, 3);
   });
 
-  // fixme: under Still (without the system's reduced motion) the scroll map's name in the sheet still runs its 380 ms
-  // underline (body.css .scrollmap__name: only prefers-reduced-motion turns its transition off), so the sheet is not
-  // yet still at the key; the walk itself is a cut
-  test.fixme('quiet: every walk is a cut', async ({ page }) => {
+  test('quiet: every walk is a cut', async ({ page }) => {
     // "Still the landscape", remembered on this device, with the painting kept live (window.__inkLive: the QA build's
     // way past the probe, which would otherwise hand a still page its still)
     await page.addInitScript(() => {

@@ -211,6 +211,9 @@ html[data-plates='on'] .inked {
     transition: none;
   }
 }
+html.is-still .wash {
+  transition: none;
+}
 @media print {
   .wash {
     display: none;
@@ -262,6 +265,9 @@ html[data-plates='on'] .inked {
   .brush-link {
     transition: none;
   }
+}
+html.is-still .brush-link {
+  transition: none;
 }
 
 /* ==========================================================================
@@ -516,6 +522,9 @@ main:has(> .closing:last-child) + .site-footer.tail {
   .scrollmap__name {
     transition: none;
   }
+}
+html.is-still .scrollmap__name {
+  transition: none;
 }
 .tail__base {
   row-gap: 1.25rem;
