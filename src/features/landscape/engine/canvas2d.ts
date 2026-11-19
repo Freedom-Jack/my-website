@@ -554,7 +554,7 @@ export function createCanvas2D(canvas: HTMLCanvasElement): Renderer | null {
     },
     dropView(id) { const v = views.get(id); if (v) { v.full.width = v.work.width = v.draft.width = 0; views.delete(id); } },
     hasView(id) { return !!views.get(id)?.shown; },
-    /** QA: bytes held per view (two full-size canvases and a half-size draft each). */
+    /** Bytes held per view (two full-size canvases and a half-size draft each). */
     memory() {
       const out: RendererMemory = { total: 0, views: {}, figures: figs.size };
       for (const [id, v] of views) {

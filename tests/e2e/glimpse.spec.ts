@@ -12,7 +12,7 @@ import { isSoftware, PHONE, settle } from './support/pages';
  *   - nothing in a window is lighter than the paper round it; no figure within 24 px of the screen's sides;
  *   - windows never share a screen: >= 1.1 viewports apart, <= 30 % of any screen;
  *   - a short page's end (Contact) is uncovered at the end of the page at 390, 768 and 1024;
- *   - the fallback is the window's own still; a phone held sideways lays out no window (the strip and the closing).
+ *   - the fallback is the window's own still; a phone held sideways lays out no window (the strip and the page's last picture).
  *   - the Résumé's timeline is never cut: its windows stand only before Experience and before Skills.
  * They read the QA build's window.__ink (NEXT_PUBLIC_INK_QA=1), like the other e2e probes.
  */

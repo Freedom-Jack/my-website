@@ -19,9 +19,10 @@ interface Data {
  * reader's own browser runs the same twenty questions against the same index (the search's runtime and
  * /craft/corpus.json, as the search box loads them) and each question's mark is inked as its result comes: a full dot
  * where the right passage came first, a ring with a core where it came second or third, an empty ring for a miss. The
- * line under the marks says the question a mark stands for (the pointer or the keyboard picks one). Who wrote the
- * questions is said below them; n, recall@1 and @3, and every question with its result stay one fold away. If the
- * run cannot load, the build's own results stand.
+ * line under the marks says the question a mark stands for (the pointer or the keyboard picks one). The line above
+ * them gives n and recall@1 and @3 (the reader's own run once it has finished, else the build's); who wrote the
+ * questions is said below them; every question with its result stays one fold away. If the run cannot load, the
+ * build's own results stand.
  */
 export function EvalFold({ data }: { data: Data }) {
   const w = data.words;

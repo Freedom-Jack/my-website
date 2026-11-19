@@ -147,7 +147,7 @@
   --fs-lead: clamp(1.125rem, 0.93rem + 0.8vw, 1.25rem); /* 18 → 20: page intros, statements */
   --fs-first: clamp(1rem, 0.7rem + 1.2vw, 1.25rem); /* 16 → 20 (19 @ 640): the first screen's one reading size */
   --fs-item: clamp(1.125rem, 0.93rem + 0.8vw, 1.25rem); /* 18 → 20: h3, row titles */
-  --fs-h2: clamp(1.375rem, 0.985rem + 1.6vw, 1.625rem); /* 22 → 26: section headings, the email */
+  --fs-h2: clamp(1.375rem, 0.985rem + 1.6vw, 1.625rem); /* 22 → 26: the held scroll's place name */
   --fs-title: clamp(3.5rem, 1.6rem + 7.8vw, 6rem); /* 56 → 96: page titles (h1), the name face */
   --fs-title-long: clamp(2.5rem, 1.2rem + 5.4vw, 4.5rem); /* 40 → 72: a case's or a note's long title */
   --fs-name: clamp(
@@ -189,8 +189,8 @@
   /* a section's margin, 42 @ ≤ 390 → 52 @ 640; 58 from 1200: the closing's, a note's end, the gap where a window is
      not laid out. The visible gap adds the leading. (The body's sections use body.css --space-body.) */
   --space-section: clamp(2.625rem, 1.65rem + 4vw, 3.25rem);
-  --space-head: 0.75rem; /* h2 → its first line: 12; 14 from 640 */
-  --space-item: clamp(1.5rem, 0.72rem + 3.2vw, 2rem); /* rows and list items: 24 → 32 */
+  --space-head: 0.75rem; /* a heading → what follows it (a note's h2 → h3, a fold's summary): 12; 14 from 640 */
+  --space-item: clamp(1.5rem, 0.72rem + 3.2vw, 2rem); /* 24 → 32: Work's "In the open" sub-heading and fold */
   --space-para: 0.9em; /* between paragraphs */
   --space-strip-text: clamp(1.25rem, 0.9rem + 1.4vw, 1.75rem); /* strip → title below it: 20 → 28 */
 
@@ -212,7 +212,7 @@
   --strip-sub: 168.8px;
   --closing-h: 160px;
   --glimpse-h: 180px; /* a window into the painting at a section break: 40 px of paper and mist next to the words above and below, the painting ~100 px between */
-  --glimpse-h-end: 250px; /* ...and a short page's closing, where the windows end on the place, near and large (Writing, Contact) */
+  --glimpse-h-end: 250px; /* ...and a short page's closing, where the windows end on the place, near and large (Contact) */
 
   /* Fluid small spaces for paddings and gaps inside components */
   --space-3xs: clamp(0.25rem, 0.23rem + 0.1vw, 0.3125rem);

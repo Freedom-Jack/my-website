@@ -16,7 +16,7 @@ import { plain } from '@/lib/markup';
  * place and position in the painting and the hash of the file they came from. Built at build time by the routes under
  * src/app/craft/ and by the unit test; never generated, never edited: a chunk is a verbatim passage (the inline
  * markup removed, the {{years}} token filled, as the page prints it). A chunk's `id` is stable across builds
- * (page, section, order), so the DRAFT eval set points at the same passages tomorrow.
+ * (page, section, order).
  */
 
 export interface Chunk {

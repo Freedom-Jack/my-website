@@ -310,8 +310,8 @@ const GLIMPSE = {
 
 const NONE16 = new Float32Array([2, 2, -1, -1, 2, 2, -1, -1, 2, 2, -1, -1, 2, 2, -1, -1]);
 const live = new WeakMap<HTMLCanvasElement, EngineHandle>(); // canvas -> controller: one live landscape per canvas
-// QA builds only (the asset tools' hooks: qa, window.__glimSoft). The bundler inlines the flag, so a production build
-// carries none of them.
+// QA builds only (the asset tools' hooks: qa, window.__glimSoft). A production build has no NEXT_PUBLIC_INK_QA, so the
+// check stays in the bundle: the flag is false at run time and the hooks ship inert.
 const QA = typeof process !== 'undefined' && process.env.NEXT_PUBLIC_INK_QA === '1';
 
 /**
@@ -341,7 +341,7 @@ const QA = typeof process !== 'undefined' && process.env.NEXT_PUBLIC_INK_QA === 
  *                                         the scene's focus stands >= 180 px right of it and the wake keeps off it.
  * @param {'misted'} [opts.palette='misted']  Pigment strength (palette.ts PALETTES).
  * @param {number}  [opts.horizon=0.6]     The horizon band's presence (<main data-horizon>).
- * @param {Iterable<Element>} [opts.veil]  Text blocks that mist should thicken behind (the 8 largest
+ * @param {Iterable<Element>} [opts.veil]  Text blocks that mist should thicken behind (the 12 largest
  *                                         visible at a time). An element's own `data-veil` value, when it is a
  *                                         number 0..1 (e.g. data-veil="0.95"), is its veil strength instead of
  *                                         the default 0.72; an empty value keeps the default. A veil of 0.9 or more
@@ -1015,7 +1015,7 @@ function controller(canvas: HTMLCanvasElement, opts: MountOptions): EngineHandle
     trimLayers(key);
     return L;
   }
-  // a stand-in while a layer is drawn: the same stretch's layer at another palette, width or composition (never a gap),
+  // a stand-in while a layer is drawn: the same stretch's layer at another width or composition (never a gap),
   // drawn at a scale this window may show it at (LAYER_STANDIN: never a soft magnified one, never figures drawn for a
   // far other scale that would then jump)
   function standIn(k: number, scale: number) {
@@ -1044,7 +1044,7 @@ function controller(canvas: HTMLCanvasElement, opts: MountOptions): EngineHandle
     // intent, the reach's stand-in once the full layer has replaced it) that is not on show FIG_GRACE later goes too
     trimLayers(L.key);
     setTimeout(() => { if (!destroyed) trimLayers(''); }, FIG_GRACE + 100);
-    // replacing a stand-in (another palette, width or composition of the same layer): no fade, the swap is in place
+    // replacing a stand-in (another width or composition of the same layer): no fade, the swap is in place
     if (lastSlots.some((s) => s.want === L.key)) L.shownSince = performance.now() - 1e4;
     // the closing, painted ahead off screen, takes it in idle time, not as it scrolls in
     if (wins[1].painted && !wins[1].vis) wins[1].want = true;
@@ -2212,7 +2212,7 @@ function controller(canvas: HTMLCanvasElement, opts: MountOptions): EngineHandle
       curSpec = blendSpec(tween.fromSpec, tween.toSpec, e);
       if (tween.t >= 1) {
         finishPan();
-        // the pan is over: the scroll, the boxes and the step are read again at the page's own stretch (the camera was
+        // the pan is over: the scroll, the boxes and the slide are read again at the page's own stretch (the camera was
         // held at the opening while it ran; it then glides to where the scroll puts it)
         if (stageOn()) { readBoxes(); measureVeil(); measureKeep(); }
       } else animating = true;
@@ -2247,7 +2247,7 @@ function controller(canvas: HTMLCanvasElement, opts: MountOptions): EngineHandle
     // Still settling and the water's rings ask for presents while they move
     if (fxFast() || stirs.length) need |= S_PRESENT;
 
-    // the scenes: a window repaints when its framing, palette, keep-out or figures change, while it is in motion,
+    // the scenes: a window repaints when its framing, keep-out or figures change, while it is in motion,
     // and once at full quality after motion stops. Never while the page merely scrolls (its key stays the same).
     const held = heldAt > 0 && now - heldAt < HELD_MS;   // (the scroll mode's hand: governed like a pan)
     const moving = panning || arriving || held;
@@ -2539,7 +2539,7 @@ function controller(canvas: HTMLCanvasElement, opts: MountOptions): EngineHandle
 
   // ---------------------------------------------------------------- small life (the present pass)
   // The figure layers' life anchors (figures.ts THE LIFE API), placed each frame on the canvas through the view each one
-  // lies in (a window at its live box and sink; the stage's layer at its own slide and sink), as a small table the
+  // lies in (a window at its live box and sink; the stage's layer at the stage's slide), as a small table the
   // present shader works out once per pixel and lays into that view's sample (shaders.ts, lifePrep / lifeLay): the
   // water's shimmer, a thread of smoke, the willows' sway, one drifting boat (a sprite the worker cut out of its layer).
   // No frame of its own: it rides the ambient frames, on the drift's clock, so it stops with the mist (reduced motion,
@@ -3036,7 +3036,7 @@ function controller(canvas: HTMLCanvasElement, opts: MountOptions): EngineHandle
     // (the page left behind keeps its layer as a neighbour while there is room; past the budget it goes, once the
     // pan has settled: the memory gate holds after a page change, not only on a fresh load)
     setTimeout(() => { if (!destroyed) trimLayers(''); }, FIG_GRACE + 100);
-    // (the stage: the scroll and the step are read again at this stretch, and the pose glides there from the opening)
+    // (the stage: the scroll and the slide are read again at this stretch, and the pose glides there from the opening)
     need |= S_SCENE | S_PRESENT | S_SCROLL | S_MEASURE;
     if (stageOn()) st.glide = true;
     t.resolve();

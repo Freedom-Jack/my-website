@@ -37,7 +37,7 @@ summary:active,
 /* ==========================================================================
    The text action (components/ui/TextAction): the one action on a screen is words in the UI weight with a 2 px ink
    underline and a drawn arrow after them ("See the work →"); a 44 px target; the arrow nudges on hover. As a
-   <button> (.action--button, e.g. Contact's "Copy email") the same.
+   <button> (.action--button) the same, with the arrow only where the markup has one (Contact's "Copy email" has none).
    ========================================================================== */
 .action {
   display: inline-flex;

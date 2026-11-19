@@ -6,7 +6,7 @@
 //            graded washes, pigment, static mist bands, water, the figure layers, the keep-out mist) into
 //            one view's RGBA8 framebuffer. A view is a window (the page's strip or closing: a box on the page
 //            looking at the world at its own framing, uView), the full viewport (the desktop horizon) or a
-//            depth layer (uPlanes). Re-run only on resize, a framing / composition / palette change, a pan, the
+//            depth layer (uPlanes). Re-run only on resize, a framing / composition change, a pan, the
 //            ink-bloom arrival and a figure layer's fade. Its alpha channel is a mask: how much drifting mist
 //            may lie over each pixel (valleys and water yes, near crests no, figures thinly); a depth layer's
 //            alpha is its coverage.
@@ -1070,7 +1070,7 @@ uniform vec4  uPlateK;       // x the plate (above); y, z this pass's pixel orig
                              // plate 10: the sky's way out of the paper), 0 = the far plate itself, the sky whole
 // The living ground (main[data-ground="living"], wide screens): the page's own scene painted once into three depth
 // layers (far: the sky and the far ranges, opaque, alpha = mist admittance; middle and near: premultiplied, alpha =
-// coverage), each presented at its own slide and sink as you scroll, with a sea of mist over the feet. Present-only: a
+// coverage), presented at the stage's one slide as you scroll, with a sea of mist over the feet. Present-only: a
 // scroll never repaints a layer.
 uniform sampler2D uSt0;
 uniform sampler2D uSt1;

@@ -207,7 +207,7 @@ export async function HomePage() {
             <ul className={`ledger ${styles.notes}`} role="list" aria-labelledby="writing-title">
               {notes.slice(0, 3).map((n) => (
                 <li className="ledger__row ink-row" key={n.slug}>
-                  <p className="ledger__meta mono">
+                  <p className="mono">
                     {n.kind} · <time dateTime={n.published}>{longDate(n.published)}</time>
                     {n.modified && n.modifiedNote ? (
                       <>

@@ -276,10 +276,7 @@ html[data-plates='on'] .inked {
      </aside>
    ========================================================================== */
 .next {
-  max-width: none;
   margin-block-start: var(--space-body);
-  padding-block-start: 0;
-  border-top: 0;
   row-gap: 1.25rem;
 }
 .next__text {
@@ -357,9 +354,6 @@ html[data-plates='on'] .inked {
 @media (min-width: 75rem) {
   .next__still {
     display: none;
-  }
-  .next {
-    align-items: start;
   }
   /* the page's last screen: the ending's words and the next place's name at its top, the place itself standing clear
      under them (the closing's gap: nothing lies there but the painting), then the tail */
@@ -525,7 +519,6 @@ main:has(> .closing:last-child) + .site-footer.tail {
 }
 .tail__base {
   row-gap: 1.25rem;
-  align-items: start;
 }
 .tail__words {
   display: grid;

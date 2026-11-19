@@ -1,5 +1,5 @@
 /**
- * Every link on the site, from a running server (npm run build && npm start; default http://127.0.0.1:3100):
+ * Every link on the site, from a running server (npm run build && npm start -- -p 3100; default http://127.0.0.1:3100):
  * every in-site link answers 200 and every #fragment exists on its page; every outside link is https and on an
  * allowed domain (the evidence, the profiles); every mailto is the public address. Outside links are not fetched
  * (CI must not fail when someone else's site is down).

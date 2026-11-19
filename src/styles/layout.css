@@ -675,8 +675,8 @@ html.no-landscape .closing__art {
   margin-block-start: var(--space-m);
 }
 
-/* ---------- rows: ul/ol.rows[role=list] > li.row, separated by hairlines (typographic rules, never boxes) ----------
-     <li class="row ink-row">
+/* ---------- rows: ul/ol.rows[role=list] > li, separated by hairlines (typographic rules, never boxes) ----------
+     <li class="ink-row">
        <h4 class="row__title"><a href>…</a></h4>
        <p class="row__line">…</p>
        <p class="row__meta small">Updated … · <a href>…</a></p>
@@ -804,12 +804,12 @@ html.no-landscape .closing__art {
    a break costs the reader about one window's height; its top and bottom 40 px are mist and paper (the painting
    keeps 40 px off the words on either side). Phones: a full-bleed 180 px box; tablets: the column's width (at most
    40 rem) with paper on either side; a phone held sideways: none (its 390 px tall screen keeps only the strip and
-   the closing; a 110 px sliver of a window adds little there). Until the engine paints a window, and wherever it
+   the page's last picture; a 110 px sliver of a window adds little there). Until the engine paints a window, and wherever it
    cannot (no JavaScript, no WebGL, a software rasteriser, the live probe's still, the governor's veto), the window's
    own still stands in it (.glimpse__still, an <img> cut by build:stills at its rest pose, given its source only
    within 60 % of a viewport's height: features/landscape/glimpse-stills.ts), cross-fading to the painting over 300 ms
-   ([data-live]): never an empty hole. The short pages (Writing, Contact) have none: their closing ends on the place,
-   near and large.
+   ([data-live]): never an empty hole. Writing and Contact have none: Contact's closing ends on the place, near and
+   large; Writing ends on its ending's picture.
      <div class="glimpse bleed" data-landscape="glimpse" aria-hidden="true"><img class="glimpse__still" …></div>
    ========================================================================== */
 .glimpse {
@@ -862,7 +862,7 @@ html.no-landscape .closing__art {
     margin-block-start: var(--space-section);
   }
 }
-/* a phone held sideways (a 390 px tall screen): no window mid-page; only the strip and the closing */
+/* a phone held sideways (a 390 px tall screen): no window mid-page; only the strip and the page's last picture */
 @media (max-height: 31.25rem) and (max-width: 74.99rem) {
   html.el-glimpses .glimpse {
     display: none;

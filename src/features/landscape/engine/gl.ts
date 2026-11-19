@@ -136,7 +136,7 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
   let wantW = 0, wantH = 0;
   const views = new Map<string, View>();
   const figs = new Map<string, WebGLTexture>();   // id -> texture
-  const figBytes = new Map<string, number>();     // id -> bytes (QA: memory())
+  const figBytes = new Map<string, number>();     // id -> bytes (memory(): the memory gate)
   let fence: WebGLSync | null = null;   // set after a present: has the GPU finished that frame? (see busy())
   let fenceAt = 0;
   let bitmapsOK = false;  // an ImageBitmap of a 2D canvas uploads premultiplied here (probeBitmaps)
@@ -540,7 +540,7 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
     },
     dropView(id) { const v = views.get(id); if (v) { freeView(v); views.delete(id); } },
     hasView(id) { return !!views.get(id)?.tex; },
-    /** QA: bytes held per view (its scene buffer, RGBA8, and its ridge rows, RGBA16F) and by the figure layers. */
+    /** Bytes held per view (its scene buffer, RGBA8, and its ridge rows, RGBA16F) and by the figure layers. */
     memory() {
       const out: RendererMemory = { total: 0, views: {}, figures: 0 };   // (figure layers: with their mip levels, x 4/3)
       for (const [id, v] of views) {

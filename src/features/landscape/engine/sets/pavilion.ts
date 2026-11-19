@@ -13,9 +13,8 @@ import { el } from '../../elements';
 // A figure set (figures.ts, THE SET API): meta + draw(env), in world px. Painted after plane 2's mist band and the
 // water (phase 1), so the lake lies under the spit.
 //
-// Where: the spit's waterline at scene height 0.214, in open water in front of the far shore (its waterline is
-// 0.284 on Writing, 0.259 on the Note, whose layer is drawn for its own composition; open water either way, so
-// the spit sits on the lake on both pages, 0.025 scene heights nearer the far shore's reflection on the Note).
+// Where: the spit's waterline at scene height 0.214, in open water in front of the far shore (the same on Writing and
+// the Note: every page paints with WORLD), so the spit sits on the lake.
 // The pavilion at K + 0.925: right of the far peak's reflection at every width, clear of the text on wide screens
 // (keep-out edge K + 0.59 at 1440). The spit's tail runs on to K + 1.215, into the layer's melting end, so on wide
 // screens it leaves the frame at the right edge.

@@ -10,4 +10,4 @@ Loaded only when a visitor uses "Ask the painting"; everything runs in the visit
 Changed here: in `vocab.txt` every entry that holds a CJK character (about a fifth of the model's vocabulary, never
 reached by English text) is replaced by a placeholder of its own, so the site hosts no Chinese text but the seal
 (CLAUDE.md, hard rules). The entries keep their line numbers, which are the model's token ids, so English tokenizes
-exactly as with the original vocabulary.
+exactly as before.

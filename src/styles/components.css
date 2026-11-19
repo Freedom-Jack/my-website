@@ -93,7 +93,7 @@
    Ledger rows: editorial rows on hairlines, dated (Home's Writing rows).
      <ul class="ledger" role="list">
        <li class="ledger__row ink-row">
-         <p class="ledger__meta mono">Note · <time>…</time></p>
+         <p class="mono">Note · <time>…</time></p>
          <h3 class="ledger__title"><a href>…</a></h3>
          <p class="ledger__line">…</p>
        </li>

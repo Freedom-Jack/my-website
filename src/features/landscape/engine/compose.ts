@@ -125,8 +125,7 @@ const tableFor = (k: number) => (k < 0 || k >= STRETCH_COUNT ? QUIET : STRETCHES
 //
 // Per scene also: `page` (the page's own composition: WORLD for every place), `frame` (how its strip and closing
 // windows look at it: see framingAt), on the river a near bank (`near`, the waterline of the near shore: land below
-// it) and `shore: 0` (its far planes keep their own misty feet above the town instead of standing on the water), and
-// `figures`, the scene's figure set (sets/index.ts).
+// it) and `shore: 0` (its far planes keep their own misty feet above the town instead of standing on the water).
 //
 // One world: every page paints the scroll with one composition, the river runs through every place (its waters meet
 // at each seam and add up to one; the near bank blends over a wider seam, so the river opens and narrows gradually),
@@ -140,7 +139,7 @@ const tableFor = (k: number) => (k < 0 || k >= STRETCH_COUNT ? QUIET : STRETCHES
 // placement is the hero rule's), its album leaves `tablet / phone / short` (band framings: bandFrame) and its closings:
 //   tablet / phone { scale, band, fbIn, u, fx, uMax }   a band of the scene (bandFrame)
 //   closing { wide { scale, band, right }, phone ... }   a small version of the opening, framed as a band
-//     with the view's right edge at stretch-local `right` (the living ground ends on the opening itself on wide screens)
+//     with the view's right edge at stretch-local `right` (on wide screens a living page's stage stands in for it)
 
 /** How a window of one width class looks at a scene (frame.tablet / phone / short): see framingAt and bandFrame. */
 export interface View {
@@ -227,8 +226,6 @@ export interface Scene {
   tech?: Tech;
   water?: Water;
   frame: Frame;
-  /** Its figure set's name (sets/index.ts). */
-  figures?: string;
 }
 
 /** The one composition every page paints the scroll with: its place's character lives in SCENES and STRETCHES, never
@@ -255,8 +252,7 @@ export const SCENES: Scene[] = [
       // the living ground, which ends on the opening itself); on phones the summits sit lower in the taller box, so the
       // near crags at the scroll's left end stay in its bottom feather
       closing: { wide: { scale: 600, band: [0.19, 0.6], fbIn: 0, right: 1.06 }, phone: { slack: 1 } },
-    },
-    figures: 'home' },
+    } },
   // The river: the town stands on its far bank and the hills keep their own misty feet above it (shore 0).
   { name: 'river', page: WORLD, tech: { at: [0.06, 0.98], bone: 1.0, ink: 1.5 },
     water: { at: [0.02, 1.0], y: 0.289, near: 0.209, strokes: 1.2, refl: 0.4, banks: 0, shore: 0,
@@ -283,8 +279,7 @@ export const SCENES: Scene[] = [
     // two-storey house (u 1.755-1.93) fill the strip)
     // (the unroll's hold: the town's east moorings (u 1.83-1.9), its last tree and house (1.93-1.96) stand in the
     // margin to the page's end; beyond them the river opens into the lake, an empty reach until the pavilion at 2.78)
-    frame: { focus: [0.565, 0.272], keepU: 0.482, closingU: 0.98, insideU: 0.72, insideUNarrow: 0.92, holdU: 0.86 },
-    figures: 'market' },
+    frame: { focus: [0.565, 0.272], keepU: 0.482, closingU: 0.98, insideU: 0.72, insideUNarrow: 0.92, holdU: 0.86 } },
   // Writing: a still lake, where the river opens out (its near bank sinks out of view between the town and the lake).
   // The low far shore and its whole reflection: the waterline the river's, the mirror below it (water.mirror: a still,
   // whole reflection, few strokes). Boneless and pale (tech.ink): the quietest place on the scroll.

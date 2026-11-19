@@ -6,7 +6,7 @@ import { ELEMENTS } from '@/features/landscape/elements';
  * one handscroll unrolled, east-going and level). Art only, hidden from assistive technology and
  * from print; at 1200 px and up it is not laid out at all (layout.css).
  * `phone`: on phones only (a tablet's column is shorter and takes one window fewer). A phone held sideways shows none
- * (its 390 px screen keeps the strip and the closing only). `still`: the window's own still
+ * (its 390 px screen keeps only the strip and the page's last picture). `still`: the window's own still
  * (public/scenes/glimpse/<still>@1x|2x.webp, cut by build:stills at its rest pose), shown until the engine paints it
  * and wherever it cannot (no WebGL, a software rasteriser, the live probe's still, the governor's veto). It is an
  * <img> inside the box whose sources are data attributes until the window comes within 60 % of a viewport's height

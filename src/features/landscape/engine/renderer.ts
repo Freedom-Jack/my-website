@@ -114,7 +114,7 @@ export interface PresentGlimpse {
 /** The living ground's three depth layers and the sea of mist over their feet (index.ts stageU). */
 export interface StageU {
   ids: string[];
-  /** Per layer [step x, sink, alpha, unused] (canvas fractions). */
+  /** Per layer [slide x, sink, alpha, unused] (canvas fractions). */
   offsets: Float32Array;
   view: Float32Array;
   k: Float32Array;
@@ -180,7 +180,7 @@ export interface PresentU {
   grainPx: number;
 }
 
-/** QA: the bytes a renderer holds, per view and for the figure layers. */
+/** The bytes a renderer holds, per view and for the figure layers (the figure layers' memory gate, index.ts). */
 export interface RendererMemory {
   total: number;
   views: Record<string, { w: number; h: number; bytes: number }>;

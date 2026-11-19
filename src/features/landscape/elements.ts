@@ -4,9 +4,10 @@
  * not set, so its CSS does not apply. glimpses and halo compile their shader code out (GLSL #defines:
  * elementDefines); the others' shader code stays compiled in, idle, with its uniforms at rest. Read on the main thread
  * (engine, effects, layout), in the figure worker (the sets) and by the boot script. Every element keeps the engine's
- * rules, on THE PLATES (wide screens) too: nothing behind text, text never moves, ambient motion <= 15 fps and asleep
- * after 45 s, pointer answers <= 30 fps and only while the pointer moves, a still frame and still UI under reduced
- * motion and "Still the landscape", phones calm.
+ * rules: nothing behind text, text never moves, ambient motion <= 15 fps and asleep after 45 s (on THE PLATES, wide
+ * screens: <= 30 fps and asleep after five minutes: engine/index.ts PLATE_MS, PLATE_IDLE), pointer answers <= 30 fps
+ * and only while the pointer moves, a still frame and still UI under reduced motion and "Still the landscape", phones
+ * calm.
  *
  * QA builds only (NEXT_PUBLIC_INK_QA=1): a flag is switched off in one browser by localStorage 'ink-elements' =
  * '{"glimpses":false}' (the preview's panel, features/qa/Switches, writes it) or by window.__elOff = ['boughs', ...]
