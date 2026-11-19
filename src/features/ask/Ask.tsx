@@ -10,7 +10,7 @@ import type { Answer, Brain, Step } from './brain';
 import styles from './ask.module.css';
 
 /**
- * "Ask the painting" (Home's body, round 7; elements.ts `ask`): the page's moment. A visitor asks about the work; a
+ * "Ask the painting" (Home's body; elements.ts `ask`): the page's moment. A visitor asks about the work; a
  * small language model in their own browser reads the question (brain.ts, ask.worker.ts), measures it against every
  * line of this site, and every step it takes is set down beside the line as it happens, with its real numbers: the
  * tokens, the vector, the three closest lines and how close each came. The answer is a line of the site's own words,
@@ -18,7 +18,6 @@ import styles from './ask.module.css';
  * that holds it (the section keeps the right of the frame open, so the place is seen to arrive), on a phone that
  * place's own picture comes up under the answer. Under a floor it says it does not
  * know. Nothing is fetched until the line is used; nothing typed leaves the browser.
- * (Round 6's other half, a scene that repainted the painting by hour and weather, is gone.)
  */
 const fill = (s: string, v: Record<string, string | number>) =>
   s.replace(/\{(\w+)\}/g, (_, k: string) => String(v[k] ?? ''));

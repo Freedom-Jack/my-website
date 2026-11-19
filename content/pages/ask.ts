@@ -1,9 +1,8 @@
 /**
  * "Ask the painting" (Home; src/features/ask): every word the section and its trace show.
- * NEW WORDS, written for Jack in his voice (round 6; re-cut in round 7, when the half that repainted the painting
- * by hour and weather went and the line moved from the first screen into the body): all of them wait for his
- * approval and are listed in NEW-WORDS.md at the repo's root. The answers themselves are never written here or by
- * the model: an answer is a line of the site's own approved words, shown word for word.
+ * NEW WORDS, written for Jack in his voice: all of them wait for his approval and are listed in NEW-WORDS.md at the
+ * repo's root. The answers themselves are never written here or by the model: an answer is a line of the site's own
+ * approved words, shown word for word.
  * In the trace's lines, {braces} are filled with the run's real numbers.
  */
 export const ask = {

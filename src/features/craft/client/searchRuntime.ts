@@ -5,7 +5,7 @@ import { buildIndex, closeHits, matchedWords, search } from '../text';
 /**
  * The search's runtime, loaded on the box's first focus with /craft/corpus.json (0 bytes before): the index is built
  * here, in the browser, and every query is scored here; nothing typed leaves the page. A result is a passage, verbatim,
- * with its source, its place and the position the painting pans to (A2).
+ * with its source, its place and the position the painting pans to.
  */
 export interface Result {
   id: string;

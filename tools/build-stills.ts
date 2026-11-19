@@ -1,10 +1,9 @@
 /**
- * The windows' stills, cut at build time from the real engine: each window into the painting (elements.ts glimpses)
- * has its own still, its rest pose ("Still the landscape" on), cut from the page at 390 × 844 (DPR 2) with the header
- * hidden: public/scenes/glimpse/<page>-<j>@1x|2x.webp + public/scenes/manifest.json. (The footer story map's five
- * place stills went with it in the vanguard round: the lead's ruling R12; nothing read them since P2's tail.)
+ * The windows' stills, cut from the real engine: each window into the painting (elements.ts glimpses) has its own
+ * still, its rest pose ("Still the landscape" on), cut from the page at 390 × 844 (DPR 2) with the header hidden:
+ * public/scenes/glimpse/<page>-<j>@1x|2x.webp + public/scenes/manifest.json.
  *
- *   NEXT_PUBLIC_INK_QA=1 npm run build && npm start -- -p 3100   a QA build (it exposes window.__inkEngine)
+ *   NEXT_PUBLIC_INK_QA=1 npm run build && npm start -- -p 3100   a QA build (it exposes window.__ink)
  *   npm run build:stills                                          cut them all; needs Google Chrome (headless,
  *                                                                 SwiftShader)
  *   npm run build:stills -- --preview <dir>                       also keep the raw crops (outside the repo)
@@ -17,7 +16,7 @@
  * --check recomputes the input hash (the engine: src/features/landscape/engine/**\/*.ts; elements.ts; the windows'
  * pages' config in places.ts; the strip-height tokens, which size the windows; this tool's settings), compares it and
  * each file's hash with the manifest and checks the size caps. Exit 1 = stale: regenerate.
- * REGENERATE AFTER ANY ENGINE, SET, PALETTE, PLACE OR STRIP-HEIGHT CHANGE.
+ * Regenerate after any engine, set, palette, place or strip-height change.
  */
 import { existsSync, readFileSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -40,10 +39,8 @@ const OUT_DIR = path.join(ROOT, 'public', 'scenes');
 const MANIFEST = path.join(OUT_DIR, 'manifest.json');
 
 // ------------------------------------------------------------------------------------------------ the windows' stills
-// The windows (elements.ts glimpses): each window into the painting has its own still, its rest pose ("Still the
-// landscape" on), cut from the page at 390 x 844 (DPR 2) with the words hidden: public/scenes/glimpse/<id>@1x|2x.webp.
-// The window shows it until the engine paints it (and wherever it cannot), then cross-fades to the painting (layout.css
-// .glimpse[data-live]). Recorded in the manifest's `glimpses` (inputs: the same as the map's).
+// A window shows its still until the engine paints it (and wherever it cannot), then cross-fades to the painting
+// (layout.css .glimpse[data-live]). The files are recorded in the manifest's `glimpses`.
 const GLIMPSE_PAGES = [
   { page: 'home', route: '/', n: 2 },
   { page: 'work', route: '/work/', n: 2 },

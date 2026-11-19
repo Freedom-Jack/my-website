@@ -13,17 +13,14 @@ import { isSoftware, PHONE, settle } from './support/pages';
  *     held by the hand and settles on a place, nothing overflows sideways;
  *   - the element off (window.__elOff): no opener.
  * They read the QA build's window.__ink (NEXT_PUBLIC_INK_QA=1), like the other e2e probes. The opener does nothing
- * without a live painting (no renderer, or the static fallback), so each test skips there. On a software rasteriser
- * (CI's GPU-less runners) the painting runs still, as the page's own DOM tests run it (budgets.spec.ts): every walk
- * is then the engine's cut, which is what the keys, the stops and Escape are judged on here; the hand itself (the
- * phone's swipe, the camera moving under it) is judged on a hardware GPU only, and its waits are longer
- * there, never fixed.
+ * without a live painting (the probe kept the still, or the static fallback), so every test but the flag's skips
+ * there: they run on a hardware GPU, since the probe refuses a software rasteriser.
  */
 type S = Record<string, any>;
 const stats = (page: Page) => page.evaluate(() => (window as unknown as { __ink: { stats(): S } }).__ink.stats());
 
-// (a software rasteriser repaints the ambient painting for minutes and holds the main thread: the painting runs still
-// there, and the engine's cuts stand in for its walks; the hand's own tests skip, below)
+// (on a software rasteriser the painting runs still, so the page answers at once; the tests that need a live painting
+// skip there)
 test.beforeEach(async ({ page }) => {
   if (await isSoftware(page)) await page.emulateMedia({ reducedMotion: 'reduce' });
 });
@@ -138,7 +135,7 @@ test.describe('the scroll, held (1440)', () => {
   });
 
   test('quiet: every walk is a cut', async ({ page }) => {
-    // "Still the landscape", remembered on this device (scroll.spec.ts sets it the same way)
+    // "Still the landscape", remembered on this device
     await page.addInitScript(() => localStorage.setItem('ink:still', '1'));
     await page.goto('/work/');
     await settle(page);

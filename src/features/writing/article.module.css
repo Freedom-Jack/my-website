@@ -1,10 +1,7 @@
-/* A note's LAYOUT: a document on paper. The lake's low doc strip (art only), then the title
-   (40; 32 on phones) and the byline, then the note in the shared reading column (680, body 18 / 17). Section headings
-   use the site's h2 (the body face in bold); the h3s are run-in headings in bold at body size, so a screen holds at
-   most four type sizes (40 · 26 · 18 · 14). The comparison is the shared .table. Plus two reading aids this page owns:
-     - the reading-progress stroke along the top edge (scroll-linked state, never a text animation);
-     - the author's seal at the end, stamped once as it comes into view (NoteEffects).
-   Nothing in the text moves. */
+/* A note's layout: the lake's hero (the sub strip every inner page has) with the title (the long title size) and the
+   byline, then the note in the shared reading column (680); its comparison is the shared .table. One reading aid
+   this page owns: the reading-progress stroke along the top edge (scroll-linked state, never a text animation;
+   NoteEffects sets it where scroll timelines are missing). Nothing in the text moves. */
 
 @property --read {
   /* how much of the note has been brought into view, 0% → 100% */
@@ -13,7 +10,7 @@
   initial-value: 0%;
 }
 
-/* ---------- reading progress: a dry-brush stroke along the top edge (round 3, unchanged) ----------
+/* ---------- reading progress: a dry-brush stroke along the top edge ----------
    Draws from the left as the note comes into view and reaches the stroke's dry tail when its last line
    reaches the bottom of the screen. */
 .read-progress {
@@ -93,8 +90,8 @@
   margin-block: -12px;
 }
 
-/* ---------- the note: the reading column (round 7: its first paragraph a little larger, its section headings in
-   the name face, its quotation set large, its comparison the frame's width) ---------- */
+/* ---------- the note: the reading column (its first paragraph a little larger, its section headings in the name
+   face, its quotation set large, its comparison the frame's width) ---------- */
 .prose {
   max-width: var(--measure-read);
   margin-block-start: var(--space-body);
@@ -229,7 +226,7 @@
   width: 22%;
 }
 
-/* ---------- the end: the author's seal beside the author line, then the one ink button ---------- */
+/* ---------- the end: the way home (one quiet link) ---------- */
 .note__end {
   margin-block-start: var(--space-section);
   max-width: var(--measure-read);

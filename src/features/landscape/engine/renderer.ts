@@ -1,18 +1,19 @@
 // renderer.ts — the contract between the engine (index.ts) and its two painters, gl.ts (WebGL2) and canvas2d.ts
 // (the fallback): what each frame hands them. Types only (nothing here exists at run time).
 //
-//   A *view* is one painting with its own buffer: a window (the page's strip, its closing), the desktop horizon band,
-//   or one of the living ground's three depth layers (4b). scene() paints a view; present() lays the views on screen.
+//   A *view* is one painting with its own buffer: a window (the page's strip, its closing, a window into the painting),
+//   the desktop horizon band, or one of the living ground's three depth layers. scene() paints a view; present() lays
+//   the views on screen.
 
 import type { LayerParams, LifeOut } from './figures';
 
-/** A figure layer for figure(): premultiplied RGBA bytes (top row first), or an image of it (4b: with its sprites). */
+/** A figure layer for figure(): premultiplied RGBA bytes (top row first), or an image of it (with its sprites). */
 export interface FigureImage {
   width: number;
   height: number;
   data?: Uint8ClampedArray;
   bitmap?: ImageBitmap | OffscreenCanvas | HTMLCanvasElement;
-  /** 4b small life: the layer's moving things, as one sprite atlas (gl.ts uploads it as `${id}#0`). */
+  /** Small life: the layer's moving things, as one sprite atlas (gl.ts uploads it as `${id}#0`). */
   sprites?: { width: number; height: number; bitmap: ImageBitmap }[];
 }
 /** A drawn figure layer, as the figure source hands it back (figure-source.ts, figures.worker.ts). */
@@ -66,7 +67,7 @@ export interface SceneU extends SceneBase {
   /** The horizon band's painting (Canvas2D sinks it by hzShift view heights). */
   horizon?: boolean;
   hzShift?: number;
-  /** 4b depth layers: [first plane, last plane, 1 = over transparent paper, 0], and the crop [x0, width] (view uv). */
+  /** Depth layers: [first plane, last plane, 1 = over transparent paper, 0], and the crop [x0, width] (view uv). */
   planes?: Float32Array;
   crop?: Float32Array;
   /** Paint into the lower (0) or upper (1) half of the view's buffer (a window's two depth layers). */
@@ -104,12 +105,13 @@ export interface PresentGlimpse {
   f: Float32Array;
   /** [the camera's height 0..1 (cooler, paler air), the light's bloom kept 0..1, the front's ink deepened 0..1, the
    *  painting's fade-in 0..1]; [the sea of cloud's surface (box uv, < -0.5 none), the mist between the layers (box uv,
-   *  < -0.5 none), a sideways phone's slim window 0/1, 0]; the view's world mapping (as a window's view). */
+   *  < -0.5 none), 1 = a sideways phone's slim window (else minus the left side's melt, CSS px), at a short page's end
+   *  1 = a soft end (else the bottom ramp's extra CSS px)]; the view's world mapping (as a window's view). */
   c: Float32Array;
   d: Float32Array;
   m: Float32Array;
 }
-/** 4b: the living ground's three depth layers and the sea of mist over their feet (index.ts stageU). */
+/** The living ground's three depth layers and the sea of mist over their feet (index.ts stageU). */
 export interface StageU {
   ids: string[];
   /** Per layer [step x, sink, alpha, unused] (canvas fractions). */
@@ -126,7 +128,7 @@ export interface StageU {
   /** The inner places' grade on the stage: [hero box y0, y1 (uv, up, at the page's top), keep-out x, ramp]. */
   grade?: Float32Array;
 }
-/** 4b small life on show (index.ts lifeU): a small table the present shader works out once per pixel. */
+/** Small life on show (index.ts lifeU): a small table the present shader works out once per pixel. */
 export interface LifeTable {
   rect: Float32Array;
   a: Float32Array;
@@ -139,8 +141,8 @@ export interface LifeTable {
   ridge: string | null;
   sprite: string | null;
   fig: string | null;
-  /** The ferry's ring sets on the water (elements.ts contactLife; 4 x [uv x, y, age s, 2 x kind + seed]) and their
-   *  strength. */
+  /** The ferry's ring sets on the water (elements.ts contactLife): 4 x [uv x, y, age s (< 0 none), 4 + seed (2 x kind +
+   *  seed: only kind 2, the ferry's drops, is sent)]; and [strength, 0, the stage's ridge columns per screen width, 0]. */
   stir: Float32Array;
   stirK: Float32Array;
 }
@@ -168,7 +170,7 @@ export interface PresentU {
   glimpse?: PresentGlimpse | null;
   /** A pixel outside every painted rect is written as paper at once (below 1200 px with the windows on). */
   paperOut?: boolean;
-  /** 4b living veils (shaders.ts PRESENT: uLive, uLive2). */
+  /** The living veils (shaders.ts PRESENT: uLive, uLive2). */
   live: Float32Array;
   live2: Float32Array;
   /** CSS px per buffer px, the pan in CSS px, the grain's strength and its texel. */
@@ -187,7 +189,6 @@ export interface RendererMemory {
 
 /** The painter behind the engine: gl.ts createGL() or canvas2d.ts createCanvas2D(). */
 export interface Renderer {
-  mode: 'webgl' | 'canvas2d';
   /** A software rasteriser (SwiftShader, llvmpipe...): the engine paints less there. */
   software: boolean;
   /** The painter can paint: WebGL, once every program has linked (poll) and after a lost context is restored. */
@@ -195,7 +196,7 @@ export interface Renderer {
   /** WebGL: advance the build (the programs link on the driver's threads: gl.ts poll). True once `ready`. The
    *  engine polls it from a timer until then (index.ts whenReady); a painter without it is ready at once. */
   poll?(): boolean;
-  /** WebGL, 4b: an ImageBitmap uploads premultiplied here (else the worker sends premultiplied bytes). */
+  /** WebGL: an ImageBitmap uploads premultiplied here (else the worker sends premultiplied bytes). */
   readonly bitmaps?: boolean;
   /** Resize the drawing buffer. */
   resize(w: number, h: number): void;
@@ -212,12 +213,14 @@ export interface Renderer {
   hasFigure(id: string): boolean;
   /** WebGL: 0 when the GPU has finished the last presented frame, else how long (ms) it has been at it. */
   busy?(): number;
-  /** Paint view `id`. Canvas2D returns false while a full-quality painting is still being built behind a draft. */
+  /** Paint view `id`. False while it is not painted yet: WebGL while the programs link, Canvas2D while a full-quality
+   *  painting is still being built behind a draft. */
   scene(id: string, U: SceneU): boolean | void;
   present(U: PresentU): void;
   /** THE PLATES (WebGL only): paint one depth layer of the stage (1 far, 2 middle, 3 near, 4 the sea of mist, 5 what is pinned
-   *  to the frame), or a part of it, into the drawing buffer's lower-left w x h corner, with the screen pass's uniforms; `uv` its window in
-   *  canvas uv (x0, y0, width, height), `ox, oy` its pixel origin in its plate. Returns the canvas to copy from. */
+   *  to the frame, 6 the paper with its grain, 10 the far plate's top under the header's band), or a part of it, into the drawing
+   *  buffer's lower-left w x h corner, with the screen pass's uniforms; `uv` its window in canvas uv (x0, y0, width,
+   *  height), `ox, oy` its pixel origin in its plate. Returns the canvas to copy from. */
   plate?(U: PresentU, kind: 1 | 2 | 3 | 4 | 5 | 6 | 10, uv: readonly [number, number, number, number], w: number, h: number, ox: number, oy: number): HTMLCanvasElement | null;
   destroy(): void;
 }

@@ -17,14 +17,12 @@ import type { EngineModule, LandscapeHandle } from './types';
  * on wide screens, and the faint ink horizon between them on desktops. Decorative.
  *
  * On every device the page opens on its pre-cut still (components/page/Strip): the first screen is complete before
- * any script. The engine is asked for only after the probe (./probe): after the first paint and an idle moment, never
- * under reduced motion, "Still the landscape" or Save-Data, only with a hardware WebGL2 context, and only after 1.5 s
- * of idle frames none over 20 ms, so a page that will not paint fetches 0 engine bytes. The engine's module is then
- * one task, its mount another (the context and the figure worker; the shaders link off the main thread), and its
- * first scene a frame of its own, so no step holds the main thread long on a phone; its first frame lands finished
- * under the still, which fades out. Once live, two slow frames in a rolling second hand the page back to the still.
- * Without a usable renderer html.no-landscape shows the static ridge hint instead. Strict-Mode safe: mountLandscape()
- * replaces any earlier mount on the canvas.
+ * any script. The engine is asked for only after the probe (./probe.ts), so a page that will not paint fetches 0
+ * engine bytes. The engine's module is then one task, its mount another (the context and the figure worker; the
+ * shaders link off the main thread), and its first scene a frame of its own, so no step holds the main thread long on
+ * a phone; its first frame lands finished under the still, which fades out. Once live, two slow frames in a rolling
+ * second hand the page back to the still. Without a usable renderer html.no-landscape shows the static ridge hint
+ * instead. Strict-Mode safe: mountLandscape() replaces any earlier mount on the canvas.
  */
 const afterFirstPaint = () =>
   new Promise<void>((resolve) => {
@@ -56,16 +54,16 @@ export function Landscape() {
     let started = false;
     let handle: LandscapeHandle | null = null;
     let stopWatch: (() => void) | null = null;
-    // THE PLATES (round 6): on wide screens the stage is the page's own layers, moved by the browser (plates/sink.ts),
-    // and the paper behind the words is the page's own too (plates/veils.ts), scrolling with them. Round 7: both
-    // modules come with the engine's request, after the probe (they serve nothing before the painting comes, and
-    // every kilobyte of script before the first screen has settled counts on a phone).
+    // THE PLATES: on wide screens the stage is the page's own layers, moved by the browser (plates/sink.ts), and the
+    // paper behind the words is the page's own too (plates/veils.ts), scrolling with them. Both modules come with the
+    // engine's request, after the probe (they serve nothing before the painting comes, and every kilobyte of script
+    // before the first screen has settled counts on a phone).
     let plates: PlateStage | null = null;
     let veils: Veils | null = null;
-    // the windows' stills below the fold get their sources as the reader nears them (R5; the navigation does the same
-    // for every later page)
+    // the windows' stills below the fold get their sources as the reader nears them (the navigation does the same for
+    // every later page)
     const stopStills = watchGlimpseStills(currentMain());
-    // (round 7: the tail's scroll in miniature gets its pictures the same way; the tail stays across pages)
+    // (the tail's scroll map gets its picture the same way, once: the tail stays across pages)
     const stopTail = watchGlimpseStills(document.querySelector<HTMLElement>('.site-footer'));
     // QA builds only: the probe's marks (tests/e2e/probe.spec.ts reads them: why the still stands)
     const mark = (name: string) => {
@@ -90,8 +88,8 @@ export function Landscape() {
           return stillHere('quiet');
         }
         if (!forced && saveData()) return stillHere('save-data');
-        // the engine's module is asked for after the first paint and an idle moment (the budgets' rule: it is never on
-        // the words' critical path)
+        // the engine's module is asked for after the first paint and an idle moment: it is never on the words' critical
+        // path
         await afterFirstPaint();
         await whenIdle(1500);
         if (dead) return;
@@ -116,14 +114,14 @@ export function Landscape() {
           await Promise.all([import('./engine'), import('./plates/sink'), import('./plates/veils')]);
         if (dead) return;
         // (the plates and the veils are made in a task of their own, at an idle moment: with the engine's evaluation
-        // they made one task of 230 ms on a throttled phone)
+        // they would make one task of 230 ms on a throttled phone)
         await whenIdle(500);
         if (dead) return;
         plates ??= platesRef.current ? sink.createPlateStage(platesRef.current) : null;
         veils ??= plates ? veiling.createVeils() : null;
-        // the module's evaluation was one task; the mount is another, at the next idle moment and after a rendered
+        // the module's evaluation is one task; the mount is another, at the next idle moment and after a rendered
         // frame, so its reads of the page's boxes find the layout clean (a font swap or a style change laid out inside
-        // the mount's task cost it 50-70 ms on a phone)
+        // the mount's task costs it 50-70 ms on a phone)
         await whenIdle(500);
         await afterFirstPaint();
         if (dead) return;
@@ -160,13 +158,10 @@ export function Landscape() {
           return;
         }
         setLive('on');
-        // live: two frames over 20 ms inside a rolling second hand the page back to its still (the engine rests).
+        // live: two slow frames inside a rolling second hand the page back to its still (the engine rests), at the
+        // limit probe.ts limitFor sets for the engine's state: it catches a slow place to read, and a slow page change.
         // The watch starts once the engine's first frame has landed and settled (the boot is sliced and gated by the
-        // task budget, not by this rule: at native speed the first scene costs one 33 ms frame). R4 (01-budgets.md):
-        // frames during the painting's own motion (a pan, an arrival, a sweep) count at 33 ms, so a phone that janks
-        // only during pans is handed back to its still too; frames while the engine is pending for another reason (a
-        // scene or a layer on its way: no engine frames then) are not counted. What it catches is a slow place to
-        // read, and a slow page change.
+        // task budget, not by this rule: at native speed the first scene costs one 33 ms frame).
         if (!forced) {
           const h = handle;
           const limitFor = () => {
@@ -183,7 +178,7 @@ export function Landscape() {
             await wait(1000);
             if (dead) return;
             // (THE PLATES: no watch. The reading state draws nothing per frame, so a slow frame there is not the
-            // painting's, and the watch itself was a second loop at the display's rate)
+            // painting's, and the watch itself would be a second loop at the display's rate)
             if ((h.stats() as { plates?: { on?: boolean } }).plates?.on) return;
             stopWatch = watchFrames(
               () => {
@@ -226,10 +221,10 @@ export function Landscape() {
 
   return (
     <>
-      {/* THE PLATES in two leaves (round 7): what lies behind the place (the sky, the light, the far ranges) and the
-          place itself with everything in front of it. Words a page inks INTO the painting (styles/body.css .inked)
-          stand between the two, so a peak or a roof passes in front of the letters as the scroll slides. The wrapper
-          has no box of its own (display: contents): each leaf is a layer of the page's root. */}
+      {/* THE PLATES in two leaves: what lies behind the place (the sky, the light, the far ranges) and the place itself
+          with everything in front of it. Words a page inks into the painting (styles/body.css .inked) stand between
+          the two, so a peak or a roof passes in front of the letters as the scroll slides. The wrapper has no box of
+          its own (display: contents): each leaf is a layer of the page's root. */}
       <div ref={platesRef} className="plates" aria-hidden="true">
         <div className="plates__back">
           <canvas data-plate="1" />

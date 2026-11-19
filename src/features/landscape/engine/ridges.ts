@@ -1,8 +1,8 @@
 // ridges.ts — ridge profiles for the ink landscape, shared by the WebGL painter (uploaded as a
-// small RGBA16F texture: crest height, smoothed slope, broad crest; plus two scene rows: water,
-// waterline, technique, strokes, reflection, banks) and the Canvas2D fallback (drawn as paths).
+// small RGBA16F texture: crest height, smoothed slope and broad crest per plane, then four scene rows,
+// see buildRidges) and the Canvas2D fallback (drawn as paths).
 //
-// Heights are sampled in WORLD x (stretch units, see compose.ts), so the same mountains slide
+// Heights are sampled in world x (stretch units, see compose.ts), so the same mountains slide
 // across the screen when the camera pans: ridges stay continuous from one stretch to the next.
 // Rebuilt on the CPU only when the view changes (resize, pan, composition); ~1-3 ms.
 
@@ -62,7 +62,7 @@ function ridged1(x: number, seed: number, octaves: number) {
 }
 
 // Per-plane noise character (far -> near). World noise runs at 1.6 viewport heights per stretch,
-// the hero study's scale on a 16:10 screen.
+// a 16:10 screen's scale.
 const NOISE = [
   { seed: 11, freq: 1.6, crest: 0.5, oct: 5, crag: 0.2 },
   { seed: 23, freq: 1.3, crest: 0.6, oct: 5, crag: 0.45 },
@@ -129,17 +129,17 @@ function planeHeight(l: number, u: number, m: number[], P: Resolved) {
     const vary = 0.55 + 0.45 * noise1(q * 1.7 + 3.3, seed + 21);
     shape += k * 0.5 * vary * (ridged1(q * 5.2 + 7.7, seed + 5, 3) * 1.6 - 0.55) * (0.4 + 0.6 * shape);
   }
-  return P.amp[l] * ampAt(u, l) * Math.max(0, shape) * Math.min(env, 1.4);   // (round 5: the place's own relief)
+  return P.amp[l] * ampAt(u, l) * Math.max(0, shape) * Math.min(env, 1.4);   // (ampAt: the place's own relief)
 }
 
 /**
  * The top of plane `l` at world x `u` (viewport heights, before any water): where a figure can stand on it.
- * DOM-free; figures.ts places the traveller and the hut on the real slopes with it.
+ * DOM-free; the figure sets stand their figures on the real slopes with it (sets/home.ts: the traveller and the hut).
  */
 export function planeTop(l: number, u: number, P: Resolved, m: number[] | null = null): number {
   const M = m || massifs(u - 0.05, u + 0.05, P)[l];
   let b = P.base[l];
-  // (round 5) over water a far-shore plane stands on the waterline, as buildRidges paints it
+  // over water a far-shore plane stands on the waterline, as buildRidges paints it
   if (l <= 2) {
     const f = sceneField(u, P, PT_FIELD);
     const ws = f[0] * f[8];

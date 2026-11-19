@@ -1,4 +1,4 @@
-// figure-source.ts: where figure layers are drawn (main thread only; the engine, index.ts, is its one user).
+// figure-source.ts: where figure layers are drawn (main thread only: index.ts requests them, Landscape.tsx warms it).
 // A module worker (figures.worker.ts) with OffscreenCanvas where the browser has both, else idle chunks here.
 // Kept apart from figures.ts (the drawing kit, which the worker imports): a module that both spawns the worker and is
 // part of the worker's own graph makes the worker's bundle reference itself, which a production Turbopack build never
@@ -29,7 +29,7 @@ export function warmFigureSource(): void {
 /**
  * Where figure layers are drawn: a module worker with OffscreenCanvas when the browser has both (Safari 16.4+), else
  * the main thread in idle chunks of <= 8 ms. request() resolves to { width, height, data (premultiplied RGBA bytes,
- * top row first) | bitmap, sprites? (out 'gpu': the boats cut out of it), life (the layer's life anchors) }.
+ * top row first) | bitmap, sprites? (out 'gpu': one atlas of its moving things), life (the layer's life anchors) }.
  */
 export function createFigureSource(fresh = false): FigureSource {
   if (!fresh && warmed) { const w = warmed; warmed = null; return w; }   // (the source warmed before the engine arrived)

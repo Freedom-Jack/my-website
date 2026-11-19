@@ -1,8 +1,8 @@
 /* ==========================================================================
-   layout.css — the frame, the header and its river line, the painted strip and the first screen, sections, rows,
-   the ending, the closing scene and the tail.
-   A calm reading column on cool paper, with a painted strip at the top of every page. No cards, no boxes, no
-   frames: structure comes from type, space and hairlines. Shared file: do not edit from a page.
+   layout.css — the frame, the header and its river line, the painted strip and the first screen, sections and rows,
+   the margin rail, the closing scene, the windows into the painting and the tail's type.
+   Every page opens on a painted strip. No cards, no boxes, no frames: structure comes from type, space and
+   hairlines. Shared file: do not edit from a page.
    ========================================================================== */
 
 /* ---------- the frame ----------
@@ -29,8 +29,7 @@
        <nav class="site-nav" aria-label="Main"><ul class="site-nav__list" role="list">…</ul></nav>
        <div class="river" aria-hidden="true"><span class="river__tick" data-stop="0"></span>…<span class="river__mark"></span></div>
      </div></header>
-   One row at 360 px; below 357 the nav wraps under the home link. No menu button, no seal (the seal signs once, at
-   the tail).
+   One row at 360 px; below 357 the nav wraps under the home link. No menu button, no seal.
    ========================================================================== */
 .site-header {
   position: relative;
@@ -199,7 +198,7 @@
 /* ---------- the returning header (features/chrome/returning-header) ----------
    Once the strip's art has scrolled away the header turns sticky (it never leaves the flow, so nothing
    below it moves) and hides, all but its last 10 px: the river line and its mark stay on the screen's top edge, so
-   the reader's place on the river is always in view. Scrolling up >= 8 px brings it back SOLID: paper and a 1 px
+   the reader's place on the river is always in view. Scrolling up >= 8 px brings it back solid: paper and a 1 px
    mist rule, no gradient, no shadow. Scrolling down >= 8 px slides it away. Back at the very top it is static again.
    Never visibility:hidden or inert: focus inside pins it; html's scroll-padding-top keeps anchors and
    focused elements clear of it (base.css). */
@@ -215,11 +214,11 @@
 .site-header.is-instant {
   transition: none !important;
 }
-/* Focus inside the sticky header never scrolls the page. It moves with the viewport, so html's scroll-padding-top
-   (which keeps focused elements below the header) could never be met there: each focus threw the page up by about
-   half a screen and the header came along (a keyboard user Tabbing round from the footer lost their place 4-5 times).
-   Its controls' scroll area starts below that padding instead, even while the header is still sliding in from
-   .is-unpinned and on the two-row header under 357 px; the static header at the top keeps the default. */
+/* Focus inside the sticky header never scrolls the page. The header moves with the viewport, so html's
+   scroll-padding-top (which keeps focused elements below the header) can never be met there, and each focus would
+   throw the page up by about half a screen. Its controls' scroll area starts below that padding instead, even while
+   the header is still sliding in from .is-unpinned and on the two-row header under 357 px; the static header at the
+   top keeps the default. */
 .site-header:is(.is-pinned, .is-unpinned) :is(a, button) {
   scroll-margin-top: calc(-3 * var(--header-h) - 0.75rem - 4px);
 }
@@ -267,21 +266,22 @@
 }
 
 /* ==========================================================================
-   The painted strip (the vanguard round's first screen). Every page opens on a short, unframed,
-   full-bleed band of its own scene; the engine paints it into .strip__art's box.
+   The painted strip. Every page opens on a short, unframed, full-bleed band of its own scene; the engine paints it
+   into .strip__art's box.
      <header class="strip strip--home|sub" aria-labelledby="…">
-       <div class="strip__art bleed" data-landscape="strip" data-wake aria-hidden="true"><picture class="strip__still">…</picture></div>
+       <div class="strip__art bleed" data-landscape="strip" data-wake aria-hidden="true">
+         <picture class="strip__still strip__still--seed">…</picture> (then the sharp still or .strip__fallback)</div>
        <div class="strip__text" data-landscape="keepout" data-veil="0.85"> h1 + p … </div>
      </header>
-   .strip__art is an EMPTY box that reserves the strip's height: the text never depends on the painting
+   .strip__art is an empty box that reserves the strip's height: the text never depends on the painting
    (layout is identical with JS off, WebGL off, or the engine still loading).
-     One hero system (round 5): Home has the tall hero; every other page has the same sub hero, the same height
-     with the title at the same place, so moving between pages never moves the title.
-     wide (>= 1200): the strip is a grid of two rows, the band row FIXED at the strip's height (the lead's ruling
-       R1: the still is a pure crop of the painting, so the band never stretches) and a paper row under it. The art
-       fills the band row; the text block spans both rows, so it starts in the art's mist at the frame's left edge
-       (the keep-out: no colour or figures under it) and, when it is taller than the band (Home's first screen, a
-       long case title), runs on down onto the paper below. The scene's figures stand to its right.
+     One hero system: Home has the tall hero; every other page has the same sub hero, the same height with the title
+     at the same place, so moving between pages never moves the title.
+     wide (>= 1200): the strip is a grid of two rows, the band row fixed at the strip's height (the still is a pure
+       crop of the painting, so the band never stretches) and a paper row under it. The art fills the band row; the
+       text block spans both rows, so it starts in the art's mist at the frame's left edge (the keep-out: no colour
+       or figures under it) and, when it is taller than the band (Home's first screen, a long case title), runs on
+       down onto the paper below. The scene's figures stand to its right.
      below 1200: the art first, then the text on paper below it.
    ========================================================================== */
 .strip {
@@ -299,10 +299,10 @@
 }
 /* The hero's still (components/page/Strip `still`): the strip's first frame as build:heroes cut it at this width
    class, the first screen's painting from the first paint (and the painting without JS or WebGL), over the art
-   box's paper, under the title. On phones the first <picture>'s <img> is a ~1 KB seed inlined in the HTML (it paints
-   with the words and is too low in entropy to be the LCP) and a second <picture> (.strip__still--sharp) lays the
-   sharp phone still over it as soon as it decodes (requested with the first paint at low priority: the lead's ruling
-   R5; above 40 rem its source is a blank pixel). Both fade out together. What shows is decided by the live probe's
+   box's paper, under the title. On phones the first <picture>'s <img> is a seed inlined in the HTML (it paints with
+   the words) and a second <picture> (.strip__still--sharp) lays a sharper still over it as soon as it decodes,
+   requested with the first paint at low priority (Strip.tsx says which seed and when the sharper still comes; where
+   none is needed its source is a blank pixel). Both fade out together. What shows is decided by the live probe's
    one attribute on <html> (features/landscape/probe.ts):
      data-live="on"    the painting may show: once the engine's first frame has landed under the strip ([data-live]
                        on the strip's box, set by the engine at that present) the still fades out over 300 ms, and a
@@ -340,11 +340,10 @@ html[data-live='still'] .strip__still {
 html.is-still .strip__still {
   transition: none;
 }
-/* Work's phone (Strip SEED_ALONE, the lead's ruling R12): no eager sharp still over the seed; the sharp phone still is
-   this box's background, shown (and so fetched) only without JavaScript, where that is known at the first paint. Where
-   the probe keeps the still (data-live="still", html.no-landscape) the seed stays: the probe answers only after the
-   scripts, and a sharp still arriving then was Work's LCP (2.9 s on CI's Lighthouse phone, score 94; Jack's ruling of
-   2026-11-14: keep the soft seed). A background that fails to load draws nothing. */
+/* Work's phone (Strip SEED_ALONE): no eager sharp still over the seed; the sharp phone still is this box's
+   background, shown (and so fetched) only without JavaScript, where that is known at the first paint. Where the probe
+   keeps the still (data-live="still", html.no-landscape) the seed stays: the probe answers only after the scripts,
+   and a sharp still arriving then would become Work's LCP. A background that fails to load draws nothing. */
 .strip__fallback {
   position: absolute;
   inset: 0;
@@ -428,9 +427,10 @@ html.no-landscape .closing__art {
    name face beside its measure, then its mono line: the years and "the case →", one 44 px link row), the dated line
    with its mono line, and the one action. Four type sizes: the name, the numeral, --fs-first and --fs-small.
      <h1 class="name" id="name">Qijin Xu</h1>
-     <p class="first__verb">…</p> <p class="first__title mono">…</p>
-     <div class="first__proof"><p class="first__figure"><span class="first__lead">About</span> <b class="fig">90%</b>
-       <span class="first__measure">of questions …</span></p><p class="first__source mono"><a href>…</a></p></div>
+     <p class="first__verb">…</p> <p class="first__title">…</p>
+     <div class="first__proof"><p class="first__figure"><span class="first__fig"><span class="first__lead">About</span>
+       <b class="fig">90%</b></span><span class="first__measure">of questions …</span></p>
+       <p class="first__source mono"><a href>…</a></p></div>
      <div class="first__now"><p class="first__line">…</p><p class="first__source mono">…</p></div>
      <p class="first__action"><a class="action" href="/work/">See the work <span class="action__arrow"></span></a></p>
    On wide screens the strip's text block is the first screen's height (the words own the viewport, the About block
@@ -497,10 +497,10 @@ html.no-landscape .closing__art {
   margin-block-start: 0.125rem;
 }
 /* the measure line's link ("2023 to 2024 · the case →"): one 44 px row, the dates carry no underline, the link's
-   words do (A12, A13) */
+   words do */
 .first__source a {
   display: inline-block;
-  padding-block: 0.8rem; /* a 46 px target in a 20 px line (A12): the hit box, with a matching negative margin */
+  padding-block: 0.8rem; /* a 46 px target in a 20 px line: the hit box, with a matching negative margin */
   margin-block: -0.8rem;
   color: var(--ink-3);
   text-decoration: none;
@@ -552,10 +552,9 @@ html.no-landscape .closing__art {
 }
 @media (max-width: 39.99rem) {
   /* phones: the first screen holds the name, the verb line, the title line, the proof with its measure and the action
-     at 390 × 844, and the name, the verb line and the proof at 375 × 667 (the lead's ruling R1): every gap is the
-     small one, and the dated line stands after the action (a column with `order`: the DOM keeps the synthesis's
-     order, name · verb · title · proof · dated line · action, and the dated line holds no control, so nothing a
-     keyboard reaches moves) */
+     at 390 × 844, and the name, the verb line and the proof at 375 × 667: every gap is the small one, and the dated
+     line stands after the action (a column with `order`: the DOM order is name · verb · title · proof · dated
+     line · action, and the dated line holds no control, so nothing a keyboard reaches moves) */
   .strip--home > .strip__text {
     display: flex;
     flex-direction: column;
@@ -583,7 +582,7 @@ html.no-landscape .closing__art {
 /* ==========================================================================
    Sections, the reading column, rows.
      <section class="sec" aria-labelledby="x-title" data-veil>
-       <h2 class="sec__title" id="x-title">…</h2> <p>…</p> …
+       <h2 class="sec__title h-ink" id="x-title">…</h2> <p>…</p> …
      </section>
    Children are capped at the reading column (680).
    ========================================================================== */
@@ -618,8 +617,8 @@ html.no-landscape .closing__art {
   font-size: var(--fs-title-long);
   line-height: 0.96;
 }
-/* the name (Home only): Sofia Sans Extra Condensed 900 at 120 → 220, one line at every width from 360, readable at
-   first paint; a slight positive tracking (A13) */
+/* the name (Home only): Sofia Sans Extra Condensed 900 at 92 → 220 (tokens.css --fs-name), one line at every width
+   from 360, readable at first paint; a slight positive tracking */
 .name {
   font-family: var(--font-name);
   font-size: var(--fs-name);
@@ -678,12 +677,12 @@ html.no-landscape .closing__art {
 
 /* ---------- rows: ul/ol.rows[role=list] > li.row, separated by hairlines (typographic rules, never boxes) ----------
      <li class="row ink-row">
-       <p class="row__meta small">Note · <time>…</time></p>          (optional, before the title)
-       <h3 class="row__title"><a href>…</a></h3>
+       <h4 class="row__title"><a href>…</a></h4>
        <p class="row__line">…</p>
+       <p class="row__meta small">Updated … · <a href>…</a></p>
      </li>
-   The title link covers the row (::after); other links in the row stay clickable above it. The ledger rows (the
-   outcomes and the projects, with a figure): components.css. */
+   The title link covers the row (::after); other links in the row stay clickable above it. Home's Writing rows are
+   the ledger (components.css). */
 .rows {
   display: grid;
 }
@@ -760,9 +759,10 @@ html.no-landscape .closing__art {
     grid-column: 1 / -1;
     align-items: start;
   }
-  /* A group of notes inside a part (MarginNotes groups two or more) would stretch its own part's row and leave a
-     hole under the paragraph; instead it is taken out of the row's height (absolute in its own grid area: the
-     rail beside the paragraph) and runs on down the rail beside the next parts (Outcome, Evidence, Stack).
+  /* A group of notes inside a part (div.margin-notes: the MDX transform groups two or more) would stretch its own
+     part's row and leave a hole under the paragraph; instead it is taken out of the row's height (absolute in its own
+     grid area: the rail beside the paragraph) and runs on down the rail beside the next parts (Outcome and status,
+     Evidence, Stack).
      The part keeps display: grid (no display: contents), so its semantics are untouched. */
   .has-rail > .case__body > .case__part {
     position: relative;
@@ -777,10 +777,10 @@ html.no-landscape .closing__art {
 }
 
 /* ==========================================================================
-   The closing scene: the page's own place once more, the last child of <main> on
-   every page on the road (round 5: every page ends the same way), after the ending's line. On a short page
-   (Writing, Contact) the hero and the closing share a screen, so the engine paints
-   the closing as a different view of the place (its twin framing). Art only. The 404 lies off the map and has none.
+   The closing scene: the page's own place once more, the last child of <main> on every page on the road, after the
+   ending (body.css .next). On a short page (Writing, Contact) the hero and the closing share a screen, so the engine
+   paints the closing as a different view of the place (its twin framing). Art only. The 404 lies off the map and has
+   none.
      <div class="closing"><div class="closing__art bleed" data-landscape="closing" data-wake aria-hidden="true"></div></div>
    It feathers into the tail's paper.
    ========================================================================== */
@@ -799,17 +799,17 @@ html.no-landscape .closing__art {
 
 /* ==========================================================================
    Windows into the painting (components/page/Glimpse; elements.ts glimpses): below 1200 px, at a page's major
-   breaks, a short box the engine paints with the page's own place, each one further along the place (east and level
-   under the unroll: a handscroll unrolled down the page). It takes the
-   section's gap (the section after it sits directly under it), so a break costs the reader about one window's height;
-   its top and bottom 40 px are mist and paper (the painting keeps 40 px off the words on either side). Phones: a
-   full-bleed 180 px box; tablets: the column's width (at most 40 rem) with paper on either side; a phone held
-   sideways: none (its 390 px tall screen keeps only the strip and the closing; a 110 px sliver of a window adds
-   little there). Until the engine paints a window, and wherever it cannot (no JavaScript, no WebGL, a software
-   rasteriser, the live probe's still, the governor's veto), the window's own still stands in it (.glimpse__still, an
-   <img loading="lazy"> cut by build:stills at its rest pose, fetched only near the viewport under content-visibility:
-   auto: the lead's ruling R5), cross-fading to the painting over 300 ms ([data-live]): never an empty hole. The short
-   pages (Writing, Contact) have none: their closing ends on the place, near and large.
+   breaks, a short box the engine paints with the page's own place, each one further along the place (east and level:
+   a handscroll unrolled down the page). It takes the section's gap (the section after it sits directly under it), so
+   a break costs the reader about one window's height; its top and bottom 40 px are mist and paper (the painting
+   keeps 40 px off the words on either side). Phones: a full-bleed 180 px box; tablets: the column's width (at most
+   40 rem) with paper on either side; a phone held sideways: none (its 390 px tall screen keeps only the strip and
+   the closing; a 110 px sliver of a window adds little there). Until the engine paints a window, and wherever it
+   cannot (no JavaScript, no WebGL, a software rasteriser, the live probe's still, the governor's veto), the window's
+   own still stands in it (.glimpse__still, an <img> cut by build:stills at its rest pose, given its source only
+   within 60 % of a viewport's height: features/landscape/glimpse-stills.ts), cross-fading to the painting over 300 ms
+   ([data-live]): never an empty hole. The short pages (Writing, Contact) have none: their closing ends on the place,
+   near and large.
      <div class="glimpse bleed" data-landscape="glimpse" aria-hidden="true"><img class="glimpse__still" …></div>
    ========================================================================== */
 .glimpse {
@@ -848,7 +848,7 @@ html.no-landscape .closing__art {
     min-height: var(--glimpse-h-end);
   }
 }
-/* tablets: the window is the column's width, with paper on either side (a 768 px band of mist read as a stripe) */
+/* tablets: the window is the column's width, with paper on either side (a 768 px band of mist reads as a stripe) */
 @media (min-width: 40rem) and (max-width: 74.99rem) {
   html.el-glimpses .glimpse {
     width: min(100%, 40rem);
@@ -886,9 +886,9 @@ html.no-landscape .closing__art {
 }
 
 /* ==========================================================================
-   The tail (components/layout/Tail; the footer, on every page): the colophon line, the build stamp in mono,
-   "Still the landscape", the email, and last the one seal: the only red on the page and the only Chinese character
-   on the site, a path. On paper. One register: no © line, no caption under the seal. Its markup and its layout:
+   The tail (components/layout/Tail; the footer, on every page): the scroll map, the colophon line, the build stamp in
+   mono, "Still the landscape" (and the scroll's opener), the email, and last the seal: the only Chinese character on
+   the site, a path. On paper. One register: no © line, no caption under the seal. Its markup and its layout:
    body.css; here, its type and its controls' 44 px rows.
    ========================================================================== */
 .site-footer {

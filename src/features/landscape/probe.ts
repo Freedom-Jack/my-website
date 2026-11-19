@@ -1,10 +1,9 @@
 'use client';
 
 /**
- * The live probe (01-budgets.md "The painting's rules", as amended after the attack; the plain direction's probe):
- * on every device the painting is a pre-cut still first (components/page/Strip). Every "should the painting run"
- * check runs BEFORE the engine is imported, so a page that will not paint fetches 0 engine bytes:
- *   1. reduced motion, or "Still the landscape" (features/chrome/still): the still IS the quiet form;
+ * The live probe: on every device the painting is a pre-cut still first (components/page/Strip). Every "should the
+ * painting run" check runs before the engine is imported, so a page that will not paint fetches 0 engine bytes:
+ *   1. reduced motion, or "Still the landscape" (features/chrome/still): the still is the quiet form;
  *   2. Save-Data: the visitor asked for less, the still is enough;
  *   3. a WebGL2 context that the browser does not flag as a major performance caveat (a software rasteriser, a
  *      blocklisted GPU) and whose renderer is not named as software (headless Chrome's SwiftShader carries no caveat):
@@ -12,15 +11,14 @@
  *   4. the cadence: 1.5 s of requestAnimationFrame deltas with the main thread idle, none over 20 ms (one retry).
  * Only then is the engine's module asked for (Landscape.tsx). Once live, two rAF deltas over 20 ms inside a rolling
  * second (watchFrames) hand the page back to the still and pause the painting; frames during the painting's own
- * motion (a pan, an arrival, a sweep) count at 33 ms, and none while the engine is pending for another reason
- * (01-budgets.md, the amendment after P1: R4).
+ * motion (a pan, an arrival, a sweep) count at 33 ms, and none while the engine is pending for another reason.
  *
  * The result is one attribute on <html>, `data-live`, which layout.css reads to show or fade each page's still:
  *   (none)     server-rendered, or JS still deciding: the still stands;
  *   probing    the checks are running: the still stands;
  *   on         the painting may show: the strip's still fades out once the engine's first frame lands under it
  *              (the engine marks the strip's box `data-live` at that present);
- *   still      no live painting here: the still stands, and on phones the sharp phone still replaces the inline seed.
+ *   still      no live painting here: the still stands.
  * Nothing here touches the words.
  */
 
@@ -40,9 +38,8 @@ export const quietNow = () =>
 
 /**
  * A software rasteriser, by its renderer's name (the browser tests' isSoftware reads the same names). Headless Chrome
- * on a machine with no GPU hands WebGL a SwiftShader context WITHOUT the major-performance-caveat flag, so there the
- * name is the only sign (CI's first budgets run, 2026-11-14: the probe passed, the engine booted on SwiftShader and held
- * the main thread for seconds on every route).
+ * on a machine with no GPU hands WebGL a SwiftShader context without the major-performance-caveat flag, so there the
+ * name is the only sign (on SwiftShader the engine holds the main thread for seconds on every route).
  */
 export const softwareRenderer = (name: string): boolean =>
   /swiftshader|llvmpipe|softpipe|software|basic render|mesa offscreen|\bwarp\b/i.test(name);
@@ -130,11 +127,11 @@ export async function cadence(): Promise<boolean> {
 }
 
 /**
- * R4 (01-budgets.md, the amendment after P1): the frame limit for the engine's state now. 0 while the engine is
- * pending for a reason other than its own motion (a scene or a layer on its way: there are no engine frames then, so
- * none are counted); 33 ms during the painting's own motion (a pan, an arrival, a sweep: a phone that janks only
- * during pans is handed back to its still too); 20 ms once settled (a slow place to read). The engine's stats() is
- * read each frame (Landscape.tsx); without stats, 20.
+ * The frame limit for the engine's current state: 0 while the engine is pending for a reason other than its own
+ * motion (a scene or a layer on its way: there are no engine frames then, so none are counted); 33 ms during the
+ * painting's own motion (a pan, an arrival, a sweep: a phone that janks only during pans is handed back to its still
+ * too); 20 ms once settled (a slow place to read). The engine's stats() is read each frame (Landscape.tsx); without
+ * stats, 20.
  */
 export function limitFor(
   s: { panning?: boolean; arriving?: boolean; sweeping?: boolean; pending?: boolean } | null | undefined,
@@ -148,7 +145,7 @@ export function limitFor(
 /**
  * While live: two rAF deltas over the limit inside a rolling SPAN ms call `onSlow` once and stop. The limit is LIMIT
  * ms (a slow place to read), or what `limitFor()` answers for this frame: 33 while the engine is in its own motion (a
- * pan, an arrival, a sweep: R4), 0 while it is pending for another reason (no engine frames then: not counted). The
+ * pan, an arrival, a sweep), 0 while it is pending for another reason (no engine frames then: not counted). The
  * loop runs only while the visitor is active (an input within IDLE ms) and the document is visible, so an idle page
  * costs no frames. `onSlow(motion)` says whether one of the two frames was a motion frame. Returns the stop function.
  */

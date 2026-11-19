@@ -1,6 +1,6 @@
 /**
  * A CSS time as milliseconds. The CSS pipeline minifies a token's "600ms" to ".6s", so a bare parseFloat would read
- * it as 0.6 (ms): every route pan, sweep and settle then ran in under a millisecond. Seconds are read as seconds,
+ * it as 0.6 (ms) and every route pan, sweep and settle would run in under a millisecond. Seconds are read as seconds,
  * milliseconds (or a bare number) as milliseconds; anything else (empty, "auto") gives the fallback.
  */
 export function parseCssTime(value: string, fallback: number): number {

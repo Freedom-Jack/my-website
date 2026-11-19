@@ -2,22 +2,23 @@
 // path comes up out of the mist along the ridge, over a small knoll and down into the saddle, then climbs a few steps
 // cut in the rock to a ledge where a thatched hut stands with its front open, a low brushwood fence before it and a
 // pine leaning over its roof. The traveller (him) walks up the path toward it: a broad hat, sloped shoulders, a white
-// robe flaring at the hem, a bundle on his back and a staff planted ahead. Life: a thread of smoke from the hut's
-// ridge (an anchor only: it is not drawn here, so the present pass never doubles it). Round 5: the river starts here. In
-// the cleft between the near crag's two summits a thin fall drops in two tiers into the mist at its foot, where the
-// river comes out from behind his mountain toward the town (compose.ts: one river the whole length).
+// robe flaring at the hem, a bundle on his back and a staff planted ahead. The river starts here: in the cleft between
+// the near crag's two summits a thin fall drops in two tiers into the mist at its foot, where the river comes out from
+// behind his mountain toward the town (compose.ts: one river the whole length). Life: a thread of smoke from the
+// hut's ridge (an anchor only: it is not drawn here, so the present pass never doubles it), and lights sliding down
+// the fall (elements.ts waterfall).
 //
 // A figure set (figures.ts, THE SET API): meta + draw(env), in world px.
 
 import { el } from '../../elements';
 import { REF_PX, VH_PX, planeTop, streams, vnoise, mix, mix3, runs, stroke, wash, softWash, dotTree, ellipse, anchor, type Env, type FigureMeta, type Pt, type Rng } from '../figures';
 
-// u1 reaches past the crag (1.06, not 0.9): on phones the hut is drawn larger and must stay clear of the right end's
-// melt (the last 13 % of the rect's width), and the fall in the crag's cleft (u 0.94) stands clear of it too
+// u1 reaches past the crag: on phones the hut is drawn larger and must stay clear of the right end's melt (the last
+// 13 % of the rect's width), and so must the fall in the crag's cleft (u 0.94)
 export const meta: FigureMeta = { rect: [0.50, 1.10, 0.06, 0.87], plane: 3, phase: 1 };   // (y1 up into the sky: the rect sizes and places the layer)
 
 const SEED = 5;
-const OB: Pt = [0.72, -0.48];   // the Song oblique (figures.ts D, copied: a set's top level runs before figures.ts's own)
+const OB: Pt = [0.72, -0.48];   // the Song oblique (a copy of figures.ts D)
 
 export function* draw(env: Env) {
   const { ctx, P, ink } = env;
@@ -50,7 +51,7 @@ export function* draw(env: Env) {
   }
   const Rs = own('slope');   // texture strokes down the near face, slanting (none where the traveller stands)
   // the traveller's scale: about 22 CSS px tall on desktops; on phones >= 12 CSS px even where the strip shows this
-  // layer at 0.8 of its scale (320 and 375 px wide phones: 216 CSS px per stretch, not 270)
+  // layer at 0.8 of its scale (compose.ts bandFrame)
   const ts = Math.max(2.1, 2.05 * big);
   const tx = X(0.788), tReach = 4.5 * ts;
   for (let i = 3; i < ridge.length - 2; i += 4) {
@@ -188,7 +189,7 @@ export function* draw(env: Env) {
 }
 
 /**
- * A thin fall in a cleft of the crag (round 5: the source of the one river), as the painters leave one: unpainted paper
+ * A thin fall in a cleft of the crag (the source of the one river), as the painters leave one: unpainted paper
  * in a shaded cleft. Out of the notch at x (a world px column) it drops in broken strands that step a little aside where
  * the rock steps; its foot is lost in a plume of mist (the river comes out of the mist, beyond the crag). s: scale
  * (phones draw it larger).

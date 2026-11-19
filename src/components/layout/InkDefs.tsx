@@ -1,6 +1,6 @@
 /**
- * The shared ink filters, referenced from the seal (components/ui/Seal, the tail's): the carved stone's chipped edge
- * and the sparse specks where the ink did not take. Decorative.
+ * The seal's ink filter, shared by every seal on the page (components/ui/Seal): the carved stone's chipped edge and
+ * the sparse specks where the ink did not take. Decorative.
  */
 export function InkDefs() {
   return (

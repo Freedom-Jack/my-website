@@ -5,9 +5,9 @@ import { choose, group, type Groups, parseOverrides, repoSchema, USER } from './
 
 /**
  * Jack's public repositories, read on the server only: at build time, then again at most once a day (the Work
- * page revalidates every 24 h). The visitor's browser never calls GitHub (Jack: "don't slow down the website just
- * for live updating repos"). GITHUB_TOKEN (optional, server-side) raises the API's rate limit. If GitHub cannot be
- * reached, the committed snapshot (content/github/snapshot.json) stands in, so the page always builds.
+ * page revalidates every 24 h). The visitor's browser never calls GitHub: the list never slows the page.
+ * GITHUB_TOKEN (optional, server-side) raises the API's rate limit. If GitHub cannot be reached, the committed
+ * snapshot (content/github/snapshot.json) stands in, so the page always builds.
  */
 const API = `https://api.github.com/users/${USER}/repos?per_page=100&sort=pushed`;
 const REVALIDATE = 86400;

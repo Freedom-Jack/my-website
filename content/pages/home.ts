@@ -1,11 +1,10 @@
 import type { PageWords } from './types';
 
 /**
- * Home (/): Jack's "about me" page (approved by Jack 2026-10-16), with the vanguard round's first screen
- * (`first`, 2026-11-12): the name, the verb line, the title line, one counted proof with its measure, the dated line
- * and one action. The words of the first screen are the approved ones, re-cut; where the cut is new it is marked
- * DRAFT (for Jack). The figures and the years come from the cases' own front matter (content/work/*.mdx), never
- * retyped here.
+ * Home (/): Jack's approved "about me" page. Its first screen (`first`): the name, the verb line, the title line, one
+ * counted proof with its measure, the dated line and one action. The words of the first screen are the approved ones,
+ * re-cut; where the cut is new it is marked DRAFT (for Jack). The figures and the years come from the cases' own front
+ * matter (content/work/*.mdx), never retyped here.
  * Inline markup in these strings: CONTENT.md ("**bold**", "[link](/path/)", "{kept together}", "{{years}}").
  * The Writing rows come from content/writing/ (newest first); the photo is public/images/qijin-xu-colour.jpg.
  */
@@ -18,7 +17,7 @@ export const home = {
     modified: '2026-10-22',
   },
 
-  /** The approved hero sentences, kept as the record and for the search data (content/pages/llms.ts). */
+  /** The approved hero sentences, read by the search and Ask (as "First screen"); the second is the dated line. */
   hero: {
     lead: [
       'Lead AI/ML Architect at CGI’s AI Center of Excellence in Toronto. {I design} and ship {production AI} for banks and insurers: {LLM agents,} {retrieval systems,} and the data platforms underneath them.',
@@ -27,11 +26,11 @@ export const home = {
   },
 
   /**
-   * The first screen: every word is an approved sentence of
-   * this file or a case's front matter, re-ordered; the title line is the one new cut, marked DRAFT where it shows.
+   * The first screen: every word is an approved sentence of this file or a case's front matter, re-ordered; the title
+   * line is the one new cut (DRAFT).
    */
   first: {
-    /** The approved hero sentence with the title moved after the verb (the lead's ruling 1): his words, this order. */
+    /** The approved hero sentence with the title moved after the verb: his words, this order. */
     verb: '{I design} and ship {production AI} for banks and insurers: {LLM agents,} {retrieval systems,} and the data platforms underneath them.',
     /** DRAFT: the title as a byline (content/resume.json basics.label, the employer, the city). */
     title: 'Lead AI/ML Architect, CGI AI Center of Excellence, Toronto.',
@@ -66,11 +65,6 @@ export const home = {
       'I also build for myself. If a tool can make my own work easier, I usually {end up building it}.',
       'Away from the keyboard, I play basketball, play games, and read {wuxia and xianxia novels}.',
     ],
-    /**
-     * (Round 7, 2026-11-16: the approved paragraph the vanguard round held back for its 400-word budget, "I’m
-     * optimistic about AI…", is back second, where the copy deck had it; that budget went with the round, and Jack asks
-     * for pages that are full.)
-     */
   },
 
   workOn: {
@@ -97,8 +91,8 @@ export const home = {
 
   /**
    * "Now": shown only while it has real lines; update the month whenever they change (a unit test fails once the
-   * month is more than 90 days old). `held`: the off-hours line, taken off Home by the vanguard round; it stays off,
-   * since About's last paragraph says the same.
+   * month is more than 90 days old). `held`: the approved off-hours line, kept word for word but not shown, since
+   * About's last paragraph says the same.
    */
   now: {
     title: 'Now',

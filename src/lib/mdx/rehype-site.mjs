@@ -11,9 +11,9 @@
 // 3. A paragraph that is only a bold label and a colon ("**Core components**:") introduces the list below it:
 //    .note__list-title, so the list follows it closely.
 // 4. A Work case (content/work/*.mdx): its "## Label" sections become the case's labelled body (div.case__body >
-//    section.case__part > h2.case__label + content: Context · What I did · Outcome · Evidence · Stack); Evidence and
-//    Stack are small print, the Evidence list
-//    plain lines; two or more <Note>s in a row share one cell of the margin rail (div.margin-notes).
+//    section.case__part > h2.case__label + content: Problem · My part · Outcome and status · Evidence · Stack);
+//    Evidence and Stack are small print, the Evidence list plain lines; two or more <Note>s in a row share one cell
+//    of the margin rail (div.margin-notes).
 import { toString } from 'hast-util-to-string';
 import { visit, SKIP } from 'unist-util-visit';
 
@@ -112,7 +112,7 @@ const slug = (s) =>
     .replace(/^-|-$/g, '');
 
 /** content/work/*.mdx: "## Label" + content → div.case__body > section.case__part > h2.case__label + the part's content
- *  (the demo's flagship case body; a heading per part, so the Outcome is one keystroke away for a screen reader). */
+ *  (a heading per part, so the outcome is one keystroke away for a screen reader). */
 function caseBody(tree) {
   const kids = tree.children.filter((n) => !blank(n));
   const first = kids.findIndex((n) => n.type === 'element' && n.tagName === 'h2');

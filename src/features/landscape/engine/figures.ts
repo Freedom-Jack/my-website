@@ -1,7 +1,7 @@
 // figures.ts — the figure layers: what in the painting is not a mountain. DOM-free Canvas2D
 // brushwork, seeded and deterministic, drawn once per (stretch, scale, palette, resolution) on an OffscreenCanvas
 // in a module worker (figures.worker.ts), or on the main thread in idle chunks of <= 8 ms where that is missing.
-// The layer covers a world rectangle (figureMeta); the scene shader paints it *into* the painting at its plane,
+// The layer covers a world rectangle (figureMeta); the scene shader paints it into the painting at its plane,
 // with a bleed halo (its mip levels), the plane's mist over its feet, grain on top and the drifting mist passing
 // over it, so it is never pasted on.
 //
@@ -9,11 +9,11 @@
 // each), listed in sets/index.ts; adding or changing a set never touches this file:
 //   sets/home.ts      stretch 0  Home: the traveller, the hut, the path, the ledge
 //   sets/market.ts    stretch 1  Work: the river market at the rainbow bridge
-//   sets/pavilion.ts  stretch 3  Writing and the Note: the pavilion by the still lake
-//   sets/terraces.ts  stretch 4  Résumé: the terraced fields and the farmhouse
-//   sets/ferry.ts     stretch 5  Contact: the ferry at the jetty
-//   sets/path.ts      stretch 6  404: the path into mist
-// How to add a set: src/features/landscape/ENGINE.md, and the API below.
+//   sets/pavilion.ts  stretch 2  Writing and the Note: the pavilion by the still lake
+//   sets/terraces.ts  stretch 3  Résumé: the terraced fields and the farmhouse
+//   sets/ferry.ts     stretch 4  Contact: the ferry at the jetty
+//   sets/path.ts      stretch 5  404: the path into mist
+// How to add a set: sets/index.ts, and the API below.
 //
 // ---- THE SET API -----------------------------------------------------------------------------------------------
 // A set module exports two things:
@@ -33,21 +33,22 @@
 //   the main-thread fallback can paint it in idle chunks. env:
 //     ctx          the 2d context, already transformed to world px; lineCap and lineJoin 'round'
 //     P            the composition the layer is painted into (the showing page's data-distance / data-presence,
-//                  desktop aspect; the Note's lake is lower than Writing's): planeTop(l, u, P) is a ridge plane's
-//                  crest, sceneField(u, P, out) the scene's waterlines and banks (use it at the water)
+//                  desktop aspect): planeTop(l, u, P) is a ridge plane's crest, sceneField(u, P, out) the scene's
+//                  waterlines and banks (use it at the water)
 //     ink          { C, rgba }: the palette's colours (C.ink, C.tile, C.mal ...) and rgba(c, a)
 //     k            device px per world px (scale / REF_PX * dpr)
 //     scale        what the layer is drawn for (CSS px per stretch)
 //     rect, plane  this set's meta (copies)
 //     life         [] : the life anchors (THE LIFE API, below)
 //   World px: REF_PX (1440) per stretch and VH_PX (900) per scene height: wx = u * 1440, wy = (1 - y) * 900, y down.
-//   Phone scales are small (Home's is 270 CSS px per stretch): draw figures larger there, as home.ts does with
+//   Phone scales are small (Home's is 360 CSS px per stretch): draw figures larger there, as home.ts does with
 //   big = Math.max(1, 0.7 * REF_PX / env.scale), so a person stays >= 12 CSS px tall.
 //   Randomness: never Math.random, never one stream shared by the whole set. Each element takes its own stream:
 //   const own = streams(SEED); own('house', row, i) (stream, streams below), so adding or removing a draw in one
 //   element never re-rolls another.
 //   Module rules: import the kit from '../figures' (and nothing from index.ts). figures.ts never imports the sets
-//   (the engine and its worker register them: registerSets), so the kit's constants exist when a set's top level runs.
+//   (figures.worker.ts and figure-source.ts register them: registerSets), so the kit's constants exist when a set's
+//   top level runs.
 //   To change a shared brush for one set, copy it into the set file and change the copy; bring improvements back here
 //   in a separate, reviewed step.
 //
@@ -66,7 +67,8 @@
 //              hold all of the boat and nothing else); Canvas2D, which never moves, keeps it painted in. Else: moored.
 //              bob: { amp, period } (world px, s): a moored boat drawn with ownSprite (below) rises and falls with the
 //              water instead of drifting
-//     shimmer  { waterline: [[x, y], ...] }            open water below that line; boats and bridges stay still
+//     shimmer  { rings, drops }                        the open water in its box (the shader finds the water from the
+//              ridge rows); boats and bridges stay still
 //     walker   { path: [[x, y], ...], home: [x, y], speed }   one slow figure walking a path (Work's bridge deck):
 //              drawn with ownSprite at `home`, its feet; it walks the path at `speed` world px per second, comes into
 //              view out of the mist at the path's start and goes into it at the end
@@ -77,24 +79,23 @@
 //   painted into the layer at once, standing still. The anchor's params get sprite: 'own'.
 // drawFigures / paintSteps return the anchors checked and copied (params as plain JSON), each with
 // uv: [u0, v0, u1, v1], its box in layer texture fractions (v from the top; outside 0..1 past the rect). (A sprite's
-// anchor also gets, from the worker, cut: its sprite's box in layer uv, atlas: [u0, u1, v1] its place in the layer's one
-// sprite atlas, spx: its size in texels.) In scene
-// units: u = rect[0] + uv_u * (rect[1] - rect[0]), y = rect[3] - uv_v * (rect[3] - rect[2]). The worker posts them
-// with the layer ({ ..., life }). Life stops for reduced motion, Still, idle and Canvas2D, and is calmer on phones.
+// anchor also gets, from the worker, cut: its sprite's box in layer uv, atlas: [u0, u1, v1] its place in the layer's
+// one sprite atlas, spx: its size in texels.) In scene units: u = rect[0] + uv_u * (rect[1] - rect[0]),
+// y = rect[3] - uv_v * (rect[3] - rect[2]). The worker posts them with the layer ({ ..., life }). Life stops for
+// reduced motion, Still, idle and Canvas2D, and is calmer on phones.
 //
 // Kitsch guards: Song forms only; no red lanterns, pagodas, dragons or gold; no text on signs. Colour (palette.ts):
 // light colour over ink: grey tile, timber brown on wood (small areas, never a pale wash), pale indigo clothes,
 // white robes, willows in misted malachite.
 //
-// Structure studied (not copied) from LingDong Huang's {Shan, Shui}* (MIT, 2018); the brush kit and the scenes grew
-// out of the round-4 research sketch.
+// Structure studied (not copied) from LingDong Huang's {Shan, Shui}* (MIT, 2018).
 
 import { resolve, spec, sceneField, SCENE_FIELDS, REF_PX, HS, LAYERS, type Resolved } from './compose';
 import { planeTop } from './ridges';
 import { PALETTES, paletteName } from './palette';
 
 // what a set needs from the composition, re-exported so a set imports from one place
-export { sceneField, SCENE_FIELDS, REF_PX, HS, planeTop };
+export { sceneField, SCENE_FIELDS, REF_PX, planeTop };
 export const VH_PX = REF_PX / HS;   // 900 world px per viewport height
 
 // ---------------------------------------------------------------- the types of the set API and the life API
@@ -144,8 +145,8 @@ export interface LayerParams {
   palette: string;
   distance?: string;
   presence?: number;
-  /** 'gpu': an ImageBitmap with its sprites cut apart (WebGL, 4b); 'bytes': premultiplied RGBA (WebGL, 4a);
-   *  'bitmap': the layer as drawn (Canvas2D). */
+  /** 'gpu': an ImageBitmap with its sprites cut apart (WebGL where a bitmap uploads premultiplied: gl.ts bitmaps);
+   *  'bytes': premultiplied RGBA (WebGL elsewhere); 'bitmap': the layer as drawn (Canvas2D). */
   out?: 'gpu' | 'bytes' | 'bitmap';
   /** Drawn for a window into the painting (index.ts GLIMPSE), a still view: its sprites are painted in, never
    *  cut apart (the window's present has no life pass). */
@@ -207,16 +208,14 @@ export interface LifeParams {
   sprite?: boolean | 'own';
   /** a moored boat drawn with ownSprite: its rise and fall (world px, s). */
   bob?: { amp: number; period?: number };
-  /** shimmer: open water below this line. */
-  waterline?: Pt[];
   /** walker: its path, its home (its feet, where it is drawn) and speed. */
   path?: Pt[];
   home?: Pt;
   /** Shimmer: expanding ripple rings on the water too. */
   rings?: number;
-  /** (the unroll) A sprite pinned to the frame: the stage's slide does not carry it (Writing's willow, the near framing
-   *  element whose root lies past the frame's edge on the layer's eastern reach, which the slide would otherwise bring
-   *  into view as a cut end; index.ts lifeU). Windows (phones) ignore it. */
+  /** A sprite pinned to the frame: the stage's slide does not carry it (Writing's willow, the near framing element
+   *  whose root lies past the frame's edge on the layer's eastern reach, which the slide would otherwise bring into
+   *  view as a cut end; index.ts lifeU). Windows (phones) ignore it. */
   pinned?: boolean;
   /** (elements.ts waterfall) Smoke's box as a falling stream instead: its x, its lip's and its foot's y, its
    *  half-width (world px); the present pass slides lights down what the layer painted white there. */
@@ -244,9 +243,9 @@ export interface LifeOut extends LifeAnchor {
 }
 
 // ---------------------------------------------------------------- the sets (sets/index.ts)
-// Registered by the entry points (index.ts on the main thread, figures.worker.ts in the worker): this module never
-// imports the sets, so the sets (which import its brush kit) and it form no import cycle. (In the demo they imported
-// each other; a production Turbopack build of a module worker over that cycle never finishes.)
+// Registered by the entry points (figure-source.ts's idle fallback on the main thread, figures.worker.ts in the
+// worker): this module never imports the sets, so the sets (which import its brush kit) and it form no import cycle (a
+// production Turbopack build of a module worker over such a cycle never finishes).
 let SET_LIST: SetEntry[] = [];
 let registry: Map<number, { name: string; meta: FigureMeta | null; draw: DrawSet | undefined }> | null = null;
 /** The figure sets, [{ stretch, name, module }] (sets/index.ts SETS). */
@@ -275,7 +274,7 @@ function validMeta(m: FigureMeta) {
 const setAt = (stretch: number) => sets().get(Math.round(Number(stretch))) || null;
 
 // (figureMeta reads the metas' own table, figure-meta.ts, the part of the sets the main thread keeps: the engine's
-// chunk carries no drawing code; the registry below is the worker's, and the fallback's once it has loaded)
+// chunk carries no drawing code; the registry above is the worker's, and the idle fallback's once it has loaded)
 export { figureMeta } from './figure-meta';
 
 /** Pixel size of a layer drawn at `scale` CSS px per stretch and `dpr` device px per CSS px. */
@@ -433,7 +432,7 @@ const BASE: Record<InkName, RGB> = {
   ink: [20, 24, 27], ink2: [42, 48, 52], wall: [236, 238, 235], white: [246, 247, 244], paper: [239, 241, 238], mist: [233, 237, 236],
   tile: [56, 78, 98], timber: [76, 96, 128], timberM: [140, 168, 200], indigo: [44, 78, 104], indigoP: [150, 180, 204],
   mal: [139, 200, 196], malD: [36, 128, 132], earth: [120, 128, 134],
-  // the young palette's figure inks (navy ink for near accents)
+  // navy ink for near accents, and a near-white for highlights
   navy: [27, 40, 60], light: [251, 254, 255],
 };
 /** The inks' names (Inks.C). */
@@ -622,7 +621,7 @@ export function ellipse(cx: number, cy: number, rx: number, ry: number, n: numbe
 }
 
 // ---------------------------------------------------------------- buildings (Song oblique projection)
-export const D: Pt = [0.72, -0.48];    // one unit of depth on screen: we see fronts, tops and right-hand sides
+export const D: Pt = [0.72, -0.48];    // one unit of depth on screen: the view shows fronts, tops and right-hand sides
 
 /** Premultiply straight RGBA in place (the GPU path filters premultiplied texels, so edges never darken). */
 export function premultiply(d: Uint8ClampedArray): Uint8ClampedArray {

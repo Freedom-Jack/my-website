@@ -9,9 +9,9 @@ import { allNotes, noteTable } from './notes';
 import styles from './writing.module.css';
 
 /**
- * Writing (/writing/). The first screen is the live site's: the lake's strip with the title and intro in its mist.
+ * Writing (/writing/). The first screen: the lake's strip with the title and intro in its mist.
  *
- * Below it (round 7) each note is opened out on the lake: its kind and dates in mono, its title large in the name
+ * Below it each note is opened out on the lake: its kind and dates in mono, its title large in the name
  * face (the row's link), its description and the way in; and, where the note holds a comparison, that comparison
  * itself, turned aspect by aspect (Compare: the note's own words). Then the feed. No filters, pages or empty states:
  * a new piece is one more file (CONTENT.md). It ends downstream (the Résumé).

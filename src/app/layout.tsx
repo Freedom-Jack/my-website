@@ -18,9 +18,9 @@ import '@/styles/tokens.css';
 import '@/styles/base.css';
 import '@/styles/layout.css';
 import '@/styles/plates.css'; // the stage as the page's own layers on wide screens (features/landscape/plates)
-import '@/styles/effects.css'; // the ink in the UI (links, the action, focus, the row rule, the flow dot: each element behind its el-* class)
+import '@/styles/effects.css'; // the ink in the UI: links, the text action, focus, the row rule, the diagrams' draw-in and flow dot
 import '@/styles/components.css';
-import '@/styles/body.css'; // round 7: everything below the first screen (the grid, the ink, the ending, the tail)
+import '@/styles/body.css'; // everything below the first screen (the grid, the ink, the ending, the tail)
 import '@/styles/scroll.css'; // the scroll, held (elements.ts scroll; features/scroll), loaded last
 
 export const metadata: Metadata = {
@@ -42,8 +42,8 @@ export const viewport: Viewport = {
 
 /**
  * Every page: the paper, the one persistent landscape canvas behind everything, the header with its river line, the
- * page's <main>, the tail (the colophon, the build stamp, "Still the landscape", the five names, the email, the seal,
- * the route announcer), and the Person JSON-LD.
+ * page's <main>, the tail (the scroll in miniature with the five places' names, the colophon, the build stamp,
+ * "Still the landscape", the email, the seal, the route announcer), and the Person JSON-LD.
  * The canvas and the chrome persist across pages; only <main> changes (features/navigation).
  */
 export default function RootLayout({ children }: { children: ReactNode }) {

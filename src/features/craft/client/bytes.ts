@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * "downloaded N KB from this site" (the attack's A5): the compressed bytes the craft fetched, measured, never typed.
+ * "downloaded N KB from this site": the compressed bytes the craft fetched, measured, never typed.
  * A PerformanceObserver reads every resource entry; an entry counts when it is one of the craft's JSON files
  * (/craft/…) or a script fetched while a craft module was loading (the import's own chunk). Its encoded body size is
  * what came over the wire, compressed. Subscribers hear every change.

@@ -6,12 +6,13 @@ import { z } from 'zod';
 /**
  * The Work cases: one MDX file per project in content/work/ (its file name is its address, /work/<file-name>/).
  * Front matter, checked here (a bad one fails the build): see content/work/rag-assistant.mdx for every field.
- * The body is the case's spine: "## Problem", "## My part", "## Outcome and status", "## Evidence", "## Stack" (each
- * optional, a missing one left out; "## The hard part" when Jack writes it), with <Note term="…">…</Note> glossary notes after the paragraph they explain.
+ * The body is the case's spine: "## Problem", "## My part", "## The hard part", "## Outcome and status", "## Evidence",
+ * "## Stack" (each optional, a missing one left out), with <Note term="…">…</Note> glossary notes after the paragraph
+ * they explain.
  */
 
-/** Where a figure comes from (A1): only a `public-source` figure may link out from its measure; a `projected` one never
- *  sits in a figure column (it stays in prose, with the word "projected"). */
+/** Where a figure comes from: only a `public-source` figure may link out from its measure; a `projected` one says
+ *  "projected" in its words, and its numeral is an outline. */
 const FIGURE_BASES = ['public-source', 'internal', 'projected'] as const;
 
 const link = z.object({ label: z.string().min(1), url: z.url() }).strict();
@@ -19,12 +20,12 @@ const link = z.object({ label: z.string().min(1), url: z.url() }).strict();
 export const caseFrontmatter = z
   .object({
     title: z.string().min(1),
-    /** newest first: the order of the index table */
+    /** newest first: the order of Work's "Six projects" */
     order: z.number().int().positive(),
     years: z.string().regex(/^\d{4} – (\d{4}|present)$/, 'years like "2023 – 2024" or "2025 – present" (en dash)'),
     org: z.string().min(1),
     role: z.string().min(1),
-    /** the figure and its measure; `basis` says where it comes from (A1; see content/work/rag-assistant.mdx) */
+    /** the figure and its measure; `basis` says where it comes from (see content/work/rag-assistant.mdx) */
     figure: z
       .object({
         lead: z.string().optional(),
@@ -36,9 +37,9 @@ export const caseFrontmatter = z
     summary: z.string().min(1),
     /** the search snippet, naming him and the result; the summary stands in without one */
     metaDescription: z.string().min(1).max(160).optional(),
-    /** the index table's Outcome cell */
+    /** the outcome on the case's row in Work's index */
     outcome: z.string().min(1),
-    /** the index table's Evidence cell; none: "Client work, no public page" */
+    /** the evidence links on the case's row in Work's index; none: "Client work, no public page" */
     evidence: z.array(link).default([]),
     diagram: z
       .object({ name: z.string().min(1), caption: z.string().min(1), steps: z.array(z.string().min(1)).min(1) })

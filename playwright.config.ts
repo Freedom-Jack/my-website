@@ -1,9 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Browser tests (tests/e2e): a smoke test per route, the hard rules on the rendered pages, the navigation, axe, the
- * live probe, the craft, the windows into the painting and the scroll. They run against the QA build (`npm run build`
- * with NEXT_PUBLIC_INK_QA=1, which exposes the painting's debug handle), served by `next start`.
+ * Browser tests (tests/e2e): a smoke test per route, the hard rules on the rendered pages, the navigation, axe and the
+ * tap targets, the header, the live probe, the craft, the windows into the painting and the scroll. They run against
+ * the QA build (`npm run build` with NEXT_PUBLIC_INK_QA=1, which exposes the painting's debug handle), served by
+ * `next start`.
  * Locally the system Chrome is used (no browser download); in CI, Playwright's own Chromium.
  * An already running server is reused, locally and in CI, where the workflow serves the build before the PDF, hard
  * rules and links steps; the tests start one themselves only when nothing answers on the port.

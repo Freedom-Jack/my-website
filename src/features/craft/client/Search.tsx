@@ -10,11 +10,11 @@ import type { Panner } from './pan';
 import styles from '../craft.module.css';
 
 /**
- * "Search these pages" on Work (the vanguard round; the attack's A2, A5, A11, A15, A16): a label, a box and one status
- * line. Nothing of the search loads before the box's first focus (its runtime and /craft/corpus.json, both counted by
- * the status line); every query is scored in the browser and no request carries it. Keyboard: Down moves into the
- * results (one tab stop, a roving tabindex), Up and Down move through them, Enter opens one, Escape clears. Hidden
- * without JavaScript (craft.module.css, html.js). Words: content/pages/work-craft.ts `search`.
+ * "Search these pages" on Work: a label, a box and one status line. Nothing of the search loads before the box's
+ * first focus (its runtime and /craft/corpus.json, both counted by the status line); every query is scored in the
+ * browser and no request carries it. Keyboard: Down moves into the results (one tab stop, a roving tabindex), Up and
+ * Down move through them, Enter opens one, Escape clears. Hidden without JavaScript (craft.module.css, html.js).
+ * Words: content/pages/work-craft.ts `search`.
  */
 type State = 'idle' | 'loading' | 'ready' | 'failed';
 

@@ -58,7 +58,7 @@ export async function allNotes(): Promise<NoteMeta[]> {
 }
 
 /**
- * A note's own comparison table, as data (round 7: Writing's index opens the note out with it): the first GFM table
+ * A note's own comparison table, as data (Writing's index opens the note out with it): the first GFM table
  * of content/writing/<slug>.mdx, its head and its rows, each cell the file's own words (inline markup and all).
  * None: the note has no table.
  */

@@ -14,11 +14,11 @@
  * `figures`: how much colour the figure layers take (figures.ts inks()).
  */
 export const PALETTES = Object.freeze({
-  // (the Résumé's malachite and Contact's indigo at .25 / .20 do not read at all under their mist; the terraces and
-  // the crossing's water carry them at .55 / .50, so every place has its own colour)
+  // (the Résumé's terraces and Contact's water carry their malachite and indigo at .70 / .75, so they read under
+  // their mist and every place has its own colour)
   // (the lake keeps a breath of the blue-green and the lone peak a trace, so the colour runs along the whole
   // scroll and only fades, never stops)
-  misted: Object.freeze({ scenes: Object.freeze([0.85, 0.70, 0.36, 0.70, 0.75, 0.32]), figures: 1 }),   // the young palette, re-indexed to the six places
+  misted: Object.freeze({ scenes: Object.freeze([0.85, 0.70, 0.36, 0.70, 0.75, 0.32]), figures: 1 }),
 });
 
 const DEFAULT_PALETTE = 'misted';
@@ -40,7 +40,7 @@ const LEAN = Object.freeze([
   { mal: 0.5, water: 0 },      // lake: a breath of colour
   { mal: 0.82, water: 0 },     // shore (Résumé): pale malachite on the terraces
   { mal: 0.3, water: 1 },      // crossing (Contact): indigo water
-  { mal: 0.5, water: 0 },      // lone peak: ink only
+  { mal: 0.5, water: 0 },      // lone peak: a trace of colour
 ]);
 
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));

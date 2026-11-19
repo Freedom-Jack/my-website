@@ -12,11 +12,11 @@ import { plain } from '@/lib/markup';
 
 /**
  * The site's words as a corpus (the craft's one source): section-sized passages of content/ (paragraphs, rows and
- * list items run together until about forty words, never a lone short sentence; the attack's A4) with their page,
- * section, anchor, place and position in the painting (A2) and the hash of the file they came from. Built at build time by the routes under
+ * list items run together until about forty words, never a lone short sentence) with their page, section, anchor,
+ * place and position in the painting and the hash of the file they came from. Built at build time by the routes under
  * src/app/craft/ and by the unit test; never generated, never edited: a chunk is a verbatim passage (the inline
  * markup removed, the {{years}} token filled, as the page prints it). A chunk's `id` is stable across builds
- * (page, section, order), so the DRAFT eval set and the recorded run point at the same passages tomorrow.
+ * (page, section, order), so the DRAFT eval set points at the same passages tomorrow.
  */
 
 export interface Chunk {
@@ -243,7 +243,7 @@ export interface Corpus {
   hash: string;
 }
 
-/** A passage is at least this many words (A4: section-sized, never a single short sentence). */
+/** A passage is at least this many words (section-sized, never a single short sentence). */
 export const MIN_WORDS = 40;
 const wordsOf = (t: string) => t.split(/\s+/).filter(Boolean).length;
 
@@ -380,7 +380,7 @@ export function buildCorpus(): Corpus {
     ]);
   });
 
-  // each note on the lake (Writing's own intro is one short sentence, so it is not a passage: A4)
+  // each note on the lake (Writing's own intro is one short sentence, so it is not a passage)
   for (const n of mdxFiles('content/writing'))
     emit(
       `note.${n.slug}`,

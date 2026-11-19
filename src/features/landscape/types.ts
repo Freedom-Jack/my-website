@@ -11,7 +11,7 @@ export type Mode = 'webgl' | 'canvas2d' | 'static';
 export interface LandscapeTargets {
   /** [data-landscape="strip"]: window 1, the page's own scene at its strip framing. */
   strip: Element | null;
-  /** [data-landscape="closing"]: window 2, the page's own place once more (long pages only). */
+  /** [data-landscape="closing"]: window 2, the page's own place once more (every page but the 404). */
   closing: Element | null;
   /** [data-landscape="keepout"]: text the painting keeps clear of colour and figures. */
   keepout: Iterable<Element>;
@@ -26,16 +26,16 @@ export interface LandscapeTargets {
   horizon: number;
   /** 'living': the page's scene is its ground (every page on the map). */
   ground: 'living' | '';
-  /** (the vanguard round) the page opens inside its place: its hero framed closer and further along it (compose.ts
-   *  `inside`); a number is the page's own stretch-local u (A2's sub-anchors). */
+  /** The page opens inside its place: its hero framed closer and further along it (compose.ts `inside`); a number is
+   *  the page's own stretch-local u. */
   inside?: boolean | number;
 }
 
 /**
- * THE PLATES (round 6; features/landscape/plates). On wide screens the stage's depth layers are no longer laid on
- * one fixed canvas on every scroll frame: the engine develops each of them once, at the hero pose, into a canvas of
- * the page's own (a plate), and the page moves the plates itself with a scroll timeline, so a scroll runs no script
- * and draws nothing. The sink is the page's side of that: it owns the plates' canvases and lays them out.
+ * THE PLATES (features/landscape/plates). On wide screens the engine develops each depth layer of the stage once, at
+ * the hero pose, into a canvas of the page's own (a plate), and the page moves the plates itself with a scroll
+ * timeline, so a scroll runs no script and draws nothing. The sink is the page's side of that: it owns the plates'
+ * canvases and lays them out.
  * A plate's kind: 1 the far layer (the sky, the light and the far ranges; opaque), 2 the middle (the place), 3 the
  * near (the near crags and their figures), 4 the sea of mist over their feet, 5 what is pinned to the frame while
  * the stage travels under it (Writing's willow), 6 the paper itself with its grain (one tile of it: the page's
@@ -69,7 +69,7 @@ export interface PlateSink {
 }
 
 export interface MountOptions extends Partial<LandscapeTargets> {
-  /** THE PLATES: where the stage goes on wide screens (absent: the engine lays it on its own canvas, as before). */
+  /** THE PLATES: where the stage goes on wide screens (absent: the engine lays it on its own canvas). */
   plates?: PlateSink | null;
   stretch?: number;
   distance?: Distance;
@@ -104,9 +104,9 @@ export interface LandscapeStats {
 
 export interface LandscapeHandle {
   readonly mode: Mode;
-  /** The camera travels to `stretch`, which may be fractional: a position within a place (the vanguard round, A2:
-   *  compose.ts `cameraFor(k, u)` gives the one that brings world x k + u to the hero's focus column; the search pans
-   *  there and back). Under the unroll a pan starts from where the page's slide left the painting. */
+  /** The camera travels to `stretch`, which may be fractional: a position within a place (compose.ts
+   *  `cameraFor(k, u)` gives the one that brings world x k + u to the hero's focus column; the craft search and Ask
+   *  pan there and back). Under the unroll a pan starts from where the page's slide left the painting. */
   panTo(stretch: number, o?: PanOptions): Promise<void>;
   /** The camera under the hand (the scroll mode): sets the position at once (level composition), one governed scene
    *  per call; drag and wheel call it once per animation frame, keys and the stops use panTo. A cut under reduced

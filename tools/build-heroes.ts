@@ -1,5 +1,5 @@
 /**
- * The heroes' stills: each mapped page's strip window as the engine's own FIRST FRAME paints it, at the three width
+ * The heroes' stills: each page's strip window (PAGES) as the engine's own first frame paints it, at the three width
  * classes (wide 1440 × 900, tablet 1000 × 1200, phone 430 × 844) at DPR 1 and 2, cut from the real engine on this
  * machine's GPU: public/scenes/hero/<place>-<class>@<d>x.webp + manifest.json, read by components/page/Strip. The
  * still is the first screen's painting from the first paint, before any script (and the painting without JS or
@@ -26,11 +26,11 @@
  *   6. From the phone's 1x capture, the seed (<name>-phone-seed.webp, under 1 KB): the still shrunk to about 96 px
  *      and encoded until it fits, written to the manifest as base64 too, which Strip inlines in the HTML as the
  *      phone's <img> (no request for the first screen's painting; too low in entropy to be the LCP element).
- *      Where a route's Lighthouse mobile LCP would miss 2.5 s waiting for the fetched still (INLINE_SHARP: Home, the
- *      lead's ruling R9), the seed IS the phone@1x still itself (about 5 KB): the painting is sharp at first paint and
- *      is the LCP at FCP; the @2x still swaps in over it at DPR 2 and above, in the same box (no new LCP candidate).
+ *      Where a route's Lighthouse mobile LCP would miss 2.5 s waiting for the fetched still (INLINE_SHARP), the seed
+ *      is the phone@1x still itself (about 5 KB): the painting is sharp at first paint and is the LCP at FCP; the @2x
+ *      still swaps in over it at DPR 2 and above, in the same box (no new LCP candidate).
  * --check recomputes the inputs' hash and each file's, and the size caps. Exit 1 = stale: regenerate.
- * REGENERATE AFTER ANY ENGINE, SET, PALETTE, PLACE, STRIP-HEIGHT OR STRIP-CSS CHANGE (and when a hero's words change
+ * Regenerate after any engine, set, palette, place, strip-height or strip-CSS change (and when a hero's words change
  * on a wide screen: the title block's width shapes the keep-out, hence the framing).
  */
 import { existsSync, readFileSync } from 'node:fs';
@@ -76,8 +76,8 @@ const CLASSES: Cls[] = [
     name: 'phone',
     media: '',
     // (cut at 430, the widest common phone, and laid over the box with object-fit: cover, so the inline seed is never
-    // upscaled on a phone and the @2x laid over it is the same box, never a larger LCP candidate: the lead's ruling R12;
-    // at the old 390 px cut Lighthouse's 412 px phone took the @2x for a new LCP)
+    // upscaled on a phone and the @2x laid over it is the same box, never a larger LCP candidate; a narrower cut is
+    // upscaled on Lighthouse's 412 px phone, where the @2x becomes a new LCP)
     viewport: { width: 430, height: 844 },
     mobile: true,
     q: { 1: 0.82, 2: 0.74 },
@@ -90,8 +90,8 @@ interface Hero {
   page: PageId;
   route: string;
 }
-// (the vanguard round: a case and a note open INSIDE their place, closer and further along it (places.ts `inside`), so
-// each deep page kind has its own still, cut from one of them: the six cases share one framing, the notes one)
+// (a case and a note open inside their place, closer and further along it (places.ts `inside`), so each deep page
+// kind has its own still, cut from one of them: the six cases share one framing, the notes one)
 const PAGES: Hero[] = [
   { name: 'home', page: 'home', route: '/' },
   { name: 'work', page: 'work', route: '/work/' },
@@ -110,17 +110,16 @@ const fileName = (h: Hero, c: ClassName, d: number) => `${h.name}-${c}@${d}x.web
 /** The phone's seed: the phone@1x capture shrunk to the first of these widths and encoded at the first of these
  *  qualities that lands under SEED_CAP bytes. Strip inlines it in the HTML as a data URI (the first screen's painting
  *  costs no request), and at under 0.05 bits per displayed pixel Chrome never takes it for the LCP element: the words
- *  stay the LCP. The sharp phone still stands over it only where no painting will come. */
+ *  stay the LCP. Strip lays the sharp phone still over it, except where the seed stands alone (Strip SEED_ALONE). */
 const SEED_WIDTHS = [96, 80, 64];
 const SEED_QS = [0.75, 0.6, 0.5, 0.4, 0.3, 0.2];
 const SEED_CAP = 1024;
 const seedName = (h: Hero) => `${h.name}-phone-seed.webp`;
-/** R9: the places whose inline seed is the sharp phone@1x still itself (no blur seed file; the cap is SHARP_SEED_CAP).
- *  A place joins only when its Lighthouse mobile LCP misses 2.5 s with the small seed (vanguard/07-measurements.md,
- *  P6: Home 2.61 s; the case, the note and the Résumé 2.53 s) AND its HTML has the room under 30,000 B gzip (the
- *  inline still is sent twice, in the HTML and in the flight data: about 2 B gzip per byte of WebP). Work (29.6 KB)
- *  has no room: it keeps its small seed alone on the first screen and its sharp still only in the still states
- *  (Strip SEED_ALONE, the lead's ruling R12), so its LCP is the words. */
+/** The places whose inline seed is the sharp phone@1x still itself (no blur seed file; the cap is SHARP_SEED_CAP).
+ *  A place joins only when its Lighthouse mobile LCP misses 2.5 s with the small seed (Home 2.61 s; the case, the
+ *  note and the Résumé 2.53 s) and its HTML has the room under 30,000 B gzip (the inline still is sent twice, in the
+ *  HTML and in the flight data: about 2 B gzip per byte of WebP). Work (29.6 KB) has no room: its small seed stands
+ *  alone, its sharp still shows only without JavaScript (Strip SEED_ALONE), and its LCP is the words. */
 const INLINE_SHARP: ReadonlySet<Hero['name']> = new Set(['home', 'case', 'note', 'resume']);
 const SHARP_SEED_CAP = 12 * 1024;
 
@@ -136,7 +135,7 @@ const HIDE_CSS = `
 .strip__still { display: none !important; }
 `;
 // The page's own targets (targets.ts targetsOf, kept in step with it) and Landscape.tsx's options, with no arrival
-// (the still IS the settled painting), firstFrame 'complete' and the QA hold.
+// (the still is the settled painting), firstFrame 'complete' and the QA hold.
 const REMOUNT_JS = `(async ([palette]) => {
   const eng = window.__inkEngine;
   const canvas = document.querySelector('canvas.landscape');
@@ -246,7 +245,7 @@ interface StillEntry {
   framing?: Record<string, unknown> | null;
   files: Record<'1' | '2', string>;
   /** The phone class only: the inline seed (its file, bytes, quality, pixel size, bits per displayed pixel at DPR 1
-   *  and 2, and the base64 Strip inlines). `sharp`: the seed is the phone@1x still itself (INLINE_SHARP, R9). */
+   *  and 2, and the base64 Strip inlines). `sharp`: the seed is the phone@1x still itself (INLINE_SHARP). */
   seed?: {
     file: string;
     bytes: number;
@@ -442,7 +441,7 @@ async function build(): Promise<number> {
           entry.files[String(d) as '1' | '2'] = f;
           // the phone's seed, from the 1x capture: the first width and quality under the cap
           if (c.name === 'phone' && d === 1 && INLINE_SHARP.has(h.name)) {
-            // R9: the seed is this still itself
+            // INLINE_SHARP: the seed is this still itself
             if (data.length > SHARP_SEED_CAP)
               throw new Error(`${h.name}: ${f} is over ${SHARP_SEED_CAP} bytes to inline`);
             await rm(path.join(OUT_DIR, seedName(h)), { force: true });

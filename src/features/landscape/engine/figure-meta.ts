@@ -1,10 +1,10 @@
 // figure-meta.ts — the figure sets' metas, the part of the sets the main thread needs: each set's world rectangle
 // [u0, u1, y0, y1] (stretches and scene heights), plane and phase (figures.ts THE SET API). The engine reads them
-// to key and place a layer (index.ts figureMeta); the DRAWING code (figures.ts's brush kit and sets/*.ts, with
+// to key and place a layer (index.ts figureMeta); the drawing code (figures.ts's brush kit and sets/*.ts, with
 // layerSize) is the worker's (figures.worker.ts), so it never travels in the engine's own chunk; the main-thread
 // fallback loads it on demand (figure-source.ts idleDraw). Each value is its set's own `meta`, written the same way
-// (K + x, so the floating point is the same); tests/unit/figure-meta.test.ts keeps the two equal. No imports: this
-// module is also in the page's own bundle (figure-source.ts warms the worker before the engine arrives).
+// (K + x, so the floating point is the same); tests/unit/figure-meta.test.ts keeps the two equal. No imports, so the
+// engine's chunk takes this table alone.
 
 /** A set's meta (THE SET API): the world rectangle [u0, u1, y0, y1] its layer covers, its plane and phase. */
 export interface FigureMeta {

@@ -5,7 +5,6 @@
  *   - every line of the site's own words that may stand as an answer (the corpus's units, /craft/corpus.json from a
  *     running server; src/features/ask/lines.ts): its vector, the vector of each of its sentences, and the vector
  *     of every question it is filed under (src/features/ask/questions.ts; the things a skills or stack line names).
- * (Round 7: the scene's anchors and the router's two kinds went with the half of Ask that repainted the painting.)
  * Vectors are stored as 8-bit numbers (384 each). Run again whenever the words or the questions change (a unit test
  * fails while the index is older than the words):
  *

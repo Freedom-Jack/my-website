@@ -8,7 +8,7 @@
  *
  * Each entry names its line by its opening words (a whole unit of the corpus, or one sentence inside a unit). The
  * index build fails when an opening no longer matches exactly one line: the words changed, so the entry is read
- * again by a person. Written for round 6 by the site's builder, not by Jack; nothing here states a fact.
+ * again by a person. Written by the site's builder, not by Jack; nothing here states a fact.
  * (The things a skills or a stack line names are filed by the build itself, "Do you know X?": lines.ts.)
  */
 export const QUESTIONS: [opens: string, questions: string[]][] = [

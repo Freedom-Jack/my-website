@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from '
 import { site } from '@content/site';
 import { ScrollMap } from '@/components/layout/ScrollMap';
 import { quiet } from '@/features/chrome/still';
-import { STORY_MAP, normPath } from '@/features/landscape/places';
+import { SCROLL_MAP, normPath } from '@/features/landscape/places';
 import { landscape } from '@/features/landscape/store';
 import { currentMain, placeOf, targetsOf } from '@/features/landscape/targets';
 import type { LandscapeHandle } from '@/features/landscape/types';
@@ -19,7 +19,7 @@ import { LAST, clampX, detent, durationFor, dxToStretch, nearest, stepFrom } fro
  * page into the paper (the route exit's own way, <main> inert) and this sheet stands over it: the painting in the
  * hero's own band, bound to the one persistent canvas (rebind: the band is the strip window; no closing, no veils, no
  * keep-out, no stage), the place's name and what its page holds under it (the server-built index: existing strings,
- * real links), and the story map lifted off the footer as the stops.
+ * real links), and the tail's scroll map (components/layout/ScrollMap) as the stops.
  *
  * The hand moves the painting. Drag and wheel set the camera through the engine's hold(x) once per animation frame
  * (one governed scene per frame, nothing on a clock); a release within the detent of a place settles there (300 ms);
@@ -423,7 +423,7 @@ export function ScrollSheet({ stops }: { stops: ScrollStop[] }) {
 
   const onSheetKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key !== 'Tab' || !sheet.current) return;
-    // a manual focus trap: the header above is never inert, but the scroll's own controls are the sheet's
+    // a manual focus trap: Tab and Shift+Tab cycle through the sheet's own controls
     const items = [...sheet.current.querySelectorAll<HTMLElement>('a[href], button, [tabindex="0"]')].filter(
       (el) => !el.hidden && !el.closest('[hidden]'),
     );
@@ -515,9 +515,9 @@ export function ScrollSheet({ stops }: { stops: ScrollStop[] }) {
         <div className="frame scroll-stops">
           <ScrollMap
             label={site.tail.names}
-            places={STORY_MAP}
+            places={SCROLL_MAP}
             here={k}
-            onPick={(i) => walkTo(STORY_MAP[i]!.stretch)}
+            onPick={(i) => walkTo(SCROLL_MAP[i]!.stretch)}
           />
           <p className="scroll-close">
             <button type="button" onClick={leave}>

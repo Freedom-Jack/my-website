@@ -9,13 +9,12 @@ import { LocalTime } from './LocalTime';
 import styles from './contact.module.css';
 
 /**
- * Contact (/contact/). The first screen is the live site's: the crossing's strip with the title and its one sentence
- * in the mist.
+ * Contact (/contact/). The first screen: the crossing's strip with the title and its one sentence in the mist.
  *
- * Below it (round 7): the address, the page's focal point, written large in the name face across the water, with
+ * Below it: the address, the page's focal point, written large in the name face across the water, with
  * "Copy email" beside it: pressing it presses the seal ("Copied" said once, plainly); the response line; the other
  * ways across the frame, each a mono label over its link; the time zone with the hour where he is. A short page: it
- * ends on the crossing's closing scene and then on the full tail (no ending line: Contact is the last place).
+ * ends on the crossing's closing scene and then on the tail (no ending line: Contact is the last place).
  * Words: content/pages/contact.ts.
  */
 export function ContactPage() {

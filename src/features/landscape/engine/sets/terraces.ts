@@ -1,9 +1,9 @@
 // sets/terraces.ts — Résumé (stretch 3): the terraced fields of his record, stepping down to the shore. The two low
 // hills of plane 2 (the shader's tech.terr bands give them their pale malachite body) are cut into terraces, in rows
 // like a record. Each terrace wall is a level line (a field is flat: the water in it lies level), so its dry-brush lip
-// runs across the hill's face, sagging a little where the hill swells toward us, bending down over each spur and back
-// into each gully, and meeting the hill's outline at its ends; the walls nest, never cross. Under each lip the
-// wall's face in shade; on each tread a field: flooded (paper, holding the sky), young rice (pale malachite), ripe
+// runs across the hill's face, sagging a little where the hill swells toward the viewer, bending down over each spur
+// and back into each gully, and meeting the hill's outline at its ends; the walls nest, never cross. Under each lip
+// the wall's face in shade; on each tread a field: flooded (paper, holding the sky), young rice (pale malachite), ripe
 // (a little darker) or bare, a long band softly pinched where it meets the next. A path comes up from the shore at
 // the right foot and zig-zags up the right hill's face, each leg cutting across two or three walls (a few steps where
 // it does), then over to a small thatched farmhouse on the hill's shoulder under its crown: Song form, plain clay
@@ -16,8 +16,8 @@
 // Ground: plane 2's crest from planeTop, rounded here the way ridges.ts rounds terraced planes (the engine
 // rounds per view, by 3.5 % of the view's width; this uses a fixed radius between the wide and phone views, within
 // ~0.004 scene heights of both), so the lips stop a few px inside the outline, and the trees on the crowns stand a
-// little under it. No shader change: the walls are drawn here, not registered to the shader's lips (those follow
-// the crest; these are level), which stay underneath as a faint texture.
+// little under it. The walls are drawn here, not registered to the shader's lips (those follow the crest; these are
+// level), which stay underneath as a faint texture.
 
 import {
   REF_PX, VH_PX, SCENE_FIELDS, planeTop, sceneField, streams, vnoise, mix, mix3, clamp01, smooth, stroke, wash, softWash,
@@ -81,8 +81,8 @@ export function* draw(env: Env) {
 
   const G = groundModel(P, env.rect[0] - 0.14, env.rect[1] + 0.14);
   const crest = G.crestAt, broad = G.broadAt;
-  // (round 5) the hills stand on the river's far bank: their foot is the far shore's, at the waterline, as the shader
-  // paints a far-shore plane over water (shaders.ts: footY = wY - 0.012, fade 0.07); off the water, the plane's own
+  // the hills stand on the river's far bank: their foot is the far shore's, at the waterline, as the shader paints a
+  // far-shore plane over water (shaders.ts: footY = wY - 0.012, fade 0.07); off the water, the plane's own
   const fw = new Float32Array(SCENE_FIELDS);
   sceneField(K + 0.6, P, fw);
   const onWater = smooth(0, 0.3, fw[0] * fw[8]);
@@ -407,7 +407,7 @@ function farmhouse(env: Env, x: number, y: number, s: number, R: Rng): Pt {
   const dx = x + w * (0.38 + R() * 0.08);
   wash(ctx, [[dx, y], [dx + 2.4 * s, y], [dx + 2.4 * s, y - h * 0.72], [dx, y - h * 0.72]], rgba(mix3(C.ink2, C.ink, 0.3), 0.7), { jit: 0.2 });
   wash(ctx, [[x + w * 0.72, y - h * 0.38], [x + w * 0.86, y - h * 0.38], [x + w * 0.86, y - h * 0.68], [x + w * 0.72, y - h * 0.68]], rgba(mix3(C.ink2, C.wall, 0.45), 0.6));
-  // corner posts and the sill: the walls drawn, so a white house still stands out on a pale hill (and in ink)
+  // corner posts and the sill: the walls drawn, so a white house still stands out on a pale hill
   for (const px of [x + 0.3, x + w - 0.3]) stroke(ctx, [[px, y + 0.3], [px, y - h]], { w: 0.75 * s, col: rgba(mix3(C.timber, C.ink, 0.55), 0.85), tin: 0, tout: 0.1 });
   stroke(ctx, [[x + w + ox, y + oy], [x + w + ox, y + oy - h]], { w: 0.5 * s, col: rgba(C.ink, 0.45), tin: 0, tout: 0 });
   stroke(ctx, [[x - 0.6, y + 0.4], [x + w + 0.5, y + 0.3], [x + w + ox, y + oy + 0.3]], { w: 0.75 * s, col: rgba(C.ink, 0.6), tin: 0.05, tout: 0.1, dry: 0.2 });

@@ -1,15 +1,15 @@
 /* The craft on Work: the search and Under the hood (features/craft). The composed objects, from the design system's
    tokens: brush strokes and hairlines, small print in --fs-small, code in --font-code. No boxes, no fills.
-   Round 7: the pieces lie open on the page (no folds); what moves is ink (a token struck by a brush, a share drawn as
-   a stroke that long, a mark inked per question, a line drawing itself). */
+   The pieces lie open on the page (no folds); what moves is ink (a token struck by a brush, a share drawn as a stroke
+   that long, a mark inked per question, a line drawing itself). */
 
 /* ---------- the search: a label, a box and one status line ---------- */
-/* without JavaScript the box would do nothing: it is not there (A15); the six projects stand under it */
+/* without JavaScript the box would do nothing: it is not there */
 :global(html:not(.js)) .search {
   display: none;
 }
-/* (round 7) the label is the piece's title, in the name face; the box is one line written large over a dry-brush
-   stroke, joined by a jade line while it is in use */
+/* the label is the piece's title, in the name face; the box is one line written large over a hairline, which turns
+   jade and thickens while it is in use */
 .label {
   display: block;
   font-family: var(--font-name);
@@ -97,8 +97,8 @@
   box-shadow: none;
   border-radius: 0;
 }
-/* the focus (the brief: "the result focus a hairline and a tick"): the link's ring (base.css) gives way to a hairline
-   down the whole result and a tick at its first line, both in the focus ink; nothing boxed (A17) */
+/* the focus: the link's ring (base.css) gives way to a hairline down the whole result and a tick at its first line,
+   both in the focus ink; nothing boxed */
 .hit:focus-within {
   border-inline-start-color: var(--focus);
 }
@@ -164,10 +164,11 @@
   }
 }
 
-/* ---------- Under the hood (round 7): four live pieces across the frame ----------
-     <section class="hood"><div class="hoodHead"><h2 class="h-ink">Under the hood</h2></div>
-       <div class="spread pieces"><article class="piece pieceMask">…</article><article class="piece pieceEval">…
-         <div class="piece pieceSearch">…</div><article class="piece pieceLineage">…</article></div></section>
+/* ---------- Under the hood: four live pieces across the frame ----------
+     <section class="part" id="hood"><div data-veil><h2 class="h-ink">Under the hood</h2></div>
+       <div class="spread pieces"><article class="piece pieceMask">…</article>
+         <article class="piece pieceEval">…</article><div class="piece pieceSearch">…</div>
+         <article class="piece pieceLineage">…</article></div></section>
    Wide: the grammar (the page's moment) takes seven columns with the search's test beside it; under them the search
    and the lineage. Each keeps its own cloud of mist. */
 .pieces {
@@ -406,7 +407,7 @@
 .dots li {
   display: grid;
 }
-/* a 36 px target round a 14 px mark (two rows of ten: 44 px apart with the gap on a phone's width) */
+/* a 36 px target round a 15 px mark (two rows of ten: 44 px apart with the gap on a phone's width) */
 .dot {
   position: relative;
   inline-size: 100%;

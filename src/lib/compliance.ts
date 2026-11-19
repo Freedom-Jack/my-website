@@ -36,7 +36,7 @@ export const CJK = new RegExp(
   'u',
 );
 
-/** PMP (dropped everywhere, CLAUDE.md, hard rules), as a word. */
+/** PMP, as a word: never anywhere on the site (CLAUDE.md, hard rules). */
 export const PMP = /\bPMP\b|Project Management Professional/;
 
 /** The old résumé file (it carries a phone number): never linked, never shipped. */

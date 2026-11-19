@@ -4,7 +4,7 @@ import { isSoftware, PHONE, settle } from './support/pages';
 /**
  * Windows into the painting (elements.ts glimpses), below 1200 px: the hard rules on the rendered pages.
  * The page's own rules, whatever the windows paint:
- *   - laptops: no window is laid out, and the page is the approved one (flag on = flag off, "Still the landscape" on);
+ *   - laptops: no window is laid out, and the page is the same with the flag on or off ("Still the landscape" on);
  *   - phones: every window is painted and scrolling past all of them paints no scene;
  *   - the words keep 40 px of paper: no figure pixel (lum < 190 or C* > 28) within 40 px of a text line;
  *   - reduced motion: a window is its rest pose wherever it stands on the screen;
@@ -220,7 +220,7 @@ const still = (page: Page) =>
     }
   });
 
-test.describe('glimpses: laptops are the approved page', () => {
+test.describe('glimpses: laptops are the page without windows', () => {
   for (const vp of [
     { width: 1440, height: 900 },
     { width: 1280, height: 720 },
@@ -234,7 +234,7 @@ test.describe('glimpses: laptops are the approved page', () => {
         await probe.close();
         // (the page is judged on a real GPU; a software rasteriser paints less, and at 1440 it can
         // hold the main thread long enough that the page cannot be measured at all)
-        test.skip(sw, 'the approved page is judged on a real GPU');
+        test.skip(sw, 'the page is judged on a real GPU');
         const shots: Buffer[] = [];
         const heights: number[] = [];
         for (const off of [false, true]) {
@@ -347,7 +347,7 @@ test.describe('glimpses: phones', () => {
     // would differ by far more)
     expect(d).toBeLessThan(0.002);
   });
-  test('fallback: each window shows its own still until it is painted, fetched only near the viewport (R5)', async ({
+  test('fallback: each window shows its own still until it is painted, fetched only near the viewport', async ({
     page,
   }) => {
     await page.goto('/');

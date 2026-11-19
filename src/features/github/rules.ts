@@ -2,9 +2,8 @@ import { z } from 'zod';
 import { CJK, PHONE } from '@/lib/compliance';
 
 /**
- * Work's "In the open": which of Jack's public GitHub repositories are listed, and how (the demo's
- * tools/sync-projects.py, as a tested module). Pure: the fetch lives in fetch.ts, at build time / ISR, never in
- * the visitor's browser.
+ * Work's "In the open": which of Jack's public GitHub repositories are listed, and how. Pure: the fetch lives in
+ * fetch.ts, at build time / ISR, never in the visitor's browser.
  *
  * Rules, in order: public; not a fork; not archived; not empty; never a denied repository; placeholders skipped
  * (under 10 KB, or described "TBA", "To be announced", "coming soon": they appear by themselves once real code
@@ -15,7 +14,7 @@ import { CJK, PHONE } from '@/lib/compliance';
 
 /** Never listed. Personal application materials; and this site's own source, until its public history no longer
  *  holds the old résumé file (CLAUDE.md, hard rules, the launch gate: content/site.ts showSourceCode). */
-export const DENY = new Set(['job-application', 'my-website']);
+const DENY = new Set(['job-application', 'my-website']);
 const PLACEHOLDER_KB = 10;
 const PLACEHOLDER = /^(tba|to be (announced|anounced)|coming soon)\.?$/i;
 const RECENT_MONTHS = 24;
@@ -54,8 +53,8 @@ const overridesSchema = z
     ),
   })
   .strict();
-export type Overrides = z.infer<typeof overridesSchema>;
-export type Override = Overrides['repos'][number];
+type Overrides = z.infer<typeof overridesSchema>;
+type Override = Overrides['repos'][number];
 
 export interface Entry {
   name: string;

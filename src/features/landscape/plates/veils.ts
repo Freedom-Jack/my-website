@@ -1,27 +1,26 @@
 /**
- * THE VEILS, as the page's own layers (round 6; they were rects in the engine's screen pass).
+ * THE VEILS, as the page's own layers.
  *
  * Nothing of the painting stands behind text: behind every block of words the page keeps its own paper, cut from the
  * paper's tile (the engine's grain, plates/sink.ts), in the page's flow, so the browser moves it with the words and no
  * frame is drawn for it. Shown only while the plates are (html[data-plates="on"]); wherever the engine lays the stage
- * on its own canvas (a page change, a narrow window) it draws its own veils, as before.
+ * on its own canvas (a page change, a narrow window) it draws its own veils.
  *
  * Two kinds:
  *   THE FIRST SCREEN (the header's band of paper, and the title block: [data-landscape="keepout"] or anything in
- *   .strip): as round 6 laid them, patches that end in torn edges of mist (plates/edges.ts), a plain soft edge at
- *   the left where no painting stands. The first screen is the live site's: nothing about its paper changes.
+ *   .strip): patches that end in torn edges of mist (plates/edges.ts), a plain soft edge at the left where no
+ *   painting stands.
  *
- *   THE BODY (round 7, as corrected after Jack's verdict "everything under the header is just straight downhill
- *   toilet paper": the first field kept solid paper far round every block, and with the words across the whole
- *   frame it whited the painting out): the painting stands at full strength through the whole page, and the words
- *   keep only A BREATH OF MIST. One field for the page, computed from where the words stand:
+ *   THE BODY: the painting stands at full strength through the whole page, and the words keep only a breath of mist
+ *   (solid paper round every block, with words across the whole frame, would white the painting out). One field for
+ *   the page, computed from where the words stand:
  *     - behind small text (and a drawing) the mist is strong (PEAK: the words read on any ground, the painting
  *       only a ghost behind them) and thins out to nothing close by, in billows (a slow noise), so the peaks and
  *       roofs stand clear on every side of a block and between two blocks;
- *     - behind display words (a title, a numeral: .h-ink, .num) only a faint breath (LIGHT):
- *       they are read straight on the painting;
+ *     - behind display words (DISPLAY: a title, a numeral, the next place's name) only a faint breath (LIGHT): they
+ *       are read straight on the painting;
  *     - [data-veil="bank"] lays a bank of whole paper the width of the screen behind a section (the tail);
- *     - round words inked INTO the painting (body.css .inked; [data-veil-clear] names a box that holds some) the
+ *     - round words inked into the painting (body.css .inked; [data-veil-clear] names a box that holds some) the
  *       mist opens: they stand behind this sheet.
  *   The field is drawn small (one sample per 8 CSS px: mist has no detail finer than that), handed to CSS as the
  *   mask of one sheet of the paper's tile the size of the page, and drawn again whenever the words move (a new
@@ -309,7 +308,7 @@ export function createVeils(): Veils {
     const x = window.scrollX || 0;
     const docW = document.documentElement.clientWidth;
 
-    // ---- the first screen's patches (round 6's)
+    // ---- the first screen's patches
     const hero = new Set<Element>();
     if (main) for (const el of main.querySelectorAll('[data-landscape="keepout"], .strip [data-veil]')) hero.add(el);
     // (beside a block the paper reaches further on a wide window, where the painting is larger)
@@ -356,7 +355,7 @@ export function createVeils(): Veils {
       });
     }
 
-    // ---- the body's field of mist (round 7)
+    // ---- the body's field of mist
     const words: Words = { body: [], display: [], banks: [], clear: [] };
     const body = new Set<Element>();
     if (main) for (const el of main.querySelectorAll('[data-veil]')) if (!hero.has(el)) body.add(el);

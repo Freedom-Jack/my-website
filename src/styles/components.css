@@ -1,9 +1,9 @@
 /* ==========================================================================
    components.css — the shared components.
-   The portrait, figures, the ledger rows, the seal, cases, the table, the brush diagram and margin notes.
+   The portrait, the seal, figures, the ledger rows, cases, the table, the brush diagram, folds and margin notes.
    Behaviour lives in their components (components/ui). A feature's CSS Module may only add
-   LAYOUT for its own sections, with tokens: no new colours, fonts, weights, shadows or motion.
-   Load order: tokens → base → layout → effects → components → the CSS Modules
+   layout for its own sections, with tokens: no new colours, fonts, weights, shadows or motion.
+   Load order: tokens.css's header.
    Shared file: do not edit from a page.
    ========================================================================== */
 
@@ -22,8 +22,8 @@
   }
 }
 /* The frame is the photo's own sheet of paper: the multiply happens inside it, when the page is painted, and never
-   against the painting behind the page (a blend against the page itself made the browser composite the whole page
-   the slow way, on every scroll frame, while the portrait was on screen: round 6's measurement). */
+   against the painting behind the page (a blend against the page itself makes the browser composite the whole page
+   the slow way, on every scroll frame, while the portrait is on screen). */
 .hello__frame {
   isolation: isolate;
   background: var(--paper) var(--paper-tile, none) 0 0 / var(--paper-tile-size, 512px) var(--paper-tile-size, 512px);
@@ -33,10 +33,10 @@
   width: 100%;
   height: auto;
   aspect-ratio: 4 / 5;
-  /* The shoulders' fade is IN THE FILE (tools/build-photo.swift, step 3d): the body dissolves into white along its
-     own shoulder line, the face and neck untouched, so multiply turns it into the paper exactly as it does the
-     wall. No CSS mask: 4a's (a straight bottom fade from 83 % and an 8 % side feather) left a horizontal line and
-     soft vertical sleeve edges, and Chrome's PDF dropped it, printing a hard rectangle. */
+  /* The shoulders' fade is in the image file: the body dissolves into white along its own shoulder line, the face and
+     neck untouched, so multiply turns it into the paper exactly as it does the wall. No CSS mask: a straight fade
+     leaves a horizontal line and soft vertical sleeve edges, and Chrome's PDF drops a mask, printing a hard
+     rectangle. */
   mix-blend-mode: multiply;
 }
 @media (forced-colors: active) {
@@ -47,7 +47,8 @@
 
 /* ==========================================================================
    The seal (components/ui/Seal): a carved cinnabar stone with the one character cut out of it, drawn as a path.
-   Once per page, at the tail (body.css sizes it there). Decorative; in forced colours an outline.
+   At the tail, and pressed (body.css .stamp) beside Ask's answer and Contact's "Copy email"; each place sizes it
+   (body.css, ask.module.css, contact.module.css). Decorative; in forced colours an outline.
      <span class="seal" aria-hidden="true"><svg class="seal__mark" viewBox="0 0 64 64">…</svg></span>
    ========================================================================== */
 .seal {
@@ -74,9 +75,9 @@
 }
 
 /* ==========================================================================
-   Figures (the vanguard round): the poster numeral, the name face at --fs-figure (40 → 56) in ink, with its lead
-   word ("About", "Projected") small above or before it. The first screen's proof and a case's figure. Figures
-   inside sentences are <b> at text size instead.
+   Figures: the poster numeral (.fig), the name face at --fs-figure (40 → 56) in ink, its lead word small before it:
+   the first screen's proof. Elsewhere a figure is an ink numeral (body.css .num); figures inside sentences are <b>
+   at text size.
    ========================================================================== */
 .fig {
   font-family: var(--font-name);
@@ -142,9 +143,9 @@
 /* ==========================================================================
    Cases (Work).
    article.part.case.has-rail > div.case__body (the case's MDX, rendered by features/work/CasePage).
-   div.case__body: a section.case__part per "Context" · "What I did" · "The hard part" · "Outcome" · "Evidence" ·
-   "Stack", each opening on its h2.case__label. Inside a .has-rail case the body and every part subgrid the rail, so
-   a margin note right after a part's paragraph sits beside it (layout.css).
+   div.case__body: a section.case__part per "Problem" · "My part" · "Outcome and status" · "Evidence" · "Stack",
+   each opening on its h2.case__label. Inside a .has-rail case the body and every part subgrid the rail, so a margin
+   note right after a part's paragraph sits beside it (layout.css).
    ========================================================================== */
 .case__fig {
   display: flex;
@@ -169,11 +170,11 @@
 }
 
 /* ==========================================================================
-   Scannable table (Work's index, the "Early work" table). Explicit ARIA roles keep
+   Scannable table (Work's "Early work" table, a note's comparison). Explicit ARIA roles keep
    table semantics when the narrow layout changes `display`. Hairlines between rows
    (typographic, not a box): no fills, no outer border. Every cell in small print
-   (14), project cells in the body face at 700, heads 560 in ink-3. < 48rem each row
-   restacks: the project first (body size), then each value with its label.
+   (14), row headers in the body face at 700, heads 560 in ink-3. < 48rem each row
+   restacks: the row header first (body size), then each value with its label.
    Year cells never wrap.
    ========================================================================== */
 .table {
@@ -286,8 +287,8 @@
   }
 }
 /* Under 240 CSS px (a phone at 200 % page zoom: a 195 px viewport) the hanging label column leaves ~70 px for the
-   value, and "2025 – present" or "no public page" ran past the edge, where nothing scrolls sideways: each label sits
-   above its value instead, and a word longer than the line breaks rather than leaves the screen (final review r1, 6). */
+   value, and "2025 – present" or "no public page" would run past the edge, where nothing scrolls sideways: each label
+   sits above its value instead, and a word longer than the line breaks rather than leaves the screen. */
 @media (max-width: 14.99rem) {
   .table tbody :is(th, td) {
     overflow-wrap: anywhere;
@@ -303,11 +304,11 @@
 }
 
 /* ==========================================================================
-   Brush diagram (Work; the Diagram component draws the edges in). One spec, two layouts: the
-   --wide SVG from a 60rem container, the --tall one below (the hidden one is
+   Brush diagram (Work; components/ui/Diagram, its edges drawn in by features/effects/diagram). One spec, two
+   layouts: the --wide SVG from a 60rem container, the --tall one below (the hidden one is
    display:none, so only one is in the accessibility tree). On a phone the tall one is
    never taller than 85svh. Labels are real <text> and never animate.
-   Drawn on hairlines (the vanguard round, P5): the drawing is a composed object at reading size, not a wash.
+   Drawn on hairlines: the drawing is a composed object at reading size, not a wash.
      bands  .diagram__band (--1 top, --2, --3 bottom): no fill; one 1 px hairline (--rule) along the top of the two
             lower layers, fading at the sides with the drawing's own mask; static
      nodes  .diagram__node: a 1 px outline in quiet ink on the paper, no fill; never move
@@ -480,8 +481,8 @@
 .fold > summary:focus-visible {
   outline-offset: 2px;
 }
-/* details.fold: a block folded behind its own heading (Work's early repositories while nothing newer is listed);
-   the summary is the heading, with the diagram's brush chevron */
+/* details.fold: a block folded behind its own heading (Work's early repositories); the summary is the heading, with
+   the diagram's brush chevron */
 .fold > summary + * {
   margin-block-start: var(--space-head);
 }
@@ -610,7 +611,7 @@
     display: none;
   }
 }
-/* consecutive notes after one paragraph share its row (MarginNotes groups them) */
+/* consecutive notes after one paragraph share its row (the MDX transform groups them in div.margin-notes) */
 .margin-notes {
   display: grid;
   row-gap: var(--space-s);
@@ -635,7 +636,7 @@
   }
 }
 
-/* ---------- folds ease open (Chrome 131+, Safari 18.4+; elsewhere they open at once, as before) ----------
+/* ---------- folds ease open (Chrome 131+, Safari 18.4+; elsewhere they open at once) ----------
    "Read as steps" and "Early work": the content's height eases over the route-enter beat, the chevron turning with
    it. Reduced motion and "Still": at once. Print: open, whole. */
 details.diagram__steps,

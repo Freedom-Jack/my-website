@@ -1,9 +1,10 @@
-// lights.ts — THE one table of each place's light (the engine's lightK0), read by the shaders (lightsGLSL). Change a
+// lights.ts — the one table of each place's light (the engine's lightK0), read by the shaders (lightsGLSL). Change a
 // light here only.
 //
 // Per place k (stretch k): [u, y, r, w] = world x (stretches), scene height (0 = the scene's foot, y up), the glow's
 // radius (viewport heights) and its strength (w > 0: a light with a heart and, on still water, a glitter column; w < 0:
-// a sky glow only). No disc, no ring anywhere.
+// a sky glow only). The scene paints it as a bloom, never a disc or a ring; where a window into the painting keeps
+// it, the light is a small disc of the paper's white (shaders.ts).
 type Light = readonly [u: number, y: number, r: number, w: number];
 
 const LIGHTS: readonly Light[] = [

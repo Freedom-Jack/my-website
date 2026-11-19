@@ -1,5 +1,5 @@
 /**
- * The scores behind the mask demo: a bigram model of the site's own words over the learned vocabulary, fitted at
+ * The scores behind the mask piece: a bigram model of the site's own words over the learned vocabulary, fitted at
  * build (add-α smoothing against the unigram counts). It is labelled on the page as what it is: counts of his words,
  * not a neural model. The table ships sparse (each token's top continuations) so the browser can score any step.
  */

@@ -4,13 +4,14 @@ import { el } from '../../elements';
 // Gui: at the lower right a low rocky spit runs out from the shore (lost in mist) into the still water; on it an
 // open pavilion, four posts under one low pyramidal roof whose eave corners lift only a little (Song restraint: one
 // storey, one eave, never tiered); inside it one scholar in a plain white robe sits looking out over the water to
-// the far peak; a pine grows from the rock behind and leans out over the roof and the water. Everything else is
-// empty water and mist. The pavilion, the rocks and the pine stand faint and broken in the water below (the scene
-// shader mirrors only the far shore: the reflection is drawn here). Ink only: ink greys on every palette.
+// the far peak; a pine grows from the rock behind and leans out over the roof and the water. The pavilion, the rocks
+// and the pine are ink greys only, and stand faint and broken in the water below (the scene shader mirrors only the
+// far shore: the reflection is drawn here). Rushes frame the water's edge; Writing's one painted moment (below) adds
+// a willow, glints of light and a few petals on the water.
 // Life: the faintest shimmer in the reflection.
 //
-// A figure set (figures.ts, THE SET API): meta + draw(env), in world
-// px. Painted after plane 2's mist band and the water (phase 1), so the lake lies under the spit.
+// A figure set (figures.ts, THE SET API): meta + draw(env), in world px. Painted after plane 2's mist band and the
+// water (phase 1), so the lake lies under the spit.
 //
 // Where: the spit's waterline at scene height 0.214, in open water in front of the far shore (its waterline is
 // 0.284 on Writing, 0.259 on the Note, whose layer is drawn for its own composition; open water either way, so
@@ -27,14 +28,14 @@ export const meta: FigureMeta = { rect: [K + 0.78, K + 1.22, 0.10, 0.7], plane: 
 interface Rock { key: string; top: Pt[]; k: number; P: Pt[] }
 
 const SEED = 31;
-const DP: Pt = [0.72, -0.48];   // Song oblique depth (as figures.ts D, which a set may not read at its top level)
+const DP: Pt = [0.72, -0.48];   // Song oblique depth (a copy of figures.ts D)
 
 export function* draw(env: Env) {
   const { ctx, ink } = env;
   const { C, rgba } = ink;
   const own = streams(SEED);
-  // a phone's album leaf sees the lake from further away: the spit, the pavilion and the pine are drawn larger there
-  // (as Home does), so the roof's lifted corners and the seated figure still read at 390
+  // a phone sees the lake from further away: the spit, the pavilion and the pine are drawn larger there (as Home
+  // does), so the roof's lifted corners and the seated figure still read at 390
   const b = Math.max(1, 0.7 * REF_PX / env.scale);
   const X = (u: number) => u * REF_PX, Y = (y: number) => (1 - y) * VH_PX;
   const cx = X(K + 0.925), wy = Y(0.214);
@@ -174,7 +175,7 @@ export function* draw(env: Env) {
 
   const paintPavilion = (r: boolean) => {
     // the plinth: a low stone base; its top, the floor, a pale stone grey (never a white box: the pavilion is open,
-    // and through its posts we see the rock and the water behind it)
+    // and the rock and the water behind it show through its posts)
     const ph = 2.4 * b;
     wash(ctx, [FL, FR, BR, BL], rgba(mix3(PAL, C.white, 0.35), r ? 0.5 : 0.8), { jit: 0.2 * b, seed: 21 });
     wash(ctx, [FL, FR, [FR[0], FR[1] + ph], [FL[0], FL[1] + ph]], rgba(mix3(INK2, C.white, 0.5), r ? 0.7 : 0.88), { jit: 0.25 * b, seed: 22 });
@@ -293,7 +294,7 @@ export function* draw(env: Env) {
   }
   ctx.restore();
   // life: the faintest shimmer, in the reflection only (open water below the spit's waterline)
-  anchor(env, 'shimmer', { x: reflBox.x, y: wy, w: reflBox.w, h: 46 * b }, { waterline: [at([-41, 0.5]), at([0, 0.8]), at([52, 0.6]), [xEnd, wy + 0.6]], rings: 3 });
+  anchor(env, 'shimmer', { x: reflBox.x, y: wy, w: reflBox.w, h: 46 * b }, { rings: 3 });
   yield;
 
   // ---------------------------------------------------------------- the painting
@@ -314,26 +315,22 @@ export function* draw(env: Env) {
     stroke(ctx, [[x0, y], [x0 + L * 0.5, y + 0.2 * b], [x0 + L, y]], { w: 0.55 * b, col: rgba(INK2, 0.14 + Rw() * 0.08), tin: 0.3, tout: 0.5, wob: 0.5, dry: 0.3, seed: i + 70 });
   }
   yield;
-  // ---- the framing element: reeds at the water's edge, thin ink-grey-green rushes (no pine bough over the moon: the
-  // lake is lovelier without it)
+  // ---- the framing element: reeds at the water's edge, thin ink-grey-green rushes (no pine bough over the moon)
   rushes(env, X(K + 1.071), 705, 0.95, own('d5 reeds'), 18, 70);
   yield;
-  // ---- Writing's one painted moment: the lake catching the spring morning. A willow comes in from the top-right
-  // corner and lets its long fresh-green strands down over the water toward the pavilion (the lake's willow: longer,
-  // looser than the river town's tip); a few petals that have drifted down lie on the still water, each with its own
-  // broken rings and their lit arcs.
-  // The light on the water is the shader's (a glassy glitter column under the low light).
+  // ---- Writing's one painted moment: the lake in spring. A willow comes in from the top-right corner and lets its
+  // long fresh-green strands down over the water toward the pavilion (the lake's willow: longer, looser than the river
+  // town's tip); a few petals that have drifted down lie on the still water, each with its own broken rings and their
+  // lit arcs. The shader paints the light's glitter column; the glints below lie over it.
   if (el('boughs')) {
-    // (it comes in from the right, under the window's top feather, so the whole of it is seen. THE UNROLL (the
-    // vanguard round's fix round): drawn as its own sprite, pinned to the frame (figures.ts LifeParams.pinned): its
-    // root lies just past the wide hero's east edge, on the layer's eastern reach, and
-    // Writing's slide (403 px at 1440) brought it into the sky as a cut end by the page's end; pinned, the lake slides
-    // west under it and the willow keeps its corner, the near framing element of the opening the reader looks through.
-    // Still, no swing: its life is the lake's, not its own. A painting without sprites paints it into the layer.)
+    // (it comes in from the right, under the window's top feather, so the whole of it is seen. Its own sprite, pinned
+    // to the frame (figures.ts LifeParams.pinned): its root lies just past the wide hero's east edge, on the layer's
+    // eastern reach, so the stage's slide carries the lake west under it and never brings the root into view as a cut
+    // end. A painting without sprites paints it into the layer.)
     const ctl: Pt[] = [[X(K + 1.13), Y(0.545)], [X(K + 1.09), Y(0.512)], [X(K + 1.045), Y(0.49)], [X(K + 1.0), Y(0.481)], [X(K + 0.968), Y(0.487)], [X(K + 0.95), Y(0.5)]];
     const side: Pt[] = [[X(K + 1.07), Y(0.5)], [X(K + 1.09), Y(0.474)], [X(K + 1.105), Y(0.466)]];
     const Rw = own('q3 willow');
-    // (a generous box: the strands hang to the waterline and sway west by up to a quarter of their length; the sprite
+    // (a generous box: the strands hang to the waterline and bend west by up to a quarter of their length; the sprite
     // is cropped to its ink)
     const wbox = { x: X(K + 0.95) - 75 * b, y: Y(0.545) - 20 * b, w: X(K + 1.13) - X(K + 0.95) + 99 * b, h: Y(0.29) - Y(0.545) + 44 * b };
     ownSprite(env, 'boat', wbox, { pinned: true, range: [X(K + 1.13) - 4000, X(K + 1.13) + 4000] }, (e) => {

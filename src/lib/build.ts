@@ -25,11 +25,11 @@ interface BuildStamp {
   sha: string;
   /** the build day, ISO ("2026-11-12") */
   date: string;
-  /** the measured LCP in ms and the profile it was measured under; null until CI writes it */
+  /** the measured LCP in ms and the profile it was measured under; null until `check:budgets -- --write` writes it */
   lcpMs: number | null;
   profile: string;
   measuredOn: string | null;
-  /** Home's first-load transfer in KB from the same run; null until CI writes it */
+  /** Home's first-load transfer in KB from the same run; null until then */
   transferKB: number | null;
 }
 

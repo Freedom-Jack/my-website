@@ -1,6 +1,6 @@
 /**
- * The craft's text tools, pure and shared by the build (the index, the eval) and the browser (the
- * search box), so a number computed at build is the number the visitor's own run would give.
+ * The craft's text tools, pure and shared by the build (the index, the eval) and the browser (the search box, the
+ * eval's run on Work), so a number computed at build is the number the visitor's own run would give.
  *   tokenize  lowercase, accents folded, a short stop list, a light suffix strip (never a dictionary)
  *   BM25      the lexical index over the site's chunks (Robertson's k1 = 1.2, b = 0.75)
  * Nothing here generates words: a result is always one of the chunks, verbatim.

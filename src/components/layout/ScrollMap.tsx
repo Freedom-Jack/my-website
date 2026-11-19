@@ -7,10 +7,9 @@ import scroll from '../../../public/scenes/scroll/scroll.json';
 import { useCurrent } from '@/features/chrome/current';
 
 /**
- * The whole scroll in miniature, at the tail of every page: ONE strip of the painting from Home's peaks to the
+ * The whole scroll in miniature, at the tail of every page: one strip of the painting from Home's peaks to the
  * crossing, the stretches between the places included (public/scenes/scroll/scroll.webp, cut from the engine by
- * tools/build-scroll.ts; fetched only as the tail nears). Jack, of the five separate stills that stood here: "it is
- * not a coherent scroll … also include the transitions".
+ * tools/build-scroll.ts; fetched only as the tail nears).
  * Each page's name stands under its own place (scroll.json `places`: where along the strip each one's focus lies),
  * and the stretch of the strip round a place is that page's link, so the map is read and used as one painting. The
  * current page (or its section) is sealed with aria-current; nothing is current on the 404, which lies off the map.

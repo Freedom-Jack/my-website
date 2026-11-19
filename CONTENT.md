@@ -8,17 +8,17 @@ file (the schemas, the hard rules, the counts below).
 | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
 | Name, title, email, city, profiles, jobs, education, skills, awards, certificates                     | `content/resume.json`                                   |
 | A page's own words (Home, Work's index, Contact, Writing, Résumé, 404)                                | `content/pages/<page>.ts`                               |
-| A project (its page `/work/<slug>/` and its row in Work's table)                                      | `content/work/<slug>.mdx`                               |
+| A project (its page `/work/<slug>/` and its row in Work's index)                                      | `content/work/<slug>.mdx`                               |
 | A note (`/writing/<slug>/`)                                                                           | `content/writing/<slug>.mdx`                            |
 | The nav, the tail (the colophon, "Last changed"), the ending's label, the site's address, search data | `content/site.ts`                                       |
-| The tail's measured number (written by CI, never by hand)                                             | `content/measured.json`                                 |
+| The tail's measured number (written by `npm run check:budgets -- --write`, never by hand)             | `content/measured.json`                                 |
 | The "In the open" repositories on Work                                                                | `content/github/overrides.json`                         |
 | A project's brush diagram                                                                             | `content/work/diagrams/<name>.wide.svg` and `.tall.svg` |
 | Work's search and Under the hood: the box, the status line, the live pieces' titles and sizes         | `content/pages/work-craft.ts` (`search`, `hood`)        |
 | The live pieces' ties and cases, their long words (in their JSON, never in Work's HTML), the eval set | `content/craft/hood.ts`, `content/craft/eval.ts`        |
 | "Ask the painting" on Home: its label, hint, examples, the steps it prints, what it says when unsure  | `content/pages/ask.ts`                                  |
 | A case page's shared words: where a figure comes from (DRAFT "internal figure"), the NDA line (DRAFT) | `content/pages/case.ts`                                 |
-| Where a project's figure comes from (`public-source`, `internal`, `projected`; A1)                    | `content/work/<slug>.mdx` (`figure.basis`)              |
+| Where a project's figure comes from (`public-source`, `internal`, `projected`)                        | `content/work/<slug>.mdx` (`figure.basis`)              |
 
 ## The résumé: one file, three outputs
 
@@ -35,7 +35,7 @@ to fit one page, this file keeps its fuller wording. Never copy its phone number
 After changing it, regenerate the PDF:
 
 ```bash
-npm run build && npm start
+npm run build && npm start -- -p 3100
 ```
 
 ```bash
@@ -64,19 +64,20 @@ compounds kept whole ("LLM-powered"). Use real punctuation: ’ “ ” – —.
 
 1. Copy `content/work/rag-assistant.mdx` to `content/work/<slug>.mdx`. The file name becomes the address,
    `/work/<slug>/`, so use lowercase words joined by hyphens.
-2. Fill in the front matter. Every field is commented in that file. `order` puts it in Work's table (1 is the
+2. Fill in the front matter. Every field is commented in that file. `order` puts it in Work's index (1 is the
    newest, and every order is unique). `evidence` is a list of public links; leave it empty for client work.
-3. Write the body under these headings, each optional: `## Context`, `## What I did`, `## Outcome`, `## Evidence`,
-   `## Stack`. A glossary note goes right after the paragraph it explains:
+3. Write the body under these headings, each optional: `## Problem`, `## My part`, `## The hard part`,
+   `## Outcome and status`, `## Evidence`, `## Stack`. A glossary note goes right after the paragraph it explains:
    `<Note term="RAG">Retrieval-augmented generation. …</Note>`.
 4. If it has a diagram, add `content/work/diagrams/<name>.wide.svg` and `<name>.tall.svg` (copy an existing pair:
    strokes carry `data-order` for the draw-in) and set `diagram.name`.
-5. **Update the counts.** The words say how many projects there are: "Six projects, newest first" and "All six
-   projects →" in `content/pages/work.ts`, and "All six projects →" in `content/pages/home.ts`. The unit tests fail
-   until they match the number of files.
+5. **Update the counts.** The words say how many projects there are: "Six projects, newest first", "All six
+   projects →" and the description's "Six projects by …" in `content/pages/work.ts`, "All six projects →" in
+   `content/pages/home.ts`, and "six projects" in `content/pages/llms.ts`. The unit tests fail until Work's and
+   Home's counts match the number of files.
 
 6. Optional: give it its own link-preview card. Until then a shared link shows Work's. With a QA build served on
-   port 3100 (README, "After changing the engine…"), run `npm run build:og -- --pages work-<slug>`.
+   port 3100 (README, "A QA build"), run `npm run build:og -- --pages work-<slug>`.
 
 Home's "What I work on" rows link to cases by address (`content/pages/home.ts`); add one there if the new project
 belongs on Home.

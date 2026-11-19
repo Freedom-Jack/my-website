@@ -1,15 +1,16 @@
 // gl.ts — WebGL2 renderer for the landscape. Owns GL resources only; index.ts decides when to draw.
 //
-//   A *view* is one painting: a window onto the world (the page's strip, its closing) or the full viewport (the
-//   desktop horizon). Each view has its own ridge texture and its own scene framebuffer.
+//   A *view* is one painting: a window onto the world (the page's strip, its closing, a window into the painting), the
+//   full viewport (the desktop horizon) or a depth layer of the stage. Each view has its own ridge texture and its own
+//   scene framebuffer.
 //   view(id, w, h)     make sure view `id` has a w x h scene buffer (buffer px); dropView(id) frees it
 //   ridges(id, d, n)   upload view `id`'s ridge rows (n columns)
-//   figure(id, img)    upload a figure layer ({ width, height, data: premultiplied RGBA bytes, top row first }, or 4b
+//   figure(id, img)    upload a figure layer ({ width, height, data: premultiplied RGBA bytes, top row first }, or
 //                      { width, height, bitmap: an ImageBitmap, sprites?: [{ width, height, bitmap }] }) as a
-//                      mipmapped texture (the mip levels give the bleed halo); its sprites (4b small life: Work's punt)
+//                      mipmapped texture (the mip levels give the bleed halo); its sprites (small life's moving things)
 //                      as `${id}#${i}`, freed with it; figure(id, null) frees it
-//   bitmaps            4b: true when this browser uploads a canvas's ImageBitmap premultiplied (probed once per context;
-//                      index.ts then asks the figure worker for bitmaps, else for premultiplied bytes as in 4a)
+//   bitmaps            true when this browser uploads a canvas's ImageBitmap premultiplied (probed once per context;
+//                      index.ts then asks the figure worker for bitmaps, else for premultiplied bytes)
 //   scene(id, U)       expensive painting of view `id` -> its framebuffer. A frame in motion (U.draft) is painted into
 //                      a corner of the framebuffer at U.draftScale; present() stretches it back.
 //   present(U)         cheap pass to the screen: the windows at their live boxes, the horizon band, mist, grain
@@ -19,7 +20,7 @@
 //                      (KHR_parallel_shader_compile; asked for with COMPLETION_STATUS_KHR, never a blocking wait), the
 //                      noise is painted once its program is done; `ready` turns true when every program is. index.ts
 //                      polls it from a short timer until then (whenReady) and paints the first scene only after, so the
-//                      boot never holds the main thread for the compiles (they were ~70 ms of one task on a phone).
+//                      boot never holds the main thread for the compiles (~70 ms of one task on a phone).
 //                      Without the extension the first poll after LINK_GRACE asks for LINK_STATUS, which waits.
 //
 // Survives context loss: resources are rebuilt on 'webglcontextrestored' (views and figures are re-made by
@@ -34,7 +35,7 @@ const LINK_GRACE = 60;   // ms: without KHR_parallel_shader_compile, how long po
 const SOFTWARE =/swiftshader|llvmpipe|softpipe|software|basic render|mesa offscreen|warp/i;
 const NONE4 = new Float32Array([2, 2, -1, -1]);
 const ZERO4 = new Float32Array(4);
-const ALL_PLANES = new Float32Array([0, LAYERS - 1, 0, 0]);   // an ordinary view: every plane, opaque (4b depth layers set their own)
+const ALL_PLANES = new Float32Array([0, LAYERS - 1, 0, 0]);   // an ordinary view: every plane, opaque (depth layers set their own)
 const NO_CROP = new Float32Array([0, 1, 0, 0]);                 // an ordinary view: the whole width of its ridges
 const ZERO12 = new Float32Array(12);
 const FULL_RECTS = new Float32Array([0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1]);
@@ -138,7 +139,7 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
   const figBytes = new Map<string, number>();     // id -> bytes (QA: memory())
   let fence: WebGLSync | null = null;   // set after a present: has the GPU finished that frame? (see busy())
   let fenceAt = 0;
-  let bitmapsOK = false;  // 4b: an ImageBitmap of a 2D canvas uploads premultiplied here (probeBitmaps)
+  let bitmapsOK = false;  // an ImageBitmap of a 2D canvas uploads premultiplied here (probeBitmaps)
 
   // (WebGL's create* return null only on a lost context, where every later call is a no-op: the ! below)
   // A compile is only issued here: its status is asked with its program's link (finish), never right away (asking
@@ -198,7 +199,7 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
     return t;
   }
 
-  // 4b: a figure layer (or a life sprite) arrives as an ImageBitmap of the worker's canvas: no getImageData readback.
+  // A figure layer (or a life sprite) arrives as an ImageBitmap of the worker's canvas: no getImageData readback.
   // The shader wants premultiplied texels. (The WebGL spec has the UNPACK_* flags ignored for an ImageBitmap, whose own
   // premultiply option decides, and transferToImageBitmap leaves it at 'default': so the flags are set for the browsers
   // that honour them, and probeBitmaps() checks what this one does.)
@@ -210,7 +211,7 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
     gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.BROWSER_DEFAULT_WEBGL);
   }
   // One 1x1 probe per context, made before anything else is queued (so its readback waits for nothing): does a canvas's
-  // ImageBitmap upload premultiplied here? If not, index.ts asks the worker for premultiplied bytes, as in 4a.
+  // ImageBitmap upload premultiplied here? If not, index.ts asks the worker for premultiplied bytes.
   function probeBitmaps() {
     bitmapsOK = false;
     if (typeof OffscreenCanvas !== 'function') return;
@@ -249,7 +250,7 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
     r.noiseP = program(NOISE);
     r.sceneP = program(SCENE);
     r.presentP = program(PRESENT);
-    r.presentL = program(PRESENT.replace('#define LIFE ', '#define LIFE_ON 1\n#define LIFE '));   // 4b: with small life
+    r.presentL = program(PRESENT.replace('#define LIFE ', '#define LIFE_ON 1\n#define LIFE '));   // with small life
     r.noise = null;
     // a 1x1 transparent texture for unused samplers
     r.blank = tex(1, 1, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, gl.CLAMP_TO_EDGE, new Uint8Array(4));
@@ -455,7 +456,7 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       gl.uniform1f(P.u('uPanPx'), U.panPx);
       gl.uniform1f(P.u('uGrain'), U.grain);
       gl.uniform1f(P.u('uGrainPx'), U.grainPx);
-      // 4b: the living ground's depth layers (units 4-6) and the living veils
+      // the living ground's depth layers (units 4-6) and the living veils
       const st = U.stage;
       const sv = st ? st.ids.map((id) => views.get(id)) : [];
       const stOn = !!st && sv.length === 3 && !!sv[0]?.tex;
@@ -495,8 +496,8 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       gl.uniform4fv(P.u('uGlC'), gOn ? G!.c : ZERO8);
       gl.uniform4fv(P.u('uGlD'), gOn ? G!.d : ZERO8);
       gl.uniform4fv(P.u('uGlM'), gOn ? G!.m : ZERO8);
-      // 4b small life (the life program only; units 7-9): its table, the ridges of the view it lies in (where its water
-      // is), the drifting boat's sprite and the figure layer the water's shimmer keeps off (boats, the bridge)
+      // small life (the life program only; units 7-9): its table, the ridges of the view it lies in (where its water
+      // is), the layer's sprite atlas and the figure layer the water's shimmer keeps off (boats, the bridge)
       const lf = U.life;
       if (lf) {
         bindTex(P, 7, 'uLifeRid', (lf.ridge && views.get(lf.ridge)?.ridges) || null);
@@ -517,7 +518,6 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
   }
 
   return {
-    mode: 'webgl',
     software,
     get ready() { return !!R && R.complete && !gl.isContextLost(); },
     poll,
@@ -566,7 +566,7 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, samples, ROWS, gl.RGBA, gl.FLOAT, data);
       }
     },
-    /** Upload a figure layer (premultiplied RGBA bytes, top row first; or an ImageBitmap, 4b, with its life sprites),
+    /** Upload a figure layer (premultiplied RGBA bytes, top row first; or an ImageBitmap with its life sprites),
      *  or free it (img = null). The bitmaps are closed once uploaded. */
     figure(id, img) {
       if (!R) { closeBitmaps(img); return false; }
@@ -634,7 +634,7 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
     },
     present(U) {
       if (!R || !R.complete) return;
-      const P = U.life ? R.presentL : R.presentP;   // (4b: the program with small life only while some is on screen)
+      const P = U.life ? R.presentL : R.presentP;   // (the program with small life only while some is on screen)
       gl.bindVertexArray(R.vao);
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.viewport(0, 0, W, H);
@@ -647,8 +647,9 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       }
     },
     /**
-     * THE PLATES: one depth layer of the stage (kind 1 far, 2 middle, 3 near, 4 the sea of mist), or a part of it,
-     * painted into the drawing buffer's lower-left w x h corner with the screen pass's own uniforms (the hero pose).
+     * THE PLATES: one depth layer of the stage (kind 1 far, 2 middle, 3 near, 4 the sea of mist, 5 what is pinned to the
+     * frame, 6 the paper with its grain, 10 below), or a part of it, painted into the drawing buffer's lower-left w x h
+     * corner with the screen pass's own uniforms (the hero pose).
      * `uv` is the part's window in canvas uv (x0, y0, width, height; x may run past 1, the layers being painted wider
      * than the screen), `ox, oy` its pixel origin in its plate. Returns the canvas to copy from (its rows
      * canvas.height - h .. canvas.height), or null when nothing was painted.

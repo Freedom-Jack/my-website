@@ -19,7 +19,7 @@ import { PALETTES, paletteName, pigmentAt } from '@/features/landscape/engine/pa
 
 describe('the landscape engine, pure parts', () => {
   it('names each stretch of the one handscroll', () => {
-    // round 5: one place per stretch, in the nav's order; the road (a stretch with no page) is gone
+    // one place per stretch, in the nav's order, then the 404's lone peak
     expect([0, 1, 2, 3, 4, 5].map((k) => sceneName(k))).toEqual([
       'peak',
       'river',
@@ -52,7 +52,7 @@ describe('the landscape engine, pure parts', () => {
       expect(f.focus[0], `stretch ${k}`).toBeGreaterThanOrEqual(700 + 180);
     }
   });
-  it('frames every inner hero the same way: one horizon, one scale, the focus at one place (round 5)', () => {
+  it('frames every inner hero the same way: one horizon, one scale, the focus at one place', () => {
     for (const [cls, width, height] of [
       ['wide', 1440, 360],
       ['wide', 1280, 300],
@@ -70,7 +70,7 @@ describe('the landscape engine, pure parts', () => {
       }
     }
   });
-  it('opens a deep page inside its place: closer by HERO.inside, on the same horizon, east of the landmark (the vanguard round)', () => {
+  it('opens a deep page inside its place: closer by HERO.inside, on the same horizon, east of the landmark', () => {
     const box = { width: 1440, height: 360, keepoutRight: 700 };
     const open = { width: 1440, height: 360, keepoutRight: null }; // (no words over the box: the framing as named)
     for (const [k, u, keepU] of [
@@ -90,7 +90,7 @@ describe('the landscape engine, pure parts', () => {
       // ...and under the words the keep-out rule still holds: the place's leftmost figurative point (Work: the bridge's
       // west foot) stands at least KEEP_GAP right of the text, so the bridge looms whole at the words' edge
       expect((k + keepU - inside.worldLeft) * inside.scale).toBeGreaterThanOrEqual(700 + 180 - 1e-6);
-      // a page's own sub-anchor instead (A2)
+      // a page's own sub-anchor instead (insideU)
       const own = framingAt(k, 'wide', { ...open, inside: true, insideU: 0.5 }, 'strip');
       expect(own.worldLeft + (HERO.fx.wide * open.width) / own.scale).toBeCloseTo(k + 0.5, 6);
     }
@@ -104,7 +104,7 @@ describe('the landscape engine, pure parts', () => {
       framingAt(0, 'wide', { width: 1440, height: 522, keepoutRight: 700 }, 'strip'),
     );
   });
-  it('finds the camera position that brings a part of a place to the focus column (A2, the sub-anchors)', () => {
+  it('finds the camera position that brings a part of a place to the focus column (the sub-anchors)', () => {
     const box = { width: 1440, height: 360, keepoutRight: 700 };
     for (const [k, u] of [
       [1, 0.9],
@@ -122,7 +122,7 @@ describe('the landscape engine, pure parts', () => {
     expect(cameraFor(0, -2, 'wide', box)).toBe(0);
     expect(cameraFor(5, 3, 'wide', box)).toBe(5);
   });
-  it('paints the scroll with one composition, and one river that never breaks (round 5)', () => {
+  it('paints the scroll with one composition, and one river that never breaks', () => {
     expect(SCENES.every((s) => s.page[0] === WORLD[0] && s.page[1] === WORLD[1])).toBe(true);
     const P = resolve(spec(...WORLD), 1.6);
     const f = new Float32Array(SCENE_FIELDS);

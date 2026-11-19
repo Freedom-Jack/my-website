@@ -1,13 +1,13 @@
 /**
  * The one public résumé PDF (/resume.pdf), printed from the web résumé, so the two can never disagree: the page's
- * own print stylesheet (features/resume/resume.module.css) IS the PDF. content/resume.json → /resume/ → this.
+ * own print stylesheet (features/resume/resume.module.css) is the PDF. content/resume.json → /resume/ → this.
  *
  *   npm run build && npm start            (any server that serves the built site; default http://127.0.0.1:3100)
  *   npm run build:pdf                     print, gate, and write public/resume.pdf
  *   npm run build:pdf -- --check          print and gate only; fail if public/resume.pdf's words differ (CI)
  *   npm run build:pdf -- --url http://127.0.0.1:3000/resume/
  *
- * PRIVACY GATE (CLAUDE.md, hard rules: no phone number anywhere; it fails loudly and nothing is written):
+ * The privacy gate (CLAUDE.md, hard rules: no phone number anywhere; it fails loudly and nothing is written):
  *   1. the page's HTML must hold no phone-number pattern and no tel: link;
  *   2. the PDF's own text (extracted with pdf.js) must hold none either;
  *   3. the extraction must demonstrably work (the name, the city and the public email are found), so an empty or

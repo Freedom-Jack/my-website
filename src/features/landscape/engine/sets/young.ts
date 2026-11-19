@@ -1,5 +1,5 @@
-// sets/young.ts — the young painted elements (the "Spring ink" style): drawn with the kit so they take the layer's
-// bleed, the plane's mist, the grain and the drifting mist like every other figure.
+// sets/young.ts — not a set: the painted elements the sets share, drawn with the kit so they take the layer's bleed,
+// the plane's mist, the grain and the drifting mist like every other figure.
 //
 // The willow tip (Work's and Writing's) hangs from a tapering bough that comes in from off-frame, one tapered stroke
 // (inkLimb: brown-black ink with a darker bone on its shadow side, broken by flying white, with a few moss dots), its
@@ -29,7 +29,8 @@ function soft(env: Env, r: number, paint: () => void) {
 const pointAt = (pts: Pt[], t: number): Pt => pts[Math.min(pts.length - 1, Math.max(0, Math.round(t * (pts.length - 1))))];
 
 // ---------------------------------------------------------------- petals
-/** A petal outline in the blossom's face plane: obovate (wider toward its rim) with a faint notch at the rim. */
+/** loosePetal's outline: obovate (wider toward its rim) with a faint notch at the rim; u runs from the heart (0) to the
+ *  rim (len), v across. */
 function petal(len: number, wid: number, notch: number, R: Rng): Pt[] {
   const out: Pt[] = [];
   const n = 22;
@@ -44,7 +45,8 @@ function petal(len: number, wid: number, notch: number, R: Rng): Pt[] {
   }
   return out;
 }
-/** A loose petal, falling: a curled petal (turned: squashed along a random axis), pale, with its pooled edge. */
+/** A loose petal lying on the water (pavilion.ts, on Writing's lake): the petal's outline turned (squashed along a
+ *  random axis), pale pink, with its pooled edge. (x, y) its middle, r its length; mist 0..1 hazes it toward the air. */
 export function loosePetal(env: Env, x: number, y: number, r: number, R: Rng, mist = 0) {
   const { ctx, ink } = env;
   const { rgba } = ink;
@@ -87,18 +89,18 @@ function spline(pts: Pt[], n = 6): Pt[] {
   return out;
 }
 
-/**
- * A limb painted as ONE smoothed brush stroke, never a faceted tube with polygon kinks. The path is a Catmull-Rom
- * spline through the jittered joints; the width tapers from w0 to w1 over the whole run, with only a slight swelling
- * at the knots and the hand's unevenness; brown-black ink (INK_N toward umber) with a darker bone along the shadow
- * side; flying white in two or three irregular skips that follow the stroke; a few moss dots on top.
- */
 interface InkC { body: RGB; bone: RGB; dot: RGB }
 const INK_NB: RGB = [12, 21, 28], UMBER: RGB = [120, 80, 50];
 /** brown-black ink: INK_N moved ~15 % toward umber (and its wet, paler body a breath lighter) */
 const BROWN_INK: InkC = { body: mix3(mix3(INK_NB, UMBER, 0.2), [236, 238, 234], 0.1), bone: mix3(INK_NB, UMBER, 0.12), dot: mix3(INK_NB, UMBER, 0.1) };
 /** the willow's bough: the brown ink, a little paler (it hangs in the air, further off) */
 const WILLOW_INK: InkC = { body: mix3(BROWN_INK.body, [150, 150, 140], 0.28), bone: mix3(BROWN_INK.bone, [110, 108, 100], 0.25), dot: BROWN_INK.dot };
+/**
+ * A limb painted as one smoothed brush stroke, never a faceted tube with polygon kinks. The path is a Catmull-Rom
+ * spline through the jittered joints; the width tapers from w0 to w1 over the whole run, with only a slight swelling
+ * at the knots and the hand's unevenness; brown-black ink (INK_N toward umber) with a darker bone along the shadow
+ * side; flying white in two or three irregular skips that follow the stroke; a few moss dots on top.
+ */
 function inkLimb(env: Env, ctl: Pt[], w0: number, w1: number, R: Rng, c: InkC, o: { dots?: number; white?: boolean; press?: number } = {}) {
   const { ctx, ink } = env;
   const { rgba } = ink;
@@ -190,7 +192,7 @@ function inkLimb(env: Env, ctl: Pt[], w0: number, w1: number, R: Rng, c: InkC, o
       const len = Math.round((0.1 + R() * 0.14) * n), s0 = Math.floor(c0 * n), s1 = Math.min(n - 2, s0 + len);
       if (s1 - s0 < 3 || hw[s0] < 2.5) continue;
       const cuts = 2 + (R() < 0.5 ? 1 : 0);
-      R();   // (a draw only the plum's bark read; kept, so every later draw, the willows' strands included, stays put)
+      R();   // (a draw nothing reads: it holds the stream's place for every later draw, the willows' strands included)
       for (let b = 0; b < cuts; b++) {
         const off = -0.45 + R() * 1.0, a0 = s0 + Math.floor(R() * (s1 - s0) * 0.3);
         const pts: Pt[] = [];
@@ -212,7 +214,7 @@ function inkLimb(env: Env, ctl: Pt[], w0: number, w1: number, R: Rng, c: InkC, o
     ctx.beginPath(); ctx.ellipse(px, py, ds, ds * (0.6 + R() * 0.3), R() * 3, 0, Math.PI * 2); ctx.fill();
   }
 }
-/** Index runs [s0, s1] covering about `fill` of 0..n-1 in pieces of minF..maxF of its length, gaps between. */
+/** Index runs [s0, s1] along 0..n-1, each minF..maxF of n long, with gaps of about gapF of n between. */
 function runIdx(n: number, R: Rng, minF: number, maxF: number, gapF: number): [number, number][] {
   const out: [number, number][] = [];
   let i = Math.floor(R() * gapF * n);
@@ -226,12 +228,13 @@ function runIdx(n: number, R: Rng, minF: number, maxF: number, gapF: number): [n
 const vn = (x: number) => { const i = Math.floor(x), f = x - i, h = (k: number) => { const s = Math.sin(k * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); }; return h(i) + (h(i + 1) - h(i)) * f * f * (3 - 2 * f); };
 
 /**
- * The willow tip over the town (never neon lime, a uniform pipe or combs of identical drops, never hanging through
- * the roofs). A brown-ink bough that comes down out of the top edge (out of the paper under the header) and
- * tapers to a twig; the strands hang from it in groups with gaps, their lengths 3 : 1, all bent by one wind; each
- * strand's leaves follow it, turned along it with a little jitter, smaller toward the tip; spring yellow-green near
- * (#9DC77A), misted far (#BFD9B0), the far strands hazed. No tip hangs below `floorY` (the town's roofline).
- * ctl = the bough's joints (world px); s = scale; wind = sideways push at a strand's tip per px of its length.
+ * The willow tip, Work's over the town and Writing's over the lake (never neon lime, a uniform pipe or combs of
+ * identical drops). A brown-ink bough that comes in from off-frame and tapers to a twig; the strands hang from it in
+ * groups with gaps, their lengths 3 : 1, all bent by one wind; each strand's leaves follow it, turned along it with a
+ * little jitter, smaller toward the tip; spring yellow-green near (#9DC77A), misted far (#BFD9B0), the far strands
+ * hazed. No tip hangs below `floorY` (the town's roofline, the lake's water). ctl = the bough's joints (world px);
+ * side = a second, shorter bough or null; s = scale; wind = sideways push at a strand's tip per px of its length;
+ * lmax = the main bough's longest strand and bw = its width at the root (both times s).
  */
 export function willowTip(env: Env, ctl: Pt[], side: Pt[] | null, s: number, floorY: number, R: Rng, wind = -0.32, lmax = 108, bw = 9) {
   const { ctx, ink } = env;
@@ -329,7 +332,7 @@ export function rushes(env: Env, x0: number, y0: number, s: number, R: Rng, n = 
 
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;
 
-// ---------------------------------------------------------------- the river: reflections and ripple rings
+// ---------------------------------------------------------------- the water: reflections and ripple rings
 
 /**
  * A reflection on the river, broken by the ripples. `draw` paints the thing again, mirrored about the
@@ -378,7 +381,7 @@ export function reflectIn(env: Env, river: Pt[], at: Pt, draw: () => void, R: Rn
 }
 
 /**
- * A few broken ripple rings on the river at (x, y), painted, never UI circles: 2-3 rings
+ * A few broken ripple rings on the water at (x, y), painted, never UI circles: 2-3 rings
  * squashed by the view, spacing growing outward, each 2-3 arcs of unequal sweep in thick-thin ink that fade toward
  * their ends (never closed), the inner ring the darkest; on the side toward the light a white lit arc just outside it,
  * and a breath of pale light laid in the water inside the inner ring.
@@ -421,7 +424,7 @@ export function ripples(env: Env, x: number, y: number, r0: number, R: Rng, o: {
 }
 
 /**
- * A far bird gliding (a misted swallow this small reads as a nail clipping): an open V of two tapered strokes,
+ * A far bird gliding (drawn whole at this size, a bird reads as a nail clipping): an open V of two tapered strokes,
  * thick at the body and thin to the wing tips, meeting at a slightly dropped body dot. size = span (6-10 px), ang =
  * heading tilt, mist 0..1 (hazed toward the air).
  */

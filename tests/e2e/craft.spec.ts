@@ -3,10 +3,10 @@ import { expect, type Page, test } from '@playwright/test';
 import { fontsReady, isSoftware, settle } from './support/pages';
 
 /**
- * The craft on Work (features/craft; the brief's P4 acceptance and the attack's A2, A5, A8, A11, A15): nothing of it is
- * fetched before the reader reaches it (round 7: the pieces lie open, each fetching its data as it nears); the status line says what was downloaded, measured;
- * every request of a search session is a same-origin GET that carries none of the typed text; the keyboard (a roving
- * tabindex, Enter opens, Escape clears); the submit at a 460 px tall viewport; axe on Work; the pan and back.
+ * The craft on Work (features/craft): nothing of it is fetched before the reader reaches it (the pieces lie open, each
+ * fetching its data as it nears); the status line says what was downloaded, measured; every request of a search
+ * session is a same-origin GET that carries none of the typed text; the keyboard (a roving tabindex, Enter opens,
+ * Escape clears); the submit at a 460 px tall viewport; axe on Work; the pan and back.
  */
 const isCraft = (u: string) => new URL(u).pathname.startsWith('/craft/');
 const box = (page: Page) => page.getByRole('searchbox', { name: 'Search these pages' });
@@ -24,7 +24,7 @@ test('nothing of the craft loads before the reader reaches it', async ({ page })
   const urls = await open(page);
   await page.waitForTimeout(500);
   expect(urls.filter(isCraft)).toEqual([]);
-  // (round 7: the pieces lie open on the page; each fetches its data as the reader comes within half a screen of it)
+  // (the pieces lie open on the page; each fetches its data as the reader comes within half a screen of it)
   await page.locator('#hood-mask').scrollIntoViewIfNeeded();
   await expect(page.locator('#hood-mask ol').first()).toBeVisible();
   expect(urls.filter(isCraft).map((u) => new URL(u).pathname)).toContain('/craft/mask.json');
@@ -103,7 +103,7 @@ test.describe('on a phone with the keyboard up (390 × 460)', () => {
     await show.click();
     const crop = page.locator('form[role="search"] img').first();
     await expect(crop).toBeVisible();
-    // (A2: on a thumb the place is a pre-cut still crop, inline and lazy; the painting itself does not pan)
+    // (on a thumb the place is a pre-cut still crop, inline and lazy; the painting itself does not pan)
     expect(await crop.getAttribute('src')).toMatch(/\/scenes\//);
     expect(await crop.getAttribute('loading')).toBe('lazy');
     const ink = await page.evaluate(() => {

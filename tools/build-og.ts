@@ -68,8 +68,8 @@ interface Card {
   byline?: string;
   /** Home's one line under the name (the card is a cover: its two hero paragraphs would be unreadable at preview size) */
   line?: string;
-  /** Home's card also keeps the first screen's one proof (the vanguard round, P6: the name, the role, the proof); its
-   *  words count towards --check's staleness */
+  /** Home's card also keeps the first screen's one proof (the name, the role, the proof); its words count towards
+   *  --check's staleness */
   proof?: string;
   alt: string;
 }

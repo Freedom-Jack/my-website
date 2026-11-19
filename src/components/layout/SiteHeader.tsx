@@ -9,7 +9,7 @@ import { useReturningHeader } from '@/features/chrome/returning-header';
 import { RiverLine } from './RiverLine';
 
 /**
- * The header: the name as text, a link home (its accessible name "Qijin Xu, home"; the seal signs once, at the tail),
+ * The header: the name as text, a link home (its accessible name "Qijin Xu, home"; the seal signs at the tail),
  * then Work · Writing · Résumé · Contact (content/site.ts, the painting's order), and under the row the river line
  * (RiverLine: a hairline with a tick per stop and the mark that stands under the current page and travels as the
  * page scrolls). In normal flow, on paper, above the strip; once the strip has scrolled away it returns, solid, on

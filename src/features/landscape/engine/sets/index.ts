@@ -1,8 +1,10 @@
 // sets/index.ts — the registry of figure sets: one module per set, one set per stretch (figures.ts, THE SET API).
-// The engine (index.ts) and its worker (figures.worker.ts) register this list with figures.ts. To add a set: write sets/<name>.ts (export const meta, export function*
-// draw) and add one line here; nothing else changes (index.ts, the worker, the shaders and Canvas2D are generic).
-// One set per place, in the handscroll's order (round 5: the road between Work and Writing is gone; every stretch is a
-// page's place). Each set places itself by its own stretch constant K.
+// The figure worker (figures.worker.ts) and the main-thread fallback (figure-source.ts) register this list with
+// figures.ts. To add a set: write sets/<name>.ts (export const meta, export function* draw), add one line here and
+// its meta to figure-meta.ts METAS (tests/unit/figure-meta.test.ts keeps the two equal); index.ts, the worker, the
+// shaders and Canvas2D are generic.
+// One set per place, in the handscroll's order: every stretch is a page's place. Each set places itself by its own
+// stretch constant K.
 
 import type { SetEntry } from '../figures';
 import * as home from './home';

@@ -1,10 +1,10 @@
 // canvas2d.ts — fallback renderer for browsers without WebGL2 (or after the context is lost for good). Same ridge
-// profiles, framings, palettes and figure layers as the shader (ridges.ts / compose.ts / figures.ts), painted into
+// profiles, framings, palette and figure layers as the shader (ridges.ts / compose.ts / figures.ts), painted into
 // the same views (the page's strip and closing windows, the desktop horizon band), static: no drifting mist, no wake
 // and no sweep (that needs the GPU).
 //
-// Each view's painting is built the round-3 way: every plane's wash at quarter resolution from many small offset
-// stamps of its silhouette (so it grades away from every crest, like the shader), blurred once, upscaled smoothly
+// Each view's painting: every plane's wash at quarter resolution from many small offset stamps of its silhouette (so
+// it grades away from every crest, like the shader), blurred once, upscaled smoothly
 // and clipped to the crisp full-resolution silhouette; dry contours on the near planes; mist bands at every foot; the
 // water as reserved paper with a soft flipped reflection and a few long strokes. Pigment is a tint of each plane's
 // wash; the figure layer is laid in after its plane; the keep-out is a mist ramp. Software rasterisers are common
@@ -24,7 +24,7 @@ const INK_F = [62, 86, 100];
 const AZ = [[127, 159, 184], [44, 92, 138]];    // misted, deep
 const MAL = [[141, 181, 164], [58, 128, 106]];
 // the veils' tone: a touch above MIST, because 8-bit blending of many faint draws stops short of
-// its target (by ~5 levels on CPU canvases); this lands the wash where the GPU painted it
+// its target (by ~5 levels on CPU canvases); this lands the wash where the GPU paints it
 const STAMP = [MIST[0] + 5, MIST[1] + 5, MIST[2] + 5];
 
 // (colours: [r, g, b], 0..255)
@@ -164,7 +164,7 @@ export function createCanvas2D(canvas: HTMLCanvasElement): Renderer | null {
   // scene height -> view px: the view shows scene heights [top - span, top] (a window; the full view: [0, 1])
   const vy = (U: SceneU, y: number, h: number) => ((U.view[1] - y) / U.view[2]) * h;
   // a near plane over open water sinks into it (only its headlands stand out), as in the shader; over a river (its near
-  // bank is land) it stands whole (round 5; ridges row 8: open water)
+  // bank is land) it stands whole (ridges row 8: open water)
   const sunk = (v: Painted, l: number, c: number) => (l >= 3 ? 0.14 * v.ridges[((LAYERS + 3) * v.samples + c) * 4 + 2] : 0);
   function silhouette(v: Painted, U: SceneU, l: number, w: number, h: number) {
     const path = new Path2D();
@@ -235,7 +235,7 @@ export function createCanvas2D(canvas: HTMLCanvasElement): Renderer | null {
     lc.imageSmoothingEnabled = true;
     lc.imageSmoothingQuality = 'low';
     lc.drawImage(src, 0, 0, LW, LH, 0, 0, w, h);
-    // terraced fields (the Résumé's shore, ridges row 8): broken lines stepping down the hill. 4b: level, as the figure
+    // terraced fields (the Résumé's shore, ridges row 8): broken lines stepping down the hill, level, as the figure
     // layer's walls are (sets/terraces.ts, and the shader): a wall at level z lies at y = z - s (crest - z), sagging
     // where the hill swells toward us, and only where the ground stands above its level. Where that layer stands on
     // this plane it draws the walls itself, so the lines give way to it there (never two rhythms crossing)
@@ -302,7 +302,7 @@ export function createCanvas2D(canvas: HTMLCanvasElement): Renderer | null {
     // the foot dissolves into a mist band
     const y0 = vy(U, foot + fade * 1.5, h), y1 = vy(U, foot - 0.05, h);
     const mb = lc.createLinearGradient(0, y0, 0, y1);
-    // (eased, not linear: a linear ramp's sudden start reads as a ruled line across the peaks, 4b)
+    // (eased, not linear: a linear ramp's sudden start reads as a ruled line across the peaks)
     for (let k = 0; k <= 6; k++) { const t = k / 6; mb.addColorStop(t, rgba(MIST, 0.92 * t * t * (3 - 2 * t))); }
     lc.fillStyle = mb;
     lc.fillRect(0, y0, w, h - y0);
@@ -329,7 +329,7 @@ export function createCanvas2D(canvas: HTMLCanvasElement): Renderer | null {
       const ws = v.ridges[(r + c) * 4];
       if (ws <= 0.01) continue;
       const top = vy(U, v.ridges[(r + c) * 4 + 1], LH);
-      // (round 5) each column down to its own near bank: where a river opens out the bank sinks out of view
+      // each column down to its own near bank: where a river opens out the bank sinks out of view
       const ny = v.ridges[(r7 + c) * 4], bottom = ny > -0.5 ? vy(U, ny, LH) : LH;
       mc.fillStyle = `rgba(0,0,0,${ws.toFixed(3)})`;
       mc.fillRect(i, top + 0.5, 1, Math.max(0, bottom - top));
@@ -406,7 +406,7 @@ export function createCanvas2D(canvas: HTMLCanvasElement): Renderer | null {
     lc.fillStyle = mg;
     lc.fillRect(0, ya, w, 0.05 * u);
   }
-  // 4b: the river's mist over a figure layer (the shader's figMist): the town's back rows dissolve into it and low
+  // The river's mist over a figure layer (the shader's figMist): the town's back rows dissolve into it and low
   // banks drift among them, keyed by depth: it lies behind the nearest things in each column (compose.ts RIVER_FRONT),
   // so the bridge and the crowd on its crown, the landmark and the masts stand clear. A low-resolution mask of how much
   // mist covers the layer (alpha), laid over it with destination-out; null where the layer stands on no river.
@@ -519,7 +519,6 @@ export function createCanvas2D(canvas: HTMLCanvasElement): Renderer | null {
   }
 
   return {
-    mode: 'canvas2d',
     software: false,
     get ready() { return true; },
     resize(w, h) {
@@ -611,7 +610,7 @@ export function createCanvas2D(canvas: HTMLCanvasElement): Renderer | null {
       ctx.globalAlpha = 1;
       ctx.fillStyle = rgba(PAPER);
       ctx.fillRect(0, 0, W, H);
-      // the horizon band: round 3's way, one faded offset of its painting sunk toward the bottom of the view
+      // the horizon band: one faded offset of its painting sunk toward the bottom of the view
       const hz = U.horizon && views.get(U.horizon.id);
       if (hz && hz.shown && U.horizon!.k > 0) {
         ctx.globalAlpha = U.horizon!.k * 0.7;
@@ -635,7 +634,7 @@ export function createCanvas2D(canvas: HTMLCanvasElement): Renderer | null {
         ctx.globalAlpha = a;
         ctx.imageSmoothingEnabled = true;
         // (the painting may sink inside its box: drawn lower, clipped to the box, with paper above its own top and its top
-        // feather sunk with it; round 3: the box's top row used to be repeated above it, a wall of grey columns on phones)
+        // feather sunk with it, never the box's top row repeated above it: a wall of grey columns on phones)
         const sk = Math.max(0, Math.min(1, w.sink || 0)) * (y1 - y0);
         if (sk <= 0.5) ctx.drawImage(v.shown, 0, 0, v.shown.width, v.shown.height, x0, y0, x1 - x0, y1 - y0);
         ctx.globalAlpha = 1;

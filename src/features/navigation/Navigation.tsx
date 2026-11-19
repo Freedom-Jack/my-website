@@ -10,8 +10,8 @@ import { quiet } from '@/features/chrome/still';
 import { cut, enter, exit, restore, travel } from './transition';
 
 /**
- * Moving between pages inside the one painting: one grammar, the river's (the vanguard round, A10). The painting
- * pans to the next place and the words cross-fade under it (transition.ts), on Next.js's own client navigation.
+ * Moving between pages inside the one painting: one grammar, the river's. The painting pans to the next place and
+ * the words cross-fade under it (transition.ts), on Next.js's own client navigation.
  *
  * Every in-site link is caught here, at the document (so links in MDX content and the chrome behave alike):
  * the old words fade while the painting starts its pan toward the destination's place (known from the places
@@ -256,7 +256,7 @@ export function Navigation() {
     }
 
     focusAndAnnounce(main, target);
-    // the new page's window stills below the fold load as the reader nears them (R5)
+    // the new page's window stills below the fold load as the reader nears them
     watchGlimpseStills(main);
     if (kind === 'push') void enter(main);
   }, [pathname]);

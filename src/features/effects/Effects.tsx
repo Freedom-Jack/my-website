@@ -7,7 +7,8 @@ import { initFinish } from './finish';
 
 /**
  * The small effects, bound to the DOM the server rendered (it reads the same without them): per page, its
- * <main>'s diagram draw-ins and the finish (the row rule, the diagram's flow dot), unbound when the page goes.
+ * <main>'s diagram draw-ins and the finish (the row rule, the diagram's flow dot, the rows' wash), unbound when the
+ * page goes.
  * Rendered last in the root layout, so it runs after the page's own components have laid out.
  */
 export function Effects() {

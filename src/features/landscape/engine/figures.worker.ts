@@ -1,11 +1,11 @@
 // figures.worker.ts — draws a figure layer off the main thread: an OffscreenCanvas at the
 // layer's size, the brushwork of figures.ts (whose figure sets, sets/*.ts, load with it), then one of:
-//   out 'gpu'     (WebGL, 4b) an ImageBitmap of the layer (transferToImageBitmap: no readback; gl.ts uploads it
+//   out 'gpu'     (WebGL) an ImageBitmap of the layer (transferToImageBitmap: no readback; gl.ts uploads it
 //                 premultiplied), with its moving things apart in one sprite atlas (buildSprites): a boat marked
 //                 params.sprite (Work's punt) is cut out of the layer, a set's own sprite (the bridge's walker, the
 //                 ferry) is painted on its own, so the present pass can move them and no static copy ever ghosts.
 //   out 'bitmap'  (Canvas2D) an ImageBitmap of the layer as drawn: nothing is cut (Canvas2D is still; the boat stays)
-//   out 'bytes'   premultiplied RGBA bytes (the 4a WebGL path, kept for callers that read the bytes)
+//   out 'bytes'   premultiplied RGBA bytes (WebGL where a bitmap does not upload premultiplied: gl.ts bitmaps)
 // Transferred, never copied. One message in, one message out: { id, width, height, data | bitmap, sprites?, life }
 // or { id, error }. `life` is the layer's life anchors (figures.ts, THE LIFE API); `sprites` [{ width, height, bitmap }]
 // in the order of the anchors that carry `cut` (each anchor's `sprite` is its index here).
@@ -25,9 +25,9 @@ registerSets(SETS);
 const PAD = 4;      // layer px of clear border round a sprite (its anti-aliased edge, and room for the bleed halo's mips)
 const GAP = 24;     // atlas px between two sprites, so a coarse mip of one never bleeds into its neighbour
 
-// The layer's moving things, as ONE sprite atlas (a row of sprites; WebGL keeps one sampler for them all):
-//  - a boat with params.sprite true is CUT out of the layer (its box holds the boat and nothing else);
-//  - a set's own sprite (ownSprite: the bridge's walker, the moored ferry) is PAINTED on a canvas of its own, never
+// The layer's moving things, as one sprite atlas (a row of sprites; WebGL keeps one sampler for them all):
+//  - a boat with params.sprite true is cut out of the layer (its box holds the boat and nothing else);
+//  - a set's own sprite (ownSprite: the bridge's walker, the moored ferry) is painted on a canvas of its own, never
 //    into the layer, then cropped to its ink.
 // Each gets cut (its box in layer uv), sprite 0, atlas [u0, u1, v1] (its place in the atlas) and spx (texels).
 function buildSprites(canvas: OffscreenCanvas, ctx: OffscreenCanvasRenderingContext2D, life: LifeOut[], width: number, height: number, own: OwnSprite[]): NonNullable<FigureResult['sprites']> {

@@ -1,9 +1,9 @@
 import type { PageWords } from './types';
 
 /**
- * Work (/work/): a concise index (Jack: "keep it concise and have dedicated pages for the
- * rest"). The six projects come from content/work/*.mdx (one file per case, each its own page); this file holds
- * the index's own words. The How I build drawing is content/work/diagrams/how-i-build.{wide,tall}.svg.
+ * Work (/work/): a concise index; the detail lives on each project's own page. The six projects come from
+ * content/work/*.mdx (one file per case, each its own page); this file holds the index's own words. The How I build
+ * drawing is content/work/diagrams/how-i-build.{wide,tall}.svg.
  */
 export const work = {
   meta: {

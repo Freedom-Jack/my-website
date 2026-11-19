@@ -2,15 +2,15 @@ import { expect, test, type Page } from '@playwright/test';
 import { isSoftware, PHONE } from './support/pages';
 
 /**
- * The live probe (features/landscape/probe.ts, 01-budgets.md "The painting's rules" as amended): on every device the
- * page opens on its pre-cut still, and the engine is fetched only after every "may the painting run" check passes.
+ * The live probe (features/landscape/probe.ts): on every device the page opens on its pre-cut still, and the engine is
+ * fetched only after every "may the painting run" check passes.
  *   - reduced motion, "Still the landscape" and Save-Data: the still stands (html[data-live="still"]), the engine's
  *     chunks are never requested (0 engine bytes: no script or worker request after the load event), no handle;
  *   - a hardware GPU, nothing quiet: the probe passes (data-live="on"), the engine mounts, its first frame lands
  *     under the strip's still ([data-live] on the strip's box) and the still fades out;
- *   - the still is in the HTML from the first paint: an <img> in the strip's box before any script, a data URI
- *     (the inline seed) at phone widths and a fetched source on laptops; the phone's HTML holds no other image request
- *     for it; the sharp phone still is set for the no-painting states (on Work's phone, only without JavaScript).
+ *   - the still is in the HTML from the first paint: an <img> in the strip's box before any script, a fetched source
+ *     on laptops and a data URI (the inline seed) on phones. Home's seed is the sharp @1x still, with the @2x laid over
+ *     it at DPR 2 and above; Work's seed stands alone, its sharp still fetched only without JavaScript.
  */
 type Req = { url: string; type: string; t: number };
 /** Every request the page makes from now on, with its time from the watch's start (ms). */
@@ -23,7 +23,7 @@ function watchRequests(page: Page): { reqs: Req[] } {
 const engineRequests = (reqs: Req[], afterMs: number) =>
   reqs.filter((r) => (r.type === 'script' || r.type === 'other') && /\/_next\/static\//.test(r.url) && r.t > afterMs);
 
-/** The still stands for `reason` (R3: the probe's QA mark names it, so the zero-byte tests tell the checks apart on a
+/** The still stands for `reason` (the probe's QA mark names it, so the zero-byte tests tell the checks apart on a
  *  software rasteriser too): data-live="still", no handle, no script fetched after the load, the still shown. `wait`
  *  ms pass after the load first (the engine bytes are counted from the load all the same). */
 async function expectStillFor(page: Page, reqs: Req[], reason: string, wait = 0) {
@@ -68,8 +68,8 @@ test('no hardware GPU (a WebGL2 context with failIfMajorPerformanceCaveat refuse
 });
 
 test('a software renderer with no caveat (headless Chrome’s SwiftShader): the still, for the GPU', async ({ page }) => {
-  // (CI's GPU-less runner, 2026-11-14: the browser raised no caveat, the probe passed and the engine booted on
-  // SwiftShader, seconds of main thread on every route; the renderer's name is the probe's second test)
+  // (on a GPU-less machine SwiftShader raises no caveat, and the engine on it costs seconds of main thread on every
+  // route: the probe refuses it by the renderer's name, its second test)
   await page.addInitScript(() => {
     const get = HTMLCanvasElement.prototype.getContext;
     const UNMASKED = 0x9246;
@@ -183,7 +183,7 @@ test.describe('the still in the HTML', () => {
   });
   test.describe('a phone', () => {
     test.use(PHONE);
-    test('Home: the inline seed is the sharp @1x still itself (R9); the @2x is fetched once, at low priority', async ({
+    test('Home: the inline seed is the sharp @1x still itself; the @2x is fetched once, at low priority', async ({
       page,
     }) => {
       const { reqs } = watchRequests(page);
@@ -203,7 +203,7 @@ test.describe('the still in the HTML', () => {
       const stills = reqs.filter((r) => /\/scenes\/hero\//.test(r.url));
       expect(stills.length, 'the @2x phone still, once').toBe(1);
       expect(stills[0]!.url).toMatch(/home-phone@2x\.webp/);
-      // the windows' stills below the fold are lazy (R5): none in the first load
+      // the windows' stills below the fold are lazy: none in the first load
       expect(
         reqs.filter((r) => /\/scenes\/glimpse\//.test(r.url)),
         'no window still in the first load',
@@ -214,7 +214,7 @@ test.describe('the still in the HTML', () => {
 
 test.describe('a phone at DPR 1', () => {
   test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
-  test('Home: the inline sharp still is the whole first screen; no still is fetched (R9)', async ({ page }) => {
+  test('Home: the inline sharp still is the whole first screen; no still is fetched', async ({ page }) => {
     const { reqs } = watchRequests(page);
     await page.goto('/');
     await page.waitForLoadState('load');
@@ -223,15 +223,15 @@ test.describe('a phone at DPR 1', () => {
   });
 });
 
-// R12: the phone class is cut 430 wide, so the inline seed covers the box at every phone width without upscaling, and
-// the @2x laid over it (DPR 2 and above, up to 430 px) is the same box: never a larger LCP candidate.
+// The phone class is cut 430 wide, so the inline seed covers the box at every phone width without upscaling, and the
+// @2x laid over it (DPR 2 and above, up to 430 px) is the same box: never a larger LCP candidate.
 for (const [width, dpr] of [
   [412, 2.625],
   [430, 3],
 ] as const)
   test.describe(`a ${width} px phone at DPR ${dpr}`, () => {
     test.use({ viewport: { width, height: 860 }, deviceScaleFactor: dpr, isMobile: true, hasTouch: true });
-    test(`Home: the 430 px seed covers the box, never upscaled, and the @2x lies over it (R12)`, async ({ page }) => {
+    test(`Home: the 430 px seed covers the box, never upscaled, and the @2x lies over it`, async ({ page }) => {
       const { reqs } = watchRequests(page);
       await page.goto('/');
       const seed = page.locator('[data-landscape="strip"] .strip__still--seed img');
@@ -253,7 +253,7 @@ for (const [width, dpr] of [
 
 test.describe('a phone, an inner page', () => {
   test.use(PHONE);
-  test('Work: the ~1 KB seed alone on the first screen; no sharp still is requested (R12)', async ({ page }) => {
+  test('Work: the ~1 KB seed alone on the first screen; no sharp still is requested', async ({ page }) => {
     const { reqs } = watchRequests(page);
     const res = await page.goto('/work/');
     const html = (await res!.text()) as string;
@@ -264,7 +264,8 @@ test.describe('a phone, an inner page', () => {
     expect(src.length).toBeLessThan(1500 * 1.4);
     // (no eager sharp still: the only reference to it is the fallback's background, shown only without JavaScript)
     await expect(page.locator('[data-landscape="strip"] .strip__still--sharp')).toHaveCount(0);
-    // (a real source only: round 7's tail holds the place's still as a data attribute until the reader nears it)
+    // (an <img> with a real source only: other mentions of the file in the page, like the fallback's background, fetch
+    // nothing on their own)
     expect(html).not.toMatch(/<img[^>]*\ssrc="[^"]*work-phone@/);
     await expect(page.locator('[data-landscape="strip"] .strip__fallback')).toHaveCount(1);
     // (the probe runs after the load and an idle moment: nothing in the first load asks for the sharp still)
@@ -274,8 +275,8 @@ test.describe('a phone, an inner page', () => {
   test('Work, where no painting comes (reduced motion): the seed stays, and no sharp still is fetched', async ({
     page,
   }) => {
-    // (Jack's ruling of 2026-11-14: the probe answers after the scripts, and a sharp still swapped in then was Work's
-    // LCP, 2.9 s on CI's Lighthouse phone; so the soft seed stays where no painting comes)
+    // (the probe answers after the scripts, and a sharp still swapped in then would become Work's LCP, 2.9 s on
+    // Lighthouse's phone; so the soft seed stays where no painting comes)
     await page.emulateMedia({ reducedMotion: 'reduce' });
     const { reqs } = watchRequests(page);
     await page.goto('/work/');
@@ -293,8 +294,8 @@ test.describe('a phone, an inner page', () => {
       const { reqs } = watchRequests(page);
       await page.goto('/work/');
       await expect(page.locator('[data-landscape="strip"] .strip__fallback')).toBeVisible();
-      // (the strip's own still; round 7: without JavaScript a browser also fetches the ending's and the tail's
-      // lazy pictures at once, which are not the first screen's)
+      // (the strip's own still: without JavaScript a browser also fetches the ending's and the tail's lazy pictures at
+      // once, which are not the first screen's)
       await expect
         .poll(() => reqs.filter((r) => /\/scenes\/hero\/work-phone/.test(r.url)).map((r) => r.url.replace(/^.*\//, '')))
         .toEqual(['work-phone@2x.webp']);

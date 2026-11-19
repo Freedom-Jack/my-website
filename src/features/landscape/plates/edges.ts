@@ -1,11 +1,10 @@
 /**
- * Torn edges of mist (round 6): the two mask tiles the page's own layers end on.
+ * Torn edges of mist: the mask tiles the page's own layers end on.
  *
- * Mist never ends on a ruled line. The engine's screen pass tore the veils' edges with its noise; now that they are
- * the page's own layers (plates.css) they are masked with these tiles instead: an edge that swells in and out in
- * rounded tongues (about 100 px each, smaller billows riding on them) and breaks into a few patches of mist. Drawn
- * once on small canvases, on the main thread (a few ms), and handed to CSS as images, one per side a layer can end on
- * (each repeats along its length, EDGE_L; EDGE_W across):
+ * Mist never ends on a ruled line. The first screen's veils (plates/veils.ts; plates.css .veil--hero) are masked with
+ * these tiles: an edge that swells in and out in rounded tongues (about 100 px each, smaller billows riding on them)
+ * and breaks into a few patches of mist. Drawn once on small canvases, on the main thread (a few ms), and handed to
+ * CSS as images, one per side a layer can end on (each repeats along its length, EDGE_L; EDGE_W across):
  *   --edge-r   solid at its left, clear at its right (a veil's side toward the painting)
  *   --edge-t   clear at its top, solid at its foot;   --edge-b   solid at its top, clear at its foot
  * Seeded: the same edges on every load.
@@ -60,8 +59,8 @@ function coverage() {
   const patches = noise2(5, 34, 53); // ~45 px patches of mist
   return (a: number, l: number) => {
     // where the edge's middle lies across the tile: near its solid side, pushed out toward the clear side by the
-    // tongues (as the engine's veils were: about 60 px past the solid paper, up to ~150 in a tongue); then a ramp of
-    // about 65 px, torn by the patches
+    // tongues (about 60 px past the solid paper, up to ~150 in a tongue); then a ramp of about 65 px, torn by the
+    // patches
     const t = Math.min(1, Math.max(0, 0.27 + 2.3 * tongues(l) + 0.6 * billows(l) + 0.5 * swell(l)));
     const mid = 0.9 - 0.52 * t;
     const d = (a - mid) / 0.24 + 0.5 + 0.28 * patches(a, l);

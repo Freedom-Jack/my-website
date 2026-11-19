@@ -6,7 +6,7 @@ import styles from './article.module.css';
 /**
  * A note's reading progress: only where CSS scroll-driven animations are missing, sets --read on
  * the stroke from the note's position (the CSS draws it; the same range as the CSS: cover 0% → contain 100%).
- * The seal at the end is the colophon's (components/page/Colophon). Nothing here hides text.
+ * Nothing here hides text.
  */
 export function NoteEffects() {
   useEffect(() => {

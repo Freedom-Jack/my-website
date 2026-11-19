@@ -191,8 +191,8 @@ time {
   white-space: nowrap;
 }
 /* ...except under 240 CSS px (a 390 px phone at 200 % page zoom, iOS Safari's aA: a 195 px viewport), where a kept
-   phrase ("2020 – 2021 · Research assistant", the Note's dateline) is wider than the column and the page never scrolls
-   sideways (html overflow-x: clip): the end of the line was simply lost. There it wraps (final review r1, item 6). */
+   phrase ("2020 – 2021 · Research assistant", the Note's dateline) is wider than the column and, since the page never
+   scrolls sideways (html overflow-x: clip), its end would be lost: there it wraps. */
 @media (max-width: 14.99rem) {
   .nowrap {
     white-space: normal;

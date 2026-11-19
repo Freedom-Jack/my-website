@@ -6,7 +6,7 @@ import { type RefObject, useEffect } from 'react';
  * The returning header. At rest at the top the header sits in normal flow, on paper, above the
  * strip. Once the strip's art box ([data-landscape="strip"]) has scrolled away (its bottom <= 0) it is armed:
  * sticky and hidden (.is-unpinned, placed without a slide because it is off screen then). From then on,
- * scrolling up >= 8 px (24 on a touch screen) brings it back SOLID (.is-pinned: paper and a 1 px mist rule,
+ * scrolling up >= 8 px (24 on a touch screen) brings it back solid (.is-pinned: paper and a 1 px mist rule,
  * layout.css) and scrolling down >= 8 px (24) slides it away. Back at the very top it is static again. Sticky, never fixed: nothing below it
  * moves. Never visibility:hidden or inert: focus inside pins it. Reduced motion: CSS makes the slide a fade.
  * After a route change (`key` changes) it is static again and re-reads the new page's strip.

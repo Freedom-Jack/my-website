@@ -20,10 +20,10 @@ const span = (years: string, to: string) => years.replace(' – ', ` ${to} `);
 /**
  * Home (/): Jack's "about me" page.
  *
- * The first screen is the live site's (the vanguard round's: the name at a fifth of the screen in his mountain's
- * mist, the verb line, the title line, one counted proof, the dated line, the one action), untouched by round 7.
+ * The first screen: the name at a fifth of the screen in his mountain's mist, the verb line, the title line, one
+ * counted proof, the dated line, the one action.
  *
- * Below it (round 7) the page uses the whole frame, and the words step across the painting as it slides west:
+ * Below it the page uses the whole frame, and the words step across the painting as it slides west:
  *   About me, with the portrait, at the left while his mountain still stands at the right, and Now in a cloud of its
  *   own that drifts up across the peaks;
  *   What I work on as three steps down the page, left to right, each with its case's own figure as an ink numeral (a
@@ -93,7 +93,8 @@ export async function HomePage() {
           {/* a plain <img>: the portrait sits with About, after the first screen, never on it; its source comes as the
               reader nears it (data-near: features/landscape/glimpse-stills), so it never joins the first load;
               <noscript> without JS. The frame: the photo is multiplied into its own paper, inside one layer (blended
-              against the page itself, the whole page was composited the slow way while the portrait was on screen) */}
+              against the page itself, the whole page would be composited the slow way while the portrait is on
+              screen) */}
           <div className={`hello__frame ${styles.photo}`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -161,7 +162,7 @@ export async function HomePage() {
           {workOn.rows.map((row) => {
             // the step's figure is its case's own (the numeral is decorative: the line carries the figure in words).
             // A projection is drawn as an outline under its own label ("Projected"), never as filled ink: it is not
-            // yet real (the vanguard round kept it out of the numerals altogether, A1; an outline says the same)
+            // yet real
             const c = byHref(row.href);
             const f = c ? splitFigure(c.figure) : null;
             const projected = c?.figure.basis === 'projected';

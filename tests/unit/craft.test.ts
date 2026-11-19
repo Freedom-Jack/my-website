@@ -64,7 +64,7 @@ describe('the corpus (features/craft/corpus)', () => {
       }
     }
   });
-  it('never makes a passage of one short sentence (A4), and the lineage prints the real word range', () => {
+  it('never makes a passage of one short sentence, and the lineage prints the real word range', () => {
     const lengths = craft.corpus.chunks.map((c) => c.text.split(/\s+/).filter(Boolean).length);
     for (const [i, n] of lengths.entries())
       expect(n, `${craft.corpus.chunks[i]!.id} has ${n} words`).toBeGreaterThanOrEqual(MIN_WORDS / 2);

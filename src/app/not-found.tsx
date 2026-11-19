@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 /**
  * The 404: the lone peak's strip with the title, its one line and the way back in its mist (wide), on paper below
- * it on narrower screens. Round 7: under it the page's own number stands large in ink, its foot in the peak's mist
+ * it on narrower screens. Under it the page's own number stands large in ink, its foot in the peak's mist
  * (decorative: the title says it), and the tail's scroll in miniature is the way back to every place. No closing
  * scene and no ending: the path ends in mist.
  */

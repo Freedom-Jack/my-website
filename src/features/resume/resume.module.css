@@ -1,12 +1,12 @@
-/* The Résumé's LAYOUT: the type, ink and weights come from the shared tokens and components;
+/* The Résumé's layout: the type, ink and weights come from the shared tokens and components;
    this places them.
-   Screen
      hero        the terraced fields with the name (the page title) and the title, as every subpage's hero.
-     letterhead  the contact line, the PDF button and JSON, the note (and, for print only, the name and title).
-     document    one dense column (the vanguard round, P5): headings, roles and points share one edge, at the
-                 reading measure.
-     timeline    each role one line, "years · title · organisation", its points under it (nothing here moves).
-   Print: this page IS the source of the résumé PDF (tools/build-pdf.ts). Ink only, no landscape or chrome, two
+     letterhead  the contact line, three actions (the PDF, the JSON, the email) and "Updated" (and, for print only,
+                 the name and title).
+     document    one dense column: headings, roles and points share one edge, at the reading measure.
+     timeline    each role one line, "years · title · organisation", its points under it.
+   On screen the document then spreads over the page's twelve columns (screen only, below).
+   Print: this page is the source of the résumé PDF (tools/build-pdf.ts). Ink only, no landscape or chrome, two
    pages on Letter or A4 (the end of the file). Every print rule is scoped to this page (.page on its <main>): the
    App Router keeps a visited page's CSS loaded. */
 
@@ -27,7 +27,7 @@
 /* The contact line: one line where it fits, wrapping by item. Each item carries its separator before it;
    the line is pulled left by one separator and that strip is clipped, so a dot that lands at the start of
    a line is never seen and no line ends on one. The dots are read as nothing. Every link is a 44 px row
-   target with its brush mark just under the word (as in the footer). */
+   target with its underline just under the word (as in the footer). */
 .cv-head__contact {
   --sep: 1.4em;
   display: flex;
@@ -50,8 +50,7 @@
   text-align: center;
 }
 /* Under 240 CSS px (a 390 px phone at 200 % page zoom: a 195 px viewport) the LinkedIn and site addresses are wider
-   than the line, and the line's clip cut their ends off: there an item may wrap, mid-address if it must (final review
-   r1, item 6) */
+   than the line, and the line's clip would cut their ends off: there an item may wrap, mid-address if it must */
 @media (max-width: 14.99rem) {
   .cv-head__contact > span {
     white-space: normal;
@@ -161,12 +160,11 @@
 }
 
 /* ==========================================================================
-   Round 7, SCREEN ONLY (the print rules below are the PDF's and are untouched): the document on the page's twelve
-   columns.
+   Screen only (the print rules below are the PDF's): the document on the page's twelve columns.
      letterhead, summary   the left seven columns, while the terraces stand at the right;
-     experience            a timeline the reading draws: a brush line down the roles, as long as the reader has read
-                           (a view timeline on a line 68 % down the screen), a mark per role, the years in their own
-                           column in mono, the title and the organisation beside them, the points under those;
+     experience            a timeline the reading draws: an ink hairline down the roles, as long as the reader has
+                           read (a view timeline on a line 68 % down the screen), a mark per role, the years in their
+                           own column in mono, the title and the organisation beside them, the points under those;
      skills                four columns across the frame;
      education, awards     side by side.
    ========================================================================== */
@@ -204,7 +202,7 @@
   .timeline__entry {
     position: relative;
   }
-  /* a role's mark on the line: a ring of paper round an ink dot; the role he holds now, jade */
+  /* a role's mark on the line: an ink dot; the role he holds now, jade */
   .timeline__mark {
     position: absolute;
     inset-inline-start: calc(-1.75rem + 0.3rem + 1.5px - 0.4375rem);
@@ -337,8 +335,7 @@
 
 /* ==========================================================================
    Print: the source of the résumé PDF. Ink only. No landscape, no chrome, no strip or closing, nothing
-   animated. The same hanging indent as the screen, in millimetres: the headings and the years at the
-   margin, the text beside them, the letterhead's contact details stacked on the right. Two pages on
+   animated. One column, in millimetres, with the letterhead's contact details stacked on the right. Two pages on
    Letter or A4. Every link on the résumé already shows its address, so none needs it appended.
    ========================================================================== */
 @media print {
@@ -446,15 +443,15 @@
   }
 
   /* Reading order of the PDF's text (a résumé parser reads the paint order): positioned boxes paint after
-     everything that is not, so the timeline's roles (positioned, for their strokes) and the list rows would
-     come out last. Positioning every block of the document makes them all paint in tree order. */
+     everything that is not, so a positioned row (the certifications' .rows > li) would come out last. Positioning
+     every block of the document makes them all paint in tree order. */
   .cv-head,
   .cv-sec,
   .cv-print-foot {
     position: relative;
   }
 
-  /* sections: the heading at the margin, then the text at the indent */
+  /* sections: the heading, then its text */
   .page :global(.sec) {
     margin-block-start: 5mm;
   }

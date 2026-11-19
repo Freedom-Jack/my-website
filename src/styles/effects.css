@@ -2,16 +2,16 @@
    effects.css — where the ink lives in the UI: links, the text action, the focus ring, the row rule, the
    diagram draw-ins and the flow dot, route changes. Each block names the JS module that drives it (if any).
    Everything works without JS; JS only adds entry points, timing and one-shot triggers.
-   The vanguard round: no brush strokes, no blooms, no stamps; one plain underline, one drawn
-   arrow, and jade only as marks (the second line of the focus ring, the row rule, the flow dot, the selection).
-   No text fades in on scroll, and nothing is hidden at first paint.
+   One plain underline, one drawn arrow, and jade only as marks (the second line of the focus ring, the row rule, the
+   flow dot). No text fades in on scroll, and nothing is hidden at first paint.
    Shared file: do not edit from a page.
    ========================================================================== */
 
 /* ==========================================================================
    Links: a 1 px resting underline in the clear ink (--ink-5), ink on hover and focus; only the link's words are
-   underlined (a date beside a link in a mono line carries none: components.css .mono). The header's nav is exempt
-   (its place says "navigation": layout.css); a title link in a row underlines on the row's hover (components.css).
+   underlined (a date beside a link in a mono line carries none: layout.css .first__source). The header's nav is
+   exempt (its place says "navigation": layout.css); a title link in a row underlines on the row's hover (layout.css
+   .rows, components.css .ledger).
    ========================================================================== */
 main a,
 .tail a {
@@ -37,7 +37,7 @@ summary:active,
 /* ==========================================================================
    The text action (components/ui/TextAction): the one action on a screen is words in the UI weight with a 2 px ink
    underline and a drawn arrow after them ("See the work →"); a 44 px target; the arrow nudges on hover. As a
-   <button> (Contact's "Copy email") the same, without the arrow.
+   <button> (.action--button, e.g. Contact's "Copy email") the same.
    ========================================================================== */
 .action {
   display: inline-flex;
@@ -172,7 +172,7 @@ html.js [data-draw].is-pending [data-order] {
 }
 
 /* ==========================================================================
-   Route changes (features/navigation). One grammar, the river's (A10): the painting pans to the next place and the
+   Route changes (features/navigation). One grammar, the river's: the painting pans to the next place and the
    words cross-fade under it (transition.ts, opacity only). Full-document navigations get the browser's default
    260 ms cross-fade (@view-transition, below).
    ========================================================================== */

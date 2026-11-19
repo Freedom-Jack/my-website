@@ -4,7 +4,7 @@ import snapshot from '@content/github/snapshot.json';
 import { choose, denied, group, lineErrors, parseOverrides, repoSchema, type Repo } from '@/features/github/rules';
 import { CJK, findBreaches, PHONE } from '@/lib/compliance';
 import { redirects } from '@/lib/redirects';
-import { normPath, PLACES, placeForPath, STORY_MAP } from '@/features/landscape/places';
+import { normPath, PLACES, placeForPath, SCROLL_MAP } from '@/features/landscape/places';
 import { careerYears, fillTokens, typeset } from '@/lib/typography';
 import { plain } from '@/lib/markup';
 import { longDate, monthYear, shortMonthYear } from '@/lib/dates';
@@ -135,8 +135,8 @@ describe('places (features/landscape/places)', () => {
   it('paints every page with the one composition, so a place looks the same from every page', () => {
     const all = Object.values(PLACES);
     expect(new Set(all.map((p) => `${p.distance}:${p.presence}`)).size).toBe(1);
-    // the story map: the places in the painting's order, one per stretch, the 404 off it
-    expect(STORY_MAP.map((p) => p.stretch)).toEqual([0, 1, 2, 3, 4]);
+    // SCROLL_MAP: the places in the painting's order, one per stretch, the 404 off it
+    expect(SCROLL_MAP.map((p) => p.stretch)).toEqual([0, 1, 2, 3, 4]);
   });
   it('lives on every page of the scroll (the deep pages inside their place); every page on the map ends on its closing scene', () => {
     expect(

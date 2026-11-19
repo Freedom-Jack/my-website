@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /**
- * The live probe's rollback watch (features/landscape/probe.ts), R4 of 01-budgets.md as amended after P1: two rAF
- * deltas over the limit inside a rolling second hand the page back to its still; the limit is 33 ms during the
- * painting's own motion (a pan, an arrival, a sweep), 20 ms once settled, and 0 (not counted) while the engine is
- * pending for another reason. Run on a fake requestAnimationFrame and clock, with no DOM.
+ * The live probe's rollback watch (features/landscape/probe.ts): two rAF deltas over the limit inside a rolling second
+ * hand the page back to its still; the limit is 33 ms during the painting's own motion (a pan, an arrival, a sweep),
+ * 20 ms once settled, and 0 (not counted) while the engine is pending for another reason. Run on a fake
+ * requestAnimationFrame and clock, with no DOM.
  */
 type Frame = (t: number) => void;
 
@@ -84,8 +84,8 @@ describe('the rollback watch (probe.ts limitFor and watchFrames)', () => {
 
 /**
  * The GPU check (probe.ts gpuOK and softwareRenderer): the caveat's null, and a renderer named as software, keep the
- * still. Headless Chrome on a GPU-less machine (CI's runner) hands WebGL a SwiftShader context with no caveat: on
- * 2026-11-14 the probe passed there and the engine booted on it. Run on a fake canvas, with no DOM.
+ * still. Headless Chrome on a GPU-less machine (CI's runner) hands WebGL a SwiftShader context with no caveat, so the
+ * renderer's name is read too. Run on a fake canvas, with no DOM.
  */
 describe('the GPU check (probe.ts gpuOK and softwareRenderer)', () => {
   const RENDERER = 0x1f01;

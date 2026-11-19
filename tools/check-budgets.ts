@@ -1,27 +1,27 @@
 /**
- * The budgets' gate (vanguard 01-budgets.md as amended, and the lead's rulings R5, R7, R9 and R10): Lighthouse
- * (mobile and desktop presets) on every route of the QA build, five runs each, then the phone profile (Playwright and
- * CDP: 390 × 844 at DPR 2, CPU 4× slower, slow 4G) on every route; exit 1 when any gate fails.
+ * The performance budgets, measured on the QA build; exit 1 when any gate fails:
+ *   - every route's HTML as served, gzip, at most 30,000 B (Work sits near it);
+ *   - Lighthouse (mobile and desktop presets) on every route served 200, five runs per route and preset after a
+ *     warm-up, gated on the median of the runs, per metric;
+ *   - the phone profile (Playwright and CDP: 390 × 844 at DPR 2, CPU 4× slower, slow 4G), one run per route.
  *
- *   NEXT_PUBLIC_INK_QA=1 npm run build && next start -p 3100       the QA build (CI's build; R10: the gate sees it)
+ *   NEXT_PUBLIC_INK_QA=1 npm run build && next start -p 3100       the QA build
  *   npm run check:budgets                                         every route, both presets, 5 runs, the phone run
  *   npm run check:budgets -- --routes /,/work/ --runs 5           some routes
  *   npm run check:budgets -- --no-phone | --no-lighthouse         one half
  *   npm run check:budgets -- --forms mobile                       one Lighthouse preset
+ *   npm run check:budgets -- --base <url>                         another server (default http://127.0.0.1:3100)
  *   npm run check:budgets -- --out <dir>                          the report's folder (default budgets-report/)
  *   npm run check:budgets -- --write                              on a pass, write Home's numbers into
  *                                                                 content/measured.json (the tail's build stamp)
  *
- * R7: run it with the machine quiet (Lighthouse first, the phone run after it: P1's one outlier came right after a
- * phone run). R12: the server is warmed first (one request per route, then two seconds: a cold route's first
- * Lighthouse run fell in the slow one of Lantern's two LCP modes, ~0.5 s apart), then FIVE runs per route and preset.
- * The gate is the MEDIAN of the runs, per metric; the min and max (both modes, when there are two) and the worst run
- * are recorded beside it.
- * The report's header names the runs' median benchmark index (Lighthouse's measure of the machine's CPU).
+ * Run it with the machine quiet, on the real GPU (on a Mac, Google Chrome runs on Metal). Lighthouse runs before the
+ * phone run, which can disturb the run that follows it. The warm-up (one request per route, then two seconds) keeps a
+ * cold route's first render out of the runs: it can fall in the slow one of Lantern's two LCP modes, ~0.5 s apart.
+ * Beside each median the report records LCP's min and max (both modes, when there are two) and the worst run, and its
+ * header names the runs' median benchmark index (Lighthouse's measure of the machine's CPU).
  * A run whose TBT is over 1 s is re-run once and reported as an outlier (the re-run takes its place). Every run's
  * trace is kept for a route and preset that fails, and for every outlier.
- * R9 and R10: every route's HTML is measured as served, gzip, and gated at 30,000 B (Work sits near it).
- * Google Chrome runs on the GPU (Metal).
  */
 import { execSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -52,14 +52,14 @@ const FORMS = opt('--forms', 'mobile,desktop')
 const OUTLIER_TBT = 1000;
 const KB = 1024;
 
-/** The gates (01-budgets.md "The gates" and "Weight", hard gates, as amended 2026-11-05 and 2026-11-12). */
+/** The gates (ms, bytes): weight.html is the HTML as served; the rest of weight, the mobile preset's first load. */
 const GATES = {
-  // (the longest task during load is gated on the phone run, the table's "phone profile unless said": Lighthouse's
-  // simulated long tasks are the observed ones times its 4× CPU multiplier, recorded beside it ungated)
+  // (the longest task during load is gated on the phone run only: Lighthouse's simulated long tasks are the observed
+  // ones times its 4× CPU multiplier, so they are recorded ungated)
   mobile: { score: 95, lcp: 2500, fcp: 1800, si: 3000, tbt: 150, cls: 0.05 },
   desktop: { score: 99, lcp: 1200, cls: 0.05 },
   weight: {
-    html: 30_000, // served gzip, every route (R10's measurement: the QA build)
+    html: 30_000, // served gzip, every route
     css: 35 * KB,
     js: 160 * KB,
     fontsBeforeLcp: { files: 2, bytes: 45 * KB },
@@ -201,7 +201,7 @@ interface LhRow {
   route: string;
   median: LhRun;
   worst: Partial<LhRun>;
-  /** LCP's spread over the runs (R12: both of Lantern's modes visible beside the median). */
+  /** LCP's spread over the runs: both of Lantern's modes, when there are two, beside the median. */
   lcpMin: number;
   lcpMax: number;
   runs: Array<Pick<LhRun, 'score' | 'lcp' | 'tbt'>>;
@@ -441,7 +441,7 @@ function shortSha() {
   }
 }
 
-/** R12: one request per route, then two seconds, so no measured run is a cold route's first render. */
+/** One request per route, then two seconds, so no measured run is a cold route's first render. */
 async function warm(routes: string[]) {
   for (const route of routes) await served(BASE + route).catch(() => null);
   await new Promise((r) => setTimeout(r, 2000));

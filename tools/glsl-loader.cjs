@@ -1,8 +1,8 @@
 // glsl-loader.cjs — a webpack-style loader (Turbopack `rules`, next.config.ts) for the engine's shader module,
 // src/features/landscape/engine/shaders.ts: the GLSL inside its template literals loses its comments and indentation
-// in the bundle, so the source stays readable while the engine's chunk is about 35 KB (gzip) lighter. Only text
-// inside backticks changes; a line that holds a `${…}` interpolation is left whole (trimmed only); preprocessor lines
-// keep their own line. The compiled programs are the same tokens, so the painting is the same pixels.
+// in the bundle, so the source stays readable and the engine's chunk is lighter. Only text inside backticks changes; a
+// line that holds a `${…}` interpolation is left whole (trimmed only); preprocessor lines keep their own line. The
+// compiled programs are the same tokens, so the painting is the same pixels.
 // (CommonJS: Turbopack runs loaders through webpack's loader-runner.)
 
 /** The GLSL of one template literal without its `//` comments, leading or trailing blanks, or empty lines. */

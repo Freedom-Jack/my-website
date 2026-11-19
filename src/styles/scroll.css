@@ -17,7 +17,7 @@ html.no-landscape .scroll-opener-wrap {
   font: inherit;
   color: var(--ink-2);
   vertical-align: middle;
-} /* (its 44 px box and brush: layout.css's tail rules, beside .still-toggle) */
+} /* (its 44 px box: layout.css's tail rules, beside .still-toggle) */
 
 .scroll-sheet {
   position: fixed;

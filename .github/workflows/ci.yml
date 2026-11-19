@@ -1,12 +1,12 @@
-# CI on every push and pull request: the site must type-check, lint, pass its unit tests, build, keep the hard rules
+# CI on every pull request and every push to master: the site must type-check, lint, keep its format, pass its unit
+# tests, keep its stills and heroes current, pass the audit of its runtime dependencies, build, keep the hard rules
 # (no phone, address, project-management credential, old résumé PDF or CJK), keep its links, keep the PDF in step with
-# the résumé and pass a smoke test per route. Nothing here deploys (Vercel does, from master). (Round 6: the Vanguard
-# round's byte and Lighthouse budgets are cancelled; `npm run check:budgets` stays as a local measuring tool.)
+# the résumé and pass its browser tests. Nothing here deploys (Vercel does, from master). The byte and Lighthouse
+# budgets are measured locally (`npm run check:budgets`), not here.
 name: CI
 
 on:
-  # (a PR branch matches both events; running it on push as well doubled every PR build and one copy hit the job
-  # timeout. Pushes to master still build, and every PR is checked once.)
+  # every PR once (a PR branch would match both events), and every push to master
   push:
     branches: [master]
   pull_request:
@@ -24,7 +24,7 @@ jobs:
     timeout-minutes: 50
     env:
       NEXT_TELEMETRY_DISABLED: '1'
-      # the QA build: the painting's read-only debug handle for the browser tests (never in the Vercel build)
+      # the QA build (the painting's debug handle and the switch panel) for the browser tests; never in the Vercel build
       NEXT_PUBLIC_INK_QA: '1'
       # "In the open" reads GitHub at build time; the job's own token raises the rate limit (it falls back to the snapshot)
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

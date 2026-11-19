@@ -1,10 +1,8 @@
 /**
- * The whole scroll in miniature (the tail's map, components/layout/ScrollMap): ONE strip of the painting from Home's
+ * The whole scroll in miniature (the tail's map, components/layout/ScrollMap): one strip of the painting from Home's
  * peaks to the crossing, the stretches between the places included, cut from the real engine on this machine's GPU:
  * public/scenes/scroll/scroll.webp and scroll.json (its size, the stretches it shows, and where along it each place
  * stands, which ScrollMap reads to put each page's name under its place).
- * Jack, of the five separate place stills that stood here: "it is not a coherent scroll … also include the
- * transitions".
  *
  *   NEXT_PUBLIC_INK_QA=1 npm run build && npm start -- -p 3100   a QA build (it exposes the engine as window.__ink)
  *   npm run build:scroll -- --base http://127.0.0.1:3100          cut it; needs Google Chrome (headless, Metal)
@@ -13,15 +11,14 @@
  * How: Home at 1520 × 800 (one stretch of the scroll per screen), its words hidden and the keep-out dropped (no mist
  * under a title that is not there). The engine's camera is taken along the scroll in nine stands half a stretch apart
  * (panTo); at each, once the place and its figures are painted, the loop is held (the QA hold) and the screen is
- * captured until two captures match, and
- * stats().stage.framing says where in the world that view starts. A pan moves every layer of the painting alike, so
- * two neighbouring views show the same world where they overlap and differ only in their light: the strip is the
- * views laid side by side, each fading into the next across their overlap, so the light changes along it as it does
- * for a visitor walking the scroll, and no seam shows.
+ * captured until two captures match, and stats().stage.framing says where in the world that view starts. A pan moves
+ * every layer of the painting alike, so two neighbouring views show the same world where they overlap and differ only
+ * in their light: the strip is the views laid side by side, each fading into the next across their overlap, so the
+ * light changes along it as it does for a visitor walking the scroll, and no seam shows.
  * The framing willow boughs (elements.ts boughs: Work's and Writing's) hang into a page's first screen from above
  * it; in a strip they would hang in the middle of the sky, so the strip is cut with that switch off (the table's own
  * QA override, window.__elOff).
- * REGENERATE AFTER ANY ENGINE, SET, PALETTE, LIGHT OR PLACE CHANGE (as the stills; no --check: the strip is one
+ * Regenerate after any engine, set, palette, light or place change (as the stills; no --check: the strip is one
  * picture, looked at whenever it is cut).
  */
 import { mkdir, writeFile } from 'node:fs/promises';

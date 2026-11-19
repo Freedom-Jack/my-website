@@ -1,5 +1,5 @@
-/* "Ask the painting" (Home's body, round 7): the line and its answer at the left, what the model did at the right.
-   The site's own faces and inks; nothing here is a box. */
+/* "Ask the painting" (Home's body): the line, its answer and what the model did (on wide screens at the left of the
+   frame; the right stays the painting's). The site's own faces and inks; nothing here is a box. */
 :global(html:not(.el-ask)) .ask {
   display: none;
 }

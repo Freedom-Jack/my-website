@@ -7,9 +7,6 @@
  *      line is filed under (questions.ts); the three closest are reported with their scores, and under a floor it
  *      says it does not know: it never writes an answer of its own;
  *   4. every step is reported as it happens, with its real numbers (the page draws them).
- *
- * Round 7: the other half (a scene read from the words, repainting the painting by hour and weather) is gone with
- * the colours it painted (Jack: "It looks not inked Chinese painting"). Every line is a question now.
  */
 import { cosine, unpackVector } from './encoder';
 import { LEANS, linesOf, sentences, type AskChunk, type Line } from './lines';
@@ -55,10 +52,10 @@ interface Index {
 
 /**
  * Under this the closest line is no answer (the model's own score, 0..1, of the question against the line or
- * against a question the line is filed under). Set on 2026-11-15 on 39 questions written after the filed ones, in
- * other words, and 50 the site cannot answer, run in the browser: 33 of the 39 were answered rightly, 1 arguably,
- * 5 were turned away; of the 50, 49 were turned away (15 by the guard) and 1, about a job, was shown where to
- * write. The set was the builder's; Jack's own questions replace it (NEW-WORDS.md).
+ * against a question the line is filed under). Measured in the browser on 39 questions worded unlike the filed ones
+ * and 50 the site cannot answer: 33 of the 39 are answered rightly, 1 arguably, 5 turned away; of the 50, 49 are
+ * turned away (15 by the guard) and 1, about a job, is shown where to write. The builder wrote that set, not Jack
+ * (NEW-WORDS.md).
  */
 const FLOOR = 0.55;
 /** What the site does not hold on purpose: turned away before anything is searched. */
