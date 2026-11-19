@@ -22,7 +22,7 @@ the documentation. This file lists only the traps.
   every frame and adds what moves. Never put time into SCENE, or every frame repaints.
 - PRESENT has exactly two window slots (`uWin0`, `uWin1`, each with its front layer `uWinN0`, `uWinN1`). Adding a
   third touches `shaders.ts`, `gl.ts` and the `wins` packing together.
-- Scene alpha is mist admittance, not opacity. Any readback (stills) forces alpha to 255.
+- Scene alpha is mist admittance, not opacity.
 - Every new texture must be re-made in `hooks.restored` (context loss).
 - Figure sets never call `Math.random`: use `own(...)` from `streams(SEED)` so a set draws the same every time. A
   syntax error in one set breaks every page's painting.

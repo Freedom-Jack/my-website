@@ -1,9 +1,9 @@
 # New words waiting for your approval
 
-Everything below is on the pages now, **without** a "DRAFT" label. Each line was written for you, in your voice, and
+Everything below is on the pages now. Only the held scroll's words (section 3) still print "DRAFT · ". Each line was written for you, in your voice, and
 is yours to keep, change or delete. Say which, and the line in its file changes; nothing else does.
 
-## 1. New in round 7 (the body of every page)
+## 1. Words in the body of the pages
 
 ### Ask the painting, re-cut (`content/pages/ask.ts`)
 
@@ -97,7 +97,17 @@ the questions you would expect visitors to ask replaces them.
 - `content/pages/home.ts`: Lead AI/ML Architect, CGI AI Center of Excellence, Toronto.
 - `content/pages/resume.ts`: Five roles since 2019, two CGI Impact Awards and two cloud certifications: on one page, as a PDF and as JSON.
 
-## 3. Still yours to supply
+## 3. Still printed with "DRAFT · " (`content/site.ts`, `scroll`: the held scroll)
+
+- `open`: Open the scroll
+- `close`: Close
+- `name`: The scroll
+- `hint`: Hold the painting: drag it, use the arrow keys, or choose a place. Esc closes it.
+- `level`: level
+- `high`: high
+- `deep`: deep
+
+## 4. Still yours to supply
 
 - The 20 evaluation questions behind "How good is the search?" on Work (`content/craft/eval.ts`) were written by the
   site's author, not by you. Your own held-out set replaces them. Today the search finds the right passage first on
