@@ -17,7 +17,7 @@
 // (below): ribbons resampled every 1-3 px on a noise table, each figure a handful of shapes, back rows simplified
 // (the shader dissolves them anyway), and a layer rect cut to what any window can see.
 
-import { willowTip, swallowInk, reflectIn, ripples } from './young';
+import { willowTip, reflectIn, ripples } from './young';
 import { el } from '../../elements';
 import {
   REF_PX, VH_PX, SCENE_FIELDS, sceneField, streams, rng, vnoise, resample, mix, mix3, smooth, D, anchor, bounds, ownSprite,
@@ -29,7 +29,7 @@ import {
 // of the countryside under his mountain's foot and goes back into it before the lake), and from scene height 0.10 (the
 // near bank's land fades out above it) up to 0.42 (above the back rows' roofs and the masts; the town's highest point
 // is about 0.38).
-export const meta: FigureMeta = { rect: [1.0, 2.12, 0.10, 0.95], plane: 2, phase: 1 };   // (up into the sky for the willow and the swallows)
+export const meta: FigureMeta = { rect: [1.0, 2.12, 0.10, 0.95], plane: 2, phase: 1 };   // (up into the sky for the willow)
 
 const SEED = 11;
 
@@ -145,8 +145,8 @@ function villageTree(env: Env, x: number, y: number, s: number, R: Rng, pale = f
   const rx = (6 + R() * 2) * s, ry = (4.4 + R() * 1) * s;
   const cx = x + lean, cy = y - H - ry * 0.25;
   stroke(ctx, [[x, y + 0.4], [x + lean * 0.5 + (R() - 0.5) * 0.6 * s, y - H * 0.5], [cx, cy + ry * 0.3]], { w: 1.3 * s, col: rgba(C.ink, 0.75), tin: 0, tout: 0.4, wob: 0.5, seed: x });
-  const leaf = ink.strength > 0 ? mix3(C.ink, C.malD, pale ? 0.32 : 0.18) : (pale ? mix3(C.ink, C.white, 0.28) : C.ink);
-  const body = ink.strength > 0 ? mix3(C.ink2, C.malD, pale ? 0.42 : 0.3) : mix3(C.ink2, C.white, pale ? 0.5 : 0.3);
+  const leaf = mix3(C.ink, C.malD, pale ? 0.32 : 0.18);
+  const body = mix3(C.ink2, C.malD, pale ? 0.42 : 0.3);
   const j = () => (R() - 0.5) * 1.4 * s;
   // the dome: two clusters low and wide, one high, one in front low
   const B: [x: number, y: number, rx: number, ry: number][] = [
@@ -593,7 +593,7 @@ function landmark(env: Env, x: number, y: number, w: number, _R: Rng) {
  */
 function willowT(env: Env, x: number, y: number, s: number, R: Rng, o: { form?: 'tall' | 'wide' | 'lean'; lean?: number; sway?: number } = {}) {
   const B = new Ink(env.ctx);
-  const { C, rgba, strength } = env.ink;
+  const { C, rgba } = env.ink;
   const form = o.form || 'wide';
   const lean = o.lean ?? (R() < 0.5 ? -1 : 1) * (form === 'lean' ? 0.5 + R() * 0.25 : 0.12 + R() * 0.25);
   const H = (form === 'tall' ? 26 : 21) * s;
@@ -613,8 +613,8 @@ function willowT(env: Env, x: number, y: number, s: number, R: Rng, o: { form?: 
       boughs.push({ pts: [top, [top[0] + side * reach * 0.45, top[1] - up], [top[0] + side * reach, top[1] - up * 0.35 + 2.5 * s]], side });
     }
   }
-  const leaf = strength > 0 ? mix3(mix3(C.mal, C.malD, 0.25), C.ink2, 0.38) : mix3(C.ink2, C.white, 0.45);
-  const leafD = strength > 0 ? mix3(C.malD, C.ink, 0.55) : C.ink2;
+  const leaf = mix3(mix3(C.mal, C.malD, 0.25), C.ink2, 0.38);
+  const leafD = mix3(C.malD, C.ink, 0.55);
   const crownX = mix(limbs[0][limbs[0].length - 1][0], limbs[1][2][0], 0.5), crownY = Math.min(limbs[0][limbs[0].length - 1][1], limbs[1][2][1]);
   const cw = 16 * s * spread;
   wsh(B, rgba(leaf, 0.07), [[crownX - cw, crownY + 5 * s], [crownX, crownY - 6 * s], [crownX + cw, crownY + 5 * s], [crownX + cw * 1.2, crownY + 24 * s], [crownX - cw * 1.2, crownY + 24 * s]], 1.5 * s, x, 0);
@@ -652,14 +652,14 @@ function willowT(env: Env, x: number, y: number, s: number, R: Rng, o: { form?: 
  */
 function pollard(env: Env, x: number, y: number, s: number, R: Rng, o: { lean?: number; sway?: number } = {}) {
   const B = new Ink(env.ctx);
-  const { C, rgba, strength } = env.ink;
+  const { C, rgba } = env.ink;
   const lean = o.lean ?? (R() < 0.5 ? -1 : 1) * (0.15 + R() * 0.3);
   const H = (15 + R() * 5) * s;
   const trunk: Pt[] = [];
   for (let i = 0; i <= 6; i++) { const t = i / 6; trunk.push([x + lean * H * 0.7 * t * t + (vnoise(t * 3, x, 4) - 0.5) * 3.6 * s, y - H * t]); }
   const knob = trunk[6];
-  const leaf = strength > 0 ? mix3(mix3(C.mal, C.malD, 0.3), C.ink2, 0.36) : mix3(C.ink2, C.white, 0.45);
-  const leafD = strength > 0 ? mix3(C.malD, C.ink, 0.55) : C.ink2;
+  const leaf = mix3(mix3(C.mal, C.malD, 0.3), C.ink2, 0.36);
+  const leafD = mix3(C.malD, C.ink, 0.55);
   const tones = [rgba(leaf, 0.32), rgba(leaf, 0.46), rgba(leaf, 0.6), rgba(leafD, 0.55)];
   const sway = (o.sway ?? 1) * s * 0.6;
   const lines = [trunk];
@@ -701,11 +701,11 @@ function pollard(env: Env, x: number, y: number, s: number, R: Rng, o: { lean?: 
 /** A tree in dots: a crooked trunk and clusters of short dabs (green-ink or ink). (x, y) the foot. */
 function dotTreeT(env: Env, x: number, y: number, s: number, R: Rng, o: { green?: boolean; clusters?: number } = {}) {
   const B = new Ink(env.ctx);
-  const { C, rgba, strength } = env.ink;
+  const { C, rgba } = env.ink;
   const H = 20 * s;
   const lean = (R() - 0.5) * 5 * s;
   rib(B, rgba(C.ink, 0.85), [[x, y + 0.5], [x + lean * 0.4 + (R() - 0.5) * 2 * s, y - H * 0.5], [x + lean, y - H * 0.85]], { w: 1.6 * s, tin: 0.01, tout: 0.7, wob: 0.5, seed: x }, 0);
-  const leaf = o.green && strength > 0 ? mix3(C.ink, C.malD, 0.32) : C.ink;
+  const leaf = o.green ? mix3(C.ink, C.malD, 0.32) : C.ink;
   const tones = [rgba(leaf, 0.34), rgba(leaf, 0.55)];
   const clusters = o.clusters ?? 4;
   for (let c = 0; c < clusters; c++) {
@@ -1319,8 +1319,7 @@ export function* draw(env: Env) {
   // lit arc on the side toward the light (upper right, Work's glow)
   {
     const Rr = own('rain rings');
-    // (rings only where a hull or a pole meets the water: never in open water under the swallows, where they read
-    // as logo arcs)
+    // (rings only where a hull or a pole meets the water: never in open water, where they read as logo arcs)
     for (const b of BOATS.slice(0, 3)) ripples(env, b.x + b.L * 0.42, b.y + 2.5, 7 + Rr() * 3, Rr, { n: 2, alpha: 1.4, lightDir: Math.PI * 1.68 });
     ripples(env, BIG_X - BIG_L * 0.08, BIG_Y + 3, 11, Rr, { n: 2, alpha: 1.5, lightDir: Math.PI * 1.68 });
   }
@@ -1389,8 +1388,8 @@ export function* draw(env: Env) {
     softPatch(ctx, bA[0] - 30, nbY + 14, 110, 16, rgba(C.paper, 0.5));
     // the land's east end dissolves into the mist where the river opens
     softPatch(ctx, X(1.95), nbY + 26, 120, 40, rgba(C.paper, 0.55));
-    // a little misted green in it: grass and young fields along the bank, in soft patches (none in ink)
-    if (ink.strength > 0) {
+    // a little misted green in it: grass and young fields along the bank, in soft patches
+    {
       const Rpa = own('bank green');
       for (let k = 0; k < 9; k++) {
         const px = mix(x0 + 50, x1 - 50, (k + 0.2 + Rpa() * 0.6) / 9), py = nearB(px) + 12 + Rpa() * 14;
@@ -1411,7 +1410,7 @@ export function* draw(env: Env) {
     for (let x = bA[0] - 200; x <= bA[0] + 30; x += 8) road.push([x, nearB(x) + 9 + (x - bA[0]) * -0.02]);
     Bn.fill(rgba(C.white, 0.32), [...road.map(([x, y]): Pt => [x, y - 2]), ...road.slice().reverse().map(([x, y]): Pt => [x, y + 3.5])], 0);
     const Rg = own('grass places');
-    const grassC = rgba(ink.strength > 0 ? mix3(C.malD, C.ink, 0.45) : C.ink2, 0.36);
+    const grassC = rgba(mix3(C.malD, C.ink, 0.45), 0.36);
     for (let i = 0; i < 46; i++) {
       const rx = x0 + 80 + Rg() * (x1 - x0 - 160), ry = nearB(rx) + 3 + Rg() * 7;
       Bn.line(grassC, 0.7, [[rx, ry], [rx + (Rg() - 0.3) * 4, ry - 4 - Rg() * 5]], 2);
@@ -1459,23 +1458,10 @@ export function* draw(env: Env) {
   });
   yield;
   // ---- a willow tip out of the top edge (young.ts willowTip: brown-ink bough, spring yellow-green strands, their tips
-  // above the roofline), and a pair of swallows low over the river (no sprite repeated from Home)
-  if (!env.still) {
-    // (in the windows too: the first shows its tip as the tuft by the swallow; the second window is framed west of it,
-    // on the town's lower bank, so it never floats there like a sticker)
-    if (el('boughs')) willowTip(env, [[2672, 340], [2635, 409], [2575, 454], [2515, 479], [2458, 489]], [[2635, 411], [2685, 439], [2728, 449]], 1.1, 574, own('d5 willow'));
-    yield;
-    // (elements.ts swallows: Work's pair, off since the vanguard round's A3: the town keeps its willows and the boat
-    // lowering its mast as its one named life)
-    if (el('swallows')) {
-      const sx = 2300, sy = 505, path: Pt[] = [];   // (in the open sky over the town, clear of the boat's mast and the willow)
-      for (let k = 0; k <= 30; k++) { const u = k / 30; path.push([sx + 160 - 300 * u, sy + 6 - 22 * u + 14 * Math.sin(u * 4.2)]); }
-      // (Home's painted swallow, large enough to show its white belly and paler hand; the pair apart, at different
-      // headings, never two black hooks side by side)
-      ownSprite(env, 'walker', { x: sx - 50, y: sy - 42, w: 100, h: 84 }, { path, home: [sx, sy], speed: 13, bird: true }, (e) => swallowInk(e, sx, sy, 58, 0.12, own('d5 swallow', 0), { bank: 0.4, lift: 0.3 }));
-      swallowInk(env, 2398, 548, 40, -0.38, own('d5 swallow', 1), { bank: 0.8, lift: 0.55, mist: 0.15 });
-    }
-  }
+  // above the roofline)
+  // (in the windows too: the first shows its tip as a tuft; the second window is framed west of it, on the town's lower
+  // bank, so it never floats there like a sticker)
+  if (el('boughs')) willowTip(env, [[2672, 340], [2635, 409], [2575, 454], [2515, 479], [2458, 489]], [[2635, 411], [2685, 439], [2728, 449]], 1.1, 574, own('d5 willow'));
   yield;
   // (the town's mist, its back rows dissolving and the banks drifting across it, and the melting of both ends of the
   // layer, are painted by the scene shader as it lays the layer in: no per-pixel work here)

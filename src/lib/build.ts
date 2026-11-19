@@ -20,7 +20,7 @@ function shortSha(): string {
   }
 }
 
-export interface BuildStamp {
+interface BuildStamp {
   /** the short commit ("c974780"), or "local" where no repository answers */
   sha: string;
   /** the build day, ISO ("2026-11-12") */
@@ -39,8 +39,5 @@ export const build: BuildStamp = {
   lcpMs: typeof measured.lcpMs === 'number' ? measured.lcpMs : null,
   profile: measured.profile,
   measuredOn: typeof measured.measuredOn === 'string' ? measured.measuredOn : null,
-  transferKB:
-    'transferKB' in measured && typeof (measured as { transferKB?: unknown }).transferKB === 'number'
-      ? (measured as unknown as { transferKB: number }).transferKB
-      : null,
+  transferKB: typeof measured.transferKB === 'number' ? measured.transferKB : null,
 };

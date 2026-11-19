@@ -9,32 +9,20 @@
 //              indigo clothes, white robes, willows in misted malachite. No red, yellow, gold or beige.
 // Strength 0 is ink only (the ink painting, unchanged). Pans interpolate strength between scenes.
 
-/** Mineral pigments, 0..255 sRGB: [deep, misted]. */
-export const PIGMENTS = Object.freeze({
-  azurite: Object.freeze({ deep: [44, 92, 138], misted: [127, 159, 184] }),      // #2C5C8A / #7F9FB8
-  malachite: Object.freeze({ deep: [58, 128, 106], misted: [141, 181, 164] }),   // #3A806A / #8DB5A4
-  timber: Object.freeze({ deep: [107, 84, 68], misted: [143, 128, 120] }),       // #6B5444 / #8F8078 (small areas only)
-  inkGrey: Object.freeze({ deep: [42, 48, 52], misted: [42, 48, 52] }),          // #2A3034 tile roofs, outlines
-  indigo: Object.freeze({ deep: [62, 86, 100], misted: [62, 86, 100] }),         // #3E5664 far ranges, water, clothes
-});
-
 /**
  * Strength per scene (stretch 0..5: peak, river, lake, shore, crossing, lone-peak), per palette.
- * `figures`: how much colour the figure layers take (0 = ink greys only).
+ * `figures`: how much colour the figure layers take (figures.ts inks()).
  */
 export const PALETTES = Object.freeze({
-  ink: Object.freeze({ scenes: Object.freeze([0, 0, 0, 0, 0, 0]), figures: 0 }),
   // (the Résumé's malachite and Contact's indigo at .25 / .20 do not read at all under their mist; the terraces and
   // the crossing's water carry them at .55 / .50, so every place has its own colour)
   // (the lake keeps a breath of the blue-green and the lone peak a trace, so the colour runs along the whole
   // scroll and only fades, never stops)
   misted: Object.freeze({ scenes: Object.freeze([0.85, 0.70, 0.36, 0.70, 0.75, 0.32]), figures: 1 }),   // the young palette, re-indexed to the six places
-  rich: Object.freeze({ scenes: Object.freeze([0.75, 0.60, 0.22, 0.75, 0.70, 0.12]), figures: 1.25 }),
 });
 
-export const PALETTE_NAMES = Object.freeze(Object.keys(PALETTES));
-export const DEFAULT_PALETTE = 'misted';
-/** A palette's name: 'ink' (the ink painting, no colour), 'misted' (the site's) or 'rich'. */
+const DEFAULT_PALETTE = 'misted';
+/** A palette's name: 'misted' (the site's, and the only one). */
 export type PaletteName = keyof typeof PALETTES;
 
 /** A palette name, or the default when it is not one. */
@@ -46,7 +34,7 @@ export function paletteName(p: unknown): PaletteName {
  * How each scene leans: which pigment leads (0 = azurite-led, 1 = malachite-led) and how much the water
  * takes indigo instead (the crossing). Index = stretch.
  */
-export const LEAN = Object.freeze([
+const LEAN = Object.freeze([
   { mal: 0.42, water: 0 },     // peak (Home): azurite-led
   { mal: 0.55, water: 0 },     // river (Work): blue-green hills
   { mal: 0.5, water: 0 },      // lake: a breath of colour

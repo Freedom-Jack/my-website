@@ -41,8 +41,8 @@ export const site = {
   url: 'https://my-website-freedomjack.vercel.app',
 
   links: {
-    github: { label: 'GitHub', handle: github.username, url: github.url },
-    linkedin: { label: 'LinkedIn', handle: linkedin.username, url: linkedin.url },
+    github: { handle: github.username, url: github.url },
+    linkedin: { url: linkedin.url },
   },
 
   /**
@@ -139,5 +139,3 @@ export const site = {
     ],
   },
 } as const;
-
-export type Site = typeof site;

@@ -94,7 +94,6 @@ function grainTile() {
 interface View {
   w: number;
   h: number;
-  alpha: boolean;
   full: HTMLCanvasElement;
   fc: CanvasRenderingContext2D;
   work: HTMLCanvasElement;
@@ -123,9 +122,7 @@ interface VeilRect {
   s: number;
   R: number;
   fr: number;
-  fk: number;
   reach: number;
-  t0: number;
 }
 
 export function createCanvas2D(canvas: HTMLCanvasElement): Renderer | null {
@@ -153,8 +150,6 @@ export function createCanvas2D(canvas: HTMLCanvasElement): Renderer | null {
   let veilImg: ImageData | null = null, veilKey = '';
   const views = new Map<string, View>();
   const figs = new Map<string, FigureSource>();   // id -> image (ImageBitmap or canvas)
-  const banks = new Map<string, { cv: HTMLCanvasElement; amp: number; h: number }>();   // 4b: baked mist-bank edges (stage(), bank())
-  const curtC = new Map<number, { src: HTMLCanvasElement; key: string; cv: HTMLCanvasElement }>();   // 4b: a layer with the curtain's fade cut out of it (stage(), curtained())
 
   function lowSize(w: number, h: number): [number, number] {
     const lw = Math.max(2, Math.round(w / 4)), lh = Math.max(2, Math.round(h / 4));
@@ -224,26 +219,6 @@ export function createCanvas2D(canvas: HTMLCanvasElement): Renderer | null {
     wc.globalAlpha = 1 - Math.exp(-step / (bodyW * 0.75));
     for (let k = 1; k <= steps; k++) wc.drawImage(stamp, 0, Math.round(k * step));
     wc.globalAlpha = 1;
-    if (U.planes && l === 1) {
-      // 4b, round 3 (the living ground's full-viewport views): the second far range's crest dissolves into drifting mist
-      // as in WebGL, where this range is all but lost in the haze. Painted here it kept a crisp, nearly straight ridge
-      // across the right margin: a broad mist line laid along the crest (and a fainter one under it), its strength broken
-      // along its length by noise, so the ridge shows only in places and never as a ruled edge.
-      wc.lineCap = 'butt';
-      const n = v.samples, every = Math.max(1, Math.round(n / LW));
-      for (const [dy, k, lw] of [[0.3, 1, 3], [2, 0.55, 2.4]]) {
-        wc.lineWidth = lw;
-        for (let c = 0; c + every < n; c += every) {
-          const a = k * clamp01(0.6 + 0.6 * vnoise((c / n) * 9.0 + 3.7, 1.9) - 0.2 * vnoise((c / n) * 23.0, 6.1));
-          if (a < 0.02) continue;
-          const x0 = (c / (n - 1)) * LW, x1 = ((c + every) / (n - 1)) * LW;
-          const y0 = vy(U, v.ridges[(l * n + c) * 4] - sunk(v, l, c), LH) + dy;
-          const y1 = vy(U, v.ridges[(l * n + c + every) * 4] - sunk(v, l, c + every), LH) + dy;
-          wc.strokeStyle = rgba(MIST, a);
-          wc.beginPath(); wc.moveTo(x0, y0); wc.lineTo(x1, y1); wc.stroke();
-        }
-      }
-    }
     let src = low;
     if (blurOK && !draft) {
       sc.globalCompositeOperation = 'copy';
@@ -511,8 +486,7 @@ export function createCanvas2D(canvas: HTMLCanvasElement): Renderer | null {
     lc.drawImage(figC, x0, t0, x1 - x0, t1 - t0);
     lc.restore();
   }
-  // the keep-out: mist recomposes the scene where the text stands (opaque to 140 px left of its edge, clear 140 right);
-  // a 4b depth layer in front of the base simply clears there (the base's mist shows through)
+  // the keep-out: mist recomposes the scene where the text stands (opaque to 140 px left of its edge, clear 140 right)
   function keepOut(U: SceneU, lc: CanvasRenderingContext2D, w: number, h: number) {
     if (!U.keep || !(U.keep[1] > 0)) return;
     const kx = U.keep[0] * w, kr = U.keep[2] * w;
@@ -520,19 +494,13 @@ export function createCanvas2D(canvas: HTMLCanvasElement): Renderer | null {
     g.addColorStop(0, rgba(mix(MIST, SKY, 0.45), 1));
     g.addColorStop(1, rgba(mix(MIST, SKY, 0.45), 0));
     lc.save();
-    if (isLayer(U)) lc.globalCompositeOperation = 'destination-out';
     lc.fillStyle = g;
     lc.fillRect(0, 0, kx + kr, h);
     lc.restore();
   }
-  // 4b depth layers: U.planes = [first plane, last plane, 1 = a layer over transparent paper]
-  const isLayer = (U: SceneU) => !!U.planes && U.planes[2] > 0.5;
-  const inRange = (U: SceneU, l: number) => !U.planes || (l >= U.planes[0] - 0.01 && l <= U.planes[1] + 0.01);
   // the painting's steps, far to near; the water goes in front of the far shore; figures after their plane
   const STEPS = LAYERS + 1;
   function step(v: Painted, k: number, U: SceneU, lc: CanvasRenderingContext2D, w: number, h: number, draft: boolean) {
-    const pl = k < 3 ? k : k === 3 ? 2 : k - 1;      // the plane this step belongs to (the water goes with plane 2)
-    if (!inRange(U, pl)) { if (k === STEPS - 1) keepOut(U, lc, w, h); return; }
     if (k < 3) plane(v, k, U, lc, w, h, draft);
     else if (k === 3) water(v, U, lc, w, h, draft);
     else plane(v, k - 1, U, lc, w, h, draft);
@@ -545,18 +513,14 @@ export function createCanvas2D(canvas: HTMLCanvasElement): Renderer | null {
     }
     if (k === STEPS - 1) keepOut(U, lc, w, h);
   }
-  function ground(lc: CanvasRenderingContext2D, U: SceneU, w: number, h: number) {
-    if (isLayer(U)) { lc.setTransform(1, 0, 0, 1, 0, 0); lc.clearRect(0, 0, w, h); } else sky(lc, U, w, h);
-  }
   function paintAll(v: Painted, lc: CanvasRenderingContext2D, w: number, h: number, U: SceneU, draft: boolean) {
-    ground(lc, U, w, h);
+    sky(lc, U, w, h);
     for (let k = 0; k < STEPS; k++) step(v, k, U, lc, w, h, draft);
   }
 
   return {
     mode: 'canvas2d',
     software: false,
-    rendererName: 'canvas2d',
     get ready() { return true; },
     resize(w, h) {
       if (w === W && h === H) return;
@@ -571,16 +535,14 @@ export function createCanvas2D(canvas: HTMLCanvasElement): Renderer | null {
       veilKey = '';
       grain = tile ? ctx.createPattern(tile, 'repeat') : null;
     },
-    view(id, w, h, alpha = false) {
+    view(id, w, h) {
       w = Math.max(2, w | 0); h = Math.max(2, h | 0);
-      let v: View | null | undefined = views.get(id);
-      if (v && v.w === w && v.h === h && v.alpha === alpha) return false;
-      if (v && v.alpha !== alpha) { views.delete(id); v = null; }
+      let v: View | undefined = views.get(id);
+      if (v && v.w === w && v.h === h) return false;
       if (!v) {
-        // (a 4b depth layer in front of the base is painted over transparent paper)
-        const [full, fc] = surf(alpha), [work, kc] = surf(alpha), [draft, dc] = surf(alpha);
+        const [full, fc] = surf(), [work, kc] = surf(), [draft, dc] = surf();
         // (its size is set just below)
-        v = { full, fc, work, kc, draft, dc, ridges: null, samples: 0, gen: 0, shown: null, job: null, shift: 0, alpha } as Omit<View, 'w' | 'h'> as View;
+        v = { full, fc, work, kc, draft, dc, ridges: null, samples: 0, gen: 0, shown: null, job: null, shift: 0 } as Omit<View, 'w' | 'h'> as View;
         views.set(id, v);
       }
       v.w = v.full.width = v.work.width = w;
@@ -591,7 +553,7 @@ export function createCanvas2D(canvas: HTMLCanvasElement): Renderer | null {
       v.job = null;
       return true;
     },
-    dropView(id) { const v = views.get(id); if (v) { v.full.width = v.work.width = v.draft.width = 0; views.delete(id); } for (const c of curtC.values()) c.cv.width = 0; curtC.clear(); },
+    dropView(id) { const v = views.get(id); if (v) { v.full.width = v.work.width = v.draft.width = 0; views.delete(id); } },
     hasView(id) { return !!views.get(id)?.shown; },
     /** QA: bytes held per view (two full-size canvases and a half-size draft each). */
     memory() {
@@ -606,7 +568,7 @@ export function createCanvas2D(canvas: HTMLCanvasElement): Renderer | null {
     ridges(id, data, n) { const v = views.get(id); if (v) { v.ridges = data; v.samples = n; v.gen++; } },
     figure(id, img) {
       if (!img) { const old = figs.get(id); try { old?.close?.(); } catch { /* ignore */ } figs.delete(id); return true; }
-      const src = img.bitmap || img.canvas;
+      const src = img.bitmap;
       if (!src) return false;
       figs.set(id, src);
       return true;
@@ -635,7 +597,7 @@ export function createCanvas2D(canvas: HTMLCanvasElement): Renderer | null {
       }
       if (!v.job || v.job.gen !== v.gen) {
         v.job = { next: 0, gen: v.gen };
-        ground(v.kc, U, v.w, v.h);
+        sky(v.kc, U, v.w, v.h);
       }
       step(v as Painted, v.job.next, U, v.kc, v.w, v.h, false);
       if (++v.job.next < STEPS) return false;
@@ -663,8 +625,6 @@ export function createCanvas2D(canvas: HTMLCanvasElement): Renderer | null {
         ctx.fillStyle = b;
         ctx.fillRect(0, H * (1 - vg), W, H * vg);
       }
-      // 4b: the living ground's depth layers at their sinks (drawImage offsets), the haze deck and the sea of mist
-      if (U.stage) stage(U);
       // the windows at their live boxes, feathered into the paper at top and bottom
       for (const w of U.windows || []) {
         const v = views.get(w.id);
@@ -724,145 +684,24 @@ export function createCanvas2D(canvas: HTMLCanvasElement): Renderer | null {
   };
 
   /**
-   * 4b: the living ground. The far layer (opaque, at its own resolution) at its sink, its sky row repeated above it; a
-   * pale haze deck; the middle and near layers (transparent, each over its crop) at theirs; the cloud (mid-lift) and the
-   * sea of mist rising over their feet. The deck's, the cloud's and the sea's surfaces billow (a baked edge, never a
-   * ruled line). No drift here: Canvas2D is a still painting that only moves with the scroll.
-   */
-  function stage(U: PresentU) {
-    const S = U.stage!;   // (present() calls it with a stage)
-    const O = S.offsets, R = S.rects;
-    ctx.imageSmoothingEnabled = true;
-    for (let i = 0; i < 3; i++) {
-      const v = views.get(S.ids[i]);
-      const a = O[i * 4 + 2];
-      if (!v || !v.shown || !(a > 0)) continue;
-      const sw = v.shown.width, sh = v.shown.height;
-      const dx = O[i * 4] * W, dy = O[i * 4 + 1] * H;
-      // the crop (uv, y up) in canvas px
-      const x0 = R[i * 4] * W, x1 = R[i * 4 + 2] * W, y0 = (1 - R[i * 4 + 3]) * H, y1 = (1 - R[i * 4 + 1]) * H;
-      if (i === 0) {
-        if (dy > 0.5) ctx.drawImage(v.shown, 0, 0, sw, 1, dx, 0, W, dy + 1);
-        if (dx > 0.5) ctx.drawImage(v.shown, 0, 0, 1, sh, 0, 0, dx + 1, H);
-      }
-      // (the middle and near layers fade out as the cloud thickens: a baked bank's billows dip below its top line, and
-      // the town must never show above them while it steps inside)
-      ctx.globalAlpha = i > 0 && S.cloud ? a * (1 - clamp01(S.cloud[0])) : a;
-      let img = v.shown;
-      if (i > 0 && S.curt && S.curt[1] >= 0.5 && x1 > x0) {
-        // the curtain (Canvas2D: on or off, never half): the layer fades out left of its edge (a soft ramp, cached)
-        const e = (S.curt[0] * W - dx - x0) / (x1 - x0) * sw, w = (S.curt[2] * W) / (x1 - x0) * sw;
-        img = curtained(i, v, e - w, e + w * 0.15);
-      }
-      ctx.drawImage(img, 0, 0, sw, sh, dx + x0, dy + y0, x1 - x0, y1 - y0);
-      ctx.globalAlpha = 1;
-      if (i === 0 && S.k[3] > 0) {
-        // the haze deck between far and middle (uv y up: the deck's height from the bottom), its top billowing
-        const y = (1 - S.sea[2]) * H, soft = S.sea[1] * H;
-        bank(y - soft * 0.7, soft * 2.3, mix(MIST, SKY, 0.35), 0.82 * S.k[3], 1);
-      }
-    }
-    if (S.cloud && S.cloud[0] > 0) {
-      // the mid-lift cloud (the shader's): reserved-paper billows with a soft grey wash laid just above each top (a
-      // toned bank drawn a little higher first, the pale one over it), a nearer billow lower down the same way
-      const y = (1 - S.cloud[1]) * H, soft = S.cloud[2] * H, k = S.cloud[0];
-      const tone = [194, 204, 201], pale = mix(MIST, SKY, 0.5);
-      bank(y - soft * 0.4 - 0.08 * H, soft * 1.4, tone, 0.42 * k, 2);
-      bank(y - soft * 0.4 - 0.03 * H, soft * 1.4, pale, 0.97 * k, 2);
-      bank(y + 0.13 * H - 0.05 * H, soft * 1.4, tone, 0.36 * k, 5);
-      bank(y + 0.13 * H, soft * 1.4, pale, 0.9 * k, 5);
-    }
-    if (S.k[2] > 0) {
-      const y = (1 - S.sea[0]) * H, soft = S.sea[1] * H;
-      bank(y - soft * 0.45, soft * 1.45, mix(MIST, SKY, 0.25), S.k[2], 3);
-      // deeper down the sea is paper
-      const d0 = y + soft, g = ctx.createLinearGradient(0, d0, 0, d0 + 0.2 * H);
-      g.addColorStop(0, rgba(mix(PAPER, SKY, 0.3), 0));
-      g.addColorStop(1, rgba(mix(PAPER, SKY, 0.3), S.k[2]));
-      ctx.fillStyle = g;
-      ctx.fillRect(0, d0, W, H - d0);
-    }
-  }
-  function curtained(i: number, v: View, e0: number, e1: number) {
-    const img = v.shown!;   // (stage() calls it for a layer on show)
-    const key = `${Math.round(e0)}|${Math.round(e1)}|${img.width}x${img.height}|${v.gen}`;
-    const c = curtC.get(i);
-    if (c && c.src === img && c.key === key) return c.cv;
-    const cv = c?.cv || document.createElement('canvas');
-    cv.width = img.width; cv.height = img.height;
-    const x = cv.getContext('2d', { willReadFrequently: true })!;   // (CPU-backed, as every canvas here)
-    x.drawImage(img, 0, 0);
-    x.globalCompositeOperation = 'destination-out';
-    const g = x.createLinearGradient(e0, 0, e1, 0);
-    for (let k = 0; k <= 6; k++) { const t = k / 6; g.addColorStop(t, `rgba(0,0,0,${(1 - t * t * (3 - 2 * t)).toFixed(3)})`); }
-    x.fillStyle = g;
-    x.fillRect(0, 0, cv.width, cv.height);
-    x.globalCompositeOperation = 'source-over';
-    curtC.set(i, { src: img, key, cv });
-    return cv;
-  }
-  // A bank of mist from `top` down (solid below top + depth), its upper surface billowing: a sprite baked once per
-  // (size, colour, seed) with a noisy alpha edge, then a solid fill below it (`banks`, above).
-  function bank(top: number, depth: number, c: number[], k: number, seed: number) {
-    if (!(k > 0)) return;
-    const d = Math.max(4, Math.round(depth));
-    const key = `${W}|${d}|${c.map(Math.round).join(',')}|${seed}`;
-    let sp = banks.get(key);
-    if (!sp) {
-      if (banks.size > 8) banks.clear();
-      const amp = d * 0.55;
-      const h = Math.round(d + amp * 2);
-      const cv = document.createElement('canvas');
-      cv.width = W; cv.height = h;
-      const x = cv.getContext('2d', { willReadFrequently: true })!;   // (CPU-backed, as every canvas here)
-      const img = x.createImageData(W, h);
-      for (let i = 0; i < W; i++) {
-        const u = (i / Math.max(1, H)) * 3.1 + seed * 7.3;
-        const off = (vnoise(u, seed * 3.1) - 0.5) * 2 * amp + (vnoise(u * 3.7, seed + 9.2) - 0.5) * amp * 0.5;
-        for (let j = 0; j < h; j++) {
-          const t = sstep(amp + off, amp + off + d, j);
-          const o = (j * W + i) * 4;
-          img.data[o] = c[0]; img.data[o + 1] = c[1]; img.data[o + 2] = c[2]; img.data[o + 3] = Math.round(t * 255);
-        }
-      }
-      x.putImageData(img, 0, 0);
-      sp = { cv, amp, h };
-      banks.set(key, sp);
-    }
-    ctx.globalAlpha = k;
-    ctx.drawImage(sp.cv, 0, top - sp.amp);
-    ctx.fillStyle = rgba(c);
-    const below = top - sp.amp + sp.h;
-    if (below < H) ctx.fillRect(0, below, W, H - below);
-    ctx.globalAlpha = 1;
-  }
-
-  /**
    * The reading veil's mask (alpha = how much paper lies over the landscape), the shader's formula per pixel: each
    * rect's distance (aspect-corrected), feathered over its radius and torn by the mist field. Returns false when
    * there is no veil. Recomputed only when the rects or the size change.
    */
   function veilMask(U: PresentU) {
     const list: VeilRect[] = [];
-    // 4b living veils (U.live[0] 2): solid paper over the text's own lines and U.live[1] round them, then a torn edge
-    // (wk, the margin's reach, is set just below)
-    const live = U.live && U.live[0] > 1.5
-      ? { c: U.live[1], F: U.live[2], y: U.live2 ? U.live2[0] : 0, sw: U.live2 ? U.live2[2] : 0, px: U.live2 ? U.live2[3] : 1 / 900 } as { c: number; F: number; y: number; sw: number; px: number; wk: number } : null;
-    // (round 3, as the shader: a wide window's longer reach applies beside a block only)
-    if (live) live.wk = Math.min(1.8, Math.max(1, U.aspect / live.px / 1440));
     for (let k = 0; k < U.veilS.length; k++) {
       const x0 = U.veil[k * 4];
       if (x0 < -0.5 || !(U.veilS[k] > 0)) continue;
       const R = U.veilR * (U.veilF ? U.veilF[k] : 1);
       const fr = R / 0.13;
-      const fk = U.veilF ? U.veilF[k] : 1;
       list.push({
         x0, y0: U.veil[k * 4 + 1], x1: U.veil[k * 4 + 2], y1: U.veil[k * 4 + 3], s: U.veilS[k],
-        R, fr, fk, reach: live ? (live.c * 0.8 + (live.F * 1.9 + live.sw * 1.3) * live.wk) * fk : R + 0.03 * fr, t0: U.live && U.live[0] > 0.5 ? 0 : clamp01((1 - U.veilS[k]) / 0.28),
+        R, fr, reach: R + 0.03 * fr,
       });
     }
     if (!list.length) return false;
-    const key = `${VW}x${VH} ${U.aspect.toFixed(4)} ${live ? 'L' + live.y.toFixed(4) : ''}` +
+    const key = `${VW}x${VH} ${U.aspect.toFixed(4)} ` +
       list.map((v) => [v.x0, v.y0, v.x1, v.y1, v.s, v.R].map((n) => n.toFixed(4)).join(',')).join(' ');
     if (key === veilKey) return true;
     veilKey = key;
@@ -881,37 +720,8 @@ export function createCanvas2D(canvas: HTMLCanvasElement): Renderer | null {
           const vd = Math.sqrt(qx * qx + qy * qy);
           if (vd >= L.reach) continue;
           if (m < 0) m = mistAt(u * asp, v);
-          let val: number;
-          if (live) {
-            // (the shader's living edge: tongues of mist ~100 px tall down a column's side, anchored to the page, linear in
-            // the field above a soft floor; the feather keeps its full width and runs out further where the margin has
-            // room; no painting is read here, so its ramp takes the middle of the shader's ink range)
-            const yq = v - live.y;
-            // (round 3, as the shader: the margin factor is continuous across the box's corners, and along a top or bottom
-            // edge the tongues turn into billows that vary along the edge, so a summit under it never meets a ruler)
-            const side = sstep(0.25, 0.75, qx / Math.max(qx + qy, 1e-6));
-            const ws = 1 + (live.wk - 1) * side;
-            const c = live.c * L.fk, F = Math.min(live.F * ws, U.veilR) * L.fk;
-            let sw = 0;
-            if (side > 0.001) {
-              const t = (vnoise(u * asp * 2.0 + 3.1, yq * 9.0 + 1.3) - 0.5) * 2.4 + (vnoise(u * asp * 3.4 + 7.7, yq * 15.0 + 5.2) - 0.5) * 1.0;
-              sw += side * Math.min(1.3, -0.1 + 0.15 * Math.log(1 + Math.exp((0.3 + 0.85 * t + 0.1) / 0.15)));
-            }
-            if (side < 0.999) {
-              const t = (vnoise(u * asp * 3.6 + 5.3, yq * 1.8 + 2.9) - 0.5) * 2.6 + (vnoise(u * asp * 7.6 + 1.7, yq * 3.2 + 8.1) - 0.5) * 1.15;
-              sw += (1 - side) * 0.8 * Math.min(1.3, -0.1 + 0.15 * Math.log(1 + Math.exp((0.3 + 0.85 * t + 0.1) / 0.15)));
-            }
-            const inb = Math.max(0, Math.min(u - L.x0, L.x1 - u));
-            const room = ((L.x0 + (1 - L.x1 - L.x0) * sstep(L.x0, L.x1, u)) + inb) * asp / live.px;
-            const kr = 0.35 + 0.65 * sstep(240, 420, room);
-            const B = c * 0.8 + F * 0.5 + sw * live.sw * ws * L.fk * kr;
-            const tear = (m - 0.5) * F * 1.8 * sstep(c, c + F * 0.5, vd);
-            val = L.s * Math.max(1 - sstep(c * 0.8 - 8 * live.px, c * 0.8, vd), 1 - sstep(B - F * 0.5, B + F * (0.5 + (0.58 - 0.13 * side) * kr), vd + tear));
-          }
-          else {
-            const tear = L.t0 + (1 - L.t0) * sstep(0, 0.02 * L.fr, vd);
-            val = L.s * (1 - sstep(0, L.R, vd + (m - 0.5) * 0.06 * L.fr * tear));
-          }
+          const tear = sstep(0, 0.02 * L.fr, vd);
+          const val = L.s * (1 - sstep(0, L.R, vd + (m - 0.5) * 0.06 * L.fr * tear));
           if (val > a) a = val;
         }
         d[(j * VW + i) * 4 + 3] = Math.round(a * 255);

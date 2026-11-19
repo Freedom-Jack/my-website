@@ -22,17 +22,13 @@ export const ROUTES = [
   { id: '404', path: '/no-such-page/', title: 'Qijin (Jack) Xu · Page not found', page: 'not-found' },
 ] as const;
 
-/** The viewports the budgets are set for: 1440 × 900, 1280 × 720, 390 × 844 at DPR 3. */
-export const VIEWPORTS = {
-  '1440': { width: 1440, height: 900, dpr: 1, mobile: false },
-  '1280': { width: 1280, height: 720, dpr: 1, mobile: false },
-  '390': { width: 390, height: 844, dpr: 3, mobile: true },
-} as const;
+/** A phone: 390 × 844 at DPR 3, touch (test.use or newContext options). */
+export const PHONE = { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true };
 
 /**
  * Whether this browser paints with a software rasteriser (SwiftShader, llvmpipe...), probed on the blank page before
  * the app loads: once the painting runs it can hold the main thread for a long time, so a hardware-only test must
- * skip first, never wait for a scene it will not get. The approved look is judged on a real GPU.
+ * skip first, never wait for a scene it will not get.
  */
 export async function isSoftware(page: Page): Promise<boolean> {
   return page.evaluate(() => {
@@ -50,8 +46,8 @@ export async function isSoftware(page: Page): Promise<boolean> {
 }
 
 /**
- * Wait until the fonts are loaded and the document complete: the type budgets measure the fonts, not the
- * painting, and a software rasteriser can keep the painting busy for minutes while the DOM is ready at once.
+ * Wait until the fonts are loaded and the document complete: for the tests that read the page's words and boxes, not
+ * the painting (a software rasteriser can keep the painting busy for minutes while the DOM is ready at once).
  */
 export async function fontsReady(page: Page, timeout = 30_000) {
   await page.waitForFunction(
@@ -62,8 +58,8 @@ export async function fontsReady(page: Page, timeout = 30_000) {
 }
 
 /**
- * Wait until the painting has settled (the demo's cdp.SETTLE_JS on the QA build's window.__ink): no bloom, pan or
- * sweep, nothing pending, figure layers ready, the newest scene a full-quality one, the fonts loaded. Never a fixed
+ * Wait until the painting has settled (the QA build's window.__ink): no arrival or sweep, nothing pending, figure
+ * layers ready, the windows laid out painted, the newest scene a full-quality one, the fonts loaded. Never a fixed
  * wait. Without a renderer (software-less CI machines may lack WebGL) the static page counts as settled.
  */
 export async function settle(page: Page, timeout = 30_000) {
@@ -78,7 +74,7 @@ export async function settle(page: Page, timeout = 30_000) {
       if (!L) return performance.now() > 15_000;
       const s = L.stats() as Record<string, any>;
       if (!s || s.mode === 'static') return true;
-      if (s.arriving || s.pending || s.sweeping || s.deferred) return false;
+      if (s.arriving || s.pending || s.sweeping) return false;
       if (Object.values(s.figures || {}).includes('pending')) return false;
       // (glimpses: below 1200 px a page is settled once its windows into the painting are painted, at idle after load)
       const gl = s.glimpses;

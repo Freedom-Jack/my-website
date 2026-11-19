@@ -79,7 +79,7 @@ html.is-scroll-held :is(.site-header, .site-footer, .skip-link) {
 }
 .scroll-place {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-name);
   font-size: var(--fs-h2);
   line-height: var(--lh-h2);
   font-weight: var(--w-strong);

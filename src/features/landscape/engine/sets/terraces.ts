@@ -21,15 +21,13 @@
 
 import {
   REF_PX, VH_PX, SCENE_FIELDS, planeTop, sceneField, streams, vnoise, mix, mix3, clamp01, smooth, stroke, wash, softWash,
-  runs, ellipse, anchor, ownSprite, D, type Env, type FigureMeta, type Pt, type Rng, type RGB,
+  runs, ellipse, anchor, D, type Env, type FigureMeta, type Pt, type Rng, type RGB,
 } from '../figures';
-import { swallowInk } from './young';
-import { el } from '../../elements';
 import type { Resolved } from '../compose';
 
 /** The set's stretch: every world x below is K + its offset (move the place by changing K). */
 const K = 3;
-export const meta: FigureMeta = { rect: [K + 0.16, K + 1, 0.2, 0.6], plane: 2, phase: 0 };   // (up into the sky for the swallow)
+export const meta: FigureMeta = { rect: [K + 0.16, K + 1, 0.2, 0.6], plane: 2, phase: 0 };   // (y1 up into the sky: the rect sizes and places the layer)
 type PtData = [x: number, y: number, ...data: number[]];
 interface TreeOptions { pale?: boolean; upright?: boolean }
 
@@ -74,13 +72,12 @@ function groundModel(P: Resolved, ua: number, ub: number) {
 export function* draw(env: Env) {
   const { ctx, P, ink } = env;
   const { C, rgba } = ink;
-  const own = streams(SEED, {});
+  const own = streams(SEED);
   const X = (u: number) => u * REF_PX, Y = (y: number) => (1 - y) * VH_PX;
   // phones see this place from further away: the walls a little further apart and heavier, the house and the trees
   // larger (a painter's licence: they are drawn to be read)
   const big = Math.max(1, 0.7 * REF_PX / env.scale);
   const wk = Math.pow(big, 0.6), fk = Math.pow(big, 0.8);
-  const colour = ink.strength > 0;
 
   const G = groundModel(P, env.rect[0] - 0.14, env.rect[1] + 0.14);
   const crest = G.crestAt, broad = G.broadAt;
@@ -146,9 +143,9 @@ export function* draw(env: Env) {
   // its ends where it meets the next field (a low dike) or runs out against the hill's outline. Flooded fields hold
   // the sky (paper), young rice is pale, ripe rice a little darker; some lie bare
   // (the flooded fields hold the morning sky: a clear pale ice-cyan, each with a lit line along its lip)
-  const flood = colour ? mix3(C.white, [168, 214, 232], 0.42) : C.white;
-  const young = colour ? mix3(C.mal, C.white, 0.5) : mix3(C.ink2, C.white, 0.78);
-  const ripe = colour ? mix3(C.malD, C.ink2, 0.25) : C.ink2;
+  const flood = mix3(C.white, [168, 214, 232], 0.42);
+  const young = mix3(C.mal, C.white, 0.5);
+  const ripe = mix3(C.malD, C.ink2, 0.25);
   for (const w of walls) {
     if (w.k === 0) continue;
     const R = own('fields', w.k);
@@ -176,7 +173,7 @@ export function* draw(env: Env) {
         const seed = w.k * 13 + i0;
         if (kind < 0.34 && !open && w.k > 1 && n * DU * REF_PX < 90 * big) {
           wash(ctx, poly, rgba(flood, (0.5 + R() * 0.2) * a), { jit: 0.4, seed });
-          if (colour && n > 8) stroke(ctx, seg.slice(2, n - 2).map(([x, y]): Pt => [x, y - 1.1 * wk]), { w: 0.75 * wk, col: rgba(C.light, 0.92 * a), tin: 0.3, tout: 0.4, min: 0.2, dry: 0.2, seed: seed + 5 });
+          if (n > 8) stroke(ctx, seg.slice(2, n - 2).map(([x, y]): Pt => [x, y - 1.1 * wk]), { w: 0.75 * wk, col: rgba(C.light, 0.92 * a), tin: 0.3, tout: 0.4, min: 0.2, dry: 0.2, seed: seed + 5 });
         }
         else if (kind < 0.6) wash(ctx, poly, rgba(young, (0.26 + R() * 0.2) * a), { jit: 0.4, seed });
         else if (kind < 0.8) wash(ctx, poly, rgba(ripe, (0.08 + R() * 0.08) * a), { jit: 0.4, seed });
@@ -199,7 +196,7 @@ export function* draw(env: Env) {
         const a = fade2(m[2], m[3]);
         if (a < 0.04) continue;
         const pts = seg.map(([x, y]): Pt => [x, y]);
-        softWash(env, [...pts, ...pts.slice().reverse().map(([x, y]): Pt => [x, y + rh])], rgba(mix3(C.ink2, C.malD, colour ? 0.3 : 0), (0.09 + 0.09 * shadeK) * a), 0.6);
+        softWash(env, [...pts, ...pts.slice().reverse().map(([x, y]): Pt => [x, y + rh])], rgba(mix3(C.ink2, C.malD, 0.3), (0.09 + 0.09 * shadeK) * a), 0.6);
         stroke(ctx, pts, {
           w: (1.1 + 0.4 * R()) * wk * wf, col: rgba(C.ink, (0.46 + 0.22 * shadeK + R() * 0.1) * a * Math.min(1.15, wf)),
           tin: 0.08, tout: 0.25, wob: 0.6, dry: 0.24, seed: seg[0][0] * 0.37 + w.k,
@@ -314,19 +311,6 @@ export function* draw(env: Env) {
   }
   yield;
   // (no bamboo here: it would be a third green, cut by the frame's edge)
-  // ---- Résumé's one painted moment: terraces in the morning light. A swallow sweeps low over the fields toward the
-  // light (the painted bird, its own sprite, gliding), the flooded treads hold the sky with a lit line along each lip,
-  // and one tree on the left crown is in blossom.
-  // (elements.ts swallows: the Résumé's swallow, off since the vanguard round's A3: the terraces keep the blossom tree
-  // and the farmhouse smoke)
-  if (!env.still && el('swallows')) {
-    const sx = X(K + 0.6), sy = Y(0.445), path: Pt[] = [], sb = 40 * Math.pow(big, 0.5);
-    for (let k = 0; k <= 30; k++) { const u = k / 30; path.push([sx - 120 + 260 * u, sy + 18 - 40 * u + 10 * Math.sin(u * 3.4)]); }
-    // (a window into the painting, inlay, leaves the strip's swallow out: painted still into every window of the page it
-    // would be one bird stamped twice)
-    if (!env.inlay) ownSprite(env, 'walker', { x: sx - sb * 0.85, y: sy - sb * 0.72, w: sb * 1.7, h: sb * 1.45 }, { path, home: [sx, sy], speed: 11, bird: true }, (e) => swallowInk(e, sx, sy, sb, 0.28, own('q3 swallow'), { bank: -0.5, lift: 0.4 }));
-  }
-  yield;
 }
 
 /**
@@ -381,8 +365,8 @@ function fieldTree(env: Env, x: number, y: number, s: number, R: Rng, o: TreeOpt
   const rx = (up ? 3.0 : 4.6 + R() * 1.6) * s, ry = (up ? 5.4 : 3.2 + R() * 0.8) * s;
   const cx = x + lean, cy = y - H + ry;
   stroke(ctx, [[x, y + 0.4], [x + lean * 0.5 + (R() - 0.5) * 0.8 * s, y - H * 0.35], [cx, cy]], { w: 1.15 * s, col: rgba(C.ink, 0.85), tin: 0, tout: 0.5, wob: 0.5, seed: x });
-  const leaf = ink.strength > 0 ? mix3(C.ink, C.malD, o.pale ? 0.45 : 0.25) : (o.pale ? mix3(C.ink, C.white, 0.28) : C.ink);
-  const body = ink.strength > 0 ? mix3(C.malD, C.ink2, o.pale ? 0.2 : 0.45) : mix3(C.ink2, C.white, o.pale ? 0.5 : 0.3);
+  const leaf = mix3(C.ink, C.malD, o.pale ? 0.45 : 0.25);
+  const body = mix3(C.malD, C.ink2, o.pale ? 0.2 : 0.45);
   const blobs: number = up ? 2 : 3;
   const B: [x: number, y: number, rx: number, ry: number][] = [];
   for (let i = 0; i < blobs; i++) {
@@ -434,7 +418,7 @@ function farmhouse(env: Env, x: number, y: number, s: number, R: Rng): Pt {
   const rL: Pt = [x + w * 0.2 + ox * 0.5, y - h - rh + oy * 0.5], rR: Pt = [x + w * 0.8 + ox * 0.5, y - h - rh + oy * 0.5];
   const eF = eave[eave.length - 1], eB: Pt = [x + w + ov + ox, ey + oy + 0.3 * s];
   // straw gone grey: cool, never beige; a breath of green so the grey does not turn pink against the malachite
-  const thatch = ink.strength > 0 ? mix3(mix3(C.earth, C.ink2, 0.4), C.malD, 0.22) : mix3(C.earth, C.ink2, 0.4);
+  const thatch = mix3(mix3(C.earth, C.ink2, 0.4), C.malD, 0.22);
   wash(ctx, [eF, eB, rR], rgba(mix3(thatch, C.ink, 0.3), 0.9), { jit: 0.3 });
   wash(ctx, [...eave, rR, rL], rgba(thatch, 0.88), { jit: 0.35 });
   // straw streaks down the slope, and the thick eave's shadow on the wall

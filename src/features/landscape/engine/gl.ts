@@ -15,8 +15,6 @@
 //   present(U)         cheap pass to the screen: the windows at their live boxes, the horizon band, mist, grain
 //   busy()             is the GPU still painting the last presented frame? (a fence; index.ts then skips a frame
 //                      instead of queueing another behind it)
-//   settle()           wait (blocking) until the GPU has finished everything drawn so far. Only for a page that is
-//                      still hidden under the page wash: its first frame (shader compiles) lands there, not mid-reveal.
 //   poll()             advance the build: the programs' compiles and links run on the driver's own threads
 //                      (KHR_parallel_shader_compile; asked for with COMPLETION_STATUS_KHR, never a blocking wait), the
 //                      noise is painted once its program is done; `ready` turns true when every program is. index.ts
@@ -30,10 +28,8 @@
 
 import { VERT, NOISE, NOISE_SIZE, SCENE, PRESENT } from './shaders';
 import { ROWS, LAYERS } from './ridges';
-import { mark } from './marks';
 import type { FigureImage, PresentU, Renderer, RendererMemory } from './renderer';
 
-const QA = typeof process !== 'undefined' && process.env.NEXT_PUBLIC_INK_QA === '1';   // (the boot's marks, QA builds only)
 const LINK_GRACE = 60;   // ms: without KHR_parallel_shader_compile, how long poll() lets the links run before it asks (and waits)
 const SOFTWARE =/swiftshader|llvmpipe|softpipe|software|basic render|mesa offscreen|warp/i;
 const NONE4 = new Float32Array([2, 2, -1, -1]);
@@ -41,13 +37,12 @@ const ZERO4 = new Float32Array(4);
 const ALL_PLANES = new Float32Array([0, LAYERS - 1, 0, 0]);   // an ordinary view: every plane, opaque (4b depth layers set their own)
 const NO_CROP = new Float32Array([0, 1, 0, 0]);                 // an ordinary view: the whole width of its ridges
 const ZERO12 = new Float32Array(12);
-const ZERO12A = new Float32Array(12);   // (the scroll's air: no petals)
 const FULL_RECTS = new Float32Array([0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1]);
 const NONE16 = new Float32Array([2, 2, -1, -1, 2, 2, -1, -1, 2, 2, -1, -1, 2, 2, -1, -1]);   // (no window into the painting)
 const ZERO8 = new Float32Array(8);
 
 /** What the engine does when the context is lost (a restore is asked for), restored, or cannot be rebuilt. */
-export interface GLHooks {
+interface GLHooks {
   lost?(): void;
   restored?(): void;
   failed?(): void;
@@ -120,7 +115,6 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
     });
   } catch { context = null; }
   if (!context) return null;
-  if (QA) mark('gl:context');
   const gl = context;   // (typed: the helper functions below see a context, never a possible null)
   if (gl.isContextLost()) {
     const err: TaintedError = new Error('landscape: context lost at init');
@@ -139,14 +133,11 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
   // a size asked for before the build is complete, applied by poll() once it is: sizing the canvas waits on the GPU
   // process, which is busy linking the programs until then (45 ms of the mount's task on a phone)
   let wantW = 0, wantH = 0;
-  // a long jump's cross-dissolve (the silk veil): the last frame before the splice, copied off the drawing buffer
-  let prev: WebGLTexture | null = null, prevW = 0, prevH = 0;
   const views = new Map<string, View>();
   const figs = new Map<string, WebGLTexture>();   // id -> texture
   const figBytes = new Map<string, number>();     // id -> bytes (QA: memory())
   let fence: WebGLSync | null = null;   // set after a present: has the GPU finished that frame? (see busy())
   let fenceAt = 0;
-  const px1 = new Uint8Array(4);   // settle()'s readback
   let bitmapsOK = false;  // 4b: an ImageBitmap of a 2D canvas uploads premultiplied here (probeBitmaps)
 
   // (WebGL's create* return null only on a lost context, where every later call is a no-op: the ! below)
@@ -252,9 +243,7 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
   // meanwhile), and poll() finishes it as the links come in: the noise is painted, each program checked, `ready`.
   function build() {
     const r = {} as Resources;
-    if (QA) mark('gl:build:start');
     probeBitmaps();
-    if (QA) mark('gl:probe');
     r.vao = gl.createVertexArray()!;
     gl.bindVertexArray(r.vao);
     r.noiseP = program(NOISE);
@@ -267,7 +256,6 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
     r.complete = false;
     r.issuedAt = performance.now();
     R = r;
-    if (QA) mark('gl:build:issued', { parallel: !!parallel });
   }
   // paper + mist noise, painted once (its program is done)
   function paintNoise(r: Resources) {
@@ -287,7 +275,6 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
     dropProgram(r.noiseP);
     r.noiseP = null;
     r.noise = noise;
-    if (QA) mark('gl:noise');
   }
   /** Finish what the links have delivered (never waiting with the extension; without it, waiting once LINK_GRACE
    *  has passed, or when asked to `wait`). True once the build is complete. A failed program ends the renderer
@@ -302,7 +289,6 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       if (!finish(r.sceneP, w) || !finish(r.presentP, w) || !finish(r.presentL, w)) return false;
       r.complete = true;
       if (wantW) { applySize(wantW, wantH); wantW = wantH = 0; }
-      if (QA) mark('gl:build:complete');
       return true;
     } catch (err) {
       console.warn(String(err));
@@ -362,8 +348,6 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
     figs.clear();
     for (const pr of [R.noiseP, R.sceneP, R.presentP, R.presentL]) dropProgram(pr);
     for (const t of [R.noise, R.blank]) if (t) gl.deleteTexture(t);
-    if (prev) gl.deleteTexture(prev);
-    prev = null; prevW = prevH = 0;
     gl.deleteVertexArray(R.vao);
     R = null;
   }
@@ -458,8 +442,6 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       gl.uniform4fv(P.u('uHzM'), U.horizon ? U.horizon.view : ZERO4);
       gl.uniform1f(P.u('uAspect'), U.aspect);
       gl.uniform1f(P.u('uTime'), U.time);
-      gl.uniform1f(P.u('uStillL'), U.stillL || 0);
-      gl.uniform1f(P.u('uMorn'), U.morn ?? 9);
       gl.uniform4fv(P.u('uVeil'), U.veil);
       gl.uniform1fv(P.u('uVeilS'), U.veilS);
       gl.uniform1fv(P.u('uVeilF'), U.veilF);
@@ -469,15 +451,6 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       gl.uniform1f(P.u('uWakeR'), U.wakeR);
       gl.uniform4fv(P.u('uSweep'), U.sweep);
       gl.uniform1f(P.u('uSweepSeed'), U.sweepSeed);
-      gl.uniform1f(P.u('uSweepK'), U.sweepKeep ?? 0);
-      const hold = prev && prevW === W && prevH === H ? U.hold ?? 0 : 0;
-      gl.uniform1f(P.u('uHold'), hold);
-      bindTex(P, 10, 'uPrev', hold > 0 ? prev : null);
-      // the moods (the hour, the weather, the lamps)
-      const md = U.mood;
-      gl.uniform4f(P.u('uMoodA'), md ? md[0] : 0, md ? md[1] : 0, md ? md[2] : 0, md ? md[3] : 0);
-      gl.uniform4f(P.u('uMoodB'), md ? md[4] : 0, md ? md[5] : 0, md ? md[6] : 3, 0);
-      gl.uniform4fv(P.u('uLamp'), U.lamps || ZERO12);
       gl.uniform1f(P.u('uPx'), U.px);
       gl.uniform1f(P.u('uPanPx'), U.panPx);
       gl.uniform1f(P.u('uGrain'), U.grain);
@@ -497,12 +470,9 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       gl.uniform4fv(P.u('uStM'), stOn ? st.view : ZERO4);
       gl.uniform4fv(P.u('uSt'), stOn ? st.k : ZERO4);
       gl.uniform4fv(P.u('uSea'), stOn ? st.sea : ZERO4);
-      gl.uniform4fv(P.u('uStC'), stOn && st.cloud ? st.cloud : ZERO4);
-      gl.uniform4fv(P.u('uStV'), stOn && st.curt ? st.curt : ZERO4);
-      gl.uniform4fv(P.u('uStX'), stOn && st.air ? st.air : ZERO4);   // (an inner place's air, soft crops, footer)
+      gl.uniform4fv(P.u('uStX'), stOn && st.air ? st.air : ZERO4);   // (an inner place's soft crops, footer)
       gl.uniform4fv(P.u('uStF'), stOn && st.foot ? st.foot : ZERO4);
       gl.uniform4fv(P.u('uStG'), stOn && st.grade ? st.grade : ZERO4);
-      gl.uniform4fv(P.u('uStK'), stOn && st.rule ? st.rule : ZERO4);   // (the row rules' end)
       gl.uniform4fv(P.u('uLive'), U.live || ZERO4);
       gl.uniform4fv(P.u('uLive2'), U.live2 || ZERO4);
       // the windows into the painting (elements.ts glimpses; units 13, 14: each window's own view, its back
@@ -525,13 +495,6 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       gl.uniform4fv(P.u('uGlC'), gOn ? G!.c : ZERO8);
       gl.uniform4fv(P.u('uGlD'), gOn ? G!.d : ZERO8);
       gl.uniform4fv(P.u('uGlM'), gOn ? G!.m : ZERO8);
-      // the scroll's air (elements.ts air)
-      const A = U.air;
-      gl.uniform4fv(P.u('uAir'), A ? A.a : ZERO4);
-      gl.uniform4fv(P.u('uAir2'), A ? A.b : ZERO4);
-      gl.uniform4fv(P.u('uAir3'), A ? A.c : ZERO4);
-      gl.uniform4fv(P.u('uAirP'), A ? A.petals : ZERO12A);
-      gl.uniform4fv(P.u('uAirQ'), A ? A.petalsB : ZERO12A);
       // 4b small life (the life program only; units 7-9): its table, the ridges of the view it lies in (where its water
       // is), the drifting boat's sprite and the figure layer the water's shimmer keeps off (boats, the bridge)
       const lf = U.life;
@@ -546,11 +509,9 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
         gl.uniform4fv(P.u('uLifeB'), lf.b);
         gl.uniform4fv(P.u('uLifeK'), lf.k);
         gl.uniform4fv(P.u('uLifeFigR'), lf.fig && figs.has(lf.fig) ? lf.figR : ZERO4);
-        // the stirred water, the plum's gust (elements.ts)
+        // the ferry's rings on the water (elements.ts contactLife)
         gl.uniform4fv(P.u('uStir'), lf.stir);
         gl.uniform4fv(P.u('uStirK'), lf.stirK);
-        gl.uniform4fv(P.u('uGust'), lf.gust);
-        gl.uniform4fv(P.u('uGust2'), lf.gust2);
       }
     }
   }
@@ -558,8 +519,6 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
   return {
     mode: 'webgl',
     software,
-    rendererName,
-    maxTexture: maxTex,
     get ready() { return !!R && R.complete && !gl.isContextLost(); },
     poll,
     /** Resize the drawing buffer (CSS size is the page's business); before the build is complete, once it is (poll). */
@@ -637,13 +596,6 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       if (st === gl.SIGNALED) { clearFence(); return 0; }
       return Math.max(1, performance.now() - fenceAt);
     },
-    settle() {
-      if (!R || gl.isContextLost()) return;
-      // a 1-pixel readback is the one WebGL call that waits for the GPU (clientWaitSync cannot block)
-      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-      try { gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px1); } catch { /* ignore */ }
-      clearFence();
-    },
     scene(id, U) {
       if (!R || !R.complete) return false;   // (the programs are still linking: the window stays pending)
       const v = views.get(id);
@@ -671,11 +623,7 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       gl.uniform4fv(P.u('uView'), U.view);
       gl.uniform1f(P.u('uHs'), U.hs);
       gl.uniform4fv(P.u('uKeep'), U.keep || ZERO4);
-      gl.uniform4fv(P.u('uNote'), U.note || ZERO4);
-      gl.uniform1f(P.u('uLift'), U.lift || 0);
       gl.uniform1f(P.u('uArrive'), U.arrive);
-      gl.uniform1f(P.u('uStillL'), U.stillL || 0);
-      gl.uniform1f(P.u('uMorn'), U.morn ?? 9);
       gl.uniform1f(P.u('uTide'), U.tide);
       gl.uniform4fv(P.u('uHz'), U.hz);
       gl.uniform1f(P.u('uHzK'), U.hzK);
@@ -694,16 +642,6 @@ export function createGL(canvas: HTMLCanvasElement, hooks: GLHooks): Renderer | 
       setPresent(P, U);
       gl.uniform4f(P.u('uPlateK'), 0, 0, 0, 0);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
-      if (U.grab) {
-        // keep this frame for a long jump's cross-dissolve (only while one is about to splice)
-        gl.activeTexture(gl.TEXTURE0 + 10);
-        if (!prev || prevW !== W || prevH !== H) {
-          if (prev) gl.deleteTexture(prev);
-          prev = tex(W, H, gl.RGB8, gl.RGB, gl.UNSIGNED_BYTE, gl.CLAMP_TO_EDGE);   // (the drawing buffer has no alpha)
-          prevW = W; prevH = H;
-        } else gl.bindTexture(gl.TEXTURE_2D, prev);
-        gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 0, 0, W, H);
-      }
       if (!fence) {
         try { fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0); fenceAt = performance.now(); } catch { fence = null; }
       }

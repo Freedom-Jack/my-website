@@ -11,7 +11,7 @@
 // in front of the far shore, as smooth windows along world x, so every seam is crossed through water
 // or mist, never a cut.
 //
-// Nothing here touches the DOM or WebGL; ridges.ts samples it for both renderers and for stripSVG().
+// Nothing here touches the DOM or WebGL; ridges.ts samples it for both renderers.
 
 export const LAYERS = 5; // ridge planes, far (0) -> near (4)
 
@@ -22,7 +22,7 @@ export type WidthClass = 'wide' | 'tablet' | 'phone' | 'short';
 /** A window's kind: the page's strip, or its closing. */
 export type WindowKind = 'strip' | 'closing';
 /** A massif's role in its composition ('echo': the crossing's far view of the home peak, see STRETCHES[5]). */
-export type Role = 'far' | 'guest' | 'host' | 'near' | 'fg' | 'echo';
+type Role = 'far' | 'guest' | 'host' | 'near' | 'fg' | 'echo';
 type Weighted = Exclude<Role, 'echo'>;
 type Band = [number, number];
 
@@ -141,8 +141,8 @@ const tableFor = (k: number) => (k < 0 || k >= STRETCH_COUNT ? QUIET : STRETCHES
 //                         short page's twin closing looks (another part of the place, closer: HERO.twin)
 // Home keeps its own hero (the taller one, with the name): `wide { right }` (its view's right edge; its vertical
 // placement is the hero rule's), its album leaves `tablet / phone / short` (band framings: bandFrame) and its closings:
-//   tablet / phone { scale, band, fbIn, u, fx, uMin, uMax }   a band of the scene (bandFrame)
-//   closing { wide { scale, band, right, hug?, keepU? }, phone ... }   a small version of the opening, framed as a band
+//   tablet / phone { scale, band, fbIn, u, fx, uMax }   a band of the scene (bandFrame)
+//   closing { wide { scale, band, right }, phone ... }   a small version of the opening, framed as a band
 //     with the view's right edge at stretch-local `right` (the living ground ends on the opening itself on wide screens)
 
 /** How a window of one width class looks at a scene (frame.tablet / phone / short): see framingAt and bandFrame. */
@@ -156,26 +156,15 @@ export interface View {
   /** The view's anchor (stretch-local u), placed at fx of the width (default: the focus at 0.5). */
   u?: number;
   fx?: number;
-  /** Without a band: the focus at (fx, fy) of the box. */
-  fy?: number;
-  /** Where the width allows, the view stays inside [uMin, uMax] (stretch-local). */
-  uMin?: number;
+  /** The view's right edge stays at or west of uMax (stretch-local). */
   uMax?: number;
   /** Where a tall box leaves room, how far the band sits from its summits' line toward its ground's (default 0.5). */
   slack?: number;
 }
-/** A closing's or a twin's view: a class's view, overridden; or a span (spanFrame) or a band at its right edge. */
-export interface ClosingView extends Partial<View> {
+/** A closing's view: a class's view, overridden, or a band with the view's right edge at `right` (bandFrame). */
+interface ClosingView extends Partial<View> {
   /** The view's right edge at stretch-local `right` (a wide closing). */
   right?: number;
-  /** A span [u0, u1] (stretch-local) held right of the text at any width (spanFrame). */
-  span?: Band;
-  /** The point (fx, fy) frames the scene height `y` (default: the focus's). */
-  y?: number;
-  /** The leftmost figurative point the keep-out keeps clear (default: frame.keepU). */
-  keepU?: number;
-  /** Its keepU exactly KEEP_GAP right of the text, when the text overlaps it. */
-  hug?: boolean;
 }
 interface WideFrame {
   /** Home: its view's right edge at stretch-local `right` (default 1); its vertical placement is the hero rule's. */
@@ -192,7 +181,7 @@ export interface Frame {
   tablet?: View;
   phone?: View;
   short?: View;
-  closing?: Partial<Record<WidthClass, ClosingView>> & { twin?: Partial<Record<WidthClass, ClosingView>> };
+  closing?: Partial<Record<WidthClass, ClosingView>>;
   /** HERO places: where the twin closing (a short page's) looks instead of the focus (stretch-local u). */
   twinU?: number;
   /** HERO places: where the closing looks instead of the focus (stretch-local u), when the centred focus would show a
@@ -204,10 +193,10 @@ export interface Frame {
   insideU?: number;
   insideUNarrow?: number;
   /** (the vanguard round, the unroll) the place's last named thing to the east (stretch-local u): the page's travel
-   *  stops where it would go under the standing curtain (index.ts measureSlide, UNROLL.holdAt), so the margin shows a
-   *  drawn place to the page's end. Set where the next place lies beyond an empty reach (Work: the quay's east
-   *  moorings before the lake; the Résumé: the right hill's east shoulder before the crossing; Contact: the ferry at its
-   *  jetty, the last place on the chain); unset where the next
+   *  stops while it stands UNROLL.holdAt into the margin right of the reading column's edge (index.ts measureSlide), so
+   *  the margin shows a drawn place to the page's end. Set where the next place lies beyond an empty reach (Work: the
+   *  quay's east moorings before the lake; the Résumé: the right hill's east shoulder before the crossing; Contact: the
+   *  ferry at its jetty, the last place on the chain); unset where the next
    *  place arrives in the margin before this one has left it (Home: the town's west end). */
   holdU?: number;
 }
@@ -317,7 +306,7 @@ export const SCENES: Scene[] = [
     // (the vanguard round: the ending looks east, toward the crossing. The unroll's hold: the right hill's blossom
     // tree (its crown at 0.72, the tree at 0.77, the east shoulder at 0.85, the terraces to 1.0) stands a quarter of
     // the way into the margin to the page's end, the whole hill with it (held at the shoulder, 0.85, the crown and
-    // the tree stood under the curtain's feather and the margin read as pale washes: 0.65 % of its pixels on an
+    // the tree stood at the reading column's edge and the margin read as pale washes: 0.65 % of its pixels on an
     // edge, against the spec's 0.5 % floor); the crossing's ferry lies beyond half a stretch of open water, which the
     // page change's pan crosses)
     frame: { focus: [0.65, 0.3], closingU: 0.98, holdU: 0.78 } },
@@ -326,9 +315,9 @@ export const SCENES: Scene[] = [
   { name: 'crossing', page: WORLD, tech: { at: [-0.02, 0.98], bone: 0.22, ink: 0.96, inkPortrait: 1.06 }, water: { at: [0.0, 0.96], y: 0.29, strokes: 1, refl: 0.75, banks: 0.8 },
     // (the twin: west along the crossing, the far shore's long low ranges over the open water, the ferry out of view.
     // The unroll's hold (the lead's ruling R12): just east of the jetty's end (0.7), so the moored ferry (0.635) and the
-    // jetty stand in the margin, clear of the curtain, to the page's end (held at 0.7, the travel fell under 100 px).
-    // Held nowhere, P5's longer page slid the ferry under the curtain and the margin read as open water and mist: 0.42 %
-    // of its pixels on an edge, against the 0.5 % floor)
+    // jetty stand in the margin, clear of the reading column, to the page's end (held at 0.7, the travel fell under 100
+    // px). Held nowhere, P5's longer page slid the ferry under the column and the margin read as open water and mist:
+    // 0.42 % of its pixels on an edge, against the 0.5 % floor)
     frame: { focus: [0.68, 0.3], keepU: 0.6, twinU: 0.3, holdU: 0.74 } },
   // The 404: one peak alone beyond the water, mist all round it (no closing: the page is off the map). Its host plane
   // stands taller than the composition's (amp: the old 'high' distance's relief), so one narrow summit rises clear.
@@ -463,16 +452,6 @@ const PRESETS: Record<Distance, Preset> = {
 };
 export const DISTANCES = Object.keys(PRESETS) as Distance[];
 
-// Portrait: the narrow window misses every near massif, so the phone's first screen would lose the
-// dark, textured foreground that gives the desktop hero its depth. The nearest plane becomes one low
-// crest along the bottom edge instead: summits ~92-95% down the screen, below the copy, gone with the
-// first scroll like every near plane. (Plane 4, so it keeps the crease texture and dry-brush contour.)
-const PORTRAIT_NEAR = { base: -0.02, amp: 0.09, floor: 0.3, foot: -0.13, fade: 0.11 };
-// its massifs, per stretch, placed in screen fractions of that stretch's portrait view (so they stand
-// where the camera rests, yet stay anchored to the world while it pans): a craggy mass under the copy
-// column, a lower crag on the far side, a low saddle between. [x across the view, half-width, gain]
-const PORTRAIT_CRAGS: [x: number, w: number, gain: number][] = [[0.2, 0.21, 0.95], [0.9, 0.09, 0.62]];
-
 /** A composition: each distance's weight (they sum to 1; a pan blends them) and the presence, 0..1. */
 export interface Spec {
   w: Record<Distance, number>;
@@ -486,9 +465,6 @@ export interface Resolved extends Omit<Preset, 'base' | 'amp' | 'foot' | 'fade' 
   fade: number[];
   ink: number[];
   floor: number[];
-  /** The portrait near crest's strength (0 on desktops). */
-  near: number;
-  wvis: number;
   /** Presence: the height multiplier, the drop and the waterline's lift. */
   hsc: number;
   drop: number;
@@ -546,7 +522,7 @@ export function cameraLeft(stretch: number, wvis: number): number {
 export function resolve(s: Spec, aspect: number): Resolved {
   const { portrait: pf } = framing(aspect);
   // (the presence fields are set at the end)
-  const P: Omit<Resolved, 'hsc' | 'drop' | 'wlift' | 'presence' | 'portrait'> & Partial<Resolved> = { base: [], amp: [], foot: [], fade: [], ink: [], floor: [], role: { far: 0, guest: 0, host: 0, near: 0, fg: 0 }, hostW: 0, flank: 0, near: 0, wvis: 1 };
+  const P: Omit<Resolved, 'hsc' | 'drop' | 'wlift' | 'presence' | 'portrait'> & Partial<Resolved> = { base: [], amp: [], foot: [], fade: [], ink: [], floor: [], role: { far: 0, guest: 0, host: 0, near: 0, fg: 0 }, hostW: 0, flank: 0 };
   let tw = 0;
   for (const k of DISTANCES) tw += s.w[k];
   tw = tw || 1;
@@ -577,17 +553,9 @@ export function resolve(s: Spec, aspect: number): Resolved {
     P.foot[l] = P.foot[l] * hsc - drop + pl;
     P.ink[l] *= inkK * (l < 3 ? 1 - 0.1 * pf : 1);
   }
-  // the portrait near crest: aspect < 0.8 only (desktop framing is untouched), and only where the
-  // landscape is at full presence (home, contact, 404), never under reading pages
-  const nf = smooth(0.8, 0.7, aspect) * smooth(0.75, 0.95, p);
-  if (nf > 0) {
-    for (const f of ['base', 'amp', 'floor', 'foot', 'fade'] as const) P[f][LAYERS - 1] += (PORTRAIT_NEAR[f] - P[f][LAYERS - 1]) * nf;
-  }
-  P.near = nf;
   P.hsc = hsc;
   P.drop = drop;
   P.wlift = 0.05 * pf;                    // the waterline rises with the far planes on portrait
-  P.wvis = framing(aspect).wvis;
   P.presence = p;
   P.portrait = pf;
   return P as Resolved;
@@ -597,16 +565,12 @@ export function resolve(s: Spec, aspect: number): Resolved {
  * Massifs that can touch the world window [u0, u1], flattened per plane:
  * out[l] = [centre, leftHalfWidth, rightHalfWidth, gain, isHost, ...]; out.echo = [plane, centre, scale, gain, ...]
  */
-export type Massifs = number[][] & { echo: number[] };
+type Massifs = number[][] & { echo: number[] };
 export function massifs(u0: number, u1: number, P: Resolved): Massifs {
   const out = Array.from({ length: LAYERS }, (): number[] => []) as Massifs;
   out.echo = [];   // [plane, centre, scale, gain, ...] of the echo rows
   for (let k = Math.floor(u0) - 1; k <= Math.floor(u1) + 1; k++) {
-    let rows = P.flank > 0.01 ? tableFor(k).concat(FLANK.map((m) => [...m.slice(0, 3), m[3] * P.flank, m[4]] as Massif)) : tableFor(k);
-    if (P.near > 0.01 && P.wvis < 1 && k >= 0 && k < STRETCH_COUNT && !SCENES[k].water) {   // open water keeps no near crag
-      const o = viewOffset(k, P.wvis);
-      rows = rows.concat(PORTRAIT_CRAGS.map(([x, w, g]): Massif => [LAYERS - 1, o + x * P.wvis, w * P.wvis, g * P.near, 'near']));
-    }
+    const rows = P.flank > 0.01 ? tableFor(k).concat(FLANK.map((m) => [...m.slice(0, 3), m[3] * P.flank, m[4]] as Massif)) : tableFor(k);
     rows.forEach(([l, x, w, g, role], j) => {
       if (role === 'echo') { out.echo.push(l, k + x, w, g); return; }
       const host = role === 'host';
@@ -638,9 +602,8 @@ function skewHash(i: number) {
 /** Viewport heights per stretch inside a window. */
 export const HS = 1.6;
 /** A window's painted feathers, CSS px [top, bottom]: out of the paper at its top, back into it at its bottom (phones
- *  and sideways phones: narrow; tablets: their own, a 220 px band; wide screens: wide). A document's strip has half
- *  of each. */
-export const FEATHER: Record<'narrow' | 'tablet' | 'wide', [top: number, bottom: number]> = { narrow: [24, 26], tablet: [30, 36], wide: [40, 56] };
+ *  and sideways phones: narrow; tablets: their own, a 220 px band; wide screens: wide). */
+const FEATHER: Record<'narrow' | 'tablet' | 'wide', [top: number, bottom: number]> = { narrow: [24, 26], tablet: [30, 36], wide: [40, 56] };
 /** The feathers of a width class. */
 export const featherOf = (cls: WidthClass) => (cls === 'phone' || cls === 'short' ? FEATHER.narrow : cls === 'tablet' ? FEATHER.tablet : FEATHER.wide);
 /** Figure geometry is authored at this many CSS px per stretch (so 900 CSS px per viewport height). */
@@ -664,11 +627,10 @@ export function pageSpec(stretch: number): { distance: Distance; presence: numbe
 }
 
 /** A window's CSS box, for framingAt (see there). */
-export interface FramingBox {
+interface FramingBox {
   width?: number;
   height?: number;
   keepoutRight?: number | null;
-  doc?: boolean;
   twin?: boolean;
   /** (the vanguard round) a deep page's hero: inside its place, closer (HERO.inside) and further along it (the
    *  scene's Frame.insideU, or `insideU`: a case's own place in the town, stretch-local). */
@@ -688,11 +650,10 @@ export interface Framing {
  * Where a window onto stretch `stretch` looks (DOM-free; the lab and QA call it too).
  * @param {number} stretch
  * @param {'wide'|'tablet'|'phone'|'short'} cls
- * @param {{width:number, height:number, keepoutRight?:number|null, doc?:boolean, twin?:boolean}} box  the window's CSS
- *   box; keepoutRight = the text block's right edge inside it (CSS px from the box's left), when the text overlaps the
- *   box (wide screens); doc = a document's low strip (strip--doc; unused since round 5: every inner page has the one hero);
- *   twin = (a closing) the page's strip and its closing share a screen (a short page), so the closing frames a
- *   different view of the place (frame.closing.twin) instead of a small version of the opening
+ * @param {{width:number, height:number, keepoutRight?:number|null, twin?:boolean}} box  the window's CSS box;
+ *   keepoutRight = the text block's right edge inside it (CSS px from the box's left), when the text overlaps the box
+ *   (wide screens); twin = (a closing) the page's strip and its closing share a screen (a short page), so the closing
+ *   frames a different view of the place (Frame.twinU) instead of a small version of the opening
  * @param {'strip'|'closing'} kind  the closing shows the page's own place once more, never the next one
  * @returns {{worldLeft:number, worldTop:number, scale:number, focus:[number, number], nominal:number}}  world x
  *   (stretches) at the box's left edge, scene height (viewport heights) at its top edge, CSS px per stretch, the focus
@@ -710,7 +671,7 @@ export function framingAt(stretch: number, cls: WidthClass = 'wide', box: Framin
   const T = ((cls === 'short' ? F.short || F.phone : F[cls]) || F.tablet) as View;
   // the shared horizon: the river's waterline, HERO.at down the box, at this scale
   const heroTop = (sc: number) => HERO.horizon + HERO.at * height * HS / sc;
-  let scale: number, left: number, top: number, fu: number, fy: number, nominal: number, ku: number | undefined, spanned = false;
+  let scale: number, left: number, top: number, fu: number, fy: number, nominal: number, ku: number | undefined;
   if (kind === 'closing' && !own) {
     // the place once more, a little further away, its focus in the middle (nothing stands over a closing); a short page's
     // twin, on the same screen as its strip, looks closer at another part of the place (its own u), so the strip's
@@ -723,32 +684,14 @@ export function framingAt(stretch: number, cls: WidthClass = 'wide', box: Framin
     top = heroTop(scale);
     ku = twin ? fu : undefined;
   } else if (kind === 'closing') {
-    // Home's: the page's own place once more: a span (spanFrame), a band (bandFrame) or a point at (fx, fy), from the
-    // closing's own data
-    const C = closingOf(F, cls, T, !!box.twin);
-    if (C.span) { ({ scale, left, top, fu } = spanFrame(k, C, cls, width, height, kr)); spanned = true; }
-    else if (C.band) ({ scale, left, top, fu } = bandFrame(k, C, cls, width, height, false, F.focus[0]));
-    else {
-      scale = C.scale!;
-      fu = C.u ?? F.focus[0];
-      left = k + fu - C.fx! * (width / scale);
-      top = (C.y ?? F.focus[1]) + C.fy! * height * HS / scale;
-    }
-    fy = C.y ?? F.focus[1];
+    // Home's: the page's own place once more, a band of its scene (bandFrame), from the closing's own data
+    const C = closingOf(F, cls, T);
+    ({ scale, left, top, fu } = bandFrame(k, C, cls, width, height, F.focus[0]));
+    fy = F.focus[1];
     nominal = C.scale ?? scale;
-    ku = C.keepU ?? F.keepU ?? fu;
-    // hug: the place stands right beside the text (its keepU exactly KEEP_GAP right of it) whatever the width, so a wide
-    // screen shows more of the place's own open water and mist rather than the neighbour beyond the text
-    if (C.hug && !spanned && kr !== null && kr > 0) left = k + ku - (kr + KEEP_GAP) / scale;
   } else if (own && cls !== 'wide') {
-    // Home's album leaf on narrow screens: a band of its scene (bandFrame), or a point at (fx, fy)
-    if (T.band) ({ scale, left, top, fu } = bandFrame(k, T, cls, width, height, false, F.focus[0]));
-    else {
-      scale = T.scale;
-      fu = F.focus[0];
-      left = k + fu - T.fx! * (width / scale);
-      top = F.focus[1] + T.fy! * height * HS / scale;
-    }
+    // Home's album leaf on narrow screens: a band of its scene (bandFrame)
+    ({ scale, left, top, fu } = bandFrame(k, T, cls, width, height, F.focus[0]));
     fy = F.focus[1];
     nominal = T.scale;
   } else if (box.inside && !own && kind === 'strip') {
@@ -770,12 +713,11 @@ export function framingAt(stretch: number, cls: WidthClass = 'wide', box: Framin
     left = own ? k + (F.wide!.right ?? 1) - width / scale : k + fu - HERO.fx[cls] * width / scale;
   }
   // the keep-out rule: the scene's leftmost figurative point (frame.keepU, else the focus; a closing may name its own)
-  // stands at least KEEP_GAP px right of the text, never past the box's right edge (a span is already placed beside the
-  // text, and holds no figure: it never moves)
+  // stands at least KEEP_GAP px right of the text, never past the box's right edge
   ku ??= F.keepU ?? fu;
   let focusX = (k + fu - left) * scale;
   const keepX = (k + ku - left) * scale;
-  if (!spanned && kr !== null && kr > 0 && keepX < kr + KEEP_GAP) {
+  if (kr !== null && kr > 0 && keepX < kr + KEEP_GAP) {
     const shift = Math.min(kr + KEEP_GAP - keepX, Math.max(0, width - 24 - focusX));
     left -= shift / scale;
     focusX += shift;
@@ -812,7 +754,7 @@ export const HERO: {
   inside: 1.15,
 };
 /** The hero rule's scale for a width class and a box width: CSS px per stretch. */
-export function heroScale(cls: WidthClass, width: number): number {
+function heroScale(cls: WidthClass, width: number): number {
   return cls === 'wide' ? Math.min(width, 1700) : HERO.scale[cls];
 }
 /** The scale a window's figure layer is drawn at for stretch k (the strip's): Home's own view on narrow screens, else
@@ -823,16 +765,11 @@ export function layerScaleAt(k: number, cls: WidthClass, width: number): number 
   return heroScale(cls, width);
 }
 
-// The closing's framing for a width class: a short page's twin (a different view of the place, when the
-// strip and the closing share a screen), else the class's own closing (wide: authored; narrower: the opening's own
-// framing, under any overrides), so the page ends on its own place, never on the next one.
-const CLOSING_WIDE: ClosingView = { scale: 900, band: [0.12, 0.5], right: 1 };
-function closingOf(F: Frame, cls: WidthClass, T: View, twin: boolean): ClosingView {
-  const c: NonNullable<Frame['closing']> = F.closing || {};
-  const tw = twin && c.twin ? c.twin[cls] : undefined;
-  if (tw) return tw;
-  const own = c[cls];
-  if (cls === 'wide') return own || CLOSING_WIDE;
+// Home's closing framing for a width class: wide, its authored closing (frame.closing.wide); narrower, the opening's own
+// framing under the closing's overrides, so the page ends on its own place, never on the next one.
+function closingOf(F: Frame, cls: WidthClass, T: View): ClosingView {
+  const own = F.closing?.[cls];
+  if (cls === 'wide') return own!;
   return own ? { ...T, ...own } : T;
 }
 
@@ -841,49 +778,33 @@ function closingOf(F: Frame, cls: WidthClass, T: View, twin: boolean): ClosingVi
  * the window's top feather, never cut by it (a strip shows whole mountains and lets only the mist dissolve into the
  * paper), and its ground (Home's traveller) above the bottom feather when the box is tall enough; else the summits
  * win. The scale fits the band to the box within 0.8-1.15 of the class's nominal scale T.scale (the figure layers are
- * drawn at the nominal one). Horizontally: T.u at T.fx of the width (or the view's right edge at T.right), kept inside
- * [T.uMin, T.uMax] (stretch-local) where the width allows.
+ * drawn at the nominal one). Horizontally: T.u at T.fx of the width (or the view's right edge at T.right), its right
+ * edge at or west of T.uMax (stretch-local).
  */
-function bandFrame(k: number, T: ClosingView, cls: WidthClass, width: number, height: number, doc: boolean, u: number) {
+function bandFrame(k: number, T: ClosingView, cls: WidthClass, width: number, height: number, u: number) {
   const [y0, y1] = T.band!;
-  const dk = doc ? 0.5 : 1;
-  const [ft, fb] = featherOf(cls).map((v) => v * dk);
+  const [ft, fb] = featherOf(cls);
   const fbIn = T.fbIn ?? 0.5;   // how far into the bottom feather the ground may sit (0: Home's traveller stays clear of it)
   const fit = (Math.max(8, height - ft - fb * (1 - fbIn)) * HS) / Math.max(0.02, y1 - y0);
   const scale = Math.min(T.scale! * 1.15, Math.max(T.scale! * 0.8, fit));
-  const top = bandTop(T, cls, height, scale, dk);
+  const top = bandTop(T, cls, height, scale);
   const fu = T.u ?? u;
   const vw = width / scale;
   // (a wide closing anchors the view's right edge at T.right instead: the place stays at the right whatever the width)
   let left = T.right !== undefined ? k + T.right - vw : k + fu - (T.fx ?? 0.5) * vw;
   if (T.uMax !== undefined && left + vw > k + T.uMax) left = k + T.uMax - vw;
-  if (T.uMin !== undefined && left < k + T.uMin) left = k + T.uMin;
   return { scale, left, top, fu };
 }
 
 /** The top (scene height at the box's top edge) that puts a band's summits (band[1]) just under the top feather, and
  *  its ground (band[0]) above the bottom one when the box is tall enough at this scale (else the summits win). */
-function bandTop(T: ClosingView, cls: WidthClass, height: number, scale: number, dk = 1) {
+function bandTop(T: ClosingView, cls: WidthClass, height: number, scale: number) {
   const [y0, y1] = T.band!;
-  const [ft, fb] = featherOf(cls).map((v) => v * dk);
+  const [ft, fb] = featherOf(cls);
   const fbIn = T.fbIn ?? 0.5;
   const unit = HS / scale;
   const topA = y1 + ft * unit, topB = y0 + (height - fb * (1 - fbIn)) * unit;
   return topB > topA ? topA + (topB - topA) * (T.slack ?? 0.5) : topA;
-}
-
-/**
- * A span of the place (a twin closing): the part of the box right of the text (its keep-out
- * edge `kr`, where the text overlaps the box on wide screens; else the whole box) holds exactly stretch-local
- * T.span [u0, u1], so the scale follows the width: no width, from a 320 phone to an ultrawide, shows past the span
- * (into a neighbour's scene, a figure layer, or the strip's landmark). Vertically the band's summits (T.band[1]) sit
- * just under the top feather (bandTop). Left of `kr` the keep-out's mist covers whatever lies beyond u0.
- */
-function spanFrame(k: number, T: ClosingView, cls: WidthClass, width: number, height: number, kr: number | null) {
-  const [u0, u1] = T.span!;
-  const x0 = kr !== null && kr > 0 ? Math.min(kr, width * 0.6) : 0;   // (a text over most of the box: its right 40 %)
-  const scale = (width - x0) / Math.max(0.05, u1 - u0);
-  return { scale, left: k + u1 - width / scale, top: bandTop(T, cls, height, scale), fu: T.u ?? (u0 + u1) / 2 };
 }
 
 /**

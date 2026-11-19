@@ -43,7 +43,7 @@ export async function HomePage() {
     throw new Error('content/pages/home.ts: the first screen names a case that does not exist');
   const fig = splitFigure(proofCase.figure);
   return (
-    <PageMain page="home" className={styles.page} ld={[websiteLd(), profilePageLd()]}>
+    <PageMain page="home" ld={[websiteLd(), profilePageLd()]}>
       <Strip variant="home" labelledBy="name" still="home" veil={0.9}>
         <h1 className="name" id="name">
           {site.name}
@@ -64,7 +64,7 @@ export async function HomePage() {
           </p>
           <p className="first__source mono">
             <InlineLink href={proofCase.href}>
-              <span className="first__years">{span(proofCase.years, first.to)}</span>
+              <span>{span(proofCase.years, first.to)}</span>
               <span aria-hidden="true"> · </span>
               <span className="first__link">{first.proof.more} →</span>
             </InlineLink>
@@ -203,7 +203,7 @@ export async function HomePage() {
             <h2 className="h-ink" id="writing-title">
               {writing.title}
             </h2>
-            <ul className={`ledger ledger--dated ${styles.notes}`} role="list" aria-labelledby="writing-title">
+            <ul className={`ledger ${styles.notes}`} role="list" aria-labelledby="writing-title">
               {notes.slice(0, 3).map((n) => (
                 <li className="ledger__row ink-row" key={n.slug}>
                   <p className="ledger__meta mono">

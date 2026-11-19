@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
 import { site } from '@content/site';
 import { CasePage } from '@/features/work/CasePage';
 import { caseSlugs, loadCase } from '@/features/work/cases';
@@ -17,7 +16,6 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  if (!caseSlugs().includes(slug)) return {};
   const { meta } = await loadCase(slug);
   return pageMetadata(
     { title: `${site.searchName} · ${plain(meta.title)}`, description: plain(meta.metaDescription ?? meta.summary) },
@@ -27,6 +25,5 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Page({ params }: Props) {
   const { slug } = await params;
-  if (!caseSlugs().includes(slug)) notFound();
   return <CasePage c={await loadCase(slug)} />;
 }

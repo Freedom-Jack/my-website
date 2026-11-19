@@ -128,9 +128,6 @@
 .buildArt {
   margin-block-start: var(--space-m);
 }
-.buildArt :global(.diagram) {
-  max-width: none;
-}
 @media (min-width: 75rem) {
   /* the statement at the left, its line beside it; the drawing under them, the frame's whole width (its wide form) */
   .build > .buildText {
@@ -309,9 +306,6 @@
       animation-range: exit -15% exit 115%;
     }
   }
-}
-.drawing :global(.diagram) {
-  max-width: none;
 }
 
 /* the spine: each part opens on its label in the name face */

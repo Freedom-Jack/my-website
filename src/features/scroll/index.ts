@@ -10,8 +10,6 @@ import { plain } from '@/lib/markup';
 import { fillTokens } from '@/lib/typography';
 import type { ScrollLine, ScrollStop } from './types';
 
-export type { ScrollLine, ScrollStop } from './types';
-
 /**
  * The scroll, held: what each place on the map holds, as the sheet's inscription under the band (ScrollSheet). Every
  * line is a string the site already shows and a real link, so travelling the scroll is browsing the site's own

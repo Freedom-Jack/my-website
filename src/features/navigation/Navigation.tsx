@@ -47,7 +47,6 @@ const savedPos = (path: string) => {
 interface Pending {
   url: URL;
   dest: Place;
-  timer: number;
   watchdog: number;
   pushed: boolean;
   ctrl: AbortController;
@@ -60,7 +59,6 @@ function eligible(a: HTMLAnchorElement | null, e: MouseEvent | null): URL | null
   if (target && target !== '_self') return null;
   if (a.hasAttribute('download') || a.hasAttribute('type')) return null;
   if ((a.getAttribute('rel') || '').split(/\s+/).includes('external')) return null;
-  if (a.dataset.router === 'off') return null;
   let url: URL;
   try {
     url = new URL(a.href, location.href);
@@ -127,7 +125,6 @@ export function Navigation() {
       const p = pending.current;
       if (!p || p.pushed) return;
       p.ctrl.abort();
-      clearTimeout(p.timer);
       clearTimeout(p.watchdog);
       pending.current = null;
       restore(currentMain());
@@ -139,14 +136,13 @@ export function Navigation() {
       const old = pending.current;
       if (old) {
         old.ctrl.abort();
-        clearTimeout(old.timer);
         clearTimeout(old.watchdog);
       }
       const main = currentMain();
       const dest = placeForPath(url.pathname);
       const ctrl = new AbortController();
       const href = url.pathname + url.search + url.hash;
-      const p: Pending = { url, dest, timer: 0, watchdog: 0, pushed: false, ctrl };
+      const p: Pending = { url, dest, watchdog: 0, pushed: false, ctrl };
       pending.current = p;
       savePos(location.pathname);
       router.prefetch(url.pathname + url.search);
@@ -219,11 +215,9 @@ export function Navigation() {
     const p = pending.current;
     const kind = p && normPath(p.url.pathname) === normPath(pathname) ? 'push' : 'pop';
     if (p) {
-      clearTimeout(p.timer);
       clearTimeout(p.watchdog);
       pending.current = null;
     }
-    document.documentElement.classList.add('is-routed');
     const target = kind === 'push' ? hashTarget(p?.url.hash ?? '') : hashTarget(location.hash);
     {
       const html = document.documentElement;

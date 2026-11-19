@@ -35,16 +35,8 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      - name: Type-check
-        run: npm run typecheck
-      - name: Lint
-        run: npm run lint
-      - name: Format
-        run: npm run format:check
-      - name: Unit tests (content schemas, rules, the engine's pure parts)
-        run: npm test
-      - name: The story map's stills are current (cut from this engine; npm run build:stills)
-        run: npm run build:stills -- --check
+      - name: Checks (types, lint, format, unit tests; the stills and the heroes are cut from this engine)
+        run: npm run ci
       - name: Audit (runtime dependencies)
         run: npm audit --omit=dev --audit-level=high
       - name: Build

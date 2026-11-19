@@ -12,11 +12,9 @@ export const hood = {
     /** the one plain line after the tie */
     result:
       '{files} content files fed {passages} passages; the search, the vocabulary and the eval were all built from them at {commit}.',
-    list: 'The record',
     /** (round 7) the fold that holds the list, under the drawing */
     listFold: 'Read the record as a list',
     drawing: 'The same record, drawn',
-    from: 'from',
     edges: {
       joined: 'run together from',
       indexed: 'built from',
@@ -37,7 +35,6 @@ export const hood = {
     record: 'The record so far',
     state: 'Inside',
     strip: 'The five highest-scored tokens at this step, and the five best legal ones',
-    columns: { rank: 'Rank', token: 'Token', share: 'Share', mask: 'Mask', id: 'Id' },
     legal: 'legal',
     blocked: 'blocked',
     next: 'Take the best legal token',

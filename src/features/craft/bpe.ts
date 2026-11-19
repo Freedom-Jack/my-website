@@ -16,7 +16,7 @@ export interface BPE {
   merges: Array<[number, number]>;
 }
 
-export function preTokens(text: string): string[] {
+function preTokens(text: string): string[] {
   return text.match(PRE) ?? [];
 }
 
@@ -90,12 +90,6 @@ export function encode(text: string, bpe: BPE): number[] {
     out.push(...seq);
   }
   return out;
-}
-
-/** A token's bytes as text for the page: spaces shown as "␣", control bytes and broken sequences as "·". */
-export function tokenText(bytes: number[]): string {
-  const s = dec.decode(new Uint8Array(bytes));
-  return [...s].map((ch) => (ch === ' ' ? '␣' : ch === '�' || ch.charCodeAt(0) < 0x20 ? '·' : ch)).join('');
 }
 
 export function decodeBytes(bytes: number[]): string {

@@ -6,8 +6,8 @@
  * Jack, of the five separate place stills that stood here: "it is not a coherent scroll … also include the
  * transitions".
  *
- *   NEXT_PUBLIC_INK_QA=1 npm run build && npm start -- -p 3106   a QA build (it exposes the engine as window.__ink)
- *   npm run build:scroll -- --base http://127.0.0.1:3106          cut it; needs Google Chrome (headless, Metal)
+ *   NEXT_PUBLIC_INK_QA=1 npm run build && npm start -- -p 3100   a QA build (it exposes the engine as window.__ink)
+ *   npm run build:scroll -- --base http://127.0.0.1:3100          cut it; needs Google Chrome (headless, Metal)
  *   npm run build:scroll -- --preview <dir>                       also keep the raw strip (outside the repo)
  *
  * How: Home at 1520 × 800 (one stretch of the scroll per screen), its words hidden and the keep-out dropped (no mist
@@ -27,14 +27,10 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { chromium } from '@playwright/test';
+import { opt, plainWebp } from './lib.ts';
 
 const ROOT = process.cwd();
-const args = process.argv.slice(2);
-const opt = (name: string, d: string) => {
-  const i = args.indexOf(name);
-  return i >= 0 && args[i + 1] ? args[i + 1]! : d;
-};
-const BASE = opt('--base', 'http://127.0.0.1:3106').replace(/\/$/, '');
+const BASE = opt('--base', 'http://127.0.0.1:3100').replace(/\/$/, '');
 const PREVIEW = opt('--preview', '');
 
 const VIEW = { width: 1520, height: 800 }; // aspect 1.9: one stretch of the scroll across the screen
@@ -54,33 +50,6 @@ const HIDE_CSS = `
   html { scrollbar-width: none; }`;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-/** Chrome's encoder wraps the image in VP8X with an ICC profile: keep only the lossy bitstream (as the stills). */
-function plainWebp(data: Buffer): Buffer {
-  if (data.toString('latin1', 0, 4) !== 'RIFF' || data.toString('latin1', 8, 12) !== 'WEBP')
-    throw new Error('not a WebP');
-  const chunks = new Map<string, Buffer>();
-  let i = 12;
-  while (i + 8 <= data.length) {
-    const tag = data.toString('latin1', i, i + 4);
-    const n = data.readUInt32LE(i + 4);
-    if (!chunks.has(tag)) chunks.set(tag, data.subarray(i + 8, i + 8 + n));
-    i += 8 + n + (n & 1);
-  }
-  const body = chunks.get('VP8 ');
-  if (!body || chunks.has('ALPH') || chunks.has('ANIM')) return data;
-  const size = Buffer.alloc(4);
-  size.writeUInt32LE(body.length);
-  const vp8 = Buffer.concat([
-    Buffer.from('VP8 ', 'latin1'),
-    size,
-    body,
-    body.length & 1 ? Buffer.alloc(1) : Buffer.alloc(0),
-  ]);
-  const riff = Buffer.alloc(4);
-  riff.writeUInt32LE(4 + vp8.length);
-  return Buffer.concat([Buffer.from('RIFF', 'latin1'), riff, Buffer.from('WEBP', 'latin1'), vp8]);
-}
 
 async function main() {
   const browser = await chromium.launch({ channel: 'chrome', args: CHROME_ARGS });
@@ -109,7 +78,7 @@ async function main() {
         await sleep(k ? 300 : 600);
         const f = (await page.evaluate(
           `(() => { const s = window.__ink.stats(); const f = s.stage && s.stage.framing; const figs = Object.values(s.figures || {});
-            return { busy: !!(s.pending || s.panning || s.arriving || s.sweeping || s.deferred || figs.includes('pending')) || !(s.stage && s.stage.ready && (s.stage.painted || []).every(Boolean)) || !(s.plates && s.plates.on),
+            return { busy: !!(s.pending || s.panning || s.arriving || s.sweeping || figs.includes('pending')) || !(s.stage && s.stage.ready && (s.stage.painted || []).every(Boolean)) || !(s.plates && s.plates.on),
               left: f ? f.worldLeft : null, scale: f ? f.scale : null }; })()`,
         )) as { busy: boolean; left: number | null; scale: number | null };
         if (f.busy || f.left === null || f.scale === null) {

@@ -37,7 +37,7 @@ export function ContactPage() {
       </Strip>
 
       <section className="part" aria-label={contact.emailLabel}>
-        <div className={styles.contact__address} data-veil="">
+        <div data-veil="">
           <p className="tag">{contact.emailLabel}</p>
           <div className={styles.contact__mail}>
             <p className={styles.contact__email}>

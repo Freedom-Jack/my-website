@@ -35,21 +35,17 @@
 //     P            the composition the layer is painted into (the showing page's data-distance / data-presence,
 //                  desktop aspect; the Note's lake is lower than Writing's): planeTop(l, u, P) is a ridge plane's
 //                  crest, sceneField(u, P, out) the scene's waterlines and banks (use it at the water)
-//     ink          { C, rgba, strength, colourK }: the palette's colours (C.ink, C.tile, C.mal ...) and rgba(c, a);
-//                  strength 0 (ink), 1 (misted), 1.25 (rich). Never write raw colours: 'ink' must turn them grey.
+//     ink          { C, rgba }: the palette's colours (C.ink, C.tile, C.mal ...) and rgba(c, a)
 //     k            device px per world px (scale / REF_PX * dpr)
-//     scale, dpr, palette, stretch      what the layer is drawn for (scale = CSS px per stretch)
-//     cls          the width class whose windows show it ('wide' | 'tablet' | 'phone' | 'short'; null in the lab), so a
-//                  set may cull what that class never sees; P and scale are already that window's own
-//     rect, plane, phase                this set's meta (copies)
+//     scale        what the layer is drawn for (CSS px per stretch)
+//     rect, plane  this set's meta (copies)
 //     life         [] : the life anchors (THE LIFE API, below)
-//     softOK       false: soft washes never use ctx.filter (on many canvases that blurs a canvas-sized layer)
 //   World px: REF_PX (1440) per stretch and VH_PX (900) per scene height: wx = u * 1440, wy = (1 - y) * 900, y down.
 //   Phone scales are small (Home's is 270 CSS px per stretch): draw figures larger there, as home.ts does with
 //   big = Math.max(1, 0.7 * REF_PX / env.scale), so a person stays >= 12 CSS px tall.
 //   Randomness: never Math.random, never one stream shared by the whole set. Each element takes its own stream:
-//   const own = streams(SEED, PINS); own('house', row, i) (stream, streamAt, streams below), so adding or removing
-//   a draw in one element never re-rolls another. PINS keeps the elements that existed in 4a on their 4a draws.
+//   const own = streams(SEED); own('house', row, i) (stream, streams below), so adding or removing a draw in one
+//   element never re-rolls another.
 //   Module rules: import the kit from '../figures' (and nothing from index.ts). figures.ts never imports the sets
 //   (the engine and its worker register them: registerSets), so the kit's constants exist when a set's top level runs.
 //   To change a shared brush for one set, copy it into the set file and change the copy; bring improvements back here
@@ -88,14 +84,14 @@
 //
 // Kitsch guards: Song forms only; no red lanterns, pagodas, dragons or gold; no text on signs. Colour (palette.ts):
 // light colour over ink: grey tile, timber brown on wood (small areas, never a pale wash), pale indigo clothes,
-// white robes, willows in misted malachite. Under 'ink', everything is drawn in ink greys.
+// white robes, willows in misted malachite.
 //
 // Structure studied (not copied) from LingDong Huang's {Shan, Shui}* (MIT, 2018); the brush kit and the scenes grew
 // out of the round-4 research sketch.
 
-import { resolve, spec, sceneField, SCENE_FIELDS, REF_PX, HS, LAYERS, type Resolved, type WidthClass } from './compose';
+import { resolve, spec, sceneField, SCENE_FIELDS, REF_PX, HS, LAYERS, type Resolved } from './compose';
 import { planeTop } from './ridges';
-import { PALETTES, paletteName, type PaletteName } from './palette';
+import { PALETTES, paletteName } from './palette';
 
 // what a set needs from the composition, re-exported so a set imports from one place
 export { sceneField, SCENE_FIELDS, REF_PX, HS, planeTop };
@@ -148,26 +144,21 @@ export interface LayerParams {
   palette: string;
   distance?: string;
   presence?: number;
-  cls?: WidthClass | null;
-  /** A story-map still (the QA frame hook): the sets leave out their near framing elements and moving life. */
-  still?: boolean;
   /** 'gpu': an ImageBitmap with its sprites cut apart (WebGL, 4b); 'bytes': premultiplied RGBA (WebGL, 4a);
    *  'bitmap': the layer as drawn (Canvas2D). */
   out?: 'gpu' | 'bytes' | 'bitmap';
   /** Drawn for a window into the painting (index.ts GLIMPSE), a still view: its sprites are painted in, never
-   *  cut apart (the window's present has no life pass), and the sets leave out what hangs from the strip's top edge. */
+   *  cut apart (the window's present has no life pass). */
   inlay?: boolean;
-  /** QA builds only: the engine's element overrides (elements.ts qaOverrideLists), which the worker, with no window
-   *  and no storage of its own, could not read. */
-  qa?: { on: string[]; off: string[] };
+  /** QA builds only: the engine's element overrides, the elements switched off (elements.ts qaOverrideLists), which
+   *  the worker, with no window and no storage of its own, could not read. */
+  qa?: { off: string[] };
 }
 
-/** The palette's inks (inks()): its colours, rgba() and its strength. */
+/** The palette's inks (inks()): its colours and rgba(). */
 export interface Inks {
   C: Record<InkName, RGB>;
   rgba: (c: RGB, a: number) => string;
-  strength: number;
-  colourK: number;
 }
 /** What draw(env) gets (THE SET API). */
 export interface Env {
@@ -176,19 +167,9 @@ export interface Env {
   ink: Inks;
   k: number;
   scale: number;
-  dpr: number;
-  palette: PaletteName;
-  stretch: number;
   rect: FigureMeta['rect'];
   plane: number;
-  phase: number;
   life: LifeAnchor[];
-  softOK: boolean;
-  cls: WidthClass | null;
-  /** Drawn for a story-map still: no near framing elements, no moving life (LayerParams.still). */
-  still: boolean;
-  /** Drawn for a window into the painting (LayerParams.inlay): no element that hangs from the strip's edge. */
-  inlay: boolean;
   /** The set's own sprites (ownSprite), when the worker paints them apart; null: painted into the layer. */
   sprites: { a: LifeAnchor; paint: (env: Env) => void; box: Box }[] | null;
 }
@@ -211,11 +192,9 @@ export type LifeKind = 'smoke' | 'willow' | 'boat' | 'shimmer' | 'walker';
 export interface LifeParams {
   /** smoke: where the plume leaves. */
   src?: Pt;
-  /** (THE MOODS) a lamp: where its light stands (a hut's room, a window, a boat's lantern), its glow's radius
-   *  (world px; 26 by default) and its strength (1). The anchor is no life: the engine lights it with the mood. */
+  /** Marks an anchor that is no life (index.ts lifeU skips it): Home's hut keeps one, so that its later anchors keep
+   *  their phase seeds. */
   lamp?: Pt;
-  lampR?: number;
-  lampK?: number;
   /** willow: the tree's foot, its size and sway. */
   foot?: Pt;
   s?: number;
@@ -233,24 +212,15 @@ export interface LifeParams {
   /** walker: its path, its home (its feet, where it is drawn) and speed. */
   path?: Pt[];
   home?: Pt;
-  /** Smoke's box as falling petals instead: how many, their size (world px) and speed. */
-  petals?: { n: number; size: number; speed?: number };
-  /** A walker that is a bird: its wings beat as it glides (the present pass squashes it in time). */
-  bird?: boolean;
   /** Shimmer: expanding ripple rings on the water too. */
   rings?: number;
-  /** A sprite that swings slowly about its root (the plum: ~0.5 deg at ~0.08 Hz; the present pass turns it). */
-  swing?: boolean;
-  /** (the unroll) A sprite pinned to the frame: the stage's slide does not carry it (Home's plum bough and Writing's
-   *  willow, the near framing elements whose roots lie past the frame's edge on the layer's eastern reach, which the
-   *  slide would otherwise bring into view as a cut end; index.ts lifeU). Windows (phones) and the camera's travel
-   *  ignore it. */
+  /** (the unroll) A sprite pinned to the frame: the stage's slide does not carry it (Writing's willow, the near framing
+   *  element whose root lies past the frame's edge on the layer's eastern reach, which the slide would otherwise bring
+   *  into view as a cut end; index.ts lifeU). Windows (phones) ignore it. */
   pinned?: boolean;
   /** (elements.ts waterfall) Smoke's box as a falling stream instead: its x, its lip's and its foot's y, its
    *  half-width (world px); the present pass slides lights down what the layer painted white there. */
   fall?: { x: number; y0: number; y1: number; hw: number };
-  /** (elements.ts plumGust) The plum sprite: its main limb (world px), where the pointer touches the bough. */
-  limb?: Pt[];
   /** (elements.ts contactLife) A sprite that bends from its foot in a breeze (a clump of rushes). */
   bend?: boolean;
   /** (elements.ts contactLife) Shimmer: points (world px) where a ring set falls now and then by itself (a pole,
@@ -278,7 +248,7 @@ export interface LifeOut extends LifeAnchor {
 // imports the sets, so the sets (which import its brush kit) and it form no import cycle. (In the demo they imported
 // each other; a production Turbopack build of a module worker over that cycle never finishes.)
 let SET_LIST: SetEntry[] = [];
-let registry: Map<number, { stretch: number; name: string; meta: FigureMeta | null; draw: DrawSet | undefined }> | null = null;
+let registry: Map<number, { name: string; meta: FigureMeta | null; draw: DrawSet | undefined }> | null = null;
 /** The figure sets, [{ stretch, name, module }] (sets/index.ts SETS). */
 export function registerSets(list: SetEntry[]) {
   SET_LIST = Array.isArray(list) ? list : [];
@@ -293,7 +263,7 @@ function sets() {
     const draw = mod?.draw;
     if (meta && !validMeta(meta)) { console.warn(`figures: set "${name}" has an invalid meta; drawn as a stub`, meta); meta = null; }
     if (meta && typeof draw !== 'function') { console.warn(`figures: set "${name}" has no draw(); drawn as a stub`); meta = null; }
-    registry.set(stretch, { stretch, name, meta, draw });
+    registry.set(stretch, { name, meta, draw });
   }
   return registry;
 }
@@ -317,11 +287,6 @@ export function layerSize(stretch: number, scale: number, dpr: number): { width:
     width: Math.max(2, Math.min(4096, Math.round((u1 - u0) * scale * dpr))),
     height: Math.max(2, Math.min(4096, Math.round((y1 - y0) * (scale / HS) * dpr))),
   };
-}
-
-/** Every registered set, stubs included: [{ stretch, name, meta | null }] (the lab and QA list them). */
-export function figureSets(): { stretch: number; name: string; meta: FigureMeta | null }[] {
-  return [...sets().values()].sort((a, b) => a.stretch - b.stretch).map(({ stretch, name, meta }) => ({ stretch, name, meta: meta ? { rect: meta.rect.slice() as FigureMeta['rect'], plane: meta.plane, phase: meta.phase } : null }));
 }
 
 /**
@@ -354,9 +319,8 @@ export function* paintSteps(ctx: Ctx2D, p: LayerParams, own: OwnSprite[] | null 
   ctx.lineJoin = 'round';
   const P = resolve(spec(p.distance || 'level', p.presence ?? 1), 1.6);
   const env: Env = {
-    ctx, P, ink: inks(p.palette), k, scale: p.scale, dpr: p.dpr, palette: paletteName(p.palette), stretch: set.stretch,
-    rect: m.rect.slice() as FigureMeta['rect'], plane: m.plane, phase: m.phase, life: [], softOK: false, cls: p.cls || null,
-    sprites: own ? [] : null, still: !!p.still, inlay: !!p.inlay,
+    ctx, P, ink: inks(p.palette), k, scale: p.scale, rect: m.rect.slice() as FigureMeta['rect'], plane: m.plane, life: [],
+    sprites: own ? [] : null,
   };
   // (a set with a meta always has a draw: sets() turns one without into a stub)
   const run = set.draw!(env);
@@ -368,7 +332,7 @@ export function* paintSteps(ctx: Ctx2D, p: LayerParams, own: OwnSprite[] | null 
 }
 
 // ---------------------------------------------------------------- life anchors
-export const LIFE_KINDS = ['smoke', 'willow', 'boat', 'shimmer', 'walker'];
+const LIFE_KINDS = ['smoke', 'willow', 'boat', 'shimmer', 'walker'];
 
 /** Mark a box for small life (THE LIFE API): anchor(env, 'smoke', { x, y, w, h }, { src: [x, y] }). */
 export function anchor(env: Env, kind: LifeKind, box: Box, params: LifeParams = {}, plane: number = env.plane): LifeAnchor {
@@ -420,7 +384,7 @@ function lifeOut(list: LifeAnchor[], m: FigureMeta, name: string, at: Map<LifeAn
 }
 
 // ---------------------------------------------------------------- noise, randomness
-export function hash2(x: number, y: number, s: number): number {
+function hash2(x: number, y: number, s: number): number {
   let h = Math.imul(x | 0, 374761393) + Math.imul(y | 0, 668265263) + Math.imul(s | 0, 1442695041);
   h = Math.imul(h ^ (h >>> 13), 1274126177);
   h ^= h >>> 16;
@@ -433,11 +397,6 @@ export function vnoise(x: number, y: number, s: number): number {
   const a = hash2(xi, yi, s), b = hash2(xi + 1, yi, s), c = hash2(xi, yi + 1, s), d = hash2(xi + 1, yi + 1, s);
   return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
 }
-export function fbm(x: number, y: number, s: number, oct = 3): number {
-  let a = 0.5, t = 0, n = 0;
-  for (let i = 0; i < oct; i++) { t += a * vnoise(x, y, s + i * 17); n += a; x *= 2.03; y *= 2.03; a *= 0.5; }
-  return t / n;
-}
 /** A seeded random stream (mulberry32): R() -> [0, 1). */
 export function rng(seed: number): Rng {
   let a = seed >>> 0;
@@ -448,7 +407,7 @@ export function rng(seed: number): Rng {
  * give the same stream, and different keys never share draws, so adding or removing a draw in one element never
  * re-rolls another. To re-roll one element, change its key.
  */
-export function stream(seed: number, ...keys: (string | number)[]): Rng {
+function stream(seed: number, ...keys: (string | number)[]): Rng {
   let h = seed >>> 0;
   for (const key of keys) {
     if (typeof key === 'string') for (let i = 0; i < key.length; i++) h = Math.imul(h ^ key.charCodeAt(i), 16777619);
@@ -457,23 +416,10 @@ export function stream(seed: number, ...keys: (string | number)[]): Rng {
   }
   return rng(h >>> 0);
 }
-/**
- * rng(seed) skipped ahead n draws: streamAt(seed, n)() is rng(seed)'s draw number n + 1. It pins an element to the
- * draws it had when its whole set shared one stream (4a), so splitting the stream kept the picture.
- */
-export function streamAt(seed: number, n: number): Rng {
-  return rng((seed + Math.imul(n, 0x6D2B79F5)) >>> 0);
-}
-/**
- * A set's streams: const own = streams(SEED, PINS); then own('house', row, i) is that element's stream. A key found in
- * `pins` (an object, 'house/3/0' -> n: the keys joined by '/') keeps the draws it had when the set shared one stream,
- * streamAt(seed, n); any other key gets stream(seed, ...keys). Delete a pin to re-roll that element.
- */
-export function streams(seed: number, pins: Record<string, number> = {}): Streams {
-  return (...keys) => {
-    const n = pins[keys.join('/')];
-    return Number.isInteger(n) ? streamAt(seed, n) : stream(seed, ...keys);
-  };
+/** A set's streams: const own = streams(SEED); then own('house', row, i) is that element's stream,
+ *  stream(SEED, 'house', row, i). */
+export function streams(seed: number): Streams {
+  return (...keys) => stream(seed, ...keys);
 }
 export function clamp01(x: number): number { return Math.min(1, Math.max(0, x)); }
 export function smooth(a: number, b: number, x: number): number { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); }
@@ -482,24 +428,24 @@ export function mix3(A: RGB, B: RGB, t: number): RGB { return [mix(A[0], B[0], t
 
 // ---------------------------------------------------------------- inks and light colour (palette-aware)
 // Every colour is cool or neutral; timber brown only ever at mid-to-dark values on small areas (never a pale wash,
-// which would read as beige). Under 'ink' the colours become greys of the same value.
+// which would read as beige).
 const BASE: Record<InkName, RGB> = {
   ink: [20, 24, 27], ink2: [42, 48, 52], wall: [236, 238, 235], white: [246, 247, 244], paper: [239, 241, 238], mist: [233, 237, 236],
   tile: [56, 78, 98], timber: [76, 96, 128], timberM: [140, 168, 200], indigo: [44, 78, 104], indigoP: [150, 180, 204],
-  mal: [139, 200, 196], malD: [36, 128, 132], az: [156, 196, 224], earth: [120, 128, 134],
-  // the young palette's figure inks (navy ink for near accents, jade, the one blossom accent)
-  navy: [27, 40, 60], jade: [64, 160, 160], jadeD: [24, 98, 104], blossom: [244, 190, 212], blossomD: [206, 120, 158], light: [251, 254, 255],
+  mal: [139, 200, 196], malD: [36, 128, 132], earth: [120, 128, 134],
+  // the young palette's figure inks (navy ink for near accents)
+  navy: [27, 40, 60], light: [251, 254, 255],
 };
 /** The inks' names (Inks.C). */
-export type InkName = 'ink' | 'ink2' | 'wall' | 'white' | 'paper' | 'mist' | 'tile' | 'timber' | 'timberM' | 'indigo' | 'indigoP' | 'mal' | 'malD' | 'az' | 'earth' | 'navy' | 'jade' | 'jadeD' | 'blossom' | 'blossomD' | 'light';
-export function inks(palette: string): Inks {
-  const strength = PALETTES[paletteName(palette)].figures;   // 0 ink, 1 misted, 1.25 rich
+export type InkName = 'ink' | 'ink2' | 'wall' | 'white' | 'paper' | 'mist' | 'tile' | 'timber' | 'timberM' | 'indigo' | 'indigoP' | 'mal' | 'malD' | 'earth' | 'navy' | 'light';
+function inks(palette: string): Inks {
+  const strength = PALETTES[paletteName(palette)].figures;   // 1 (misted)
   const grey = (c: RGB): RGB => { const l = 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]; return [l - 2, l, l + 2]; };
-  const tone = (c: RGB) => (strength <= 0 ? grey(c) : strength > 1 ? mix3(grey(c), c, Math.min(1.2, strength)) : mix3(grey(c), c, 0.85 + 0.15 * strength));
+  const tone = (c: RGB) => mix3(grey(c), c, 0.85 + 0.15 * strength);
   const C = {} as Record<InkName, RGB>;
   for (const k in BASE) C[k as InkName] = tone(BASE[k as InkName]);
   const rgba = (c: RGB, a: number) => `rgba(${Math.round(Math.min(255, Math.max(0, c[0])))},${Math.round(Math.min(255, Math.max(0, c[1])))},${Math.round(Math.min(255, Math.max(0, c[2])))},${Math.max(0, Math.min(1, a)).toFixed(3)})`;
-  return { C, rgba, strength, colourK: Math.min(1.25, strength) };
+  return { C, rgba };
 }
 
 // ---------------------------------------------------------------- the brush kit
@@ -637,16 +583,9 @@ export function wash(ctx: Ctx2D, pts: Pt[], col: string | CanvasGradient, o: Was
     ctx.stroke();
   }
 }
-/** A soft wash (ink wicking into wet paper): blurred where the context can, else a few stacked, offset fills. */
+/** A soft wash (ink wicking into wet paper): a few stacked, offset fills. */
 export function softWash(env: Env, pts: Pt[], col: string, r: number, o: WashOptions = {}): void {
   const { ctx } = env;
-  if (env.softOK && r > 0) {
-    ctx.save();
-    ctx.filter = `blur(${(r * env.k).toFixed(2)}px)`;
-    wash(ctx, pts, col, { ...o, edge: null });
-    ctx.restore();
-    return;
-  }
   const n = 4;
   const m = /rgba\((\d+),(\d+),(\d+),([\d.]+)\)/.exec(col);
   const a = m ? +m[4] : 1;
@@ -657,77 +596,6 @@ export function softWash(env: Env, pts: Pt[], col: string, r: number, o: WashOpt
     wash(ctx, pts.map(([x, y]): Pt => [x + dx, y + dy]), c, { ...o, edge: null, seed: (o.seed ?? 7) + i });
   }
 }
-// ---------------------------------------------------------------- figures (people)
-/**
- * A tiny standing figure, Song manner: a robe (a soft trapezoid), a dark head with a top-knot or a cone hat, a
- * light line at the robe's edge. (x, y) = the feet; s = scale (1 ~ 10 px tall). Never walking in 4a.
- */
-export interface PersonOptions {
-  lean?: number;
-  wide?: boolean;
-  robe?: RGB;
-  flip?: boolean;
-  outline?: number;
-  arm?: 'up' | 'down';
-  hat?: 'cone';
-  pole?: boolean;
-  staff?: boolean;
-  punt?: boolean;
-  /** A rope pulled toward this point. */
-  pull?: Pt;
-}
-export function person(env: Env, x: number, y: number, s: number, R: Rng, o: PersonOptions = {}): void {
-  const { ctx, ink } = env;
-  const { C, rgba } = ink;
-  const lean = o.lean ?? (R() - 0.5) * 0.22;
-  const h = 10 * s;
-  const sx = x + Math.sin(lean) * h * 0.7, sy = y - h * 0.68;   // shoulders
-  const wide = (o.wide ? 4.6 : 3.7) * s;
-  const robes = [C.white, C.white, C.white, C.indigoP, C.indigoP, mix3(C.ink2, C.white, 0.55), C.white];
-  const robe = o.robe || robes[Math.floor(R() * robes.length)];
-  const dir = o.flip ? -1 : 1;
-  const hem: Pt[] = [[x + wide * 0.5 + (R() - 0.5) * s * 0.6, y - 0.6 * s], [x - wide * 0.5 + (R() - 0.5) * s * 0.6, y - 0.6 * s]];
-  const body: Pt[] = [[sx - 1.05 * s, sy + 0.2 * s], [sx + 1.1 * s, sy + 0.1 * s], hem[0], hem[1]];
-  wash(ctx, body, rgba(robe, 0.96), { jit: 0.25 * s, seed: x * 7 + y });
-  // the robe's edges: light, broken lines (a white robe needs them to exist at all on pale paper)
-  const line = rgba(C.ink, o.outline ?? 0.62);
-  stroke(ctx, [body[0], hem[1]], { w: 0.5 * s, col: line, wob: 0.4, seed: x, tin: 0.05, tout: 0.3 });
-  stroke(ctx, [body[1], hem[0]], { w: 0.42 * s, col: rgba(C.ink, 0.45), wob: 0.4, seed: y, tin: 0.05, tout: 0.4 });
-  // a sash
-  stroke(ctx, [[sx - 0.9 * s, sy + 2.5 * s], [sx + 1.0 * s, sy + 2.3 * s]], { w: 0.45 * s, col: rgba(C.ink2, 0.45), tin: 0, tout: 0.2 });
-  // feet under the hem
-  stroke(ctx, [[x - 0.9 * s, y - 0.7 * s], [x - 1.1 * s, y + 0.1 * s]], { w: 0.55 * s, col: rgba(C.ink, 0.85), tin: 0, tout: 0.1 });
-  stroke(ctx, [[x + 0.7 * s, y - 0.7 * s], [x + 0.95 * s, y + 0.1 * s]], { w: 0.55 * s, col: rgba(C.ink, 0.85), tin: 0, tout: 0.1 });
-  // an arm: hanging, or raised (pointing, shading the eyes)
-  const arm = o.arm ?? (R() < 0.3 ? 'up' : 'down');
-  if (arm === 'up') stroke(ctx, [[sx + dir * 0.9 * s, sy + 0.8 * s], [sx + dir * 2.3 * s, sy - 0.9 * s]], { w: 0.55 * s, col: rgba(C.ink, 0.6) });
-  else stroke(ctx, [[sx + dir * 0.95 * s, sy + 0.6 * s], [sx + dir * 1.5 * s, sy + 3.6 * s]], { w: 0.5 * s, col: rgba(C.ink, 0.5) });
-  // head: a pale face under dark hair, a top-knot (or a cone hat)
-  const hx = sx + Math.sin(lean) * 2.2 * s, hy = sy - 1.6 * s;
-  ctx.fillStyle = rgba(mix3(C.white, C.ink2, 0.12), 0.97);
-  ctx.beginPath(); ctx.arc(hx, hy, 1.05 * s, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = rgba(C.ink, 0.92);
-  ctx.beginPath(); ctx.arc(hx - dir * 0.2 * s, hy - 0.3 * s, 0.95 * s, Math.PI * 0.92, Math.PI * 2.08); ctx.fill();
-  if (o.hat === 'cone') {
-    const brim = 2.9 * s;
-    wash(ctx, [[hx - brim, hy - 0.15 * s], [hx + brim, hy - 0.35 * s], [hx + 0.2 * s, hy - 2.2 * s]], rgba(mix3(C.white, C.ink2, 0.28), 0.97), { jit: 0.15 * s });
-    stroke(ctx, [[hx - brim, hy - 0.15 * s], [hx + 0.2 * s, hy - 2.2 * s], [hx + brim, hy - 0.35 * s]], { w: 0.42 * s, col: rgba(C.ink, 0.7), tin: 0.08, tout: 0.15 });
-  } else {
-    ctx.beginPath(); ctx.arc(hx + dir * 0.1 * s, hy - 1.15 * s, 0.5 * s, 0, Math.PI * 2); ctx.fill();
-  }
-  if (o.pole) {   // a carrying pole with two loads
-    const a: Pt = [sx - 5.5 * s, sy + 0.4 * s], b: Pt = [sx + 5.5 * s, sy - 0.3 * s];
-    stroke(ctx, [a, b], { w: 0.5 * s, col: rgba(C.ink, 0.85), tin: 0.05, tout: 0.05 });
-    for (const p of [a, b]) {
-      stroke(ctx, [p, [p[0], p[1] + 3 * s]], { w: 0.28 * s, col: rgba(C.ink, 0.5), tin: 0, tout: 0 });
-      wash(ctx, [[p[0] - 1.4 * s, p[1] + 3 * s], [p[0] + 1.4 * s, p[1] + 3 * s], [p[0] + 1.1 * s, p[1] + 5 * s], [p[0] - 1.1 * s, p[1] + 5 * s]], rgba(C.timber, 0.75));
-    }
-  }
-  if (o.staff) stroke(ctx, [[sx + dir * 1.8 * s, sy - 0.6 * s], [x + dir * 2.4 * s, y + 0.2 * s]], { w: 0.45 * s, col: rgba(C.ink, 0.9), tin: 0, tout: 0.05 });
-  if (o.punt) stroke(ctx, [[sx + dir * 1.5 * s, sy - 3.2 * s], [sx - dir * 6.5 * s, y + 8.5 * s]], { w: 0.5 * s, col: rgba(C.ink, 0.9), tin: 0.05, tout: 0.3 });
-  if (o.pull) stroke(ctx, [[sx + dir * 0.9 * s, sy + 0.4 * s], o.pull], { w: 0.28 * s, col: rgba(C.ink, 0.55), tin: 0, tout: 0 });
-}
-
 // ---------------------------------------------------------------- trees
 /** A tree in dots (an ink cluster of short dabs on a crooked trunk). (x, y) = the foot. */
 export function dotTree(env: Env, x: number, y: number, s: number, R: Rng, o: { green?: boolean; clusters?: number } = {}): void {
@@ -736,7 +604,7 @@ export function dotTree(env: Env, x: number, y: number, s: number, R: Rng, o: { 
   const H = 20 * s;
   const lean = (R() - 0.5) * 5 * s;
   stroke(ctx, [[x, y + 0.5], [x + lean * 0.4 + (R() - 0.5) * 2 * s, y - H * 0.5], [x + lean, y - H * 0.85]], { w: 1.7 * s, col: rgba(C.ink, 0.85), tin: 0, tout: 0.7, wob: 0.5, seed: x });
-  const leaf = o.green && ink.strength > 0 ? mix3(C.ink, C.malD, 0.35) : C.ink;
+  const leaf = o.green ? mix3(C.ink, C.malD, 0.35) : C.ink;
   const clusters = o.clusters ?? 4;
   for (let c = 0; c < clusters; c++) {
     const cx = x + lean * 0.8 + (R() - 0.5) * 12 * s, cy = y - H * (0.62 + R() * 0.4);
@@ -747,89 +615,6 @@ export function dotTree(env: Env, x: number, y: number, s: number, R: Rng, o: { 
     }
   }
 }
-/** A pine: a leaning trunk and flat, layered needle masses (dark ink). */
-export function pine(env: Env, x: number, y: number, s: number, R: Rng): void {
-  const { ctx, ink } = env;
-  const { C, rgba } = ink;
-  const H = 24 * s;
-  const lean = (R() < 0.5 ? -1 : 1) * (2 + R() * 3) * s;
-  const top: Pt = [x + lean, y - H];
-  stroke(ctx, [[x, y + 0.5], [x + lean * 0.3, y - H * 0.45], top], { w: 1.6 * s, col: rgba(C.ink, 0.9), tin: 0, tout: 0.5, wob: 0.4, seed: x * 3 });
-  for (let i = 0; i < 4; i++) {
-    const t = 0.45 + i * 0.17;
-    const bx = x + lean * t, by = y - H * t;
-    const wdt = (7 - i * 1.3) * s;
-    for (let j = 0; j < 9; j++) {
-      const px = bx + (R() - 0.5) * wdt * 2, py = by + (R() - 0.5) * 1.6 * s;
-      stroke(ctx, [[px - 1.6 * s, py + 0.5 * s], [px, py - 0.7 * s], [px + 1.6 * s, py + 0.5 * s]], { w: 0.75 * s, col: rgba(C.ink, 0.35 + R() * 0.35), tin: 0.1, tout: 0.4, seed: j + i * 11 });
-    }
-  }
-}
-/**
- * A willow, the way the scroll paints them: a thick, leaning, gnarled trunk that forks low, boughs that arch up and
- * out and then droop, and long cascades of strands in misted malachite falling from their outer halves, longest
- * where the boughs droop furthest, so the tree has the shape of a fountain, never a box. A few strands are darker.
- * (x, y) = the foot. Returns { box }: the box its trunk, boughs and strands cover (world px; a willow life anchor).
- */
-export function willow(env: Env, x: number, y: number, s: number, R: Rng, o: { lean?: number; sway?: number } = {}): { box: Box } {
-  const { ctx, ink } = env;
-  const { C, rgba } = ink;
-  const lean = o.lean ?? (R() < 0.5 ? -1 : 1) * (0.15 + R() * 0.3);
-  const H = 22 * s;
-  // the trunk: thick at the foot, bending, forking at ~60%
-  const trunk: Pt[] = [];
-  for (let i = 0; i <= 8; i++) {
-    const t = i / 8;
-    trunk.push([x + lean * H * 0.6 * t * t + (vnoise(t * 3, x, 4) - 0.5) * 3.2 * s, y - H * t]);
-  }
-  const fork = trunk[5];
-  const limbs: Pt[][] = [trunk.slice(5), [fork, [fork[0] - lean * 5 * s - 3 * s, fork[1] - H * 0.25], [fork[0] - lean * 7 * s - 6 * s, fork[1] - H * 0.42]]];
-  // boughs from the top of each limb: up and out, then drooping
-  const boughs: { pts: Pt[]; side: number }[] = [];
-  for (const limb of limbs) {
-    const top = limb[limb.length - 1];
-    const nb = 3 + Math.floor(R() * 2);
-    for (let b = 0; b < nb; b++) {
-      const side = (b / (nb - 1) - 0.5) * 2 + (R() - 0.5) * 0.4;   // -1 .. 1
-      const reach = (10 + R() * 9) * s;
-      const up = (4 + R() * 5) * s * (1 - 0.5 * Math.abs(side));
-      const p1: Pt = [top[0] + side * reach * 0.45, top[1] - up];
-      const p2: Pt = [top[0] + side * reach, top[1] - up * 0.4 + 2.5 * s];
-      boughs.push({ pts: [top, p1, p2], side });
-    }
-  }
-  const leafC = ink.strength > 0 ? C.mal : mix3(C.ink2, C.white, 0.45);
-  const leafD = ink.strength > 0 ? mix3(C.malD, C.ink, 0.35) : C.ink2;
-  // a very faint mass behind the strands (the tree's shade), shaped like the fountain
-  const crownX = mix(limbs[0][limbs[0].length - 1][0], limbs[1][2][0], 0.5);
-  const crownY = Math.min(limbs[0][limbs[0].length - 1][1], limbs[1][2][1]);
-  softWash(env, [[crownX - 15 * s, crownY + 4 * s], [crownX, crownY - 6 * s], [crownX + 15 * s, crownY + 4 * s], [crownX + 19 * s, crownY + 22 * s], [crownX - 19 * s, crownY + 22 * s]], rgba(leafC, 0.08), 4 * s);
-  // the cascades
-  const sway = (o.sway ?? 1) * s * 0.6;
-  const strands: Pt[][] = [];
-  for (const { pts: [a, m, b], side } of boughs) {
-    const n = 15 + Math.floor(R() * 8);
-    for (let k = 0; k < n; k++) {
-      const t = 0.35 + 0.65 * Math.pow(R(), 0.7);              // mostly from the bough's outer half
-      const p: Pt = t < 0.5 ? [mix(a[0], m[0], t * 2), mix(a[1], m[1], t * 2)] : [mix(m[0], b[0], t * 2 - 1), mix(m[1], b[1], t * 2 - 1)];
-      const maxL = (22 + 16 * Math.abs(side)) * s;           // the drooping ends hang longest
-      const len = maxL * (0.35 + 0.65 * R()) * (0.55 + 0.45 * t);
-      const out = side * (0.6 + R() * 0.8) * s;               // a slight outward curve before the strand falls
-      const dark = R() < 0.22;
-      const strand: Pt[] = [p, [p[0] + out * 1.5, p[1] + len * 0.18], [p[0] + out * 2 + sway * 0.3, p[1] + len * 0.6], [p[0] + out * 2.1 + sway, p[1] + len]];
-      strands.push(strand);
-      stroke(ctx, strand, {
-        w: (dark ? 0.5 : 0.68) * s, col: dark ? rgba(leafD, 0.5) : rgba(leafC, 0.36 + R() * 0.3), tin: 0.04, tout: 0.9, wob: 0.3, min: 0.1, seed: k * 7 + x,
-      });
-    }
-  }
-  for (const { pts } of boughs) stroke(ctx, pts, { w: 1.2 * s, col: rgba(C.ink, 0.72), tin: 0.02, tout: 0.85, wob: 0.45, seed: pts[2][0] });
-  stroke(ctx, limbs[1], { w: 2.2 * s, col: rgba(C.ink, 0.88), tin: 0, tout: 0.6, wob: 0.4, seed: x + 1 });
-  stroke(ctx, trunk, { w: 4.6 * s, col: rgba(C.ink, 0.92), tin: 0.0, tout: 0.5, wob: 0.5, seed: x });
-  dryBrush(ctx, trunk.slice(0, 6).map(([a, b]): Pt => [a + 1.2 * s, b]), { w: 2.8 * s, col: rgba(mix3(C.ink, C.white, 0.35), 0.55), bristles: 3, seed: x, thr: 0.5 });
-  stroke(ctx, [[x - 5 * s, y + 0.8], [x + 6 * s, y + 0.3]], { w: 1.5 * s, col: rgba(C.ink, 0.42), tin: 0.2, tout: 0.6 });   // its foot on the ground
-  return { box: bounds([trunk, limbs[1], ...boughs.map((b) => b.pts), ...strands], 1.5 * s) };
-}
 export function ellipse(cx: number, cy: number, rx: number, ry: number, n: number): Pt[] {
   const pts: Pt[] = [];
   for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2; pts.push([cx + Math.cos(a) * rx, cy + Math.sin(a) * ry]); }
@@ -838,338 +623,6 @@ export function ellipse(cx: number, cy: number, rx: number, ry: number, n: numbe
 
 // ---------------------------------------------------------------- buildings (Song oblique projection)
 export const D: Pt = [0.72, -0.48];    // one unit of depth on screen: we see fronts, tops and right-hand sides
-/**
- * A Song house: an open shopfront (or plain wall), timber posts, and a big hip-gable roof in grey tile with a dark
- * ridge and gently lifted eave corners. (x, y) = front-left foot; w width, h wall height. o.far: paler and simpler
- * (the back rows, half lost in mist).
- */
-export interface HouseOptions {
-  /** 0 front row .. 1 far back row. */
-  far?: number;
-  d?: number;
-  rh?: number;
-  ov?: number;
-  wall?: number;
-  shop?: boolean;
-  wideShop?: boolean;
-  storey?: boolean;
-  thatch?: boolean;
-  awning?: boolean;
-}
-export function house(env: Env, x: number, y: number, w: number, h: number, R: Rng, o: HouseOptions = {}): { eave: Pt[]; rL: Pt; rR: Pt } {
-  const { ctx, ink } = env;
-  const { C, rgba } = ink;
-  const far = o.far ?? 0;                     // 0 front row .. 1 far back row
-  const A = 1 - 0.45 * far;                   // paleness by depth
-  const d = o.d ?? w * (0.42 + R() * 0.2);
-  const ox = D[0] * d, oy = D[1] * d;
-  const rh = o.rh ?? h * (0.55 + R() * 0.2);  // roof height
-  const ov = o.ov ?? w * (0.09 + R() * 0.04); // eave overhang
-  const sk = (R() - 0.5) * 0.6;               // a slight skew: no two alike
-  // reserve the paper: a near house hides what is behind it
-  wash(ctx, [[x - ov, y + 0.6], [x + w, y + 0.6], [x + w + ox, y + oy + 0.6], [x + w + ov + ox, y - h + oy], [x + w * 0.84 + ox * 0.5, y - h - rh + oy * 0.5], [x + w * 0.16 + ox * 0.5, y - h - rh + oy * 0.5], [x - ov, y - h]], rgba(C.paper, A), { jit: 0.3 });
-  // walls: front (lime-washed, cool), right side (in shade)
-  const wallC = mix3(C.wall, C.ink2, (o.wall ?? 0) + 0.05 + R() * 0.12 + far * 0.08);
-  wash(ctx, [[x + w, y], [x + w + ox, y + oy], [x + w + ox, y + oy - h], [x + w, y - h]], rgba(mix3(wallC, C.ink2, 0.24), 0.95 * A), { jit: 0.4, seed: x });
-  wash(ctx, [[x, y], [x + w, y], [x + w + sk, y - h], [x + sk, y - h]], rgba(wallC, 0.97 * A), { jit: 0.4, seed: x + 1 });
-  if (far < 0.8) {   // the wall's edges, drawn: a broken line, never a clean box
-    stroke(ctx, [[x + sk, y - h], [x, y]], { w: 0.55, col: rgba(C.ink, 0.42 * A), tin: 0.05, tout: 0.2, dry: 0.35, seed: x + 5 });
-    stroke(ctx, [[x + w + sk, y - h], [x + w, y]], { w: 0.5, col: rgba(C.ink, 0.38 * A), tin: 0.05, tout: 0.2, dry: 0.35, seed: x + 6 });
-  }
-  if (o.shop !== false && far < 0.6) {
-    // an open shopfront: the dark interior, a counter, the goods
-    const s0 = x + w * (0.1 + R() * 0.06), s1 = x + w * (o.wideShop ? 0.9 : 0.55 + R() * 0.12);
-    wash(ctx, [[s0, y - h * 0.14], [s1, y - h * 0.14], [s1, y - h * 0.86], [s0, y - h * 0.86]], rgba(mix3(C.ink2, C.wall, 0.35), 0.62 * A), { jit: 0.5, seed: x + 2 });
-    stroke(ctx, [[s0 - 0.6, y - h * 0.36], [s1 + 0.6, y - h * 0.38]], { w: 0.9, col: rgba(C.timber, 0.85 * A), tin: 0, tout: 0, wob: 0.2 });
-    for (let i = 0; i < 4; i++) { if (R() < 0.4) continue; ctx.fillStyle = rgba(i % 2 ? C.ink2 : C.indigoP, 0.6 * A); ctx.beginPath(); ctx.arc(mix(s0, s1, 0.15 + i * 0.22), y - h * 0.44, 0.7, 0, Math.PI * 2); ctx.fill(); }
-  } else if (far < 0.8 && R() < 0.6) {
-    // a lattice window
-    const wx = x + w * (0.25 + R() * 0.3), ww = w * 0.22;
-    wash(ctx, [[wx, y - h * 0.4], [wx + ww, y - h * 0.4], [wx + ww, y - h * 0.75], [wx, y - h * 0.75]], rgba(mix3(C.ink2, C.wall, 0.5), 0.5 * A));
-  }
-  // posts and the sill (timber)
-  if (far < 0.7) {
-    const posts = Math.max(2, Math.round(w / 13) + 1);
-    for (let i = 0; i < posts; i++) {
-      const px = x + (w * i) / (posts - 1) + (R() - 0.5) * 0.5;
-      stroke(ctx, [[px, y + 0.3], [px + sk, y - h]], { w: 0.75, col: rgba(mix3(C.timber, C.ink, 0.4), 0.75 * A), tin: 0, tout: 0.1, wob: 0.2, seed: px });
-    }
-    stroke(ctx, [[x + w + ox, y + oy], [x + w + ox, y + oy - h]], { w: 0.6, col: rgba(C.ink, 0.5 * A), tin: 0, tout: 0 });
-  }
-  stroke(ctx, [[x - 0.6, y + 0.4], [x + w + 0.5, y + 0.3], [x + w + ox, y + oy + 0.3]], { w: 0.8, col: rgba(C.ink, 0.45 * A), tin: 0.05, tout: 0.1, dry: 0.2 });
-  if (o.storey && far < 0.5) {   // an upper storey: a balcony rail and a lower eave
-    const my = y - h * 0.52;
-    stroke(ctx, [[x - w * 0.06, my], [x + w * 1.06, my]], { w: 1.1, col: rgba(C.ink, 0.85), tin: 0.05, tout: 0.05 });
-    wash(ctx, [[x - w * 0.08, my], [x + w * 1.08, my], [x + w * 1.0, my - h * 0.1], [x, my - h * 0.1]], rgba(C.tile, 0.62));
-    for (let i = 0; i < 9; i++) stroke(ctx, [[x + w * (0.06 + i * 0.11), my - h * 0.13], [x + w * (0.06 + i * 0.11), my - h * 0.25]], { w: 0.4, col: rgba(C.ink, 0.5), tin: 0, tout: 0 });
-  }
-  // the roof: front slope, the hip on the right, the ridge with lifted ends, eaves lifted at the corners
-  const ey = y - h + 0.6;
-  const lift = Math.max(0.9, w * (0.03 + R() * 0.015));
-  const eave: Pt[] = [];
-  for (let i = 0; i <= 14; i++) {
-    const t = i / 14;
-    const ex = x - ov + sk + (w + 2 * ov) * t;
-    const sag = Math.sin(Math.PI * t) * lift * 0.45 - Math.pow(Math.abs(t * 2 - 1), 6) * lift;
-    eave.push([ex, ey + sag]);
-  }
-  const rL: Pt = [x + w * (0.15 + R() * 0.04) + ox * 0.5 + sk, y - h - rh + oy * 0.5];
-  const rR: Pt = [x + w * (0.85 - R() * 0.04) + ox * 0.5 + sk, y - h - rh + oy * 0.5];
-  const eB: Pt = [x + w + ov + ox + sk, ey + oy - lift];
-  const eF = eave[eave.length - 1];
-  const tile = o.thatch ? mix3(C.timber, C.ink2, 0.45) : mix3(C.tile, C.white, 0.08 + R() * 0.14 + far * 0.25);
-  wash(ctx, [eF, eB, rR], rgba(mix3(tile, C.ink, 0.3), 0.86 * A), { jit: 0.4, seed: x + 3 });
-  wash(ctx, [...eave, rR, rL], rgba(tile, (o.thatch ? 0.72 : 0.68) * A), { jit: 0.4, seed: x + 4 });
-  // tile rows down the slope near the eave (a few, broken); thatch: streaks
-  if (far < 0.75) {
-    ctx.save();
-    ctx.beginPath(); ctx.moveTo(eave[0][0], eave[0][1]); for (const p of eave) ctx.lineTo(p[0], p[1]); ctx.lineTo(rR[0], rR[1]); ctx.lineTo(rL[0], rL[1]); ctx.closePath(); ctx.clip();
-    const rows = Math.max(4, Math.round(w / 2.6));
-    for (let i = 1; i < rows; i++) {
-      const t = i / rows;
-      const ex = x - ov + sk + (w + 2 * ov) * t;
-      const tx = mix(rL[0], rR[0], t) + (R() - 0.5) * 0.6;
-      if (vnoise(i * 0.7, x * 0.1, 9) < 0.32) continue;
-      const len = 0.35 + 0.4 * R();
-      stroke(ctx, [[ex, ey + 0.6], [mix(ex, tx, len), mix(ey, rL[1], len)]], { w: 0.42, col: rgba(C.ink, (o.thatch ? 0.28 : 0.3) * A), tin: 0, tout: 0.6 });
-    }
-    ctx.restore();
-  }
-  // the roof's lines: the eave (strong), the hip, the ridge with its lifted ends (strongest)
-  stroke(ctx, eave, { w: 1.05, col: rgba(C.ink, 0.88 * A), tin: 0.06, tout: 0.08, wob: 0.3, seed: x * 0.1 });
-  stroke(ctx, [eF, eB], { w: 0.75, col: rgba(C.ink, 0.8 * A), tin: 0.05, tout: 0.2 });
-  stroke(ctx, [eF, rR], { w: 0.6, col: rgba(C.ink, 0.6 * A), tin: 0.05, tout: 0.1, dry: 0.15 });
-  stroke(ctx, [eave[0], rL], { w: 0.55, col: rgba(C.ink, 0.5 * A), tin: 0.05, tout: 0.1, dry: 0.2 });
-  stroke(ctx, [[rL[0] - 1.3, rL[1] - 1.1], [rL[0], rL[1]], [rR[0], rR[1]], [rR[0] + 1.3, rR[1] - 1.1]], { w: 1.6, col: rgba(C.ink, 0.9 * A), tin: 0.12, tout: 0.12, wob: 0.25 });
-  if (o.awning && far < 0.4) {   // a cloth shade on two poles over the street
-    const a0 = x + w * 0.06, a1 = x + w * 0.82, ay = y - h * 0.8, fy = y + h * 0.5, fx = -w * 0.03;
-    const cl = R() < 0.5 ? C.white : C.indigoP;
-    wash(ctx, [[a0, ay], [a1, ay], [a1 + fx, fy - h * 0.6], [a0 + fx, fy - h * 0.6]], rgba(cl, 0.93));
-    stroke(ctx, [[a0 + fx, fy - h * 0.6], [a1 + fx, fy - h * 0.6]], { w: 0.7, col: rgba(C.ink, 0.8), tin: 0.05, tout: 0.05 });
-    stroke(ctx, [[a0 + fx, fy - h * 0.6], [a0 + fx, fy]], { w: 0.55, col: rgba(C.ink, 0.8), tin: 0, tout: 0 });
-    stroke(ctx, [[a1 + fx, fy - h * 0.6], [a1 + fx, fy]], { w: 0.55, col: rgba(C.ink, 0.8), tin: 0, tout: 0 });
-  }
-  return { eave, rL, rR };
-}
-
-/** A market parasol over a little stall. (x, y) = the pole's foot. */
-export function parasol(env: Env, x: number, y: number, s: number, R: Rng): void {
-  const { ctx, ink } = env;
-  const { C, rgba } = ink;
-  const lean = (R() - 0.5) * 2 * s;
-  const top: Pt = [x + lean, y - 14 * s];
-  const rx = (9 + R() * 3) * s, ry = 2.8 * s;
-  stroke(ctx, [[x, y], top], { w: 0.65 * s, col: rgba(C.ink, 0.85), tin: 0, tout: 0 });
-  wash(ctx, [[x - 5.5 * s, y - 3.4 * s], [x + 5.5 * s, y - 3.4 * s], [x + 6.2 * s, y - 2.4 * s], [x - 4.8 * s, y - 2.4 * s]], rgba(C.timber, 0.8));
-  for (let i = 0; i < 5; i++) { ctx.fillStyle = rgba(i % 2 ? C.ink2 : C.indigoP, 0.7); ctx.beginPath(); ctx.arc(x - 4 * s + i * 2 * s, y - 4 * s, 0.7 * s, 0, Math.PI * 2); ctx.fill(); }
-  const cc = R() < 0.6 ? C.white : C.indigoP;
-  const dome: Pt[] = [];
-  for (let i = 0; i <= 16; i++) { const a = Math.PI * (1 + i / 16); dome.push([top[0] + Math.cos(a) * rx, top[1] + 1.5 * s + Math.sin(a) * ry]); }
-  const rim: Pt[] = [];
-  for (let i = 16; i >= 0; i--) { const a = Math.PI * (i / 16); rim.push([top[0] + Math.cos(a) * rx, top[1] + 1.5 * s + Math.sin(a) * ry * 0.35]); }
-  wash(ctx, [...dome, ...rim], rgba(cc, 0.95));
-  for (let i = 1; i < 8; i++) stroke(ctx, [top, dome[i * 2]], { w: 0.32 * s, col: rgba(C.ink, 0.32), tin: 0, tout: 0.2 });
-  stroke(ctx, dome, { w: 0.7 * s, col: rgba(C.ink, 0.85), tin: 0.05, tout: 0.05 });
-  stroke(ctx, rim, { w: 0.5 * s, col: rgba(C.ink, 0.55), tin: 0.05, tout: 0.05 });
-}
-
-/**
- * A boat lying along the river: (x, y) = the waterline at the stern (left end); L = length. Its beam runs into
- * depth, so we see the near side, the deck from above, a barrel mat cabin. o.mast: 'up' (moored), 'lowering' (it
- * comes down to the bridge: the mast tilted back on its tabernacle, the crew on the ropes), 'none'. Returns { box }:
- * hull, reflection, cabin, mast and crew (world px; a boat life anchor).
- */
-export interface BoatOptions {
-  s?: number;
-  beam?: number;
-  hull?: number;
-  cabin?: boolean;
-  c0?: number;
-  c1?: number;
-  ch?: number;
-  mast?: 'up' | 'lowering' | 'none';
-  mastAngle?: number;
-  /** Set by boat() when the mast is lowering: the point the crew's rope is taken in at. */
-  masthead?: Pt;
-  /** [u along the boat (0..1), w across it (0..1), the person's options; pull: true takes in the mast's rope]. */
-  crew?: [u: number, w: number, opt: Omit<PersonOptions, 'pull'> & { pull?: boolean }][];
-}
-export function boat(env: Env, x: number, y: number, L: number, R: Rng, o: BoatOptions = {}): { box: Box } {
-  const { ctx, ink } = env;
-  const { C, rgba } = ink;
-  const s = o.s ?? 1;
-  const beam = o.beam ?? L * 0.15;
-  const DB = [0.66, -0.42];
-  const P = (u: number, v: number, w = 0): Pt => [x + u + DB[0] * w, y - v + DB[1] * w];   // u along, v up, w across
-  const hh = o.hull ?? 4.4 * s;
-  const sheer = (t: number) => hh * (1 + 0.65 * Math.pow(Math.abs(t * 2 - 1), 2.6)) + (t > 0.5 ? (t - 0.5) * hh * 0.5 : 0);
-  const N = 18;
-  const pinch = (t: number) => Math.pow(Math.sin(Math.PI * (0.04 + 0.92 * t)), 0.45);
-  const gN: Pt[] = [], gF: Pt[] = [];
-  for (let i = 0; i <= N; i++) { const t = i / N; const p = pinch(t); gN.push(P(L * t, sheer(t), beam * 0.5 * (1 - p))); gF.push(P(L * t, sheer(t), beam * 0.5 * (1 + p))); }
-  // its reflection: darker smears torn by ripples
-  for (let k = 0; k < 6; k++) {
-    const yy = 1.4 + k * 1.5 * s;
-    stroke(ctx, [[x + L * (0.06 + R() * 0.08), y + yy], [x + L * (0.5 + R() * 0.1), y + yy + 0.3], [x + L * (0.86 + R() * 0.1), y + yy]], { w: (1.6 - k * 0.2) * s, col: rgba(C.ink2, 0.16 - k * 0.022), tin: 0.25, tout: 0.5, wob: 0.7, dry: 0.3, seed: k + x });
-  }
-  // the deck seen from above, then the near side of the hull down to the water
-  wash(ctx, [...gN, ...gF.slice().reverse()], rgba(mix3(C.timberM, C.white, 0.35), 0.95));
-  const side = [...gN];
-  for (let i = N; i >= 0; i--) { const t = i / N; side.push(P(L * (0.06 + 0.88 * t), 0, 0)); }
-  wash(ctx, side, rgba(C.timber, 0.9), { edge: rgba(C.ink, 0.35) });
-  stroke(ctx, side.slice(N + 1), { w: 0.8 * s, col: rgba(C.ink, 0.85), tin: 0.1, tout: 0.2 });
-  stroke(ctx, gN, { w: 0.95 * s, col: rgba(C.ink, 0.88), tin: 0.04, tout: 0.08, wob: 0.25 });
-  stroke(ctx, gF, { w: 0.5 * s, col: rgba(C.ink, 0.55), tin: 0.05, tout: 0.1 });
-  stroke(ctx, gN.map((p): Pt => [p[0], p[1] + hh * 0.5]).slice(2, N - 1), { w: 0.45 * s, col: rgba(C.ink, 0.38), tin: 0.2, tout: 0.3, dry: 0.3 });
-  // the barrel mat cabin (grey mats, never beige)
-  if (o.cabin !== false) {
-    const u0 = L * (o.c0 ?? 0.3), u1 = L * (o.c1 ?? 0.7);
-    const ch = o.ch ?? 5 * s, wallH = 2.1 * s;
-    const base = (u: number) => sheer(u / L);
-    const arch = (u: number) => { const pts: Pt[] = []; for (let i = 0; i <= 10; i++) { const t = i / 10; pts.push(P(u, base(u) + wallH + Math.sin(Math.PI * t) * ch, beam * (0.06 + 0.88 * t))); } return pts; };
-    const A0 = arch(u0), A1 = arch(u1);
-    const mat = mix3(C.tile, C.white, 0.5);
-    wash(ctx, [P(u0, base(u0), beam * 0.06), P(u1, base(u1), beam * 0.06), A1[0], A0[0]], rgba(mix3(C.timber, C.ink2, 0.3), 0.92));
-    wash(ctx, [...A0, ...A1.slice().reverse()], rgba(mat, 0.95));
-    wash(ctx, [...A1, P(u1, base(u1), beam * 0.94), P(u1, base(u1), beam * 0.06)], rgba(mix3(mat, C.ink, 0.35), 0.95));
-    const ribs = Math.max(3, Math.round((u1 - u0) / (3.2 * s)));
-    for (let i = 1; i < ribs; i++) stroke(ctx, arch(mix(u0, u1, i / ribs)).slice(0, 8), { w: 0.38 * s, col: rgba(C.ink, 0.38), tin: 0.1, tout: 0.3 });
-    stroke(ctx, A1, { w: 0.7 * s, col: rgba(C.ink, 0.85), tin: 0.05, tout: 0.05 });
-    stroke(ctx, [A0[0], A1[0]], { w: 0.65 * s, col: rgba(C.ink, 0.8), tin: 0.05, tout: 0.1 });
-    stroke(ctx, [A0[5], A1[5]], { w: 0.45 * s, col: rgba(C.ink, 0.5), tin: 0.1, tout: 0.1 });
-  }
-  const reach: Pt[] = [[x, y + 1.4 + 7.5 * s + 1]];   // the reflection's last smear, the masthead, the crew
-  if (o.mast === 'up') {
-    const m0 = P(L * 0.62, sheer(0.62), beam * 0.5);
-    const m1: Pt = [m0[0] + 1.1 * s, m0[1] - L * 0.6];
-    reach.push(m1);
-    stroke(ctx, [m0, m1], { w: 1.0 * s, col: rgba(C.ink, 0.9), tin: 0, tout: 0.25 });
-    stroke(ctx, [m1, P(L * 0.02, sheer(0) + 1, beam * 0.5)], { w: 0.3 * s, col: rgba(C.ink, 0.42), tin: 0, tout: 0 });
-    stroke(ctx, [m1, P(L * 0.98, sheer(1) + 1, beam * 0.5)], { w: 0.3 * s, col: rgba(C.ink, 0.42), tin: 0, tout: 0 });
-  } else if (o.mast === 'lowering') {
-    // the drama of the scroll: the mast is being let down to pass under the bridge, tilted back over the stern
-    const m0 = P(L * 0.58, sheer(0.58) + 1.5 * s, beam * 0.5);
-    const ang = (o.mastAngle ?? 32) * Math.PI / 180;
-    const ml = L * 0.5;
-    const m1: Pt = [m0[0] - Math.cos(ang) * ml, m0[1] - Math.sin(ang) * ml];
-    reach.push(m1);
-    stroke(ctx, [m0, m1], { w: 1.2 * s, col: rgba(C.ink, 0.92), tin: 0.04, tout: 0.2 });
-    stroke(ctx, [m0, P(L * 0.58, sheer(0.58), beam * 0.5)], { w: 1.4 * s, col: rgba(C.ink, 0.9), tin: 0, tout: 0 });   // the tabernacle
-    // one rope from the masthead forward, taken in by the crew at the bow
-    const bow = P(L * 0.86, sheer(0.86) + 6 * s, beam * 0.5);
-    stroke(ctx, [m1, [mix(m1[0], bow[0], 0.5), mix(m1[1], bow[1], 0.5) + 2 * s], bow], { w: 0.32 * s, col: rgba(C.ink, 0.55), tin: 0, tout: 0 });
-    o.masthead = bow;
-  }
-  for (const [u, w, opt] of o.crew || []) {
-    const p = P(L * u, sheer(u), beam * w);
-    person(env, p[0], p[1], s * 0.92, R, { ...opt, pull: opt.pull && o.masthead ? o.masthead : undefined });
-    reach.push([p[0] - 7 * s, p[1] - 14 * s], [p[0] + 7 * s, p[1] + 9 * s]);   // a head and hat, a pole
-  }
-  return { box: bounds([gN, gF, side, reach], 1) };
-}
-
-/**
- * The rainbow bridge: a heavy woven-timber arch spanning the river into depth (from the near bank at A, `span` world
- * px along `dir` to the far bank), its deck across x (bw). We see its top, its right-hand face (bundles of timber
- * beams in a polygonal arch, beam ends crossing them), the rails, and the crowd standing on it.
- */
-export interface BridgeOptions {
-  /** The deck's width (world px), the ramps' length (of the span) and the face's depth. */
-  bw?: number;
-  ramp?: number;
-  T?: number;
-  /** The span's direction on screen (into depth). */
-  dir?: Pt;
-  people?: number;
-  fs?: number;
-  /** Parasols on the deck: [t along it, w across it]. */
-  stalls?: [number, number][];
-}
-export function bridge(env: Env, A: Pt, span: number, Hb: number, R: Rng, o: BridgeOptions = {}): { deckAt: (t: number, w?: number) => Pt; base: (t: number) => Pt } {
-  const { ctx, ink } = env;
-  const { C, rgba } = ink;
-  const bw = o.bw ?? 22, ramp = o.ramp ?? 0.16, T = o.T ?? 10;
-  const Db = o.dir || [0.9, -0.42];
-  const N = 60;
-  const base = (t: number): Pt => [A[0] + Db[0] * span * t, A[1] + Db[1] * span * t];
-  // the arch: half a polygon of straight beams (the woven timber), half a round curve, so it reads both as built of
-  // beams and as the rainbow it is named for
-  const K = [0, 0.16, 0.36, 0.64, 0.84, 1];
-  const KH = [0, 0.66, 0.97, 0.97, 0.66, 0];
-  const lift = (t: number) => {
-    if (t <= 0 || t >= 1) return 0;
-    let poly = 0;
-    for (let i = 0; i < K.length - 1; i++) if (t <= K[i + 1]) { poly = mix(KH[i], KH[i + 1], (t - K[i]) / (K[i + 1] - K[i])); break; }
-    return Hb * mix(poly, Math.pow(Math.sin(Math.PI * t), 0.6), 0.5);
-  };
-  const deckLift = (t: number) => {
-    if (t < 0) return Math.max(0, 4 + (t / ramp) * 4);
-    if (t > 1) return Math.max(0, 4 - ((t - 1) / ramp) * 4);
-    return Math.max(4, lift(t) + 2);
-  };
-  const deckAt = (t: number, w = 0): Pt => { const b = base(t); return [b[0] + w * bw, b[1] - deckLift(t)]; };
-  const ts: number[] = []; for (let i = 0; i <= N; i++) ts.push(-ramp + (1 + 2 * ramp) * i / N);
-  // shadow on the water under the arch, and its broken reflection
-  for (let k = 0; k < 9; k++) {
-    const t = 0.15 + R() * 0.7; const b = base(t);
-    stroke(ctx, [[b[0] + bw * 0.1, b[1] + 3 + k * 1.2], [b[0] + bw * 1.7, b[1] + 3.3 + k * 1.2]], { w: 1.1, col: rgba(C.ink2, 0.13), tin: 0.2, tout: 0.6, dry: 0.3, seed: k });
-  }
-  // the far (left) face's arch, glimpsed under the deck
-  const backArch: Pt[] = []; for (let i = 0; i <= N; i++) { const t = i / N; const b = base(t); backArch.push([b[0], b[1] - lift(t)]); }
-  stroke(ctx, backArch.slice(3, -3), { w: 1.6, col: rgba(mix3(C.timber, C.ink, 0.5), 0.45), tin: 0.1, tout: 0.1 });
-  // the deck's top surface (planks: timber, lighter)
-  wash(ctx, [...ts.map((t) => deckAt(t, 0)), ...ts.slice().reverse().map((t) => deckAt(t, 1))], rgba(mix3(C.timberM, C.white, 0.25), 0.94));
-  for (let i = 2; i < N - 1; i += 3) stroke(ctx, [deckAt(ts[i], 0.05), deckAt(ts[i], 0.95)], { w: 0.3, col: rgba(C.ink, 0.22), tin: 0, tout: 0 });
-  // the far rail
-  const farRail = ts.map((t): Pt => { const p = deckAt(t, 0); return [p[0], p[1] - 4.4]; });
-  stroke(ctx, farRail, { w: 0.65, col: rgba(C.ink, 0.65), tin: 0.05, tout: 0.05 });
-  for (let i = 0; i <= N; i += 2) stroke(ctx, [deckAt(ts[i], 0), farRail[i]], { w: 0.42, col: rgba(C.ink, 0.45), tin: 0, tout: 0 });
-  // the crowd on the deck: thickest on the crown, some at the rail looking down at the boat; nobody walks
-  const people: [number, number][] = [];
-  const nP = o.people ?? 30;
-  for (let i = 0; i < nP; i++) {
-    let t = R(); t = 0.5 + (t - 0.5) * (0.55 + 0.7 * R());
-    people.push([t * (1 + ramp) - ramp * 0.5, 0.12 + 0.76 * R()]);
-  }
-  people.sort((a, b) => deckAt(a[0], a[1])[1] - deckAt(b[0], b[1])[1]);
-  for (const [t, w] of people) {
-    const p = deckAt(t, w);
-    person(env, p[0], p[1], o.fs ?? 0.82, R, { lean: (R() - 0.5) * 0.4, arm: R() < 0.4 ? 'up' : 'down', flip: R() < 0.55 });
-  }
-  for (const [t, w] of o.stalls ?? []) { const p = deckAt(t, w); parasol(env, p[0], p[1], 0.75, R); }
-  // the visible face: bundles of timber beams in the polygonal arch, beam ends crossing them, a dark underside
-  const face: Pt[] = [], faceLow: Pt[] = [];
-  for (let i = 0; i <= N; i++) {
-    const t = i / N; const b = base(t);
-    const top: Pt = [b[0] + bw, b[1] - lift(t)];
-    face.push(top);
-    faceLow.push([top[0], top[1] + T * (0.85 + 0.3 * Math.pow(Math.abs(t * 2 - 1), 2))]);
-  }
-  wash(ctx, [...face, ...faceLow.slice().reverse()], rgba(C.timber, 0.94), { edge: rgba(C.ink, 0.4) });
-  for (const f of [0.3, 0.55, 0.78]) {   // the beam bundles running along the arch
-    const line = face.map((p, i): Pt => [p[0], mix(p[1], faceLow[i][1], f)]);
-    stroke(ctx, line.slice(1, -1), { w: 0.55, col: rgba(C.ink, 0.5), tin: 0.05, tout: 0.05, dry: 0.25, seed: f * 100 });
-  }
-  for (let i = 2; i < N - 1; i += 2) {   // beam ends crossing the bundles (the woven lattice)
-    const a = face[i], b = faceLow[i];
-    stroke(ctx, [[a[0] + 0.3, a[1] + 0.2], [b[0] - 0.2, b[1] - 0.3]], { w: 0.75, col: rgba(mix3(C.ink, C.timber, 0.25), 0.7), tin: 0, tout: 0 });
-  }
-  stroke(ctx, face, { w: 1.35, col: rgba(C.ink, 0.9), tin: 0.04, tout: 0.04, wob: 0.2 });
-  stroke(ctx, faceLow, { w: 1.6, col: rgba(C.ink, 0.88), tin: 0.04, tout: 0.04, wob: 0.25 });
-  // the near rail and its posts
-  const deckN = ts.map((t) => deckAt(t, 1));
-  const rail = deckN.map(([x, y]): Pt => [x, y - 4.8]);
-  stroke(ctx, deckN, { w: 0.95, col: rgba(C.ink, 0.88), tin: 0.04, tout: 0.04 });
-  for (let i = 0; i <= N; i += 2) stroke(ctx, [deckN[i], rail[i]], { w: 0.55, col: rgba(C.ink, 0.85), tin: 0, tout: 0 });
-  stroke(ctx, rail, { w: 0.85, col: rgba(C.ink, 0.88), tin: 0.04, tout: 0.04, wob: 0.15 });
-  // abutments: stone, set into the banks
-  for (const t of [0, 1]) {
-    const b = base(t);
-    wash(ctx, [[b[0] - 5, b[1] + 1.6], [b[0] + bw + 7, b[1] + 1.6], [b[0] + bw + 5, b[1] - 6], [b[0] - 3, b[1] - 5]], rgba(mix3(C.ink2, C.white, 0.55), 0.7), { jit: 1 });
-    dryBrush(ctx, [[b[0] - 7, b[1] + 1.6], [b[0] + bw + 9, b[1] + 1.9]], { w: 2.4, col: rgba(C.ink, 0.5), bristles: 4, seed: b[0] });
-  }
-  return { deckAt, base };
-}
 
 /** Premultiply straight RGBA in place (the GPU path filters premultiplied texels, so edges never darken). */
 export function premultiply(d: Uint8ClampedArray): Uint8ClampedArray {

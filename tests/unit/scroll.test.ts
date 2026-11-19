@@ -141,7 +141,6 @@ describe('the scroll, held: what each place holds (features/scroll/index)', () =
         expect(l.label, `${s.label}: ${l.href}`).not.toContain('(Jack)');
         expect(l.href.startsWith('/') || l.href === `mailto:${site.email}`, `${s.label}: ${l.href}`).toBe(true);
       }
-      expect(site.email).toBe('qxjack@gmail.com');
     }
   });
   it('holds, at Work, the cases in the table’s order (newest first) and, at Writing, the notes', async () => {

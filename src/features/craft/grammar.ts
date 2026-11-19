@@ -9,7 +9,7 @@
  * Thompson NFA over bytes; a state is the set of live nodes.
  */
 
-export const MAX_STR = 48;
+const MAX_STR = 48;
 export const STATUSES = ['shipped', 'in progress', 'projected'] as const;
 
 type Expr =
@@ -28,7 +28,7 @@ const digit: Expr = { k: 'cls', test: 'digit' };
 const str: Expr = { k: 'str' };
 
 /** The record, as an expression over the roles the cases name. */
-export function recordExpr(roles: readonly string[]): Expr {
+function recordExpr(roles: readonly string[]): Expr {
   const year = seq(digit, digit, digit, digit);
   return seq(
     lit('{"title": "'),

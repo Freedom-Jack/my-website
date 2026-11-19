@@ -94,7 +94,7 @@ export function restore(main: HTMLElement | null) {
 }
 
 /** The new words fade in, as one. */
-export function enter(main: HTMLElement | null, { signal }: { signal?: AbortSignal } = {}) {
+export function enter(main: HTMLElement | null) {
   if (!main) return Promise.resolve();
   const dur = quiet() ? 90 : token('--dur-route-enter', 260);
   const anims = blocks(main).map((el) =>
@@ -105,7 +105,6 @@ export function enter(main: HTMLElement | null, { signal }: { signal?: AbortSign
       fill: 'backwards',
     }),
   );
-  signal?.addEventListener('abort', () => anims.forEach((a) => a.finish()), { once: true });
   return Promise.all(anims.map((a) => a.finished.catch(() => null))).then(() => {});
 }
 

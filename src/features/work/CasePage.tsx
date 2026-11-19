@@ -122,12 +122,12 @@ export function CasePage({ c }: { c: Case }) {
       </section>
 
       {meta.diagram ? (
-        <section className={`part ${styles.drawing}`} data-veil="">
+        <section className="part" data-veil="">
           <Diagram name={meta.diagram.name} caption={meta.diagram.caption} steps={meta.diagram.steps} fold />
         </section>
       ) : null}
 
-      <article className={`part case case--flagship has-rail ${styles.case}`} aria-labelledby="case-title" data-veil="">
+      <article className={`part case has-rail ${styles.case}`} aria-labelledby="case-title" data-veil="">
         <Body components={{ Note: MarginNote }} />
       </article>
 

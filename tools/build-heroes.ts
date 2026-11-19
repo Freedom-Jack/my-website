@@ -5,8 +5,8 @@
  * still is the first screen's painting from the first paint, before any script (and the painting without JS or
  * WebGL); the engine's first frame lands finished under it and it fades out (layout.css .strip__still, [data-live]).
  *
- *   NEXT_PUBLIC_INK_QA=1 npm run build && npm start -- -p 3210   a QA build (it exposes the engine as window.__inkEngine)
- *   npm run build:heroes -- --base http://127.0.0.1:3210          cut every page; needs Google Chrome (headless, Metal)
+ *   NEXT_PUBLIC_INK_QA=1 npm run build && npm start -- -p 3100   a QA build (it exposes the engine as window.__inkEngine)
+ *   npm run build:heroes -- --base http://127.0.0.1:3100          cut every page; needs Google Chrome (headless, Metal)
  *   npm run build:heroes -- --places home,work                    some of them (the manifest stays stale until a full run)
  *   npm run build:heroes -- --preview <dir>                       also keep the raw captures (outside the repo)
  *   npm run build:heroes -- --check                               no browser: exit 1 when the stills are stale (CI)
@@ -33,20 +33,14 @@
  * REGENERATE AFTER ANY ENGINE, SET, PALETTE, PLACE, STRIP-HEIGHT OR STRIP-CSS CHANGE (and when a hero's words change
  * on a wide screen: the title block's width shapes the keep-out, hence the framing).
  */
-import { createHash } from 'node:crypto';
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { chromium, type Page } from '@playwright/test';
+import { chromium } from '@playwright/test';
 import { PLACES as SITE_PLACES, type PageId } from '../src/features/landscape/places.ts';
+import { flag, opt, plainWebp, rel, sha, waitFor, walk } from './lib.ts';
 
 const ROOT = process.cwd();
-const args = process.argv.slice(2);
-const flag = (name: string) => args.includes(name);
-const opt = (name: string, d: string) => {
-  const i = args.indexOf(name);
-  return i >= 0 && args[i + 1] ? args[i + 1]! : d;
-};
 
 // ------------------------------------------------------------------------------------------------ settings
 type ClassName = 'wide' | 'tablet' | 'phone';
@@ -155,7 +149,7 @@ const REMOUNT_JS = `(async ([palette]) => {
     closing: main.querySelector('[data-landscape="closing"]'),
     keepout: main.querySelectorAll('[data-landscape="keepout"]'),
     glimpse: on('glimpses') ? main.querySelectorAll('[data-landscape="glimpse"], [data-glimpse="end"]') : [],
-    veil: [...main.querySelectorAll('[data-veil]'), ...(on('cameraTravels') || on('unroll') ? document.querySelectorAll('.site-footer .tail__colophon, .site-footer .tail__stamp, .site-footer .tail__base') : [])],
+    veil: [...main.querySelectorAll('[data-veil]'), ...document.querySelectorAll('.site-footer .tail__colophon, .site-footer .tail__stamp, .site-footer .tail__base')],
     wake: main.querySelectorAll('[data-wake]'),
     horizon: Number(d.horizon ?? 0.6),
     ground: d.ground === 'living' ? 'living' : '',
@@ -205,14 +199,6 @@ const SEED_JS = `(async ([b64, width, qs]) => {
 })`;
 
 // ------------------------------------------------------------------------------------------------ inputs and hashes
-const rel = (p: string) => path.relative(ROOT, p).split(path.sep).join('/');
-const sha = (data: string | Uint8Array) => createHash('sha256').update(data).digest('hex');
-function walk(dir: string): string[] {
-  return readdirSync(dir).flatMap((f) => {
-    const p = path.join(dir, f);
-    return statSync(p).isDirectory() ? walk(p) : [p];
-  });
-}
 /** Every input that shapes the stills, as [label, sha256] pairs, sorted by label (as tools/build-stills.ts does). */
 function inputs(): [string, string][] {
   const items: [string, string][] = [];
@@ -252,33 +238,6 @@ function inputs(): [string, string][] {
   return items.sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
 }
 const inputHash = (items: [string, string][]) => sha(items.map(([a, b]) => `${a} ${b}`).join('\n'));
-
-/** Chrome's encoder wraps the image in VP8X with an ICC profile; keep only the lossy bitstream (untagged = sRGB). */
-function plainWebp(data: Buffer): Buffer {
-  if (data.toString('latin1', 0, 4) !== 'RIFF' || data.toString('latin1', 8, 12) !== 'WEBP')
-    throw new Error('not a WebP');
-  const chunks = new Map<string, Buffer>();
-  let i = 12;
-  while (i + 8 <= data.length) {
-    const tag = data.toString('latin1', i, i + 4);
-    const n = data.readUInt32LE(i + 4);
-    if (!chunks.has(tag)) chunks.set(tag, data.subarray(i + 8, i + 8 + n));
-    i += 8 + n + (n & 1);
-  }
-  const body = chunks.get('VP8 ');
-  if (!body || chunks.has('ALPH') || chunks.has('ANIM')) return data;
-  const size = Buffer.alloc(4);
-  size.writeUInt32LE(body.length);
-  const vp8 = Buffer.concat([
-    Buffer.from('VP8 ', 'latin1'),
-    size,
-    body,
-    body.length & 1 ? Buffer.alloc(1) : Buffer.alloc(0),
-  ]);
-  const riff = Buffer.alloc(4);
-  riff.writeUInt32LE(4 + vp8.length);
-  return Buffer.concat([Buffer.from('RIFF', 'latin1'), riff, Buffer.from('WEBP', 'latin1'), vp8]);
-}
 
 interface StillEntry {
   /** The strip box at the class's viewport, CSS px (the <img>'s width/height). */
@@ -385,14 +344,6 @@ interface HeldStats {
   framing?: { strip?: Record<string, unknown> | null };
   stage?: { framing?: Record<string, unknown> | null } | null;
 }
-async function waitFor(page: Page, fn: string, arg: unknown, what: string, timeout: number) {
-  const until = Date.now() + timeout;
-  while (Date.now() < until) {
-    if (await page.evaluate(`${fn}(${JSON.stringify(arg)})`)) return;
-    await page.waitForTimeout(150);
-  }
-  throw new Error(`${what}: not there in ${timeout} ms`);
-}
 
 async function build(): Promise<number> {
   const base = opt('--base', 'http://127.0.0.1:3100');
@@ -411,7 +362,7 @@ async function build(): Promise<number> {
   const files = { ...man.files };
   const stills: NonNullable<Manifest['stills']> = { ...man.stills };
   const report: Record<string, unknown>[] = [];
-  const browser = await chromium.launch({ ...(process.env.CI ? {} : { channel: 'chrome' }), args: CHROME_ARGS });
+  const browser = await chromium.launch({ channel: 'chrome', args: CHROME_ARGS });
   try {
     for (const c of CLASSES)
       for (const d of DENSITIES) {
@@ -421,16 +372,10 @@ async function build(): Promise<number> {
           isMobile: c.mobile,
           hasTouch: c.mobile,
         });
-        // (the page's own mount is replaced; its ceremony need not run, and its probe need not be waited for: a QA
-        // build mounts at once with __inkLive)
+        // (the page's own mount is replaced, and its probe need not be waited for: a QA build mounts at once with
+        // __inkLive)
         await ctx.addInitScript(() => {
           (window as unknown as { __inkLive?: boolean }).__inkLive = true;
-          try {
-            sessionStorage.setItem('ink:morning', '1');
-            sessionStorage.setItem('ink:swash', '1');
-          } catch {
-            /* private mode */
-          }
         });
         for (const h of PAGES.filter((p) => names.includes(p.name))) {
           const t0 = Date.now();

@@ -6,7 +6,6 @@ import { useRef } from 'react';
 import { site } from '@content/site';
 import { useCurrent } from '@/features/chrome/current';
 import { useReturningHeader } from '@/features/chrome/returning-header';
-import { useStackedHeader } from '@/features/chrome/stacked-header';
 import { RiverLine } from './RiverLine';
 
 /**
@@ -22,7 +21,6 @@ export function SiteHeader() {
   const current = useCurrent();
   const pathname = usePathname();
   useReturningHeader(ref, pathname);
-  useStackedHeader(ref);
   return (
     <header className="site-header" ref={ref}>
       <div className="site-header__inner frame">
@@ -32,7 +30,7 @@ export function SiteHeader() {
           aria-current={current('/') === 'page' ? 'page' : undefined}
           prefetch={false}
         >
-          <span className="home-link__name">{site.name}</span>
+          <span>{site.name}</span>
           <span className="visually-hidden">, home</span>
         </Link>
         <nav className="site-nav" aria-label="Main">

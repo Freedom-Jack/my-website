@@ -11,7 +11,6 @@ import { buildCraft } from '@/features/craft/build';
 import { Hood } from '@/features/craft/Hood';
 import { collectionLd } from './jsonld';
 import { allCases } from './cases';
-import { OldAnchors } from './OldAnchors';
 import styles from './work.module.css';
 
 /**
@@ -59,8 +58,7 @@ export async function WorkIndex() {
             const f = splitFigure(c.figure);
             const projected = c.figure.basis === 'projected';
             return (
-              // the row keeps the case's old anchor (/work/#rag-assistant), so links from before land here
-              <li className={`${styles.project} ink-row`} key={c.slug} id={c.slug}>
+              <li className={`${styles.project} ink-row`} key={c.slug}>
                 <p
                   className={projected ? `num ${styles.numeral} ${styles.outline}` : `num ${styles.numeral}`}
                   aria-hidden="true"
@@ -134,7 +132,6 @@ export async function WorkIndex() {
           </p>
         </div>
       </section>
-      <OldAnchors slugs={cases.map((c) => c.slug)} />
     </PageMain>
   );
 }

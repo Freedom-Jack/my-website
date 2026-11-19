@@ -19,12 +19,11 @@
  *      waterline lands at 0.55 of the card, not 0.66; the title block is centred, its title at the name's size, with
  *      "Qijin Xu · Lead AI/ML Architect" above it and the intro left out (the card is a cover, not the page); Home's
  *      card: the name with one line under it, its two paragraphs left out for the same reason.
- *   2. The painting settles (the morning opening, the arrival, every figure layer), then the fonts, then a last
- *      moment for the name's swash and the light's sheen.
+ *   2. The painting settles (the arrival, every figure layer) and the fonts load; then a fixed moment passes, so every
+ *      card catches the painting's slow drift at the same point after its settle.
  *   3. A JPEG of the viewport. The manifest records each card's words, so --check can tell a stale card.
  * Page ids: home, work, writing, resume, contact, work-<slug> (a case), writing-<slug> (a note).
  */
-import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -33,14 +32,9 @@ import { parse } from 'yaml';
 import { home } from '../content/pages/home.ts';
 import { site } from '../content/site.ts';
 import { longDate } from '../src/lib/dates.ts';
+import { flag, opt, sha } from './lib.ts';
 
 const ROOT = process.cwd();
-const args = process.argv.slice(2);
-const flag = (name: string) => args.includes(name);
-const opt = (name: string, d: string) => {
-  const i = args.indexOf(name);
-  return i >= 0 && args[i + 1] ? args[i + 1]! : d;
-};
 const BASE = opt('--url', 'http://127.0.0.1:3100').replace(/\/$/, '');
 const ONLY = opt('--pages', '')
   .split(',')
@@ -52,7 +46,7 @@ const MANIFEST = path.join(OUT_DIR, 'manifest.json');
 const CARD = { width: 1200, height: 630, dpr: 2 } as const;
 const EXTRA = 150; // the inner pages' hero box: this much taller than the card, shifted up by as much
 const QUALITY = 82; // JPEG
-const AFTER_SETTLE_MS = 3500; // the morning opening's tail, the swash, the sheen
+const AFTER_SETTLE_MS = 3500; // the wait after the settle: where the painting's drift stands on the card
 const CHROME_ARGS = ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--hide-scrollbars'];
 
 /** What each place's card shows, for the image's alt text. */
@@ -204,7 +198,7 @@ const SETTLE_JS = `(() => {
   if (!L) return performance.now() > 15000;
   const s = L.stats();
   if (!s || s.mode === 'static') return true;
-  if (s.arriving || s.pending || s.sweeping || s.deferred) return false;
+  if (s.arriving || s.pending || s.sweeping) return false;
   if (Object.values(s.figures || {}).includes('pending')) return false;
   const w = s.windows || {};
   const anyVis = (w.strip && w.strip.visible) || (w.closing && w.closing.visible) || s.hzK > 0;
@@ -227,7 +221,6 @@ interface Manifest {
 }
 const wordsOf = (c: Card) =>
   sha(JSON.stringify([c.title, c.eyebrow, c.byline ?? '', c.line ?? '', ...(c.proof ? [c.proof] : [])]));
-const sha = (data: string | Uint8Array) => createHash('sha256').update(data).digest('hex');
 
 function readManifest(): Manifest {
   if (!existsSync(MANIFEST)) return { cards: {} };

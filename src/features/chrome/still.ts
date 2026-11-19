@@ -8,7 +8,7 @@ import { landscape } from '@/features/landscape/store';
  * visits (Jack: "have an option to toggle it off"): localStorage 'ink:still' = '1';
  * the boot script puts html.is-still on before first paint. Dispatches 'ink:still' ({ detail: { on } }).
  */
-export const STILL_KEY = 'ink:still';
+const STILL_KEY = 'ink:still';
 
 export const isStill = () => document.documentElement.classList.contains('is-still');
 

@@ -4,7 +4,6 @@
 //   A *view* is one painting with its own buffer: a window (the page's strip, its closing), the desktop horizon band,
 //   or one of the living ground's three depth layers (4b). scene() paints a view; present() lays the views on screen.
 
-import type { Resolved } from './compose';
 import type { LayerParams, LifeOut } from './figures';
 
 /** A figure layer for figure(): premultiplied RGBA bytes (top row first), or an image of it (4b: with its sprites). */
@@ -13,15 +12,11 @@ export interface FigureImage {
   height: number;
   data?: Uint8ClampedArray;
   bitmap?: ImageBitmap | OffscreenCanvas | HTMLCanvasElement;
-  /** Canvas2D: an image of the layer (a canvas, when the main thread drew it). */
-  canvas?: CanvasImageSource;
   /** 4b small life: the layer's moving things, as one sprite atlas (gl.ts uploads it as `${id}#0`). */
   sprites?: { width: number; height: number; bitmap: ImageBitmap }[];
 }
 /** A drawn figure layer, as the figure source hands it back (figure-source.ts, figures.worker.ts). */
 export interface FigureResult extends FigureImage {
-  /** Drawing time, ms. */
-  ms: number;
   /** Its life anchors (figures.ts, THE LIFE API). */
   life: LifeOut[];
 }
@@ -50,10 +45,6 @@ export interface SceneBase {
   draft: boolean;
   draftScale: number;
   aspect: number;
-  /** A story-map still (QA frame): only Home's light keeps its heart and bloom. */
-  stillL?: number;
-  /** Seconds into Home's once-a-session morning (>= 9: none, at rest). */
-  morn?: number;
 }
 /** What scene() paints: one view's framing, composition, figures and arrival. */
 export interface SceneU extends SceneBase {
@@ -65,8 +56,6 @@ export interface SceneU extends SceneBase {
   feet: Float32Array;
   /** The keep-out, in box uv: [the text's right edge, active, the mist ramp's half-width, the figure guard]. */
   keep: Float32Array | null;
-  /** A reserve for the strip's small note: [x0, y0, x1, y1] in box uv. */
-  note?: Float32Array | null;
   figA: FigureSlot | null;
   figB: FigureSlot | null;
   /** The bloom's clock (shader seconds; 9 = settled). */
@@ -74,12 +63,9 @@ export interface SceneU extends SceneBase {
   /** The horizon band's per-plane sink, foot, ink and squash, and its strength. */
   hz: Float32Array;
   hzK: number;
-  lift: number;
-  P: Resolved;
   /** The horizon band's painting (Canvas2D sinks it by hzShift view heights). */
   horizon?: boolean;
   hzShift?: number;
-  box?: { left: number; top: number; width: number; height: number };
   /** 4b depth layers: [first plane, last plane, 1 = over transparent paper, 0], and the crop [x0, width] (view uv). */
   planes?: Float32Array;
   crop?: Float32Array;
@@ -92,7 +78,6 @@ export interface PresentWindow {
   id: string;
   /** Canvas uv, y up: [x0, y0, x1, y1]. */
   rect: Float32Array;
-  box: { left: number; top: number; width: number; height: number };
   view: Float32Array;
   /** [top feather, bottom feather (of the box's height), the wake allowed, alpha]. */
   feather: Float32Array;
@@ -101,7 +86,7 @@ export interface PresentWindow {
   sink: number;
   /** The front depth layer's view (index.ts PART; the window's own view is then its back), or null. */
   near?: string | null;
-  /** [on, the back's sink, the mist between the layers (box fraction), the front's sideways drift (box widths)]. */
+  /** [on, the back's sink, 0, the front's sideways drift (box widths)]. */
   part?: Float32Array | null;
 }
 /** The windows into the painting on screen (elements.ts glimpses), below 1200 px (index.ts glimpseU), at most
@@ -124,27 +109,22 @@ export interface PresentGlimpse {
   d: Float32Array;
   m: Float32Array;
 }
-/** 4b: the living ground's three depth layers and the mist between them (index.ts stageU). */
+/** 4b: the living ground's three depth layers and the sea of mist over their feet (index.ts stageU). */
 export interface StageU {
   ids: string[];
-  /** Per layer [step x, sink, alpha, under the descent's cloud] (canvas fractions). */
+  /** Per layer [step x, sink, alpha, unused] (canvas fractions). */
   offsets: Float32Array;
   view: Float32Array;
   k: Float32Array;
   sea: Float32Array;
   /** Per layer its crop, canvas uv. */
   rects: Float32Array;
-  cloud: Float32Array;
-  curt: Float32Array;
-  /** [the inner place's far-sky air 0..1, its layers' soft foot (crop fraction), the column's edge (uv x), a
-   *  seed] and [the footer's top (uv y, up), its feather (uv), on 0/1, unused]. */
+  /** [unused, the inner place's layers' soft foot (crop fraction), unused, a seed] and [the footer's top (uv y, up),
+   *  its feather (uv), on 0/1, unused]. */
   air?: Float32Array;
   foot?: Float32Array;
   /** The inner places' grade on the stage: [hero box y0, y1 (uv, up, at the page's top), keep-out x, ramp]. */
   grade?: Float32Array;
-  /** [the right end of the page's row rules (uv x; 0 none), how far the lifted middle and near layers clear it
-   *  (0..1: the lift)]. */
-  rule?: Float32Array;
 }
 /** 4b small life on show (index.ts lifeU): a small table the present shader works out once per pixel. */
 export interface LifeTable {
@@ -159,24 +139,17 @@ export interface LifeTable {
   ridge: string | null;
   sprite: string | null;
   fig: string | null;
-  /** The stirred water's ring sets (elements.ts; 4 x [uv x, y, age s, 2 x kind + seed]) and their strength; the
-   *  plum's gust ([age s, lean, strength, nudge rad]) and its petals ([origin uv x, y, size uv x, 0]). */
+  /** The ferry's ring sets on the water (elements.ts contactLife; 4 x [uv x, y, age s, 2 x kind + seed]) and their
+   *  strength. */
   stir: Float32Array;
   stirK: Float32Array;
-  gust: Float32Array;
-  gust2: Float32Array;
 }
 /** What present() lays on screen. */
 export interface PresentU {
   aspect: number;
-  /** A story-map still (QA frame): only Home's light keeps its heart and bloom. */
-  stillL?: number;
-  /** Seconds into Home's once-a-session morning (>= 9: none, at rest). */
-  morn?: number;
   windows: PresentWindow[];
   life: LifeTable | null;
   horizon: { id: string; k: number; view: Float32Array } | null;
-  hzK: number;
   /** The ambient clock, s. */
   time: number;
   /** The reading veils: rects (canvas uv), strengths, feathers, and the shared feather. */
@@ -190,12 +163,6 @@ export interface PresentU {
   wakeR: number;
   sweep: Float32Array;
   sweepSeed: number;
-  /** The silk veil: the text keep-out's right edge, screen uv x (0 = none). */
-  sweepKeep?: number;
-  /** The silk veil's mist dissolve: copy this frame after drawing it (a long jump before its splice). */
-  grab?: boolean;
-  /** How much of the grabbed frame still shows over this one (a long jump after its splice), 1 -> 0. */
-  hold?: number;
   stage: StageU | null;
   /** The windows into the painting on screen (null: none). */
   glimpse?: PresentGlimpse | null;
@@ -204,14 +171,6 @@ export interface PresentU {
   /** 4b living veils (shaders.ts PRESENT: uLive, uLive2). */
   live: Float32Array;
   live2: Float32Array;
-  /** The scroll's air (elements.ts air): [on, speed, drift, envelope], [plum lean, ribbon bow, strength, 0],
-   *  [light swell, warmth, 0, 0], the petals aloft (3 x 2 vec4). null = none (the approved scroll). */
-  air?: { a: Float32Array; b: Float32Array; c: Float32Array; petals: Float32Array; petalsB: Float32Array } | null;
-  /** THE MOODS (shaders.ts moodGrade): [dusk, night, dawn, snow, rain, the lamps lit, the plate that carries the
-   *  lamps (2 middle, 3 near), 0], and up to three lamps ([world x in viewport heights, scene height, radius,
-   *  strength] each). Absent: the painting as it was painted. */
-  mood?: Float32Array | null;
-  lamps?: Float32Array | null;
   /** CSS px per buffer px, the pan in CSS px, the grain's strength and its texel. */
   px: number;
   panPx: number;
@@ -231,8 +190,6 @@ export interface Renderer {
   mode: 'webgl' | 'canvas2d';
   /** A software rasteriser (SwiftShader, llvmpipe...): the engine paints less there. */
   software: boolean;
-  rendererName: string;
-  maxTexture?: number;
   /** The painter can paint: WebGL, once every program has linked (poll) and after a lost context is restored. */
   readonly ready: boolean;
   /** WebGL: advance the build (the programs link on the driver's threads: gl.ts poll). True once `ready`. The
@@ -242,8 +199,8 @@ export interface Renderer {
   readonly bitmaps?: boolean;
   /** Resize the drawing buffer. */
   resize(w: number, h: number): void;
-  /** Make sure view `id` has a w x h buffer (alpha: a 4b depth layer over transparent paper). True when (re)made. */
-  view(id: string, w: number, h: number, alpha?: boolean): boolean;
+  /** Make sure view `id` has a w x h buffer. True when (re)made. */
+  view(id: string, w: number, h: number): boolean;
   dropView(id: string): void;
   /** (optional: a painter without it holds every view) */
   hasView?(id: string): boolean;
@@ -255,14 +212,12 @@ export interface Renderer {
   hasFigure(id: string): boolean;
   /** WebGL: 0 when the GPU has finished the last presented frame, else how long (ms) it has been at it. */
   busy?(): number;
-  /** WebGL: wait until the GPU has finished everything drawn so far. */
-  settle?(): void;
   /** Paint view `id`. Canvas2D returns false while a full-quality painting is still being built behind a draft. */
   scene(id: string, U: SceneU): boolean | void;
   present(U: PresentU): void;
   /** THE PLATES (WebGL only): paint one depth layer of the stage (1 far, 2 middle, 3 near, 4 the sea of mist, 5 what is pinned
    *  to the frame), or a part of it, into the drawing buffer's lower-left w x h corner, with the screen pass's uniforms; `uv` its window in
    *  canvas uv (x0, y0, width, height), `ox, oy` its pixel origin in its plate. Returns the canvas to copy from. */
-  plate?(U: PresentU, kind: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10, uv: readonly [number, number, number, number], w: number, h: number, ox: number, oy: number): HTMLCanvasElement | null;
+  plate?(U: PresentU, kind: 1 | 2 | 3 | 4 | 5 | 6 | 10, uv: readonly [number, number, number, number], w: number, h: number, ox: number, oy: number): HTMLCanvasElement | null;
   destroy(): void;
 }

@@ -9,7 +9,7 @@ import { currentMain, placeOf } from '@/features/landscape/targets';
  * (Round 7: the painting stands the whole width behind the whole page, so the pan no longer waits for the strip to be
  * on screen: the search lies well below it now.)
  */
-export interface Target {
+interface Target {
   stretch: number;
   u: number | null;
 }

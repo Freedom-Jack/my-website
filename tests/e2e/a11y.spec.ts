@@ -1,8 +1,7 @@
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, type Page, test } from '@playwright/test';
 import { fontsReady, isSoftware, ROUTES } from './support/pages';
+import { tapsAndOverflow } from './support/taps';
 
 /**
  * Accessibility, enforced (vanguard research/accessibility-of-the-moves.md §5b; the lead's package P6):
@@ -113,9 +112,6 @@ async function sampledContrast(page: Page, selectors: string[]) {
   return out;
 }
 
-const MEASURE = readFileSync(path.join(import.meta.dirname, 'support/measure.js'), 'utf8');
-type M = Record<string, any>;
-
 test.beforeEach(async ({ page }) => {
   if (await isSoftware(page)) await page.emulateMedia({ reducedMotion: 'reduce' });
 });
@@ -206,10 +202,10 @@ test.describe('tap targets at 360 × 800 (A12)', () => {
     test(r.id, async ({ page }) => {
       await page.goto(r.path);
       await fontsReady(page);
-      const m = (await page.evaluate(`(${MEASURE})({ taps: true })`)) as M;
-      const small = (m.taps?.small ?? []).map((t: M) => `${t.el} '${t.name}' ${t.hitW}×${t.hitH}`);
+      const m = await page.evaluate(tapsAndOverflow);
+      const small = m.small.map((t) => `${t.el} '${t.name}' ${t.hitW}×${t.hitH}`);
       expect(small, `${r.id}: standalone targets under 44 × 44`).toEqual([]);
-      expect(m.overflow.sideways || m.overflow.offenderCount ? m.overflow.offenders?.slice(0, 3) : []).toEqual([]);
+      expect(m.offenders.slice(0, 3)).toEqual([]);
     });
   }
 });

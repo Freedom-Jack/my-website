@@ -20,13 +20,8 @@ import path from 'node:path';
 import { chromium } from '@playwright/test';
 import { extractText, getDocumentProxy } from 'unpdf';
 import { PHONE } from '../src/lib/compliance.ts';
+import { flag, opt } from './lib.ts';
 
-const args = process.argv.slice(2);
-const flag = (name: string) => args.includes(name);
-const opt = (name: string, d: string) => {
-  const i = args.indexOf(name);
-  return i >= 0 && args[i + 1] ? args[i + 1]! : d;
-};
 const URL_ = opt('--url', 'http://127.0.0.1:3100/resume/');
 const OUT = path.join(process.cwd(), 'public', 'resume.pdf');
 const MUST_FIND = ['Qijin', 'Toronto', 'qxjack@gmail.com'];

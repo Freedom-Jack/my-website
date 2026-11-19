@@ -1,32 +1,18 @@
 /* ==========================================================================
    components.css — the shared components.
-   The photo and "About me" (.hello), Now, figures, the ledger rows, the seal, cases, the table, the brush diagram
-   and margin notes. Behaviour lives in their components (components/ui). A feature's CSS Module may only add
+   The portrait, figures, the ledger rows, the seal, cases, the table, the brush diagram and margin notes.
+   Behaviour lives in their components (components/ui). A feature's CSS Module may only add
    LAYOUT for its own sections, with tokens: no new colours, fonts, weights, shadows or motion.
    Load order: tokens → base → layout → effects → components → the CSS Modules
    Shared file: do not edit from a page.
    ========================================================================== */
 
 /* ==========================================================================
-   The photo and "About me" (Home). Directly below the strip.
-     <section class="hello wide" aria-labelledby="about-title" data-veil="0.88">
-       <img class="hello__photo" src="/assets/img/qijin-xu-colour.jpg" width="720" height="900" alt="…"
-            decoding="async" fetchpriority="high">
-       <div class="hello__text"><h2 class="sec__title" id="about-title">About me</h2> <p>…</p> … <p class="signoff">…</p></div>
-     </section>
-   Phone: the photo first (72% wide, at most 20rem), then the text. Tablet: 240 + 600. Wide: 280 + 640.
-   Asymmetric, never 50/50. The photo's top lines up with the heading's cap height.
+   The portrait (Home's About me: div.hello__frame > img.hello__photo; its size: features/home's .photo).
    Blended in, in colour: the file's wall is pure white, so multiply turns it into the paper exactly,
    and the shoulders, faded to white in the file along their own line, dissolve into the paper. No border,
    radius, frame, shadow, caption, grey, mist, vignette or mask; no motion, no hover.
    ========================================================================== */
-.hello {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  row-gap: var(--space-m);
-  align-items: start;
-  margin-block-start: var(--space-m);
-}
 .hello__photo:not([src]) {
   color: transparent; /* (its source comes as the reader nears it: no alt text shows meanwhile) */
 }
@@ -39,8 +25,6 @@
    against the painting behind the page (a blend against the page itself made the browser composite the whole page
    the slow way, on every scroll frame, while the portrait was on screen: round 6's measurement). */
 .hello__frame {
-  width: 72%;
-  max-width: 20rem;
   isolation: isolate;
   background: var(--paper) var(--paper-tile, none) 0 0 / var(--paper-tile-size, 512px) var(--paper-tile-size, 512px);
 }
@@ -55,35 +39,6 @@
      soft vertical sleeve edges, and Chrome's PDF dropped it, printing a hard rectangle. */
   mix-blend-mode: multiply;
 }
-.hello__text > * {
-  max-width: var(--measure-read);
-}
-.hello__text > * + * {
-  margin-block-start: var(--space-para);
-}
-.hello__text > .sec__title + * {
-  margin-block-start: var(--space-head);
-}
-@media (min-width: 40rem) {
-  .hello {
-    grid-template-columns: 15rem minmax(0, 37.5rem);
-    column-gap: 2.5rem;
-  }
-  .hello__frame {
-    width: 100%;
-    max-width: none;
-  }
-  /* the heading's box starts at its cap height, so the photo's top lines up with the capitals */
-  .hello__text > .sec__title:first-child {
-    text-box: trim-start cap alphabetic;
-  }
-}
-@media (min-width: 75rem) {
-  .hello {
-    grid-template-columns: 17.5rem minmax(0, 40rem);
-    column-gap: 3rem;
-  }
-}
 @media (forced-colors: active) {
   .hello__photo {
     mix-blend-mode: normal;
@@ -92,13 +47,12 @@
 
 /* ==========================================================================
    The seal (components/ui/Seal): a carved cinnabar stone with the one character cut out of it, drawn as a path.
-   Once per page, at the tail (layout.css sizes it there). Decorative; in forced colours an outline.
+   Once per page, at the tail (body.css sizes it there). Decorative; in forced colours an outline.
      <span class="seal" aria-hidden="true"><svg class="seal__mark" viewBox="0 0 64 64">…</svg></span>
    ========================================================================== */
 .seal {
   display: block;
   flex: none;
-  width: 2rem;
   aspect-ratio: 1;
 }
 .seal__mark {
@@ -120,20 +74,9 @@
 }
 
 /* ==========================================================================
-   Now (Home): dated, three lines, body size, no links.
-     <section class="sec now" aria-labelledby="now-title" data-veil>
-       <h2 class="sec__title" id="now-title">Now <span class="sec__date small">· <time datetime="2026-10">October 2026</time></span></h2>
-       <ul class="rows rows--plain" role="list"><li><b>Building:</b> …</li> …</ul>
-     </section>
-   ========================================================================== */
-.now .rows--plain {
-  gap: 0.5rem;
-}
-
-/* ==========================================================================
    Figures (the vanguard round): the poster numeral, the name face at --fs-figure (40 → 56) in ink, with its lead
    word ("About", "Projected") small above or before it. The first screen's proof and a case's figure. Figures
-   inside sentences are <b> at text size instead; a ledger row's numeral is the same poster numeral (.ledger__figure).
+   inside sentences are <b> at text size instead.
    ========================================================================== */
 .fig {
   font-family: var(--font-name);
@@ -144,28 +87,17 @@
   font-variant-numeric: lining-nums;
   color: var(--ink-1);
 }
-.fig__lead {
-  font-family: var(--font-body);
-  font-size: var(--fs-small);
-  font-weight: var(--w-body);
-  line-height: var(--lh-small);
-  letter-spacing: 0;
-  color: var(--ink-3);
-}
 
 /* ==========================================================================
-   Ledger rows (the vanguard round): editorial rows on hairlines with the figure as a poster numeral in its own
-   column: Home's three outcomes, Work's projects, the Writing rows (dated, without a figure).
+   Ledger rows: editorial rows on hairlines, dated (Home's Writing rows).
      <ul class="ledger" role="list">
        <li class="ledger__row ink-row">
-         <p class="ledger__figure"><span class="ledger__figure-lead">Projected</span>50%</p>   (optional)
-         <p class="ledger__meta mono">2023 – 2024</p>                                            (optional)
+         <p class="ledger__meta mono">Note · <time>…</time></p>
          <h3 class="ledger__title"><a href>…</a></h3>
          <p class="ledger__line">…</p>
        </li>
      </ul>
-   The title link covers the row (::after); other links in the row stay clickable above it. The numeral is decorative
-   (aria-hidden): the row's line carries the figure in words.
+   The title link covers the row (::after).
    ========================================================================== */
 .ledger {
   display: grid;
@@ -180,25 +112,6 @@
 }
 .ledger__row:last-child {
   border-bottom: 1px solid var(--rule);
-}
-.ledger__figure {
-  font-family: var(--font-name);
-  font-size: var(--fs-figure);
-  font-weight: 900;
-  line-height: 1;
-  letter-spacing: 0;
-  font-variant-numeric: lining-nums;
-  color: var(--ink-1);
-  white-space: nowrap;
-}
-.ledger__figure-lead {
-  display: block;
-  margin-block-end: 0.2rem;
-  font-family: var(--font-body);
-  font-size: var(--fs-small);
-  font-weight: var(--w-body);
-  line-height: 1.2;
-  color: var(--ink-3);
 }
 .ledger__title {
   font-family: var(--font-body);
@@ -225,44 +138,13 @@
   color: var(--ink-2);
   max-width: var(--measure-read);
 }
-.ledger__meta a,
-.ledger__line a {
-  position: relative;
-  z-index: 1;
-}
-@media (min-width: 48rem) {
-  .ledger__row {
-    grid-template-columns: 8rem minmax(0, 1fr);
-    column-gap: 2rem;
-    align-items: baseline;
-  }
-  .ledger__row > :not(.ledger__figure) {
-    grid-column: 2;
-  }
-  .ledger__figure {
-    grid-column: 1;
-    grid-row: 1 / span 2;
-    align-self: start;
-  }
-  /* a dated row without a figure keeps the one column */
-  .ledger--dated .ledger__row {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .ledger--dated .ledger__row > * {
-    grid-column: 1;
-  }
-}
 
 /* ==========================================================================
    Cases (Work).
-   Flagship: article.sec.case.case--flagship.has-rail#id > h2.sec__title, p.case__meta.small,
-     p.case__fig (b.fig + span.small), p.case__summary, figure.diagram.wide, div.case__body.
-   Compact: details.case.case--compact[data-collapse="always"][open]#id >
-     summary.case__summary (h3.case__title, p.case__fig, p.case__meta.small) + div.case__body.
+   article.part.case.has-rail > div.case__body (the case's MDX, rendered by features/work/CasePage).
    div.case__body: a section.case__part per "Context" · "What I did" · "The hard part" · "Outcome" · "Evidence" ·
-   "Stack", each opening on its h2.case__label (at the body size: a label, not a section title). Inside a .has-rail
-   case the body and every part subgrid the rail, so a margin note right after a part's paragraph sits beside it
-   (layout.css).
+   "Stack", each opening on its h2.case__label. Inside a .has-rail case the body and every part subgrid the rail, so
+   a margin note right after a part's paragraph sits beside it (layout.css).
    ========================================================================== */
 .case__fig {
   display: flex;
@@ -273,25 +155,8 @@
 .case__fig .small {
   color: var(--ink-3);
 }
-.case__body {
-  margin: 0;
-}
 .case > .case__body {
   margin-block-start: var(--space-m);
-}
-.case__label {
-  font-family: var(--font-body);
-  font-size: var(--fs-body);
-  line-height: var(--lh-body);
-  font-weight: var(--w-strong);
-  letter-spacing: 0;
-  color: var(--ink-1);
-}
-.case__part + .case__part {
-  margin-block-start: var(--space-s);
-}
-.case__part > .case__label + * {
-  margin-block-start: 0.25rem;
 }
 .case__part > * + * {
   margin-block-start: var(--space-para);
@@ -303,89 +168,6 @@
   margin-block-start: 0.25rem;
 }
 
-/* the compact case: a hairline row whose summary is the control (CompactCase folds it) */
-.case--compact {
-  border-top: 1px solid var(--rule);
-  padding-block: 0.875rem;
-}
-.case--compact + .case--compact {
-  margin-block-start: 0;
-}
-summary.case__summary {
-  display: block;
-  position: relative;
-  min-block-size: 44px;
-  cursor: pointer;
-  list-style: none;
-  -webkit-tap-highlight-color: transparent;
-}
-summary.case__summary::-webkit-details-marker {
-  display: none;
-}
-summary.case__summary:focus-visible {
-  outline-offset: 4px;
-}
-.case__title {
-  font-family: var(--font-body);
-  font-size: var(--fs-item);
-  font-weight: var(--w-strong);
-  line-height: var(--lh-item);
-  color: var(--ink-1);
-}
-summary.case__summary > * + * {
-  margin-block-start: 0.375rem;
-}
-.case--compact > .case__body {
-  margin-block-start: var(--space-s);
-}
-/* "Show details" / "Hide details": CSS only (read as nothing; the summary itself is announced as
-   expanded or collapsed), with a small chevron. A case folded at every width (data-collapse="always", Work's
-   More work) shows it at every width; a phone-only one (data-collapse="phone") on phones, and on wider screens
-   only while closed (there it opens by default, so "Hide details" would be clutter). */
-summary.case__summary::after {
-  content: 'Show details' / '';
-  display: inline-block;
-  margin-block-start: 0.375rem;
-  padding-inline-end: 1.05em;
-  font-size: var(--fs-small);
-  font-weight: var(--w-ui);
-  line-height: var(--lh-small);
-  color: var(--ink-2);
-  text-decoration: underline 1px var(--rule-rest);
-  text-underline-offset: 0.3em;
-  background: no-repeat right center / 0.62em 0.62em
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M1.4 3.3Q3.4 5.3 5 7.1Q6.7 5.2 8.6 3.1' fill='none' stroke='%232A3034' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-}
-details[open] > summary.case__summary::after {
-  content: 'Hide details' / '';
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M1.4 6.7Q3.4 4.7 5 2.9Q6.7 4.8 8.6 6.9' fill='none' stroke='%232A3034' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-}
-summary.case__summary:hover::after {
-  text-decoration-color: var(--ink-1);
-}
-@media (min-width: 40rem) {
-  details[data-collapse='phone'][open] > summary.case__summary::after {
-    content: none;
-  }
-  details[data-collapse='phone'][open] > summary.case__summary {
-    cursor: default;
-  }
-}
-@media print {
-  summary.case__summary::after {
-    content: none;
-  }
-  details.case::details-content {
-    content-visibility: visible;
-    display: block;
-  }
-}
-@media (forced-colors: active) {
-  summary.case__summary::after {
-    background: none;
-  }
-}
-
 /* ==========================================================================
    Scannable table (Work's index, the "Early work" table). Explicit ARIA roles keep
    table semantics when the narrow layout changes `display`. Hairlines between rows
@@ -394,9 +176,6 @@ summary.case__summary:hover::after {
    restacks: the project first (body size), then each value with its label.
    Year cells never wrap.
    ========================================================================== */
-.table-wrap {
-  max-width: 100%;
-}
 .table {
   width: 100%;
   border-collapse: collapse;
@@ -420,7 +199,7 @@ summary.case__summary:hover::after {
 .table td:last-child {
   padding-inline-end: 0;
 }
-.table td:is([data-label='Years'], [data-label='Year']) {
+.table td[data-label='Year'] {
   white-space: nowrap;
 } /* "2025 – present" never breaks */
 .table thead th {
@@ -538,7 +317,6 @@ summary.case__summary:hover::after {
   container-type: inline-size;
   display: grid;
   row-gap: var(--space-2xs);
-  margin: 0;
 }
 .diagram__art {
   display: block;
@@ -625,7 +403,6 @@ summary.case__summary:hover::after {
 .diagram__sub,
 .diagram__band-label {
   font-family: var(--font-body);
-  font-variation-settings: 'FLAR' var(--flare-body);
 }
 .diagram__label {
   font-size: 21px;
@@ -705,9 +482,6 @@ summary.case__summary:hover::after {
 }
 /* details.fold: a block folded behind its own heading (Work's early repositories while nothing newer is listed);
    the summary is the heading, with the diagram's brush chevron */
-.sec > .fold {
-  margin-block-start: var(--space-item);
-}
 .fold > summary + * {
   margin-block-start: var(--space-head);
 }
@@ -862,33 +636,32 @@ summary.case__summary:hover::after {
 }
 
 /* ---------- folds ease open (Chrome 131+, Safari 18.4+; elsewhere they open at once, as before) ----------
-   "Read as steps", "Early work" and a compact case: the content's height eases over the route-enter beat, the
-   chevron turning with it. Reduced motion and "Still": at once. Print: open, whole. */
+   "Read as steps" and "Early work": the content's height eases over the route-enter beat, the chevron turning with
+   it. Reduced motion and "Still": at once. Print: open, whole. */
 details.diagram__steps,
-details.fold,
-details.case {
+details.fold {
   interpolate-size: allow-keywords;
 }
-:is(details.diagram__steps, details.fold, details.case)::details-content {
+:is(details.diagram__steps, details.fold)::details-content {
   block-size: 0;
   overflow: clip;
   transition:
     block-size var(--dur-route-enter) var(--ease-out),
     content-visibility var(--dur-route-enter) allow-discrete;
 }
-:is(details.diagram__steps, details.fold, details.case)[open]::details-content {
+:is(details.diagram__steps, details.fold)[open]::details-content {
   block-size: auto;
 }
 @media (prefers-reduced-motion: reduce) {
-  :is(details.diagram__steps, details.fold, details.case)::details-content {
+  :is(details.diagram__steps, details.fold)::details-content {
     transition: none;
   }
 }
-html.is-still :is(details.diagram__steps, details.fold, details.case)::details-content {
+html.is-still :is(details.diagram__steps, details.fold)::details-content {
   transition: none;
 }
 @media print {
-  :is(details.diagram__steps, details.fold, details.case)::details-content {
+  :is(details.diagram__steps, details.fold)::details-content {
     block-size: auto;
     transition: none;
   }

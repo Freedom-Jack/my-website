@@ -31,7 +31,7 @@ export function ScrollOpener() {
   return (
     <>
       <button
-        className="scroll-opener brush"
+        className="scroll-opener"
         type="button"
         aria-haspopup="dialog"
         aria-expanded={open}

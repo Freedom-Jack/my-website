@@ -28,7 +28,7 @@ const SEED = 11;
 export function* draw(env: Env) {
   const { P } = env;
   // one stream per element (figures.ts streams): adding a draw to one never re-rolls another
-  const own = streams(SEED, {});
+  const own = streams(SEED);
   // phones see the crossing from further away (scale 560): the things are drawn larger there, so the ferryman stays
   // well over 12 CSS px tall (as home.ts does)
   const big = Math.max(1, 0.7 * REF_PX / env.scale);
@@ -52,7 +52,7 @@ export function* draw(env: Env) {
   const top = Math.min(...line.map((p) => p[1]));
   // (contactLife: and now and then a ring set falls by itself exactly where the ferryman's pole stands in the water and
   // where the bow meets it: the same geometry ferry() draws them with, ferryDrops)
-  const drops: Pt[] | undefined = el('contactLife') && !env.still ? ferryDrops(boat, sz, own) : undefined;
+  const drops: Pt[] | undefined = el('contactLife') ? ferryDrops(boat, sz, own) : undefined;
   anchor(env, 'shimmer', { x: X(K + 0.52), y: top, w: X(K + 1.04) - X(K + 0.52), h: Y(0.1) - top }, { waterline: line, rings: 2, ...(drops ? { drops } : {}) });
 
   reflections(env, boat, jet, own('reflections'), sz);           // the water first: reflections, wake, rings
@@ -82,7 +82,7 @@ export function* draw(env: Env) {
   reeds(env, jet.root[0] - 4 * sz, jet.wl + 6 * sz, sz * 1.1, own('reeds', 'root'), 12, 1);
   yield;
   // ---- a clump of rushes at the landing, in front of the jetty's root (young.ts; Work's willow is not repeated here)
-  if (!env.still) {
+  {
     const rx = jet.root[0] + 22 * sz, ry = jet.wl + 8 * sz, rs = sz * 0.72;
     // contactLife (elements.ts): the rushes are their own sprite, so they bend in the breeze (the present pass)
     if (el('contactLife')) ownSprite(env, 'boat', { x: rx - 64 * rs, y: ry - 100 * rs, w: 128 * rs, h: 106 * rs }, { bend: true, range: [rx - 4000, rx + 4000] }, (e) => rushes(e, rx, ry, rs, own('d5 rushes'), 13, 52));
@@ -107,10 +107,8 @@ export function* draw(env: Env) {
     }
     ripples(env, fb1.x + fb1.w * 0.22, fb1.y + fb1.h * 0.97, 14 * sz, own('q3 rings'), { n: 3, sq: 0.25, alpha: 0.8 });
     ripples(env, fb1.x + fb1.w * 0.86, fb1.y + fb1.h * 0.9, 6 * sz, own('q3 rings', 2), { n: 2, sq: 0.25, alpha: 0.6 });
-    if (!env.still) {
-      farBird(env, X(K + 0.72), Y(0.4), 8.5, -0.1, own('q3 birds', 1), 0.45);
-      farBird(env, X(K + 0.735), Y(0.415), 6.5, 0.15, own('q3 birds', 2), 0.55);
-    }
+    farBird(env, X(K + 0.72), Y(0.4), 8.5, -0.1, own('q3 birds', 1), 0.45);
+    farBird(env, X(K + 0.735), Y(0.415), 6.5, 0.15, own('q3 birds', 2), 0.55);
   }
   yield;
 }
@@ -242,7 +240,7 @@ function bank(env: Env, j: Jetty, R: Rng, s: number) {
   }
   for (let i = 0; i < 4; i++) {   // grass tufts along the edge
     const e = edge[1 + Math.floor(R() * 10)];
-    for (let k = 0; k < 3; k++) stroke(ctx, [[e[0] + k * 0.8 * s, e[1] + 0.3 * s], [e[0] + (k - 1) * 1.2 * s + (R() - 0.5) * s, e[1] - (2 + R() * 3) * s]], { w: 0.6 * s, col: rgba(ink.strength > 0 ? mix3(C.ink, C.malD, 0.3) : C.ink, 0.45), tin: 0, tout: 0.9 });
+    for (let k = 0; k < 3; k++) stroke(ctx, [[e[0] + k * 0.8 * s, e[1] + 0.3 * s], [e[0] + (k - 1) * 1.2 * s + (R() - 0.5) * s, e[1] - (2 + R() * 3) * s]], { w: 0.6 * s, col: rgba(mix3(C.ink, C.malD, 0.3), 0.45), tin: 0, tout: 0.9 });
   }
 }
 
@@ -251,7 +249,7 @@ function bank(env: Env, j: Jetty, R: Rng, s: number) {
 function reeds(env: Env, x: number, y: number, s: number, R: Rng, n: number, a: number) {
   const { ctx, ink } = env;
   const { C, rgba } = ink;
-  const col = ink.strength > 0 ? mix3(C.ink, C.malD, 0.24) : C.ink;
+  const col = mix3(C.ink, C.malD, 0.24);
   const lean = (R() - 0.5) * 0.5;
   for (let i = 0; i < n; i++) {
     const bx = x + (R() - 0.5) * 12 * s, by = y + (R() - 0.5) * 2.4 * s;

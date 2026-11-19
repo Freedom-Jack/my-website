@@ -1,12 +1,13 @@
 import 'server-only';
-import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { evalSet } from '@content/craft/eval';
 import { hood } from '@content/craft/hood';
+import { workCraft } from '@content/pages/work-craft';
 import { type Bigram, scores, trainBigram } from './bigram';
 import { type BPE, encode, trainBPE } from './bpe';
+import { build } from '@/lib/build';
 import { plain } from '@/lib/markup';
 import { buildCorpus, type Chunk, type Corpus, frontMatter } from './corpus';
 import { compile, fieldOf, grammarText, mask, record, type State, stepToken } from './grammar';
@@ -64,20 +65,6 @@ export interface Lineage {
 
 const MERGES = 256;
 
-function commit(): string {
-  const env = process.env.VERCEL_GIT_COMMIT_SHA;
-  if (env) return env.slice(0, 7);
-  try {
-    return (
-      execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] })
-        .toString()
-        .trim() || 'local'
-    );
-  } catch {
-    return 'local';
-  }
-}
-
 const gz = (v: unknown) => gzipSync(JSON.stringify(v)).length;
 
 /** A passage as the browser receives it (the build-only parts left out). */
@@ -130,7 +117,7 @@ let memo: Craft | null = null;
 export function buildCraft(): Craft {
   if (memo) return memo;
   const built = new Date().toISOString();
-  const sha = commit();
+  const sha = build.sha;
   const corpus = buildCorpus();
   const index = buildIndex(corpus.chunks);
   const meta = {
@@ -204,9 +191,9 @@ export function buildCraft(): Craft {
       { id: 'vocab', kind: 'dataset', label: `${bpe.vocab.length} byte-pair tokens` },
       { id: 'scores', kind: 'dataset', label: 'the bigram scores' },
       { id: 'eval', kind: 'dataset', label: `${rows.length} questions` },
-      { id: 'search', kind: 'fold', label: 'Search these pages' },
-      { id: 'mask', kind: 'fold', label: 'Constrain the output' },
-      { id: 'evalFold', kind: 'fold', label: 'How good is the search?' },
+      { id: 'search', kind: 'fold', label: workCraft.search.label },
+      { id: 'mask', kind: 'fold', label: workCraft.hood.mask.title },
+      { id: 'evalFold', kind: 'fold', label: workCraft.hood.eval.title },
     ],
     edges: [
       ...corpus.files.map((f) => [f.file, 'passages', 'joined'] as Lineage['edges'][number]),

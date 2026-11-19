@@ -37,7 +37,7 @@ export function NotePage({ note }: { note: Note }) {
       ]}
     >
       <div className={styles['read-progress']} aria-hidden="true" />
-      <article className="note" aria-labelledby="note-title">
+      <article aria-labelledby="note-title">
         <Strip variant="sub" labelledBy="note-title" still="note">
           <h1 className="page-title page-title--long" id="note-title">
             {meta.title}

@@ -6,7 +6,7 @@
  * (public/models/minilm). The bytes are counted as they arrive (the page draws them). Nothing typed leaves this
  * worker except as numbers, back to the page.
  *
- *   in   { type: 'load' }                      out  { type: 'progress', loaded, total } ... { type: 'ready', bytes, ms }
+ *   in   { type: 'load' }                      out  { type: 'progress', loaded, total } ... { type: 'ready', bytes }
  *   in   { type: 'embed', id, texts }          out  { type: 'vectors', id, vectors, pieces, ms }
  *                                              out  { type: 'error', id?, message }
  */
@@ -48,7 +48,6 @@ async function fetchCounted(url: string, onBytes: (n: number) => void): Promise<
 }
 
 async function load(): Promise<Encoder> {
-  const t0 = performance.now();
   let loaded = 0;
   let last = 0;
   const count = (n: number) => {
@@ -71,7 +70,7 @@ async function load(): Promise<Encoder> {
   ort.env.wasm.wasmBinary = wasm;
   const enc = await createEncoder(ort, model, createTokenizer(new TextDecoder().decode(vocab)));
   await enc.embed('warm up'); // (the first run compiles the graph: the visitor's own line is then timed fairly)
-  post({ type: 'ready', bytes: loaded, ms: Math.round(performance.now() - t0) });
+  post({ type: 'ready', bytes: loaded });
   return enc;
 }
 

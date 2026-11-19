@@ -7,7 +7,6 @@ import type { PlateStage } from './plates/sink';
 import type { Veils } from './plates/veils';
 import { watchGlimpseStills } from './glimpse-stills';
 import { cadence, gpuOK, limitFor as limitForState, quietNow, saveData, setLive, watchFrames } from './probe';
-import { moods } from './mood-control';
 import { landscape } from './store';
 import { currentMain, placeOf, targetsOf } from './targets';
 import type { EngineModule, LandscapeHandle } from './types';
@@ -15,7 +14,7 @@ import type { EngineModule, LandscapeHandle } from './types';
 /**
  * The landscape: one fixed canvas behind everything, persistent across pages (it lives in the root layout).
  * The engine (./engine) paints the page's scene into its windows (the strip, the closing), the living ground
- * on Home and Work on wide screens, and the faint ink horizon between them on desktops. Decorative.
+ * on wide screens, and the faint ink horizon between them on desktops. Decorative.
  *
  * On every device the page opens on its pre-cut still (components/page/Strip): the first screen is complete before
  * any script. The engine is asked for only after the probe (./probe): after the first paint and an idle moment, never
@@ -68,7 +67,7 @@ export function Landscape() {
     const stopStills = watchGlimpseStills(currentMain());
     // (round 7: the tail's scroll in miniature gets its pictures the same way; the tail stays across pages)
     const stopTail = watchGlimpseStills(document.querySelector<HTMLElement>('.site-footer'));
-    // QA builds only: the boot's marks (engine/marks.ts), read by the vanguard round's boot profile
+    // QA builds only: the probe's marks (tests/e2e/probe.spec.ts reads them: why the still stands)
     const mark = (name: string) => {
       if (QA) performance.mark(`ink:${name}`);
     };
@@ -83,7 +82,6 @@ export function Landscape() {
       if (started || dead) return;
       started = true;
       try {
-        mark('effect');
         setLive('probing');
         // the checks that need no frame: the quiet forms, Save-Data, a hardware GPU (never a byte of the engine without them)
         const forced = qaForced();
@@ -95,9 +93,7 @@ export function Landscape() {
         // the engine's module is asked for after the first paint and an idle moment (the budgets' rule: it is never on
         // the words' critical path)
         await afterFirstPaint();
-        mark('first-paint:done');
         await whenIdle(1500);
-        mark('idle:done');
         if (dead) return;
         if (!forced && !gpuOK()) return stillHere('gpu');
         mark('gpu:ok');
@@ -109,7 +105,6 @@ export function Landscape() {
             await wait(1000);
             ok = await cadence();
           }
-          mark('probe:done');
           if (dead) return;
           if (!ok) return stillHere('cadence');
         }
@@ -119,14 +114,12 @@ export function Landscape() {
         // (typed as the contract, so the engine's real signature is checked against it)
         const [mod, sink, veiling]: [EngineModule, typeof import('./plates/sink'), typeof import('./plates/veils')] =
           await Promise.all([import('./engine'), import('./plates/sink'), import('./plates/veils')]);
-        mark('import:done');
         if (dead) return;
         // (the plates and the veils are made in a task of their own, at an idle moment: with the engine's evaluation
         // they made one task of 230 ms on a throttled phone)
         await whenIdle(500);
         if (dead) return;
         plates ??= platesRef.current ? sink.createPlateStage(platesRef.current) : null;
-        if (QA && plates) (window as unknown as { __plates?: PlateStage }).__plates = plates;
         veils ??= plates ? veiling.createVeils() : null;
         // the module's evaluation was one task; the mount is another, at the next idle moment and after a rendered
         // frame, so its reads of the page's boxes find the layout clean (a font swap or a style change laid out inside
@@ -150,13 +143,10 @@ export function Landscape() {
           arrival: still ? 'none' : 'bloom',
           firstFrame: still ? 'complete' : 'now',
         });
-        mark('mount:done');
         html.classList.toggle('no-landscape', handle.mode === 'static');
         landscape.set(handle);
-        // the painting keeps the visitor's hour (and a scene they asked for, while the tab lives)
-        moods.start();
-        // QA builds only: the probes judge the painting through the handle, and tools/build-stills.ts remounts
-        // the engine module itself (no veils, a fixed resolution) to cut the story map's stills
+        // QA builds only: the probes judge the painting through the handle, and tools/build-heroes.ts remounts
+        // the engine module itself to cut the heroes' stills
         if (QA)
           Object.assign(window as unknown as { __ink?: LandscapeHandle; __inkEngine?: EngineModule }, {
             __ink: handle,
@@ -175,8 +165,8 @@ export function Landscape() {
         // task budget, not by this rule: at native speed the first scene costs one 33 ms frame). R4 (01-budgets.md):
         // frames during the painting's own motion (a pan, an arrival, a sweep) count at 33 ms, so a phone that janks
         // only during pans is handed back to its still too; frames while the engine is pending for another reason (a
-        // scene or a layer on its way: no engine frames then) or deferred are not counted. What it catches is a slow
-        // place to read, and a slow page change.
+        // scene or a layer on its way: no engine frames then) are not counted. What it catches is a slow place to
+        // read, and a slow page change.
         if (!forced) {
           const h = handle;
           const limitFor = () => {
@@ -195,11 +185,8 @@ export function Landscape() {
             // (THE PLATES: no watch. The reading state draws nothing per frame, so a slow frame there is not the
             // painting's, and the watch itself was a second loop at the display's rate)
             if ((h.stats() as { plates?: { on?: boolean } }).plates?.on) return;
-            mark('watch:start');
             stopWatch = watchFrames(
-              (motion) => {
-                // (R3: one QA mark per reason: slow frames while reading, or during the painting's own motion)
-                mark(motion ? 'still:slow:motion' : 'still:slow');
+              () => {
                 setLive('still');
                 handle?.pause();
               },
@@ -226,7 +213,6 @@ export function Landscape() {
       stopStills();
       stopTail();
       document.removeEventListener('ink:still', onStill);
-      moods.stop();
       handle?.destroy();
       plates?.destroy();
       plates = null;
@@ -248,30 +234,19 @@ export function Landscape() {
         <div className="plates__back">
           <canvas data-plate="1" />
           <canvas data-plate="10" />
-          <canvas data-plate="7" />
         </div>
         <div className="plates__fore">
           <div className="plates__front">
             <div className="plates__in">
-              {/* (the ribbon: behind the peaks, and inside the curtain's clip: it never trails across the words) */}
-              <canvas data-plate="9" />
               <canvas data-plate="2" />
               <canvas data-plate="3" />
             </div>
           </div>
-          <canvas data-plate="8" />
           <canvas data-plate="4" />
-          <div className="plates__wisp" />
           <canvas data-plate="5" />
         </div>
       </div>
       <canvas ref={ref} className="landscape" aria-hidden="true" />
-      {/* the weather a scene may ask for: falling snow, rain (plates.css; over the painting, under the words' paper) */}
-      <div className="weather" aria-hidden="true">
-        <i className="weather__b" />
-        <i className="weather__a" />
-        <i className="weather__c" />
-      </div>
     </>
   );
 }

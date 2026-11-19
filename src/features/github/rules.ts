@@ -16,10 +16,10 @@ import { CJK, PHONE } from '@/lib/compliance';
 /** Never listed. Personal application materials; and this site's own source, until its public history no longer
  *  holds the old résumé file (CLAUDE.md, hard rules, the launch gate: content/site.ts showSourceCode). */
 export const DENY = new Set(['job-application', 'my-website']);
-export const PLACEHOLDER_KB = 10;
-export const PLACEHOLDER = /^(tba|to be (announced|anounced)|coming soon)\.?$/i;
-export const RECENT_MONTHS = 24;
-export const LINE_MAX = 160;
+const PLACEHOLDER_KB = 10;
+const PLACEHOLDER = /^(tba|to be (announced|anounced)|coming soon)\.?$/i;
+const RECENT_MONTHS = 24;
+const LINE_MAX = 160;
 export const USER = 'Freedom-Jack';
 
 export const repoSchema = z.object({
@@ -36,7 +36,7 @@ export const repoSchema = z.object({
 });
 export type Repo = z.infer<typeof repoSchema>;
 
-export const overridesSchema = z
+const overridesSchema = z
   .object({
     updated: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     repos: z.array(
@@ -98,7 +98,7 @@ export function parseOverrides(raw: unknown): Map<string, Override> {
 }
 
 /** The public candidates the API returned (what the snapshot keeps). */
-export function candidates(repos: Repo[]): Repo[] {
+function candidates(repos: Repo[]): Repo[] {
   return repos.filter((r) => !r.private && !r.fork && !r.archived && (r.size ?? 0) > 0 && !denied(r.name));
 }
 

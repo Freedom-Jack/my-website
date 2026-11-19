@@ -6,7 +6,7 @@
 //                 ferry) is painted on its own, so the present pass can move them and no static copy ever ghosts.
 //   out 'bitmap'  (Canvas2D) an ImageBitmap of the layer as drawn: nothing is cut (Canvas2D is still; the boat stays)
 //   out 'bytes'   premultiplied RGBA bytes (the 4a WebGL path, kept for callers that read the bytes)
-// Transferred, never copied. One message in, one message out: { id, width, height, data | bitmap, sprites?, ms, life }
+// Transferred, never copied. One message in, one message out: { id, width, height, data | bitmap, sprites?, life }
 // or { id, error }. `life` is the layer's life anchors (figures.ts, THE LIFE API); `sprites` [{ width, height, bitmap }]
 // in the order of the anchors that carry `cut` (each anchor's `sprite` is its index here).
 
@@ -97,8 +97,7 @@ self.onmessage = (e) => {
   const p = e.data || ({} as FigureRequest);
   try {
     // (QA builds: the engine's element overrides, which the sets read through elements.ts; this worker has no window)
-    if (p.qa) Object.assign(globalThis as object, { __elOff: p.qa.off, __elOn: p.qa.on });
-    const t0 = performance.now();
+    if (p.qa) Object.assign(globalThis as object, { __elOff: p.qa.off });
     const { width, height } = layerSize(p.stretch, p.scale, p.dpr);
     if (!width || !height) throw new Error('no figure layer for this stretch');
     const canvas = new OffscreenCanvas(width, height);
@@ -114,14 +113,14 @@ self.onmessage = (e) => {
     if (p.out === 'gpu') {
       const sprites = own ? buildSprites(canvas, ctx, life, width, height, own) : [];
       const bitmap = canvas.transferToImageBitmap();
-      self.postMessage({ id: p.id, width, height, bitmap, sprites, ms: performance.now() - t0, life }, [bitmap, ...sprites.map((s) => s.bitmap)]);
+      self.postMessage({ id: p.id, width, height, bitmap, sprites, life }, [bitmap, ...sprites.map((s) => s.bitmap)]);
     } else if (p.out === 'bitmap') {
       const bitmap = canvas.transferToImageBitmap();
-      self.postMessage({ id: p.id, width, height, bitmap, ms: performance.now() - t0, life }, [bitmap]);
+      self.postMessage({ id: p.id, width, height, bitmap, life }, [bitmap]);
     } else {
       const img = ctx.getImageData(0, 0, width, height);
       premultiply(img.data);
-      self.postMessage({ id: p.id, width, height, data: img.data, ms: performance.now() - t0, life }, [img.data.buffer]);
+      self.postMessage({ id: p.id, width, height, data: img.data, life }, [img.data.buffer]);
     }
   } catch (err) {
     self.postMessage({ id: p.id, error: String((err && (err as Error).message) || err) });

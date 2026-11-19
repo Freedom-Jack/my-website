@@ -16,9 +16,8 @@ import { el } from '../../elements';
 // 0.284 on Writing, 0.259 on the Note, whose layer is drawn for its own composition; open water either way, so
 // the spit sits on the lake on both pages, 0.025 scene heights nearer the far shore's reflection on the Note).
 // The pavilion at K + 0.925: right of the far peak's reflection at every width, clear of the text on wide screens
-// (keep-out edge K + 0.59 at 1440), and above the strip's "Draft art" note on phones (its guard starts at y 0.19
-// there). The spit's tail runs on to K + 1.215, into the layer's melting end, so on wide screens it leaves the frame
-// at the right edge.
+// (keep-out edge K + 0.59 at 1440). The spit's tail runs on to K + 1.215, into the layer's melting end, so on wide
+// screens it leaves the frame at the right edge.
 
 import { REF_PX, VH_PX, streams, vnoise, mix, mix3, wash, softWash, stroke, dryBrush, runs, ellipse, anchor, ownSprite, bounds, type Env, type FigureMeta, type Pt, type RGB } from '../figures';
 
@@ -33,7 +32,7 @@ const DP: Pt = [0.72, -0.48];   // Song oblique depth (as figures.ts D, which a 
 export function* draw(env: Env) {
   const { ctx, ink } = env;
   const { C, rgba } = ink;
-  const own = streams(SEED, PINS);
+  const own = streams(SEED);
   // a phone's album leaf sees the lake from further away: the spit, the pavilion and the pine are drawn larger there
   // (as Home does), so the roof's lifted corners and the seated figure still read at 390
   const b = Math.max(1, 0.7 * REF_PX / env.scale);
@@ -42,7 +41,7 @@ export function* draw(env: Env) {
   const at = (p: Pt): Pt => [cx + p[0] * b, wy + p[1] * b];     // local (pavilion units) -> world px
   const pts = (list: Pt[]) => list.map(at);
   // ink only: every colour here is an ink grey (the palette's ink and ink2, the paper's whites); a breath of indigo in
-  // the shade, which 'ink' turns grey with the rest
+  // the shade
   const INK = C.ink, INK2 = C.ink2, PAL = mix3(C.ink2, C.white, 0.62), SHADE = mix3(C.ink2, C.indigo, 0.3);
   const xEnd = X(K + 1.215);                               // the shore the spit leaves from: into the layer's melting end
 
@@ -317,17 +316,17 @@ export function* draw(env: Env) {
   yield;
   // ---- the framing element: reeds at the water's edge, thin ink-grey-green rushes (no pine bough over the moon: the
   // lake is lovelier without it)
-  if (!env.still) rushes(env, X(K + 1.071), 705, 0.95, own('d5 reeds'), 18, 70);
+  rushes(env, X(K + 1.071), 705, 0.95, own('d5 reeds'), 18, 70);
   yield;
   // ---- Writing's one painted moment: the lake catching the spring morning. A willow comes in from the top-right
   // corner and lets its long fresh-green strands down over the water toward the pavilion (the lake's willow: longer,
   // looser than the river town's tip); a few petals that have drifted down lie on the still water, each with its own
-  // broken rings and their lit arcs; more petals fall through the air (life: the present pass).
+  // broken rings and their lit arcs.
   // The light on the water is the shader's (a glassy glitter column under the low light).
-  if (!env.still && el('boughs')) {
+  if (el('boughs')) {
     // (it comes in from the right, under the window's top feather, so the whole of it is seen. THE UNROLL (the
-    // vanguard round's fix round): drawn as its own sprite, pinned to the frame (figures.ts LifeParams.pinned, as
-    // Home's plum bough is): its root lies just past the wide hero's east edge, on the layer's eastern reach, and
+    // vanguard round's fix round): drawn as its own sprite, pinned to the frame (figures.ts LifeParams.pinned): its
+    // root lies just past the wide hero's east edge, on the layer's eastern reach, and
     // Writing's slide (403 px at 1440) brought it into the sky as a cut end by the page's end; pinned, the lake slides
     // west under it and the willow keeps its corner, the near framing element of the opening the reader looks through.
     // Still, no swing: its life is the lake's, not its own. A painting without sprites paints it into the layer.)
@@ -356,8 +355,6 @@ export function* draw(env: Env) {
     }
   }
   yield;
-  // (the light on the water and the petals lying on it are part of the place: the story map's still keeps them; the
-  // willow, the framing, and the falling petals are left out of a still)
   {
     const Rq = own('q3 petals');
     for (const [du, dy, r] of [[-0.062, 9, 5.2], [-0.035, 21, 4.4], [0.052, 27, 5.6], [-0.1, 31, 3.8], [0.008, 40, 4.8]] as const) {
@@ -365,9 +362,6 @@ export function* draw(env: Env) {
       ripples(env, x, y, (5 + r) * b, Rq, { n: 2, sq: 0.24, alpha: 0.75 });
       loosePetal(env, x, y - 0.4 * b, r * b, Rq, 0.04);
     }
-    // (elements.ts petals: the petals falling through the air, off since the vanguard round's A3; the ones lying on the
-    // water above are paint and stay)
-    if (!env.still && el('petals')) anchor(env, 'smoke', { x: X(K + 0.87), y: Y(0.56), w: 0.24 * REF_PX, h: Y(0.24) - Y(0.56) }, { petals: { n: 5, size: 4.6 * b, speed: 0.8 } });
   }
   yield;
 }
@@ -407,6 +401,3 @@ function scholar(env: Env, x: number, y: number, s: number, INK: RGB, PAL: RGB) 
   ctx.fillStyle = rgba(mix3(C.white, PAL, 0.3), 0.95);
   ctx.beginPath(); ctx.ellipse(hx - 0.62 * s, hy + 0.2 * s, 0.48 * s, 0.75 * s, 0.2, 0, Math.PI * 2); ctx.fill();
 }
-
-// PINS: none (a new set; every element draws from stream(SEED, ...key)).
-const PINS: Record<string, number> = {};

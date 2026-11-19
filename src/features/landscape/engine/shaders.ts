@@ -56,12 +56,8 @@ const vec3 AZ_D  = vec3(0.180, 0.475, 0.690);   // azurite, deep #2E79B0
 const vec3 AZ_M  = vec3(0.612, 0.769, 0.878);   // azurite, misted #9CC4E0
 const vec3 MA_D  = vec3(0.110, 0.490, 0.510);   // jade, deep #1C7D82
 const vec3 MA_M  = vec3(0.545, 0.808, 0.800);   // jade, misted #8BCECC
-const vec3 JADE  = vec3(0.420, 0.725, 0.741);   // #6BB9BD jade
 const vec3 AIR2  = vec3(0.894, 0.945, 0.973);
 const vec3 MIST2B = vec3(0.882, 0.925, 0.945);   // #E1ECF1 (the present pass's MIST2, for the scene: the mist over the terraces)
-const vec3 DISC_C = vec3(0.957, 0.984, 0.992);  // #F4FBFD the moon disc's core
-const vec3 DISC_E = vec3(0.839, 0.933, 0.961);  // #D6EEF5 ...its wash at the rim
-const vec3 DISC_H = vec3(0.560, 0.780, 0.850);  // #8FC7D9 its hairlines (a cyan rim, never jade)
 const vec3 RIM_L = vec3(0.969, 0.996, 1.000);   // #F7FEFF rim light on the crests facing the light
 const vec3 BLOOM_W = vec3(0.914, 0.992, 0.996); // #E9FDFE the bloom's core
 const vec3 BLOOM_C = vec3(0.749, 0.914, 0.949); // #BFE9F2 ...its wide cyan falloff
@@ -69,35 +65,12 @@ const vec3 BLOOM_C = vec3(0.749, 0.914, 0.949); // #BFE9F2 ...its wide cyan fall
 // (one colour story. Every place has its light, a low, wide glow in the sky; Home's is the strongest (a bloom
 // behind the host peak), the others 0.3-0.5 of it. w in (0, 1): the light also lies on the water as a broken glitter
 // column (Writing's low moon, Contact's glint); w < 0: sky glow only. No disc, no ring anywhere.)
-uniform float uStillL;   // (a story-map still: only Home's light keeps its heart and bloom; the others are a faint glow)
 vec4 lightK0(float k);
-// "Morning opens" (elements.ts morning): seconds into Home's once-a-session morning, >= 9 at rest (and always
-// elsewhere). Home's light starts low (3.5 % of the view) and small (40 % of its radius) and rises and opens on an
-// ease-out; every term that reads the light (its core, bloom, rim light, the water's glitter) follows it.
-uniform float uMorn;
-float mornE(float t) { float x = clamp((t - 0.12) / 1.65, 0.0, 1.0); return 1.0 - (1.0 - x) * (1.0 - x) * (1.0 - x); }
-vec4 lightK(float k) {
-  vec4 Lq = lightK0(k);
-  if (uStillL > 0.5) {
-    // (a story-map still's sun) 1: only Home keeps its sun; 2: none; 3 + j: only place j
-    float keep = uStillL < 1.5 ? 0.0 : (uStillL < 2.5 ? -9.0 : uStillL - 3.0);
-    if (abs(k - keep) > 0.5) Lq.w *= 0.22;
-    // a place's own lit still holds the sun: at least .85 of Home's, whatever its page's own light
-    else if (uStillL > 2.5) Lq.w = (Lq.w < 0.0 ? -1.0 : 1.0) * max(abs(Lq.w), 0.85);
-  }
-  if (uMorn < 8.0 && k > -0.5 && k < 0.5) {
-    float e = mornE(uMorn);
-    Lq.y -= 0.045 * (1.0 - e);
-    Lq.z *= mix(0.6, 1.0, e);
-    Lq.w *= mix(0.22, 1.0, e * e);   // (dim and diffuse while low: never a small hard disc)
-  }
-  return Lq;
-}
-// Home's light (whatever its strength now: the morning dims it while it rises)
+vec4 lightK(float k) { return lightK0(k); }
+// Home's light
 bool homeL(vec4 Lh) { return Lh.w > 0.0 && Lh.x > 0.5 && Lh.x < 1.0; }
-// (the one light table: lights.ts, shared with the story-map stills and the footer)
-${lightsGLSL()}
-vec4 lightOf(float u) { return lightK(floor(u)); }`;
+// (the one light table: lights.ts)
+${lightsGLSL()}`;
 
 export const NOISE_SIZE = 512;
 
@@ -190,13 +163,14 @@ uniform vec4  uView;         // x: world x of the view's left edge (viewport hei
 uniform float uHs;           // viewport heights per stretch (figure layers are placed in stretches)
 uniform vec4  uKeep;         // the keep-out (box uv x): text's right edge, active 0/1, mist ramp half-width, figure guard
 uniform vec4  uNote;         // the strip's "Draft art" note (box uv x0, y0, x1, y1, with a margin): no figures, no pigment
+                             // (gl.ts uploads none: it stays 0, so the note's branch never runs)
 uniform sampler2D uFigA;     // figure layers (premultiplied RGBA, top row first, mipmapped for the bleed halo)
 uniform sampler2D uFigB;
 uniform vec4  uFigRA;        // a layer's world rect: u0 (stretches), y0 (scene height), 1/width, 1/height
 uniform vec4  uFigRB;
 uniform vec4  uFigKA;        // alpha, plane, phase (0: after the plane's ink, 1: after its mist band / the water), 0
 uniform vec4  uFigKB;
-uniform float uLift;         // camera lift, viewports: only ever <= 0 now (the closing's final sink)
+uniform float uLift;         // camera lift, viewports (gl.ts uploads none: it stays 0)
 uniform float uArrive;       // seconds into the ink bloom; >= 1.7 = at rest
 uniform float uTide;         // strength of the dried wash edges
 uniform vec4  uHz[L];        // the horizon state, per plane: sink (viewports), foot (uv y), ink multiplier, squash
@@ -227,8 +201,7 @@ float fbm3(vec2 p) {
 // explicit LOD 0: these lookups sit in divergent branches (no derivatives) and are always magnified
 float T(vec2 q) { return textureLod(uNoise, q, 0.0).r; }
 float T2(vec2 q) { return textureLod(uNoise, q, 0.0).g; }
-// camera lift per plane (parallax): the near planes move most, the far ones barely. Used now only for the
-// closing's final sink (a negative lift: the near crest rises above the footer)
+// camera lift per plane (parallax): the near planes move most, the far ones barely (uLift is 0: no lift)
 float lay(float dep) { return mix(0.05, 0.95, pow(dep, 3.0)); }
 float rowV(int r) { return (float(r) + 0.5) / float(ROWS); }
 const vec3 STROKE = vec3(0.430, 0.580, 0.660);   // the long low strokes on the water (light: darker, on the pale lake they read as a grey smear)
@@ -371,56 +344,6 @@ vec3 ribbon(float y, float c, float x, float seed, float lk) {
   return vec3(a * mix(0.15, 1.0, vx), rim * vx, sl * vx) * taper;
 }
 
-// "Morning opens": the mist across the range parts away from the light like curtains drawing back (xuanfang37-1m12),
-// over the first ~2 s of Home's morning. A thick bank round a belt (by), split at the light's x; each half is drawn
-// back sideways (its mist travels with its edge: drawn back, never wiped), its inner edge billowing and lit by the
-// light pouring through the gap, thinning away as it opens. x: alpha, y: how lit (its inner edge).
-vec3 curtain(vec2 p, float uy, float by, float t, float seed) {
-  if (t > 2.3) return vec3(0.0);
-  vec4 L0 = lightK0(0.0);
-  float dx = p.x - L0.x * uHs;                       // viewport heights from the light
-  // (it is already parting on the first painted frame, the host peak's tip standing in the gap: never an
-  // empty phase of cloud over blank paper; it eases out of a small opening rather than out of a closed bank)
-  float x = clamp((t + 0.06) / 1.9, 0.0, 1.0);
-  float e = 1.0 - (1.0 - x) * (1.0 - x) * (1.0 - 0.6 * x);
-  float open = mix(0.045, 1.2, e);                   // the gap's half-width
-  float side = dx < 0.0 ? -1.0 : 1.0;
-  float qx = p.x - side * open * 0.8;                // (the bank rides out with its edge: drawn back, never wiped)
-  // its inner edge: a billowing front, lobed up its height
-  float edge = (T(vec2(uy * 3.1 + seed, 0.3 + seed)) - 0.5) * 0.11 + (T2(vec2(uy * 9.0 + seed, 0.7)) - 0.5) * 0.035;
-  float d = abs(dx) - open + edge;                   // > 0: still behind the curtain's edge
-  float body = smoothstep(-0.015, 0.06, d);
-  // a cloud bank with a crisp, lit, billowing top and a soft underside (the engine's belts' manner, larger)
-  // (its top: broad swells along x, never a level slab, crowned by rounded billows of uneven width and height)
-  float sw = (T(vec2(qx * 0.55 + seed, 0.41)) - 0.5) / 0.13;
-  // (the billows are of uneven size, 0.6-1.4x (a stronger warp of their cells spreads their widths, and
-  // each crown's height follows its own size), and the bank's top line is broken by a second, mid-scale swell, so the
-  // lobes never sit in a row on one level)
-  float bu = qx * 5.0 + 2.4 * (T(vec2(qx * 0.8 + seed * 1.7, 0.83)) - 0.5) / 0.13;
-  float bf = fract(bu) - 0.5, bh = hash12(vec2(floor(bu), seed));
-  float rr = mix(0.6, 1.4, hash12(vec2(floor(bu) + 0.5, seed + 3.1)));
-  float billow = sqrt(max(0.0, 0.25 - bf * bf)) * 2.0 * (0.35 + 0.65 * bh) * rr;
-  float sw2 = (T(vec2(qx * 1.7 + seed * 2.3, 0.19)) - 0.5) / 0.13;
-  // (the bank rises toward the gap, as a curtain held up at its inner edge, and its swells are deeper, so it
-  // is never a level slab)
-  float top = by + 0.035 + 0.045 * sw + 0.022 * sw2 + 0.026 * billow + 0.05 * exp(-max(d, 0.0) / 0.22) - 0.02 * smoothstep(0.2, 0.8, abs(dx));
-  float pxs = max(abs(dFdy(uy)), 1e-5);
-  float cap = 1.0 - smoothstep(top - 1.5 * pxs, top + 1.5 * pxs, uy);
-  float under = smoothstep(by - 0.15, by - 0.03, uy);
-  float tex = 0.75 + 0.25 * smoothstep(0.3, 0.7, T(vec2(qx * 1.6, uy * 4.0) + seed));
-  float fade = 1.0 - smoothstep(0.5, 1.0, x);
-  float ends = 1.0 - smoothstep(0.45, 1.0, abs(qx - L0.x * uHs) - 0.35 * sw * 0.2);   // (it trails off: never full width)
-  float a = clamp(body * cap * under * tex * fade * ends, 0.0, 1.0);
-  float rim = exp(-pow((top - uy) / 0.009, 2.0)) * body;                 // the lit top
-  float lit = exp(-pow((d - 0.012) / 0.035, 2.0)) * (1.0 - smoothstep(0.75, 1.0, x));   // the inner edge, toward the light
-  // its value: bluer down in its body, deeper in the hollows between billows and under each billow's crown, lit on the
-  // billows' tops (a cloud sea with value structure, never two flat white slabs)
-  float hollow = smoothstep(0.22, 0.5, abs(bf)) * (1.0 - smoothstep(0.0, 0.06, top - uy)) * smoothstep(0.0, 0.012, top - uy);
-  float lobe = smoothstep(0.35, 0.7, T(vec2(qx * 2.3 + seed, uy * 3.2)));
-  float shade = clamp(smoothstep(0.0, 0.11, top - uy) * (0.5 + 0.5 * lobe) + 0.55 * hollow + 0.25 * smoothstep(0.04, 0.16, top - uy) * (1.0 - lobe), 0.0, 1.0);
-  return vec3(a, max(rim, lit) * (1.0 - 0.6 * hollow), shade);
-}
-
 void main() {
   // x: across the view (the ridge columns); y: scene height (viewport heights from the scene's bottom)
   vec2 uv = vec2(uCrop.x + vUv.x * uCrop.y, uView.y - (1.0 - vUv.y) * uView.z);
@@ -459,13 +382,13 @@ void main() {
     float n1 = T(vec2(p.x * 0.28, hb * 9.0 + 0.3)), n2 = T2(vec2(p.x * 0.61 + 0.2, hb * 14.0));
     float back = smoothstep(0.003, 0.025, db + (n1 - 0.5) * 0.012) * (0.55 + 0.5 * n1);
     float drift = smoothstep(0.5, 0.72, n1 * 0.75 + n2 * 0.35) * smoothstep(0.0, 0.008, db) * (1.0 - smoothstep(0.02, 0.034, db)) * 0.85;
-    // high in the sky (the willow, a swallow) nothing is behind the town: no town mist there
+    // high in the sky (the willow) nothing is behind the town: no town mist there
     float sky5 = 1.0 - smoothstep(0.13, 0.19, hb);
     figMist = 1.0 - clamp(max(back * 0.92, drift), 0.0, 1.0) * wS * (1.0 - shoreK) * sky5;
     skyHi = 1.0 - sky5;
   } else skyHi = smoothstep(0.34, 0.46, uv.y);
   // the "Draft art" note: no figures and no pigment under its line. 4b: its guard is a patch of mist, not a box: clear
-  // close round the line (inside the note box's margins: index.ts measureKeep), the pigment thinning back in across the
+  // close round the line (inside the note box's margins), the pigment thinning back in across the
   // box's edge to about a third of its height beyond it, the edge billowing, so over pigment (Contact's indigo water) it
   // never cuts a ruled edge; figures come back by the box's edge, so the scene's figures just off it keep whole
   if (uNote.z > uNote.x) {
@@ -603,10 +526,7 @@ void main() {
     float y = uv.y;
     float d = h - y;                                  // > 0 inside the mountain
     // ink bloom: far planes are painted first, each one over ~0.85 s (all done by ~1.25 s)
-    // (the morning: the host peak's crest is inked from the first frame, so its tip already stands through the parting
-    // cloud: never cloud over empty paper; the others a breath earlier than a plain bloom)
-    float headS = uMorn < 8.0 ? (i == 2 ? 0.42 : 0.15) : 0.0;
-    float pr = settled ? 1.0 : clamp((uArrive + headS - fi * 0.1) / 0.85, 0.0, 1.0);
+    float pr = settled ? 1.0 : clamp((uArrive - fi * 0.1) / 0.85, 0.0, 1.0);
 
     if (paint && d > -0.03 && pr > 0.0) {
       // ink wicking into paper: a soft, slightly fuzzy edge (isotropic, never hair-like spikes)
@@ -828,7 +748,7 @@ void main() {
         // (graded from the massif's broad crest, not from each column's own crest: from the local crest, the dark
         // top colour hangs down in a column under every notch and saddle, vertical streaks down the slopes)
         float hh = clamp(mix(dd, db, 0.85 * smoothstep(0.3, 0.5, dep)) / (bodyW * 1.5), 0.0, 1.0);   // (far ranges: their own crest; the massif's steps showed as seams there)   // 0 at the crest .. 1 where the wash has faded
-        // (the rich palette takes the deeper grades and lifts the mist off them; misted is unchanged up to 0.6 of rich)
+        // (a strong pigment, kp above 0.6, takes the deeper grades and lifts the mist off them; up to 0.6 nothing changes)
         float richK = smoothstep(0.6, 1.0, kp);
         float deepK = clamp(smoothstep(0.05, 0.8, dep) * 0.92 * (1.0 + 0.4 * richK) + 0.16 * richK, 0.0, 1.0);   // the host keeps its value
         // where azurite gives way to malachite; a malachite-led scene (the terraces, lean > .6) is malachite to the crest
@@ -954,11 +874,6 @@ void main() {
       col = mix(col, LIGHT, ra); cov = mix(cov, 1.0, ra);
       col = mix(col, mix(AIR, AZ_M, 0.4), rb.z * 0.35 * ra);
       mm = max(mm, rb.x * 0.6 * (1.0 - figHi));
-      if (uMorn < 8.0) {   // the morning: the curtain of mist in front of the host peak, parting
-        vec3 cu = curtain(p, uv.y, lightK0(0.0).y - 0.05, uMorn, 2.3);
-        float ca = cu.x * 0.94 * (1.0 - 0.85 * figHi) * (1.0 - uHzK);
-        col = mix(col, mix(mix(LIGHT, mix(mix(MIST, SKY, 0.5), AZ_M, 0.22 * cu.z), cu.z * 0.85), vec3(1.0), cu.y), ca); cov = mix(cov, 1.0, ca); mm = max(mm, cu.x);
-      }
     }
     if (i == 3) {
       float bb = clamp(belt2 * sm * 0.5 * bandK, 0.0, 1.0) * (1.0 - 0.85 * figHi); col = mix(col, SKY, bb); cov = mix(cov, 1.0, bb); mm = max(mm, belt2 * (1.0 - figHi));
@@ -967,11 +882,6 @@ void main() {
       col = mix(col, LIGHT, ra); cov = mix(cov, 1.0, ra);
       col = mix(col, mix(AIR, AZ_M, 0.4), rb.z * 0.35 * ra);
       mm = max(mm, rb.x * 0.6 * (1.0 - figHi));
-      if (uMorn < 8.0) {   // the morning: the nearer curtain, lower, parting a beat behind the first
-        vec3 cu = curtain(p, uv.y, lightK0(0.0).y - 0.17, uMorn - 0.12, 5.9);
-        float ca = cu.x * 0.94 * bandK * (1.0 - 0.85 * figHi) * (1.0 - uHzK);
-        col = mix(col, mix(mix(LIGHT, mix(mix(MIST, SKY, 0.4), AZ_M, 0.26 * cu.z), cu.z * 0.85), vec3(1.0), cu.y), ca); cov = mix(cov, 1.0, ca); mm = max(mm, cu.x);
-      }
     }
 
     // water, in front of the far shore and behind the near planes: reserved paper, the far shore's
@@ -1125,14 +1035,14 @@ uniform vec4  uWinS[2];      // its scene's painted region in its texture: uv sc
 uniform vec4  uWinF[2];      // feathers: top, bottom (fractions of the box height), wake allowed 0/1, arrival 0..1
 uniform vec4  uWinK[2];      // keep-out (box uv x): text's right edge, active 0/1, ramp half-width, 0
 uniform vec4  uWinO[2];      // 4b: the painting's sink inside its box (box uv, downward): it leaves slower than its box
-// "The camera travels" (index.ts PART): a living page's window below 1200 px, at rest, is two depth layers: its own view
-// holds the back (the sky and the far ranges, opaque), uWinN* the front (the place, premultiplied, alpha = coverage). The
-// front sinks by uWinO.y (life lies in it), the back by uWinP.y; a bank of mist rises between them (uWinP.z, box uv) and
-// the front may drift sideways (uWinP.w, box widths). uWinP.x = 0: one view, as before.
+// (index.ts PART) a living page's window below 1200 px, at rest, is two depth layers: its own view holds the back (the
+// sky and the far ranges, opaque), uWinN* the front (the place, premultiplied, alpha = coverage). The front sinks by
+// uWinO.y (life lies in it), the back by uWinP.y, and the front may drift sideways (uWinP.w, box widths). uWinP.x = 0:
+// one view.
 uniform sampler2D uWinN0;
 uniform sampler2D uWinN1;
 uniform vec4  uWinNS[2];     // the front layer's painted region in its texture (as uWinS)
-uniform vec4  uWinP[2];      // x on, y the back's sink, z the mist between the layers, w the front's drift
+uniform vec4  uWinP[2];      // x on, y the back's sink, w the front's drift (z unused)
 #ifdef EL_GLIMPSE
 // "Windows into the painting" (elements.ts glimpses; index.ts GLIMPSE, glimpseU): below 1200 px, at a page's
 // major breaks, short boxes onto the page's own place. Each window has its own view, painted for its own framing at idle
@@ -1165,9 +1075,6 @@ uniform vec4  uWakeBox;      // the uv box the wake can reach (x0, y0, x1, y1); 
 uniform float uWakeR;        // the wake's radius, viewport heights (a local opening: ~110 CSS px, index.ts wakeR())
 uniform vec4  uSweep;        // the pale bank of a page change: centre (uv x), half-width (vh), strength, thickness
 uniform float uSweepSeed;    // the bank's own billows
-uniform float uHold;         // a long jump: how much of the outgoing frame (uPrev) still shows, 1 -> 0
-uniform sampler2D uPrev;     // the last frame before a long jump's splice
-uniform float uSweepK;       // (silk veil) the text keep-out's right edge (screen uv x; 0 = none): the veil stays right of it
 uniform float uPx;           // CSS px per canvas px
 uniform float uPanPx;        // the pan, in CSS px (paper grain unrolls with the scroll)
 uniform float uGrain;
@@ -1176,12 +1083,10 @@ uniform float uGrainPx;      // CSS px per grain texel (1, finer on dense phone 
 // every scroll frame. Each depth layer is developed once into a plate of its own (a canvas the browser moves with a
 // scroll timeline), at the hero pose: this pass then paints ONE of them, over transparent paper where it holds
 // nothing, with everything the screen pass gave it (its small life, its grade, the drift's lift at rest, the grain,
-// the light's bloom; the far one the silk ribbon too). The mist between the layers, the veils and the curtain are the
-// page's own layers now (plates.css). uPlateK.x: 0 the screen (as before), 1 the far plate (opaque), 2 the middle,
-// 3 the near (premultiplied), 4 the sea of mist (premultiplied), 5 the sprites pinned to the frame, alone, 6 the
-// paper itself with its grain (a tile: the page's veils are cut from it), 7 the haze deck between the far and middle
-// layers and 8 the cloud bank the camera rises through (the camera's travel; premultiplied, each alone), 9 the silk
-// ribbon alone (over the far plate, behind the peaks).
+// the light's bloom). The mist between the layers and the veils are the page's own layers now (plates.css).
+// uPlateK.x: 0 the screen (as before), 1 the far plate (opaque), 2 the middle, 3 the near (premultiplied), 4 the sea
+// of mist (premultiplied), 5 the sprites pinned to the frame, alone, 6 the paper itself with its grain (a tile: the
+// page's veils are cut from it).
 uniform vec4  uPlateW;       // the canvas-uv window this pass paints (x0, y0, width, height): a plate, or a tile of one
 uniform vec4  uPlateK;       // x the plate (above); y, z this pass's pixel origin in its plate (the grain and the
                              // dither are anchored to the plate, so tiles and repainted parts meet without a seam);
@@ -1189,8 +1094,8 @@ uniform vec4  uPlateK;       // x the plate (above); y, z this pass's pixel orig
                              // plate 10: the sky's way out of the paper), 0 = the far plate itself, the sky whole
 // 4b, the living ground (body[data-ground="living"], wide screens): the page's own scene painted once into three depth
 // layers (far: the sky and the far ranges, opaque, alpha = mist admittance; middle and near: premultiplied, alpha =
-// coverage), each presented at its own sink as you scroll (the camera rising through cloud), with a haze deck between
-// far and middle and a sea of mist over the feet. Present-only: a scroll never repaints a layer.
+// coverage), each presented at its own slide and sink as you scroll, with a sea of mist over the feet. Present-only: a
+// scroll never repaints a layer.
 uniform sampler2D uSt0;
 uniform sampler2D uSt1;
 uniform sampler2D uSt2;
@@ -1198,19 +1103,13 @@ uniform vec4  uStS[3];       // each layer's painted region (draft corner): uv s
 uniform vec4  uStO[3];       // each layer now: x slide (uv, rightward), y sink (uv, downward), z alpha, 0
 uniform vec4  uStR[3];       // each layer's crop at rest, viewport uv (x0, y0, x1, y1; y up): a transparent layer holds
                              // nothing outside it; the far one covers the viewport (above it its sky row repeats)
-uniform vec4  uStC;          // the cloud the camera rises through: x strength, y its top (uv y), z its softness (uv); w the
-                             // strength of the sea's body (its drifting banks under the surface)
-uniform vec4  uStV;          // a place with an anchor (Work), once stepped: a curtain of mist left of which the middle and
-                             // near layers dissolve (x its edge, uv; y strength; z its width, uv), billowing down its length
 uniform vec4  uStM;          // the stage's world mapping at rest (as uWinM)
-uniform vec4  uSt;           // x on, y lift 0..1 (settled), z sea strength, w haze-deck strength
-uniform vec4  uSea;          // x sea surface (uv y), y its softness (uv), z haze deck (uv y), w billow amplitude (uv)
-uniform vec4  uStX;          // an inner place (Writing, Résumé, Contact): x how far its far sky reads as air (its
-                             // pale blue fades to paper near the column and high up), y how much of a transparent layer's
-                             // crop its foot dissolves over, z the reading column's right edge (uv x), w the place's seed
+uniform vec4  uSt;           // x on, z sea strength (y, w unused)
+uniform vec4  uSea;          // x sea surface (uv y), y its softness (uv), w billow amplitude (uv) (z unused)
+uniform vec4  uStX;          // an inner place (Writing, Résumé, Contact): y how much of a transparent layer's crop its
+                             // foot dissolves over, w the place's seed (x, z unused)
 uniform vec4  uStG;          // ...the hero strip's box at the page's top (viewport uv y0, y1, up) and its words' keep-out (uv x,
                              // its ramp's half-width): the window's inner grade, laid on the stage as the strip has it
-uniform vec4  uStK;          // x the right end of the page's row rules (uv x; 0 none), y the lift (0..1)
 uniform vec4  uStF;          // ...x the footer's top (uv y, up), y its feather (uv), z on: the stage clears to paper above
                              // the footer (the story map on clean paper), w unused
 uniform vec4  uLive;         // x 1 = every page (the drift keeps off text; a veil's tear only moves its edge), 2 = and
@@ -1222,7 +1121,7 @@ uniform vec4  uLive2;        // living veils: x the page's scroll (viewport heig
 // 4b, small life (index.ts lifeU): the few things that move in the painting (the water's shimmer, a thread of smoke, the
 // willows' sway, one drifting boat). They are worked out once per pixel (lifePrep) for the one view that holds them this
 // frame (uLifeT[1].y: a window, or a layer of the stage), and laid into that view's sample as it is composited (lifeLay),
-// so whatever lies in front of it (a nearer layer, the cloud, the sea, the mist, the veils) passes over them as over the
+// so whatever lies in front of it (a nearer layer, the sea, the mist, the veils) passes over them as over the
 // painting. Present only, on the ambient frames and the drift's clock (uTime): they stop with the mist, and uLifeK.x eases
 // them to the still painting (reduced motion, Still, the idle sleep). Never near text: none within 40 CSS px of a veiled
 // line (lifeText), none in a window's keep-out. Compiled in only with LIFE_ON: gl.ts builds this program twice and draws
@@ -1243,27 +1142,11 @@ uniform vec4  uLifeFigR;     // the figure layer the shimmer keeps off (boats, t
 uniform sampler2D uLifeRid;  // the ridge rows of the view life lies in (where its water is)
 uniform sampler2D uLifeSpr;  // the drifting boat (premultiplied, mipmapped; cut out of the figure layer by the worker)
 uniform sampler2D uLifeFig;
-// life that answers the reader (elements.ts): the stirred water's ring sets, the plum's gust, the waterfall
+// the ferry's rings on the water (elements.ts contactLife)
 uniform vec4  uStir[4];      // a ring set on the open water: canvas uv x, y, age (s; < 0 none), w = 2 x kind + seed
-                             // (kind 0 the pointer passing, 1 a tap's drop, 2 the ferryman's pole or the bow)
-uniform vec4  uStirK;        // x strength (0 = none), y 1 = the plum eases to rest with the drift (stillSettle), z the
-                             // stage's ridge columns per screen width
-                             // (cssW / its painted width: 1 unless it is painted wider, st.ext), w 1 = the water's own
-                             // rings are drawn as broken rings too
-uniform vec4  uGust;         // the plum's gust: x age (s; < 0 none), y its lean (-1..1), z strength, w the bough's nudge (rad)
-uniform vec4  uGust2;        // the gust's petals: their origin (canvas uv x, y), their size (canvas uv x), 0
-// "The scroll's air" (elements.ts air; index.ts airStep; a wind on the figures only): all zero when it is off
-// (reduced motion, Still, Canvas2D, a forced pose), and then nothing here changes a pixel.
-uniform vec4  uAir;          // x on, y the scroll's eased speed (viewports/s, + = reading down), z its drift (viewports
-                             // travelled, eased), w the speed's envelope 0..1 (gone ~1.1 s after the scroll stops)
-uniform vec4  uAir2;         // x the plum's lean (rad), y the ribbon's bow (scene units), z the wind's strength (phones
-                             // 0.5), w 0
-// is this wind family the place's own (uAir2.w, a bit set: 1 the plum and the ribbon, 2 willows, 4 rushes)?
-float airFam(float b) { return mod(floor(uAir2.w / b), 2.0); }
-uniform vec4  uAir3;         // x the light's swell (its bloom x (1 + x): the camera rising, the page read on), y its
-                             // warmth (near the light only), z, w 0
-uniform vec4  uAirP[3];      // petals blown off the plum: canvas uv x, y, turn (rad), alpha
-uniform vec4  uAirQ[3];      // ...their size (canvas uv x), curl (their width as they turn), hue, 1 = a white plum petal
+                             // (kind 2: the ferryman's pole or the bow)
+uniform vec4  uStirK;        // x strength (0 = none), z the stage's ridge columns per screen width (cssW / its painted
+                             // width: 1 unless it is painted wider, st.ext) (y, w unused)
 
 ${COLORS}
 const vec3 MIST2 = vec3(0.882, 0.925, 0.945);   // #E1ECF1 a mist bank never gets darker than this (ice, not grey)
@@ -1273,12 +1156,6 @@ ${HASH}
 vec4 stTap(sampler2D T, vec4 S, vec4 O, vec2 uv) {
   // (above the layer's top its sky row repeats (clamp); uStR[0].z is the far layer's width in viewports)
   vec2 q = clamp(vec2((uv.x - O.x) / max(uStR[0].z, 1.0), uv.y + O.y), 0.0, 1.0);
-  return texture(T, min(q * S.xy, S.zw)) * O.z;
-}
-// a transparent depth layer, held only over its crop R (nothing outside it)
-vec4 stTapR(sampler2D T, vec4 S, vec4 O, vec4 R, vec2 uv) {
-  vec2 q = (vec2(uv.x - O.x, uv.y + O.y) - R.xy) / max(R.zw - R.xy, vec2(1e-4));
-  if (q.x < 0.0 || q.y < 0.0 || q.x > 1.0 || q.y > 1.0) return vec4(0.0);
   return texture(T, min(q * S.xy, S.zw)) * O.z;
 }
 // how near the light this point stands (exp(-r^2 s)), the nearest of the three places' lights round it: one place's
@@ -1293,99 +1170,6 @@ float lightNear(vec2 wp, float s) {
   }
   return m;
 }
-// THE MOODS (round 6): the painting at another hour and in other weather. The scenes are not repainted: this is a
-// grade of what is already painted, laid on each plate as it is developed (and on the screen pass), so a change of
-// mood costs one development of the plates. The paper stays the paper (cool, bare): only what is painted moves, by
-// how blue it is (the air and the washes), how dark (the ink) and how near the place's light.
-uniform vec4  uMoodA;        // x dusk, y night, z dawn, w snow (each 0..1; all 0: the painting as it was painted)
-uniform vec4  uMoodB;        // x rain, y the lamps lit, z the plate that carries them (2 the middle, 3 the near), w unused
-uniform vec4  uLamp[3];      // a lamp: its world point (viewport heights across, scene height up), its glow's
-                             // radius (scene heights), its strength (0: none)
-// how near the mood's light this point stands: the nearest real light of the three places round it, in its own radii
-// (lightNear also counts the table's empty entry, a light of no strength a whole scene wide, which steps at a place's
-// border: fine for the inner places' grade, which never reaches one; not here)
-float moodLight(vec2 wp, float s) {
-  float u = wp.x / HSW, k = floor(u), m = 0.0;
-  for (int j = -1; j <= 1; j++) {
-    vec4 L = lightK(k + float(j));
-    if (L.w == 0.0) continue;
-    float r = length(vec2((u - L.x) * HSW, wp.y - L.y)) / max(L.z * mix(1.6, 1.0, step(0.0, L.w)), 1e-3);
-    m = max(m, exp(-r * r * s));
-  }
-  return m;
-}
-vec3 moodGrade(vec3 c, vec2 wp) {
-  if (uMoodA.x + uMoodA.y + uMoodA.z + uMoodA.w + uMoodB.x <= 0.0) return c;
-  float lum = dot(c, vec3(0.299, 0.587, 0.114));
-  float blue = clamp((c.b - c.r) / 0.2, 0.0, 1.0);          // 0 the bare paper .. 1 the ice-blue air
-  // (the faintest washes, a breath of blue on the paper far from the place, stay paper in every mood: deepened, they
-  // would stand as grey patches behind the words)
-  float airK = smoothstep(0.24, 0.66, blue) * smoothstep(0.58, 0.84, lum);   // the pale air and the washes
-  float hillK = blue * (1.0 - smoothstep(0.58, 0.84, lum)); // the hills' own blues
-  float nearL = moodLight(wp, 0.16);
-  if (uMoodA.x > 0.0) {
-    // dusk: the low sun warms the air round it (apricot, then rose), the air far from it goes lavender, the hills'
-    // blue goes to violet and a breath deeper
-    vec3 warm = mix(vec3(0.985, 0.740, 0.700), vec3(1.000, 0.835, 0.655), smoothstep(0.25, 0.85, nearL));
-    // (while the dusk is still coming, an afternoon, the air far from the light keeps its own blue and only the air
-    // round the light warms: the lavender comes as the dusk deepens, so no hour is a greyer day)
-    vec3 farAir = mix(c, vec3(0.792, 0.780, 0.918), smoothstep(0.3, 0.95, uMoodA.x));
-    vec3 air = mix(farAir, warm, smoothstep(0.03, 0.6, nearL));
-    vec3 d = mix(c, mix(air, vec3(1.0, 0.95, 0.88), smoothstep(0.86, 0.98, lum) * 0.6), airK * 0.92);
-    d = mix(d, vec3(c.r * 0.94 + 0.105, c.g * 0.84 + 0.02, c.b * 0.92 + 0.02) * (0.9 + 0.1 * nearL), hillK * 0.9);
-    // (the ink keeps its value; its edge toward the light takes a little warmth)
-    d += vec3(0.05, 0.018, 0.0) * nearL * (1.0 - blue) * smoothstep(0.3, 0.8, lum) * 0.0;
-    c = mix(c, d, uMoodA.x);
-  }
-  if (uMoodA.z > 0.0) {
-    // dawn: a paler, rosier dusk; the air far from the light is a cool pearl
-    vec3 warm = mix(vec3(0.985, 0.800, 0.800), vec3(1.000, 0.900, 0.790), smoothstep(0.25, 0.85, nearL));
-    // (a morning past its dawn: the far air is the day's own blue again, the rose stays round the light)
-    vec3 farAir = mix(c, vec3(0.840, 0.870, 0.940), smoothstep(0.3, 0.95, uMoodA.z));
-    vec3 air = mix(farAir, warm, smoothstep(0.05, 0.65, nearL));
-    vec3 d = mix(c, air, airK * 0.8);
-    d = mix(d, vec3(c.r * 0.97 + 0.05, c.g * 0.93 + 0.02, c.b * 0.96 + 0.02), hillK * 0.8);
-    c = mix(c, d, uMoodA.z);
-  }
-  if (uMoodA.y > 0.0) {
-    // night: the air's wash is deep indigo (a moonlit painting keeps its sheet: the bare paper stays), paler round
-    // the moon; the hills cooler and about a third down; what is white stays white: the moon, the mist, the fall
-    vec3 deep = mix(vec3(0.118, 0.180, 0.318), vec3(0.330, 0.455, 0.640), smoothstep(0.0, 0.8, nearL));
-    vec3 n = mix(c, deep, airK * 0.94);
-    vec3 hill = mix(vec3(lum), c, 0.7) * vec3(0.46, 0.55, 0.76);
-    n = mix(n, hill, hillK * 0.95);
-    // (the dark ink goes a breath toward indigo, never lighter)
-    n = mix(n, n * vec3(0.9, 0.95, 1.08), (1.0 - blue) * (1.0 - smoothstep(0.2, 0.6, lum)) * 0.5);
-    c = mix(c, n, uMoodA.y);
-  }
-  if (uMoodA.w > 0.0) {
-    // snow: the air greys and pales; the hills' lit faces are white, the rock's ink showing through
-    vec3 sn = mix(c, mix(vec3(lum), c, 0.3) * vec3(0.985, 0.992, 1.0) + 0.015, airK * 0.85);
-    sn = mix(sn, mix(vec3(0.962, 0.970, 0.980), vec3(0.70, 0.77, 0.85), smoothstep(0.62, 0.3, lum)), hillK * smoothstep(0.2, 0.42, lum) * 0.86);
-    c = mix(c, sn, uMoodA.w);
-  }
-  if (uMoodB.x > 0.0) {
-    // rain: everything painted a little deeper and greyer, the air a slate wash
-    vec3 r = mix(c, mix(vec3(lum), c, 0.55) * vec3(0.80, 0.85, 0.91), airK * 0.85);
-    r = mix(r, mix(vec3(lum), c, 0.75) * vec3(0.78, 0.83, 0.90), hillK * 0.9);
-    c = mix(c, r, uMoodB.x);
-  }
-  return c;
-}
-// the lamps lit (a hut's room, a window, a boat's lantern): how much warm light falls at this world point
-float lampAt(vec2 wp) {
-  float g = 0.0;
-  if (uMoodB.y <= 0.0) return g;
-  for (int i = 0; i < 3; i++) {
-    vec4 Lp = uLamp[i];
-    if (Lp.w <= 0.0) continue;
-    vec2 d = (wp - Lp.xy) / max(Lp.z, 1e-4);
-    float r2 = dot(d, d);
-    g += Lp.w * (exp(-r2 * 18.0) * 1.0 + exp(-r2 * 2.2) * 0.42 + exp(-r2 * 0.32) * 0.16);
-  }
-  return g * uMoodB.y;
-}
-const vec3 LAMP = vec3(1.0, 0.76, 0.42);   // the lamp's light: warm, never red
 // the inner places' spring morning (the window's grade, as the strip has it) on the stage, so its rest frame keeps the
 // strip's look: the hills take Home's value structure, the pale air moves toward one smooth ice gradient (white at the
 // light, bluer away from it) in the strip's top, and left of the words' keep-out the pale sky is paper.
@@ -1409,8 +1193,9 @@ vec3 stGrade(vec3 c, vec2 wp, float lx, float ly, float air) {
   c = mix(c, PAPER, keepW * smoothstep(0.6, 0.8, lumS) * air);
   return c;
 }
-// stTapR's layer with its foot (and its left crop) dissolving into the air over a lobed edge on an inner place (uStX.y),
-// so no layer ends in a ruled line where the sea does not cover it
+// a transparent depth layer, held only over its crop R (nothing outside it), its foot (and its left crop) dissolving
+// into the air over a lobed edge on an inner place (uStX.y), so no layer ends in a ruled line where the sea does not
+// cover it
 vec4 stTapF(sampler2D T, vec4 S, vec4 O, vec4 R, vec2 uv, float bx) {
   vec2 q = (vec2(uv.x - O.x, uv.y + O.y) - R.xy) / max(R.zw - R.xy, vec2(1e-4));
   if (q.x < 0.0 || q.y < 0.0 || q.x > 1.0 || q.y > 1.0) return vec4(0.0);
@@ -1432,42 +1217,6 @@ vec4 stTapF(sampler2D T, vec4 S, vec4 O, vec4 R, vec2 uv, float bx) {
 float stAdm(vec4 c) {
   float lm = dot(c.rgb / max(c.a, 1e-3), vec3(0.299, 0.587, 0.114));
   return mix(0.1, 0.72, smoothstep(0.55, 0.92, lm));
-}
-// the cloud bank's billowing top (uv y, up) at screen x bx (uv x times the aspect): from the noise's coarse mips, drifting
-float stCloudTopT(float bx, float tc) {
-  float b1 = (textureLod(uNoise, vec2(bx * 0.7 + tc * 0.0016, 0.37), 3.0).r - 0.5) / 0.13;
-  float b2 = (textureLod(uNoise, vec2(bx * 1.7 - tc * 0.0021, 0.83), 2.0).r - 0.5) / 0.14;
-  return uStC.y + 0.035 * b1 + 0.012 * b2;
-}
-float stCloudTop(float bx) { return stCloudTopT(bx, uTime); }
-// a bank of mist as a painter leaves it: a pale body a breath deeper toward its foot (a bank has
-// volume, never a flat sheet), coming out of the air over a soft edge with a faint cool wash just above it (its lit top).
-// c the colour under it, cov how much mist stands here, t how far above the bank's edge (box uv; < 0 inside), cn a noise.
-vec3 airCloud(vec3 c, float cov, float t, float cn) {
-  float wash = smoothstep(-0.03, 0.02, t) * (1.0 - smoothstep(0.02, 0.2, t));
-  vec3 body = mix(mix(MIST, SKY, 0.3 + 0.45 * cn), mix(MIST2, MIST, 0.55), smoothstep(0.02, 0.4, -t) * 0.5);
-  c = mix(c, vec3(0.83, 0.89, 0.915), wash * 0.18 * (1.0 - cov));
-  return mix(c, body, cov);
-}
-// the parting mist (by position, not speed): a closing below 1200 px comes out of cloud as it arrives. Two lobed
-// banks lie across it while its top comes into view, the upper drifting up and one way, the lower down and the other,
-// thinning from within (an fbm threshold), so the place opens between them; at the page's end (m = 0) they are gone and
-// the closing is unchanged. l box uv (y up), wx world x (stretches), m 1 -> 0 as the reader arrives.
-vec3 partMist(vec3 c, vec2 l, float wx, float m) {
-  float o = 1.0 - m;
-  for (int j = 0; j < 2; j++) {
-    float fj = float(j), sg = j == 0 ? 1.0 : -1.0;
-    float cy = mix(0.72, 0.34, fj) + sg * o * 0.34;
-    float bx = wx * 1.7 + fj * 3.7 + sg * o * 0.35 + uTime * 0.001;
-    float b1 = (textureLod(uNoise, vec2(bx, 0.41 + 0.3 * fj), 3.0).r - 0.5) / 0.13;
-    float b2 = (textureLod(uNoise, vec2(bx * 2.6 + 0.3, 0.17 + 0.2 * fj), 2.0).g - 0.5) / 0.13;
-    float hw = mix(0.05, 0.27, m);
-    float d = abs(l.y - cy - 0.06 * b1 - 0.02 * b2) - hw;
-    float n = textureLod(uNoise, vec2(bx * 1.4, l.y * 1.8 + fj), 1.0).r * 0.65 + textureLod(uNoise, vec2(bx * 3.1, l.y * 3.3 + 0.4), 0.0).g * 0.35;
-    float cov = (1.0 - smoothstep(-0.06, 0.04, d)) * smoothstep(1.02 - m * 0.95, 1.1 - m * 0.8, n + 0.45) * smoothstep(0.0, 0.12, m);
-    c = airCloud(c, cov * 0.94, -d, n);
-  }
-  return c;
 }
 
 #ifdef EL_GLIMPSE
@@ -1503,12 +1252,12 @@ vec3 glGrade(vec3 c, vec2 wp, float ly) {
 // what lifePrep leaves for lifeLay: the willows' shift of the view's tap (canvas uv x), the shimmer's light gaps and
 // ripple lines (strengths; the colour is worked out on the view's own sample), and the smoke and the boat as one
 // premultiplied layer over it (and the boat's alpha, which thins the drifting mist over it as over any figure)
-float lifeDx = 0.0, lifeSG = 0.0, lifeSL = 0.0, lifeBA = 0.0, lifeBD = 0.0;   // (lifeBD: the sprites' alpha dilated ~2 px, for the ribbon's mask)
+float lifeDx = 0.0, lifeSG = 0.0, lifeSL = 0.0, lifeBA = 0.0;
 float lifeRD = 0.0, lifeRW = 0.0, lifeFL = 0.0, lifeFD = 0.0;   // a ring's ink and its light; the falling water's light and its gaps
 vec4 lifeO = vec4(0.0);
-// the guard round text: the distance (vh) to the nearest veiled box (a living page's text lines, a block's box elsewhere,
-// the "Draft art" note), whatever the veil's strength. Motion fades out from ~110 CSS px of it to none within 40 px; the
-// boat, a figure, keeps the scene's own figure margin round the note (~24 px). (The veils are packed from the first.)
+// the guard round text: the distance (vh) to the nearest veiled box (a living page's text lines, a block's box
+// elsewhere), whatever the veil's strength. Motion fades out from ~110 CSS px of it to none within 40 px; the boat, a
+// figure, keeps a closer margin (~24 px). (The veils are packed from the first.)
 float lifeTextD(vec2 uv) {
   float d = 9.0;
   for (int k = 0; k < VEILS; k++) {
@@ -1521,24 +1270,9 @@ float lifeTextD(vec2 uv) {
   return d;
 }
 bool lifeBox(vec4 R, vec2 uv) { return uv.x >= R.x && uv.x <= R.z && uv.y >= R.y && uv.y <= R.w; }
-// A falling petal at d from its centre (canvas uv, x times the aspect), r0 its size, turned by rot, curled by flip (its
-// width): its colour and its coverage.
-// (a painted petal, not a flat dot: obovate, narrow at its base and wide at its rim with a small notch, its colour a
-// deeper pink at the base washing to near white at the rim, a soft edge and a faint pooled rim; it curls as it turns,
-// so its width flips)
-vec4 lifePetal(vec2 d, float r0, float rot, float flip, float h1) {
-  vec2 e = mat2(cos(rot), sin(rot), -sin(rot), cos(rot)) * d / r0;
-  e.y /= 0.62 * flip;
-  float ex = e.x * 0.5 + 0.5;                                        // 0 base .. 1 rim
-  float wd = mix(0.38, 1.0, smoothstep(0.0, 0.75, ex)) * (1.0 - 0.28 * exp(-pow(e.y / 0.16, 2.0)) * smoothstep(0.82, 1.0, ex));
-  float egg = length(vec2(e.x, e.y / max(wd, 0.2)));
-  vec3 pc = mix(vec3(0.992, 0.945, 0.957), vec3(0.93, 0.56, 0.66), clamp(0.15 + 0.45 * h1 + 0.55 * (1.0 - ex) - 0.2 * flip, 0.0, 1.0));
-  pc = mix(pc, vec3(0.86, 0.5, 0.6), 0.35 * smoothstep(0.7, 0.95, egg) * (1.0 - smoothstep(0.95, 1.0, egg)));
-  return vec4(pc, 1.0 - smoothstep(0.62, 1.0, egg));
-}
 // the open water at this pixel of the life's view (as the shimmer reads it: below the waterline, past a river's
 // near bank, off the boats and the bridge), 0..1
-float lifeWater(vec2 wp, float rx, bool strict) {
+float lifeWater(vec2 wp, float rx) {
   int cx = clamp(int(rx * float(textureSize(uLifeRid, 0).x)), 0, textureSize(uLifeRid, 0).x - 1);
   vec4 w0 = texelFetch(uLifeRid, ivec2(cx, LR), 0);
   float below = w0.g - wp.y;
@@ -1550,12 +1284,7 @@ float lifeWater(vec2 wp, float rx, bool strict) {
     vec2 fq = vec2((wp.x - uLifeFigR.x) * uLifeFigR.z, 1.0 - (wp.y - uLifeFigR.y) * uLifeFigR.w);
     // (only what stands on the water, solid ink: a hull, the bridge's piers, the islet's pine; a reflection, laid
     // lighter and torn, is water and takes the rings)
-    if (fq.x > 0.0 && fq.x < 1.0 && fq.y > 0.0 && fq.y < 1.0) {
-      // (the pointer's rings keep off the reflections too: any of the figure layer's ink, a bridge's or a
-      // boat's mirror included, blurred a little, so a ring never lies over a mirrored hull or arch)
-      if (strict) k *= 1.0 - smoothstep(0.03, 0.14, textureLod(uLifeFig, fq, 2.5).a);
-      else k *= 1.0 - smoothstep(0.62, 0.9, textureLod(uLifeFig, fq, 1.0).a);
-    }
+    if (fq.x > 0.0 && fq.x < 1.0 && fq.y > 0.0 && fq.y < 1.0) k *= 1.0 - smoothstep(0.62, 0.9, textureLod(uLifeFig, fq, 1.0).a);
   }
   return k;
 }
@@ -1566,16 +1295,17 @@ float lifeAng(float th, float K, float sd) {
   float a = hash12(vec2(mod(i, K), sd)), b = hash12(vec2(mod(i + 1.0, K), sd));
   return mix(a, b, f * f * (3.0 - 2.0 * f));
 }
-// one ring set on the water (elements.ts stir; qingxiao 0m49): two or three broken rings, flattened by the view,
-// each open by a third or so of its arc, a dark crescent inside that is thick (3-4 px) on one side and runs out to
-// nothing on the other, a white hairline just outside; they grow fast and slow down as they fade. Never a closed or a
-// perfect circle: each ring's radius wanders, and its breaks, its weight and its crescent's side are its own per spawn.
-// Leaves its ink and light in lifeRD / lifeRW, and the reflection's wobble under it in lifeDx.
+// one ring set on the water (elements.ts contactLife: the ferry's drops; qingxiao 0m49): two or three broken rings,
+// flattened by the view, each open by a third or so of its arc, a dark crescent inside that is thick (3-4 px) on one
+// side and runs out to nothing on the other, a white hairline just outside; they grow fast and slow down as they fade.
+// Never a closed or a perfect circle: each ring's radius wanders, and its breaks, its weight and its crescent's side
+// are its own per spawn. Leaves its ink and light in lifeRD / lifeRW, and the reflection's wobble under it in lifeDx.
 void lifeStir(vec4 S, vec2 uv, float k) {
   float kind = floor(S.w * 0.5), seed = S.w - kind * 2.0, a = S.z;
   // (the pointer's ring (kind 0: a dwell, kind 1: a tap) is ONE small flat broken ring, 22 px at most, 1:5, 30-45 %
   // of it missing, a 0.6-0.8 px thick-thin line, lit only on its far lip, gone in 1.4 s; the ferry's own drops (kind 2)
   // are larger and slower: two rings, up to 40 px, over 4.4 s)
+  // (only kind 2 is ever sent, so user is always false; its arms stay so the kept arithmetic is unchanged)
   bool user = kind < 1.5;
   float Lf = user ? 1.4 : 4.4;
   if (a < 0.0 || a > Lf) return;
@@ -1688,12 +1418,6 @@ void lifePrep(vec2 uv, vec2 wp, vec2 dw, float rx, float keep) {
       float fj = float(j), per = 6.5 + 2.7 * fj;
       float cyc = floor(uTime / per + fj * 0.37), ph = fract(uTime / per + fj * 0.37);
       vec2 c = vec2(0.15 + 0.7 * hash12(vec2(cyc, fj + A.w)), 0.2 + 0.55 * hash12(vec2(cyc + 3.1, fj)));
-      // (uStirK.w) the water's own rings take the stirred rings' grammar (elements.ts stir: broken, thick-thin, never
-      // a closed ellipse), lighter than a ring you make (kind 3)
-      if (uStirK.w > 0.5) {
-        lifeStir(vec4(R.xy + c * (R.zw - R.xy), ph * 4.4, 6.0 + 0.999 * hash12(vec2(cyc + 7.7, fj + A.w))), uv, min(1.0, k * 4.0) * 0.6);
-        continue;
-      }
       vec2 d = (q - c) * (R.zw - R.xy);
       d.x *= uAspect;
       d.y *= 4.2;
@@ -1719,7 +1443,6 @@ void lifePrep(vec2 uv, vec2 wp, vec2 dw, float rx, float keep) {
       float hgt = max(B.y - B.z, 1e-5);
       float tt = (B.y - uv.y) / hgt;                              // 0 at the lip .. 1 at the foot
       float k = A.z * uLifeK.x * gText;
-      if (uMorn < 8.0) k *= smoothstep(1.35, 2.1, uMorn);   // (the morning: the fall catches the risen light and starts to move: its one beat of light)
       vec2 pxW = vec2(dw.x * uLive2.w / uAspect, dw.y * uLive2.w);   // world units per CSS px
       vec2 pw = wp / max(pxW, vec2(1e-7));                       // CSS px, anchored to the painting
       if (abs(uv.x - B.x) < B.w && tt > -0.02 && tt < 0.98 && uLifeFigR.z > 0.0) {
@@ -1748,31 +1471,6 @@ void lifePrep(vec2 uv, vec2 wp, vec2 dw, float rx, float keep) {
       lifeO = lifeO * (1.0 - al) + vec4(mix(MIST, LIGHT, 0.6), 1.0) * al;
       continue;
     }
-    if (A.y < -0.5) {
-      // petals falling from the plum: each from the top of the box to its foot on a slow swaying diagonal,
-      // turning and tumbling (its width flips), out of the air and into the mist; then round again
-      vec2 bs = R.zw - R.xy;
-      vec2 q = (uv - R.xy) / bs;
-      for (int j = 0; j < 12; j++) {
-        if (float(j) >= B.x) break;
-        float fj = float(j);
-        float h1 = hash12(vec2(fj, 3.7)), h2 = hash12(vec2(fj + 7.1, 1.3)), h3 = hash12(vec2(fj + 3.3, 9.1));
-        float per = (16.0 + 12.0 * h1) / max(B.y, 0.1);
-        float ph = fract(uTime / per + h2);
-        vec2 c = vec2(mix(0.6 + 0.4 * h3, 0.05 + 0.35 * h3, ph) + 0.06 * sin(uTime * (0.45 + 0.4 * h1) + fj * 1.7), 1.0 - ph);
-        vec2 d = (q - c) * bs;
-        d.x *= uAspect;
-        float r0 = B.z * uAspect * (0.5 + 0.95 * h3 * h3 + 0.2 * h1);   // (a wide spread of sizes)
-        if (dot(d, d) > r0 * r0 * 2.0) continue;
-        float rot = uTime * (0.5 + 0.8 * h1) * (h2 < 0.5 ? -1.0 : 1.0) + fj;
-        float flip = 0.3 + 0.7 * abs(cos(uTime * (0.7 + 0.6 * h3) + fj));
-        vec4 pe = lifePetal(d, r0, rot, flip, h1);
-        float al = pe.a * smoothstep(0.0, 0.07, ph) * (1.0 - smoothstep(0.7, 1.0, ph));
-        al = clamp(al * 0.95 * uLifeK.x * gText * (1.0 - B.w), 0.0, 1.0);   // (the morning: B.w holds them back)
-        lifeO = lifeO * (1.0 - al) + vec4(pe.rgb, 1.0) * al;
-      }
-      continue;
-    }
     float H = max(R.w - B.y, 1e-4);
     float h = (uv.y - B.y) / H;                       // 0 at the source .. 1 at the top
     if (h <= 0.0) continue;
@@ -1798,11 +1496,6 @@ void lifePrep(vec2 uv, vec2 wp, vec2 dw, float rx, float keep) {
     float w = smoothstep(0.12, 0.55, up) * smoothstep(0.0, 0.22, q.x) * smoothstep(1.0, 0.78, q.x) * smoothstep(1.0, 0.86, q.y);
     float ph = uTime * 0.85 + A.w - up * 1.7;
     lifeDx += B.w * A.z * w * (0.7 * sin(ph) + 0.3 * sin(ph * 2.3 + 1.3)) * uLifeK.x * gText;
-#ifdef EL_AIR
-    // (the scroll's air: the strands stream a little with the scroll's wind, most at their tips, and swing back
-    // with the plum's spring when it drops)
-    lifeDx += B.w * A.z * w * clamp(uAir2.x / 0.0105, -1.6, 1.6) * (0.5 + 0.5 * up) * 1.1 * gText * airFam(2.0);
-#endif
   }
   // the sprites (the drifting boat, the bridge's walker, the bobbing ferry): each fills its entry's box (moved by
   // index.ts) from its place in the layer's one atlas (B.z..B.w across, 0..A.y down), over a faint bleed halo like the
@@ -1820,108 +1513,25 @@ void lifePrep(vec2 uv, vec2 wp, vec2 dw, float rx, float keep) {
       float hq = clamp(q.y, 0.0, 1.0);
       float ph = uTime * 0.95 + uLifeA[i].w + q.x * 5.0 - hq * 1.3;
       float sw = (0.65 * sin(ph) + 0.35 * sin(ph * 2.1 + 0.7)) * pow(hq, 1.7) * uLifeK.x * (uLifeA[i].z - 4.0);   // (calmer on phones: 4.6)
-#ifdef EL_AIR
-      sw += clamp(uAir2.x / 0.0105, -1.6, 1.6) * 0.55 * pow(hq, 1.7) * (uLifeA[i].z - 4.0) * airFam(4.0);   // (they bow to the scroll's wind)
-#endif
       q.x = (q.x - sw * 3.6 * uLive2.w / uAspect / max(R.z - R.x, 1e-6)) * 1.16 - 0.08;
       if (q.x < 0.0 || q.x > 1.0) continue;
-    } else if (uLifeA[i].z > 2.5) {
-      // the plum swings about its root (the box's right side, high up) by about half a degree, about every 12 s,
-      // with a smaller, quicker breath over it (the frame stays put; only the bough turns)
-      float ar = uAspect * (R.z - R.x) / max(R.w - R.y, 1e-6);
-      float an = 0.0087 * sin(uTime * 0.503 + uLifeA[i].w) + 0.0025 * sin(uTime * 1.37 + 1.7);
-      // the pointer's nudge (elements.ts plumGust): a damped swing in the gust's direction (~1.5 deg, ~2.5 s)
-      if (uGust.x >= 0.0) an += uGust.w * uGust.y * exp(-uGust.x / 1.25) * sin(uGust.x * 3.3);
-      // with the drift (stillSettle) the swing eases to the bough's rest (a still frame shows it at rest)
-      an *= mix(1.0, uLifeK.x, uStirK.y);
-#ifdef EL_AIR
-      an += uAir2.x * airFam(1.0);   // (the bough leans against the scroll's wind and swings back on its spring)
-#endif
-      vec2 pv = vec2(1.0, 0.8);
-      vec2 cq = (q - pv) * vec2(ar, 1.0);
-      cq = mat2(cos(an), sin(an), -sin(an), cos(an)) * cq;
-      q = vec2(cq.x / ar, cq.y) + pv;
-      if (q.x < 0.0 || q.x > 1.0 || q.y < 0.0 || q.y > 1.0) continue;
-    } else if (uLifeA[i].z > 1.5) {
-      // a bird: it glides, and now and then its wings beat (the sprite folds about its middle in time), and it
-      // banks a little as it goes
-      float ar = uAspect * (R.z - R.x) / max(R.w - R.y, 1e-6);
-      float beat = smoothstep(0.1, 0.7, sin(uTime * 0.8 + uLifeA[i].w));
-      float sy = mix(1.0, 0.45 + 0.55 * abs(sin(uTime * 6.5 + uLifeA[i].w)), beat);
-      float bk = 0.14 * sin(uTime * 0.45 + uLifeA[i].w);
-      vec2 cq = (q - 0.5) * vec2(ar, 1.0);
-      cq = mat2(cos(bk), sin(bk), -sin(bk), cos(bk)) * cq;
-      q = vec2(cq.x / ar, cq.y / sy) + 0.5;
-      if (q.x < 0.0 || q.x > 1.0 || q.y < 0.0 || q.y > 1.0) continue;
     }
     vec2 tq = vec2(mix(B.z, B.w, q.x), (1.0 - q.y) * uLifeA[i].y);
     vec4 F = textureLod(uLifeSpr, tq, B.y);
-    float wetE = 0.0;
-    if (uLifeA[i].z > 2.75 && uLifeA[i].z < 3.5) {
-      // the plum's arrival: its ink blooms from the root (the box's right side, high up) to the tips, a
-      // ragged threshold on the distance from the root with a darker wet edge at the front, never a global fade
-      float hide = (uLifeA[i].z - 3.0) / 0.45;
-      if (hide > 0.001) {
-        float ar = uAspect * (R.z - R.x) / max(R.w - R.y, 1e-6);
-        float dr = length((q - vec2(1.0, 0.8)) * vec2(ar, 1.0)) / length(vec2(ar, 0.8));
-        float fr = (1.0 - hide) * 1.12 + 0.05 * (textureLod(uNoise, q * vec2(ar, 1.0) * 1.7, 0.0).r - 0.5) / 0.13;
-        float m = smoothstep(fr, fr - 0.035, dr);
-        wetE = m * smoothstep(fr - 0.09, fr - 0.02, dr);
-        F *= m;
-      }
-    }
-    F += textureLod(uLifeSpr, tq, B.y + 2.2) * (uLifeA[i].z > 2.5 ? 0.05 : uLifeA[i].z > 1.5 ? 0.08 : 0.3) * (1.0 - F.a);   // (a bird and the plum keep their painted edge: only a breath of halo)
-    F.rgb *= 1.0 - 0.28 * wetE;   // (the wet front of the plum's blooming ink)
+    F += textureLod(uLifeSpr, tq, B.y + 2.2) * (uLifeA[i].z > 3.5 ? 0.05 : 0.3) * (1.0 - F.a);   // (the rushes keep their painted edge: only a breath of halo)
     F *= B.x * gNear;
     lifeO = F + lifeO * (1.0 - F.a);
     lifeBA = max(lifeBA, F.a);
-    lifeBD = max(lifeBD, smoothstep(0.015, 0.2, textureLod(uLifeSpr, tq, B.y + 1.6).a * B.x));
   }
-  // "The plum answers" (elements.ts plumGust): the gust lets go of three to five petals, one after another (120-400 ms
-  // apart), of different sizes (0.6-1.2), about one in three a white plum petal; each is carried a little with the
-  // pointer's lean, then falls slowly in a long drifting arc with the breeze, tumbling under 90 deg/s, over ~6 s
-  if (uGust.z > 0.0 && uGust.x >= 0.0 && uGust.x < 7.6) {
-    float gs = uGust2.w;
-    int nP = 3 + int(floor(hash12(vec2(gs, 1.7)) * 2.999));
-    float tj = 0.0;
-    for (int j = 0; j < 5; j++) {
-      if (j >= nP) break;
-      float fj = float(j);
-      float h1 = hash12(vec2(fj + gs, 5.3)), h2 = hash12(vec2(fj + 2.9 + gs, 8.1)), h3 = hash12(vec2(fj + 6.1, 0.7 + gs));
-      if (j > 0) tj += 0.12 + 0.28 * h2;                  // (one after another)
-      float t = uGust.x - tj;
-      float T = 5.2 + 1.4 * h1;
-      if (t <= 0.0 || t >= T) continue;
-      float push = (1.0 - exp(-t * 1.1)) / 1.1;
-      float wind = 7.0 + 5.0 * h3;                        // (the breeze carries it on, px/s, the way the gust leaned)
-      // (each lets go from its own blossom along the bough, ~22 px apart, so they never leave as one cluster)
-      vec2 off = vec2(uGust.y * ((38.0 + 30.0 * h3) * push + wind * t) + 14.0 * sin(t * (0.7 + 0.4 * h1) + fj * 2.0) + (fj - 2.0) * 22.0 + (h1 - 0.5) * 26.0,
-                      8.0 * h2 * (1.0 - exp(-t * 2.0)) - (9.0 + 6.0 * h1) * t + (h3 - 0.5) * 22.0 + (fj - 2.0) * 4.0);
-      vec2 c = uGust2.xy + vec2(off.x * uLive2.w / uAspect, off.y * uLive2.w);
-      vec2 d = uv - c;
-      d.x *= uAspect;
-      float r0 = uGust2.z * uAspect * (0.6 + 0.6 * h3);
-      if (dot(d, d) > r0 * r0 * 2.0) continue;
-      float rot = t * (0.5 + 0.9 * h1) * (h2 < 0.5 ? -1.0 : 1.0) + fj * 1.3;   // (< 1.4 rad/s: a slow tumble)
-      float flip = 0.3 + 0.7 * abs(cos(t * (0.6 + 0.5 * h3) + fj));
-      vec4 pe = lifePetal(d, r0, rot, flip, h1);
-      if (hash12(vec2(fj + gs, 3.3)) < 0.34) pe.rgb = mix(pe.rgb, mix(vec3(0.99, 0.985, 0.99), vec3(0.90, 0.92, 0.95), 0.4 * (1.0 - flip)), 0.8);   // (a white plum petal, cool in its turn)
-      float ph = t / T;
-      float al = clamp(pe.a * smoothstep(0.0, 0.05, ph) * (1.0 - smoothstep(0.65, 1.0, ph)) * 0.95 * uGust.z * uLifeK.x * gText, 0.0, 1.0);
-      lifeO = lifeO * (1.0 - al) + vec4(pe.rgb, 1.0) * al;
-    }
-  }
-  // "Water you can stir" (elements.ts stir): the ring sets on the open water (the water is read once, at the first live ring)
+  // the ferry's ring sets on the open water (elements.ts contactLife: its own drops, at the pole and the bow, may lie by
+  // its mirror; the water is read once, at the first live ring)
   if (uStirK.x > 0.0) {
-    float wk = -1.0, wq = -1.0;
+    float wk = -1.0;
     for (int s = 0; s < 4; s++) {
       if (uStir[s].z < 0.0) continue;
-      bool own = uStir[s].w >= 4.0;   // (kind 2: the ferry's own drops, at the pole and the bow, may lie by its mirror)
-      if (own && wk < 0.0) wk = lifeWater(wp, rx, false) * gText * uLifeK.x * uStirK.x;
-      if (!own && wq < 0.0) wq = lifeWater(wp, rx, true) * gText * uLifeK.x * uStirK.x;
-      float k = own ? wk : wq;
-      if (k <= 0.001) continue;
-      lifeStir(uStir[s], uv, k);
+      if (wk < 0.0) wk = lifeWater(wp, rx) * gText * uLifeK.x * uStirK.x;
+      if (wk <= 0.001) continue;
+      lifeStir(uStir[s], uv, wk);
     }
   }
 }
@@ -1953,10 +1563,8 @@ vec4 lifeLay(vec4 C, inout float adm) {
 // THE PLATES: a transparent depth layer's own finish, as the screen pass lays it over the composite: the drift's lift
 // (at rest: the plate holds still, the moving mist is the page's own layer), the paper's grain and the light's bloom,
 // thinner over dark ink. L premultiplied; wp its world point; fc its pixel in the plate.
-vec4 plateFinish(vec4 L, vec2 wp, vec2 fc, float lampK) {
-  // (the lamps' glow also lies where the layer holds nothing: a halo in the air round the hut)
-  float lg = lampK > 0.0 ? lampAt(wp) * lampK : 0.0;
-  if (L.a <= 0.002) { float ga = clamp(lg * 0.55, 0.0, 0.8); return vec4(LAMP * ga, ga); }
+vec4 plateFinish(vec4 L, vec2 wp, vec2 fc) {
+  if (L.a <= 0.002) return vec4(0.0);
   vec3 c = L.rgb / L.a;
   vec2 mp = wp * vec2(0.26, 0.72);
   float w = texture(uNoise, mp * 0.7 + vec2(REST_T * 0.0021, 0.0)).g;
@@ -1964,8 +1572,6 @@ vec4 plateFinish(vec4 L, vec2 wp, vec2 fc, float lampK) {
   float m2 = texture(uNoise, mp * 2.3 + vec2(REST_T * 0.0080, REST_T * 0.0007) + (m1 - 0.5) * 0.25).g;
   float mist = smoothstep(0.36, 0.74, m1 * 0.68 + m2 * 0.42);
   c = max(c, mix(c, MIST, clamp(mist * stAdm(L) * 0.56, 0.0, 0.75)));
-  c = moodGrade(c, wp);
-  if (lg > 0.0) c = clamp(c + LAMP * lg * 0.9 * (0.35 + 0.65 * dot(c, vec3(0.333))), 0.0, 1.0);
   vec2 gp = (fc * uPx + vec2(uPanPx, 0.0)) / (${NOISE_SIZE}.0 * uGrainPx);
   float bpt = uPx / uGrainPx;
   float gk = 1.0 + 0.2 * smoothstep(0.8, 1.35, bpt) - 0.35 * smoothstep(1.6, 2.4, bpt);
@@ -1977,15 +1583,12 @@ vec4 plateFinish(vec4 L, vec2 wp, vec2 fc, float lampK) {
       vec2 q = vec2((u - Lj.x) * HSW, wp.y - Lj.y);
       float r = length(q) / max(Lj.z, 1e-3);
       float br = 1.0 + 0.08 * sin(uTime * 0.45 + float(j) * 1.7);
-      float mb = (uMorn < 8.0 && homeL(Lj)) ? smoothstep(0.85, 2.1, uMorn) : 1.0;
-      add += (exp(-r * r * 3.2) * 0.075 + exp(-r * 1.5) * 0.04) * abs(Lj.w) * (homeL(Lj) ? 1.0 : 0.5) * br * mb;
+      add += (exp(-r * r * 3.2) * 0.075 + exp(-r * 1.5) * 0.04) * abs(Lj.w) * (homeL(Lj) ? 1.0 : 0.5) * br;
     }
     c += add * mix(0.3, 1.0, smoothstep(0.35, 0.85, dot(c, vec3(0.299, 0.587, 0.114)))) * vec3(0.975, 0.995, 1.0); }
 #endif
   c += (hash12(fc) - 0.5) / 255.0;
-  // (over what the layer covers, the layer; beyond its edge, the lamp's halo)
-  float ga = clamp(lg * 0.55, 0.0, 0.8) * (1.0 - L.a);
-  return vec4(clamp(c, 0.0, 1.0) * L.a + LAMP * ga, L.a + ga);
+  return vec4(clamp(c, 0.0, 1.0) * L.a, L.a);
 }
 
 void main() {
@@ -2025,7 +1628,7 @@ void main() {
   // pass does not run over the whole screen on every scroll frame: in effect a scissor round what is painted (a true
   // scissor would need a preserved drawing buffer, a full-frame copy on a phone's GPU)
 #ifdef EL_GLIMPSE
-  if (uGlK.y > 0.5 && uSt.x <= 0.0 && uHzK <= 0.0 && uSweep.z <= 0.0 && uHold <= 0.0) {
+  if (uGlK.y > 0.5 && uSt.x <= 0.0 && uHzK <= 0.0 && uSweep.z <= 0.0) {
     bool any = false;
     for (int i = 0; i < 2; i++) { vec4 R = uWinR[i]; if (R.x <= R.z && uv.x >= R.x && uv.x <= R.z && uv.y >= R.y && uv.y <= R.w) any = true; }
     for (int i = 0; i < GLN; i++) { vec4 R = uGlR[i]; if (uGlK.x > 0.5 && R.x <= R.z && uv.x >= R.x && uv.x <= R.z && uv.y >= R.y && uv.y <= R.w) any = true; }
@@ -2043,15 +1646,13 @@ void main() {
   // 1. what lies under this pixel: paper, the horizon band, a window on top (box-anchored, so it moves 1:1 with
   // the page). p = the world point (for the mist), tm = its mist clock, adm = how much drifting mist may lie here.
   vec3 col = PAPER;
-  float adm = 0.0, inWin = 0.0, wakeOK = 0.0, keep = 0.0, tm = REST_T, wsc = 1.0, heroW = 0.0;
+  float adm = 0.0, inWin = 0.0, wakeOK = 0.0, keep = 0.0, tm = REST_T, wsc = 1.0;
   float glCut = 0.0;   // a window's painting (its veil-free part: >= 40 px from any line)
   float glSun = 1.0;   // ...and how much of the light's bloom it keeps (only the highest window shows the light)
   float glA = 0.0;     // ...and how much of this pixel is a window's (nothing there is lighter than the paper)
-  float seaBody = 0.0;   // 4b: the grey wash of the sea's rolling banks (laid on after the veils' clearing)
-  float dyB = 0.0;       // a parted window's back, how far it stands above its front here (scene units): the light's bloom and Home's ribbon ride the back
   vec2 p = vec2(uHzM.x + uv.x * uHzM.w, uv.y);
   if (uSt.x > 0.0) {
-    // the living ground: far (opaque), the haze deck, middle, near, then the sea of mist over their feet
+    // the living ground: far (opaque), middle, near, then the sea of mist over their feet
     vec4 O1 = uStO[1];
     vec2 wp = vec2(uStM.x + (uv.x - O1.x) * uStM.w, uStM.y - (1.0 - (uv.y + O1.y)) * uStM.z);   // anchored to the middle layer
     vec4 B = stTap(uSt0, uStS[0], vec4(uStO[0].xy, 1.0, 0.0), uv - vec2(lv == 2 ? lifeDx : 0.0, 0.0));
@@ -2063,81 +1664,15 @@ void main() {
       float fyG = uv.y + uStO[0].y;
       col = stGrade(col, wp, (uv.x - uStO[0].x), (fyG - uStG.x) / (uStG.y - uStG.x), 1.0);
     }
-    if (uStX.x > 0.0) {
-      // an inner place's far sky is air, never a flat ice-blue slab with a ragged, nearly vertical left edge. Its pale
-      // blue eases back toward the paper near the reading column, over a long edge that swells
-      // in broad lobes down its height (never a vertical line), and high in the sky (where the header's paper band was at
-      // rest), so it reads as air round the place, not cut paper. Ink and the place's own colours keep their value.
-      float lumF = dot(col, vec3(0.299, 0.587, 0.114));
-      float skyF = smoothstep(0.012, 0.06, col.b - col.r) * smoothstep(0.72, 0.85, lumF);
-      float dxp = (uv.x - uStX.z) * aspect / max(uLive2.w, 1e-6);   // CSS px right of the column's edge
-      float fy = uv.y + uStO[0].y;                                // the far layer's own height (1: its top)
-      float nL = (textureLod(uNoise, vec2(fy * 1.9 + uStX.w * 5.0, 0.29 + uStX.w), 2.0).r - 0.5) / 0.13;
-      float nL2 = (textureLod(uNoise, vec2(fy * 4.7 + uStX.w, 0.71), 1.0).g - 0.5) / 0.13;
-      float nT = (textureLod(uNoise, vec2(uv.x * aspect * 0.8 + uStX.w * 2.3, 0.53), 2.0).g - 0.5) / 0.13;
-      float e0 = 50.0 + 85.0 * nL + 25.0 * nL2;
-      float lat = smoothstep(e0, e0 + 330.0, dxp);
-      // (high in the sky only as the camera lifts: at rest the header's paper band does this)
-      float hi = smoothstep(0.5 + 0.06 * nT, 0.95 + 0.04 * nT, fy);
-      // (never round the place's own light: light needs blue round it to read as light; and all of it only as the
-      // camera lifts, the header's paper band gone: at rest the strip's own morning stands)
-      float ak = clamp(max(1.0 - lat, hi * 0.8), 0.0, 1.0) * uStX.x * (1.0 - 0.85 * lightNear(wp, 0.55)) * smoothstep(0.05, 0.75, uSt.y);
-      col = mix(col, mix(PAPER, col, 0.3), skyF * ak);
-    }
     float nb = texture(uNoise, vec2(wp.x * 0.31 + uTime * 0.0018, 0.23)).r - 0.5;
     float nc = texture(uNoise, vec2(wp.x * 0.97 - uTime * 0.0026, 0.61)).g - 0.5;
-    if (uSt.w > 0.0 && (plate == 0 || plate == 7)) {
-      // a pale deck of cloud between the far ranges and the middle ones: it rises as the camera does
-      // (THE PLATES, 7: the deck alone, at rest; the page raises it and lets it in with the camera's lift)
-      float nbH = plate == 7 ? texture(uNoise, vec2(wp.x * 0.31 + REST_T * 0.0018, 0.23)).r - 0.5 : nb;
-      float ncH = plate == 7 ? texture(uNoise, vec2(wp.x * 0.97 - REST_T * 0.0026, 0.61)).g - 0.5 : nc;
-      float hy = uSea.z + nbH * uSea.w * 1.4 + ncH * uSea.w * 0.5;
-      float hk = (1.0 - smoothstep(hy - uSea.y * 1.6, hy + uSea.y * 0.7, uv.y)) * uSt.w;   // (not gated by the far layer's admittance, B.a: its vertical texture cuts the deck into columns)
-      if (plate == 7) { outColor = vec4(mix(MIST, SKY, 0.35) * (hk * 0.82), hk * 0.82); return; }
-      col = mix(col, mix(MIST, SKY, 0.35), hk * 0.82);
-      adm = max(adm, hk * 0.8);
-    }
-    // coming back down through the cloud: the middle and near layers (and the sea over their feet) go wholly
-    // under the bank while they take the rest of their drop there (uStO[1].w), so that drop is never seen
-    float hid = 0.0;
-    if (O1.w > 0.0) { float hy = stCloudTop(uv.x * aspect); hid = (1.0 - smoothstep(hy - uStC.z * 0.3, hy + uStC.z * 0.1, uv.y)) * O1.w; }
     float bxR = aspect * (uStR[1].z - uStR[1].x);   // (a crop's width in viewport heights, for its foot's lobes)
     vec4 Mi = stTapF(uSt1, uStS[1], O1, uStR[1], uv - vec2(lv == 3 ? lifeDx : 0.0, 0.0), bxR);
     float lfa = 0.0;
     if (plate == 5) Mi = vec4(0.0);   // (THE PLATES: what is pinned to the frame, alone: its sprites over nothing)
     if (lv == 3) Mi = lifeLay(Mi, lfa);
-    Mi *= 1.0 - hid;
-    // (as the camera lifts, the middle and near layers' ink keeps clear of the row rules' end: within ~40 px of
-    // it they are paper's air, then they come back over a lobed ~90 px edge, so the rule never runs into a mountain foot)
-    float ruleK = 0.0;
-    if (uStK.x > 0.0 && uStK.y > 0.0) {
-      float dxr = (uv.x - uStK.x) * aspect / max(uLive2.w, 1e-6);
-      float nR = (textureLod(uNoise, vec2(uv.y * 2.1 + uStX.w * 4.3, 0.57), 2.0).r - 0.5) / 0.13;
-      float e = 40.0 + 14.0 * nR;
-      ruleK = (1.0 - smoothstep(e, e + 90.0, dxr)) * uStK.y;
-      Mi *= 1.0 - ruleK;
-    }
-    float cur = 0.0;
-    if (uStV.y > 0.0) {
-      // (the curtain's edge billows down its length, anchored to the scene: it sinks with the town. From the noise's
-      // coarse mips only, so the edge swells in broad billows; the fine octaves make it jump row to row, which smears
-      // the town's roofs into horizontal streaks along it)
-      float cb = (textureLod(uNoise, vec2(0.37, wp.y * 1.2 + 0.11), 3.0).r - 0.5) / 0.13 * 0.8 + (textureLod(uNoise, vec2(0.61, wp.y * 2.6 + 0.5), 2.0).g - 0.5) / 0.14 * 0.3;
-      // (and it is torn into small drifting patches of mist, ~40 px, so the town's roofs go into a cloud rather than fade
-      // sideways along their own lines)
-      float cp = (texture(uNoise, wp * vec2(7.0, 11.0) + vec2(0.23 + uTime * 0.0012, 0.71)).r - 0.5) / 0.13;
-      float ex = uStV.x + cb * uStV.z * 0.55 + cp * uStV.z * 0.5;
-      cur = uStV.y * (1.0 - smoothstep(ex - uStV.z * 0.7, ex + uStV.z * 0.15, uv.x));
-      // (a floor that billows with the edge but not with its patches: the patches alone tear holes up to ~200 px left
-      // of the edge, where dark flecks of what the curtain hides (the bridge's crowd, a roof ridge, a mast) show through
-      // in the margin. So everything left of the billowing edge is hidden, and the patches only lay mist over the
-      // town's first roofs right of it: its west end goes into a cloud and leaves no fragments)
-      float eb = uStV.x + cb * uStV.z * 0.55;
-      cur = max(cur, uStV.y * (1.0 - smoothstep(eb - uStV.z * 0.35, eb + uStV.z * 0.05, uv.x)));
-      Mi *= 1.0 - cur;
-    }
     if (uStG.y > uStG.x && Mi.a > 0.004) Mi.rgb = stGrade(Mi.rgb / Mi.a, wp, uv.x - O1.x, 0.0, 0.0) * Mi.a;   // (its hills)
-    if (plate == 2 || (plate == 5 && lv == 3)) { outColor = plateFinish(Mi, wp, fc, plate == 2 && uMoodB.z < 2.5 ? 1.0 : 0.0); return; }
+    if (plate == 2 || (plate == 5 && lv == 3)) { outColor = plateFinish(Mi, wp, fc); return; }
     if (plate == 0) {
     col = col * (1.0 - Mi.a) + Mi.rgb;
     adm = mix(adm, stAdm(Mi), Mi.a);
@@ -2146,59 +1681,19 @@ void main() {
     if (uStG.y > uStG.x && Ne.a > 0.004) Ne.rgb = stGrade(Ne.rgb / Ne.a, wp, uv.x - uStO[2].x, 0.0, 0.0) * Ne.a;
     if (plate == 5) Ne = vec4(0.0);
     if (lv == 4) Ne = lifeLay(Ne, lfa);
-    Ne *= (1.0 - cur) * (1.0 - hid) * (1.0 - ruleK);
-    if (plate == 3 || plate == 5) { outColor = plateFinish(Ne, wp, fc, plate == 3 && uMoodB.z > 2.5 ? 1.0 : 0.0); return; }
+    if (plate == 3 || plate == 5) { outColor = plateFinish(Ne, wp, fc); return; }
     if (plate == 0) {
     col = col * (1.0 - Ne.a) + Ne.rgb;
     adm = mix(adm, stAdm(Ne), Ne.a);
-    }
-    if (uStC.x > 0.0 && (plate == 0 || plate == 8)) {
-      float tC = plate == 8 ? REST_T : uTime;   // (THE PLATES, 8: the bank alone, at rest, over nothing)
-      if (plate == 8) col = vec3(0.0);
-      float aC = 0.0;
-      // the cloud the camera rises through (mid-lift on Work: the scene steps sideways inside it): a sea of cloud from
-      // just above the middle layer's crests down into the sea; the far ranges stand clear above it. It is painted the
-      // way a painter leaves a cloud: the billows are reserved paper, and a soft grey wash is laid round their tops (on
-      // the sky over the bank, and in the folds where one billow rises in front of the next), so the bank has a lit,
-      // billowing edge and form, never a flat grey. Anchored to the screen (the step inside it never shows), drifting.
-      float bx = uv.x * aspect;
-      // (contours from the noise's coarse mip: broad billows, no ragged small teeth)
-      float b3 = (textureLod(uNoise, vec2(bx * 0.9 + 3.1 - tC * 0.0012, 0.11), 3.0).r - 0.5) / 0.13;
-      float b4 = (textureLod(uNoise, vec2(bx * 0.8 + 7.7 + tC * 0.0010, 0.64), 3.0).r - 0.5) / 0.13;
-      float cy = stCloudTopT(bx, tC);                             // the bank's top (uv y, up)
-      float c2 = cy - 0.13 + 0.04 * b3;                           // a nearer billow in front of it...
-      float c3 = cy - 0.28 + 0.045 * b4;                          // ...and a third, lower
-      float ck = (1.0 - smoothstep(cy - uStC.z * 0.3, cy + uStC.z * 0.1, uv.y)) * uStC.x;
-      float cn = texture(uNoise, vec2(bx * 0.42 - tC * 0.0022, uv.y * 1.3 + 0.17)).r;
-      col = mix(col, mix(MIST, SKY, 0.45 + 0.3 * cn), ck * (0.94 + 0.06 * cn));
-      aC = ck * (0.94 + 0.06 * cn);
-      // the wash: just above each billow's top, fading upward over ~10% of the view (the top one on the sky over the bank)
-      float tw = 0.0;
-      for (int j = 0; j < 3; j++) {
-        float cj = j == 0 ? cy : j == 1 ? c2 : c3;
-        float t = uv.y - cj;
-        tw = max(tw, smoothstep(-0.004, 0.014, t) * (1.0 - smoothstep(0.014, 0.1, t)) * (j == 0 ? 0.85 : 1.0));
-      }
-      col = mix(col, vec3(0.78, 0.86, 0.90), tw * uStC.x * (0.5 + 0.16 * cn));
-      if (plate == 8) {
-        // (premultiplied: the bank's body, then its wash laid over it)
-        float aW = tw * uStC.x * (0.5 + 0.16 * cn);
-        float aT = 1.0 - (1.0 - aC) * (1.0 - aW);
-        vec3 pm = mix(MIST, SKY, 0.45 + 0.3 * cn) * aC * (1.0 - aW) + vec3(0.78, 0.86, 0.90) * aW;
-        outColor = vec4(pm, aT);
-        return;
-      }
-      adm = max(adm, ck * 0.8);
     }
     if (uSt.z > 0.0 && (plate == 0 || plate == 4)) {
       // the sea of mist: a billowing surface (world-anchored, drifting), mist at the surface, paper deeper down
       // (THE PLATES: its billows at rest; the plate itself drifts)
       if (plate == 4) { nb = texture(uNoise, vec2(wp.x * 0.31 + REST_T * 0.0018, 0.23)).r - 0.5; nc = texture(uNoise, vec2(wp.x * 0.97 - REST_T * 0.0026, 0.61)).g - 0.5; }
       float sy = uSea.x + nb * uSea.w + nc * uSea.w * 0.45;
-      float sea = (1.0 - smoothstep(sy - uSea.y, sy + uSea.y * 0.45, uv.y)) * uSt.z * (1.0 - hid);
+      float sea = (1.0 - smoothstep(sy - uSea.y, sy + uSea.y * 0.45, uv.y)) * uSt.z;
       vec3 seaC = mix(mix(MIST, SKY, 0.25), mix(PAPER, SKY, 0.3), smoothstep(0.0, 0.2, sy - uv.y));
       if (plate == 4) {
-        seaC = moodGrade(seaC, wp);
         // (its own grain: under it the far plate's is covered)
         vec2 gpS = (fc * uPx + vec2(uPanPx, 0.0)) / (${NOISE_SIZE}.0 * uGrainPx);
         float bptS = uPx / uGrainPx;
@@ -2210,10 +1705,6 @@ void main() {
       }
       col = mix(col, seaC, sea);
       adm = max(adm, sea * 0.85);
-      // ...and, as the camera rises into it, its body: the drifting mist, in banks up to MIST2, from just under the
-      // surface to about a third of the viewport down (laid on after the veils' clearing, below)
-      float dd = sy - uv.y;
-      seaBody = sea * uStC.w * smoothstep(0.0, 0.06, dd) * (1.0 - smoothstep(0.14, 0.4, dd));
     }
     if (uStF.z > 0.0 && plate == 0) {
       // on an inner place the stage goes back into the paper above the footer, over a lobed edge, so the story map and
@@ -2223,14 +1714,12 @@ void main() {
       float fk = (1.0 - smoothstep(uStF.x - uStF.y * 0.2, uStF.x + uStF.y, uv.y + uStF.y * (0.35 * nF + 0.12 * nF2))) * uStF.z;
       col = mix(col, PAPER, fk);
       adm *= 1.0 - fk;
-      seaBody *= 1.0 - fk;
     }
-    p = wp; tm = plate > 0 ? REST_T : uTime; inWin = 1.0; wakeOK = plate > 0 ? 0.0 : 1.0; heroW = 1.0;
+    p = wp; tm = plate > 0 ? REST_T : uTime; inWin = 1.0; wakeOK = plate > 0 ? 0.0 : 1.0;
     wsc = uStM.z;
   }
-  // (a plate that the stage does not paint, the stage being off: nothing; 9, the ribbon's, is worked out over the
-  // far plate's own picture, below)
-  if (plate > 1 && plate != 9) { outColor = vec4(0.0); return; }
+  // (a plate that the stage does not paint, the stage being off: nothing)
+  if (plate > 1) { outColor = vec4(0.0); return; }
   if (uHzK > 0.0) {
     vec4 Hs = texture(uHzTex, min(uv * uHzS.xy, uHzS.zw));
     // soft edges: into paper at the sides and a low mist along the bottom
@@ -2251,39 +1740,17 @@ void main() {
     vec4 M = uWinM[wi], F = uWinF[wi];
     vec4 Pw = uWinP[wi];
     if (Pw.x > 0.5) {
-      // the back at its own sink (above its own top: paper, through its own top feather), the mist rising over it,
-      // then the front at the window's sink and drift (nothing above its top), as one sample for what follows
+      // the back at its own sink (above its own top: paper, through its own top feather), then the front at the
+      // window's sink and drift (nothing above its top), as one sample for what follows
       float lyB = l.y + Pw.y;
       vec2 lb = vec2(lt.x, min(lyB, 1.0));
       S = wi == 0 ? texture(uWin0, min(lb * uWinS[0].xy, uWinS[0].zw)) : texture(uWin1, min(lb * uWinS[1].xy, uWinS[1].zw));
       vec2 wpB = vec2(M.x + lb.x * M.w, M.y - (1.0 - lb.y) * M.z);
       float nB = texture(uNoise, wpB * vec2(0.9, 2.2) + 0.31).r - 0.5;
       S.rgb = mix(PAPER, S.rgb, smoothstep(0.0, F.x, 1.0 - lyB + nB * F.x * 0.7));
-      dyB = (lb.y - ls.y) * M.z;
-      bool clo = Pw.x > 1.5;   // (a closing arriving: its two layers together, its mist parting over both)
-      float ub = wpB.x / max(M.w, 1e-3);   // (world x in box widths, for the banks' lobes)
-      if (Pw.z > 0.0 && !clo) {
-        // the bank: drifting billows along its top (world-anchored to the back, so it rises with the scroll, not the box)
-        // (billows of a fixed size in the box, never scaled down with the bank: a low bank is lobed, never a level slab)
-        // (lobes sized by the box's width, about two across it, from coarse mips: sized in world units, a tablet's
-        // bank rises almost straight up between two lobes and cuts the host's flank into a vertical cut-out edge)
-        float bb = clamp((textureLod(uNoise, vec2(ub * 0.42 + uTime * 0.0015, 0.41), 3.5).r - 0.5) / 0.13, -2.0, 2.0);
-        float bc = clamp((textureLod(uNoise, vec2(ub * 1.1 - uTime * 0.0022, 0.77), 3.0).g - 0.5) / 0.13, -2.0, 2.0);
-        float top = Pw.z + (0.08 * bb + 0.025 * bc) * smoothstep(0.0, 0.1, Pw.z);
-        float bank = (1.0 - smoothstep(top - 0.2, top + 0.07, l.y)) * smoothstep(0.0, 0.08, Pw.z);
-        S.rgb = mix(S.rgb, mix(MIST, PAPER, 0.3 + 0.4 * smoothstep(top - 0.55, top - 0.12, l.y)), bank * 0.88);
-        S.a = mix(S.a, 0.85, bank);
-      }
       vec2 lf = vec2(lt.x - Pw.w, ls.y);
       vec4 Fn = (ly > 1.0 || lf.x < 0.0 || lf.x > 1.0) ? vec4(0.0) : (wi == 0 ? texture(uWinN0, min(lf * uWinNS[0].xy, uWinNS[0].zw)) : texture(uWinN1, min(lf * uWinNS[1].xy, uWinNS[1].zw)));
-      if (Pw.z > 0.0 && !clo) {
-        // ...and its foot over the front's feet (lighter: the near crags stand in it)
-        float topF = Pw.z * 0.45;   // (PART.riseF / PART.rise)
-        float bankF = (1.0 - smoothstep(topF - 0.16, topF + 0.05, l.y + clamp((textureLod(uNoise, vec2(ub * 0.6 + uTime * 0.001, 0.13), 3.5).r - 0.5) / 0.13, -2.0, 2.0) * 0.05)) * 0.8 * smoothstep(0.0, 0.08, Pw.z);
-        Fn.rgb = mix(Fn.rgb, mix(MIST, PAPER, 0.4) * Fn.a, bankF);
-      }
       S = vec4(S.rgb * (1.0 - Fn.a) + Fn.rgb, mix(S.a, stAdm(Fn), Fn.a));
-      if (clo && Pw.z > 0.0) { S.rgb = partMist(S.rgb, l, wpB.x / HSW, Pw.z); S.a = mix(S.a, 0.85, Pw.z * 0.5); }
     } else {
       S = wi == 0 ? texture(uWin0, min(lt * uWinS[0].xy, uWinS[0].zw)) : texture(uWin1, min(lt * uWinS[1].xy, uWinS[1].zw));
     }
@@ -2345,7 +1812,7 @@ void main() {
       S.rgb = mix(S.rgb, mix(vec3(lumS), S.rgb, 0.4), nonHero * smoothstep(0.6, 0.85, lumS)); }
     col = mix(col, S.rgb, fa);
     adm = mix(adm, S.a, fa);
-    p = wp; tm = uTime; inWin = fa; wakeOK = F.z * fa; heroW = uWinK[wi].w * fa;
+    p = wp; tm = uTime; inWin = fa; wakeOK = F.z * fa;
     wsc = M.z / max(R.w - R.y, 1e-4);              // scene units per viewport height in this window (the wake's push)
     vec4 K = uWinK[wi];
     keep = K.y * (1.0 - smoothstep(K.x - K.z, K.x + K.z, l.x));
@@ -2549,7 +2016,7 @@ void main() {
     if (endW) { G = mix(PAPER, G, mK); fa = Cq.w; }
     col = mix(col, G, fa);
     adm = mix(adm, mix(0.6, S.a, pK), fa);
-    p = wp; tm = uTime; inWin = fa; wakeOK = 0.0; heroW = 0.0; keep = 0.0;
+    p = wp; tm = uTime; inWin = fa; wakeOK = 0.0; keep = 0.0;
     wsc = M.z / max(R.w - R.y, 1e-4);
     glCut = max(glCut, fa * pK);
     glSun = mix(glSun, Cq.y, fa);
@@ -2654,7 +2121,7 @@ void main() {
   // the header sits on paper, never on the painted sky: a paper band under it, anchored to the page (it scrolls
   // away with the header), solid to the header's foot and melting out over ~64 px (desktops; ~26 px on phones), its
   // edge torn by the drift so it is mist, not a ruled line. The painting rises out of the paper below it.
-  if (plate == 0 || plate == 9 || (plate == 1 && uPlateK.w > 0.5)) {
+  if (plate == 0 || (plate == 1 && uPlateK.w > 0.5)) {
     // (THE PLATES: the band itself is the page's own layer, scrolling away with the header. The sky's own way out of
     // the paper below it is a plate of its own, the far plate's top with this ease (uPlateK.w): it lies over the far
     // plate at the page's top and the page lets it go as the header scrolls away, so the sky is whole below, as the
@@ -2744,7 +2211,6 @@ void main() {
   { float lumW = dot(col, vec3(0.299, 0.587, 0.114));
     float iceW = inWin * smoothstep(0.03, 0.09, col.b - col.r) * smoothstep(0.7, 0.8, lumW) * (1.0 - smoothstep(0.02, 0.3, veil)) * (1.0 - clearK) * (1.0 - 0.6 * glA);
     col = mix(col, vec3(0.972, 0.986, 0.992), clamp(smoothstep(0.25, 0.85, mist) * iceW * 0.34, 0.0, 0.34)); }
-  if (seaBody > 0.0) col = mix(col, MIST2, smoothstep(0.08, 0.7, mist) * seaBody * 0.9 * (1.0 - 0.85 * clearK));
   if (uLive.w > 0.0) {
     // the sky deck (4b, every page): open sky and pale mist take a faint drifting cloud toward MIST2, gently
     // perceptible; never on ink, never near text (it thins out over the living veils' clearing)
@@ -2762,30 +2228,6 @@ void main() {
     col += vec3(0.017, 0.018, 0.018) * min(wk, 1.2) * smoothstep(0.86, 0.93, lum);
   }
 
-#ifdef EL_SILK_VEIL
-  // The page change as a mist dissolve (never a refractive silk sheet, which reads as a game-menu wipe): a drift of mist travels across the hero with the pan, from the side the new place comes in from. Its body
-  // is an fbm threshold that opens round the travelling front (patches of mist gather, then dissolve behind it), mixed
-  // toward the mist's own colour, never toward paper white. No edge line, no refraction, no highlight. Inside the
-  // page's own hero window only (heroW: never the closing window, the paper round it, or the words' column), the
-  // existing envelope (index.ts updateSweep, 340 ms). A long jump does not bleach through paper: the outgoing frame
-  // is held and dissolved into the incoming one at the very end of this pass (uHold); only the words' column fades
-  // under paper.
-  if (uSweep.z > 0.0) {
-    float dir = uSweep.y < 0.0 ? -1.0 : 1.0;
-    float hw = abs(uSweep.y);
-    float th = uSweep.w;
-    float sd = uSweepSeed;
-    float sideK = uSweepK > 0.0 ? smoothstep(uSweepK + 0.004, uSweepK + 0.05, uv.x) : 1.0;
-    col = mix(col, PAPER, clamp(th * (1.0 - sideK) * uSweep.z * 0.94, 0.0, 1.0));
-    float d = (uv.x - uSweep.x) * aspect * dir;                     // across the front (vh; > 0 behind it)
-    vec2 q = vec2(uv.x * aspect, uv.y) * vec2(1.1, 1.5) + vec2(sd, sd * 0.37) + vec2(uTime * 0.004, 0.0);
-    float n = textureLod(uNoise, q * 0.55, 0.0).r * 0.65 + textureLod(uNoise, q * 1.3 + 0.31, 0.0).g * 0.35;
-    float bell = exp(-d * d / (hw * hw * 0.9));                      // where the drift stands now
-    float cov = smoothstep(0.62, 0.38, n + 0.42 * (1.0 - bell)) * bell;
-    float m = heroW * sideK * uSweep.z;
-    col = mix(col, mix(MIST, MIST2, 0.35 + 0.25 * (1.0 - uv.y)), clamp(cov * m * 0.88, 0.0, 0.9));
-  }
-#else
   // the pale mist bank of a page change: billows of reserved paper with mist between them, travelling
   // with the pan. Thick (a long jump), it covers the whole view. Never darker than MIST2.
   if (uSweep.z > 0.0) {
@@ -2800,33 +2242,7 @@ void main() {
     vec3 bank = mix(mix(PAPER, MIST2, mix(0.55, 0.3 + 0.12 * (1.0 - uv.y), th)), PAPER, c);
     col = mix(col, bank, clamp(b * uSweep.z * mix(0.5 + 0.45 * c, 0.94 + 0.05 * c, th), 0.0, 0.98));
   }
-
-#endif
-#ifdef EL_AIR
-  // two or three of the plum's petals (capped) carried off by the scroll's wind (index.ts airStep): Home's
-  // hero only, never within the veils' reach of the text (none within 40 px of a line), never in the keep-out
-  if (uAir.x > 0.0 && heroW > 0.0 && uAirP[0].w + uAirP[1].w + uAirP[2].w > 0.0) {
-    float pk = heroW * (1.0 - smoothstep(0.0, 0.03, veil)) * (1.0 - keep) * (1.0 - clearK);
-    for (int i = 0; i < 3; i++) {
-      vec4 A = uAirP[i];
-      if (A.w <= 0.0 || pk <= 0.0) continue;
-      vec4 Q = uAirQ[i];
-      vec2 d = uv - A.xy;
-      d.x *= aspect;
-      float r0 = Q.x * aspect;
-      if (dot(d, d) > r0 * r0 * 2.0) continue;
-      vec4 pe = lifePetal(d, r0, A.z, Q.y, Q.z);
-      if (Q.w > 0.5) pe.rgb = mix(pe.rgb, mix(vec3(0.99, 0.985, 0.99), vec3(0.90, 0.92, 0.95), 0.4 * (1.0 - Q.y)), 0.8);
-      col = mix(col, pe.rgb, clamp(pe.a * A.w * pk * 0.95, 0.0, 1.0));
-    }
-  }
-#endif
   col = mix(col, PAPER, veil);
-  // THE MOODS: the hour and the weather on what is painted (the far plate, the ribbon's ground, the screen pass)
-  if (inWin > 0.0) {
-    col = mix(col, moodGrade(col, p), inWin * (1.0 - veil));
-    if (plate == 0) { float lg0 = lampAt(p) * inWin * (1.0 - veil); if (lg0 > 0.0) col = clamp(col + LAMP * lg0 * 0.8 * (0.35 + 0.65 * dot(col, vec3(0.333))), 0.0, 1.0); }
-  }
 
   // paper: faint mottling, fine tooth and fibres (in CSS px, unrolling with the pan)
   vec2 gp = (fc * uPx + vec2(uPanPx, 0.0)) / (${NOISE_SIZE}.0 * uGrainPx);
@@ -2839,116 +2255,6 @@ void main() {
   float gq = mix(1.0, 0.4, smoothstep(0.93, 0.98, dot(col, vec3(0.299, 0.587, 0.114))) * inWin * (1.0 - veil));
   col *= 1.0 + tooth * 0.55 * uGrain * gk * gq + mott * 0.010 * gq;   // a finer, quieter sheet under flat colour
   vec3 paperG = PAPER * (1.0 + tooth * 0.55 * uGrain * gk + mott * 0.010);   // (the paper here, with its grain)
-  // ONE graphic gesture (after qingxiao 2m08 / 1m08), at Home's light only: a translucent silk
-  // mist-ribbon, one long S from behind the host peak through the light. Its body a ~12 % cyan-white veil with soft
-  // edges that twists (its width swells and pinches), a brighter 1-2 px core along it, broken by the mist and
-  // drifting slowly along its length; painted only over the pale air and mist (so it passes BEHIND the ink of the
-  // peaks), never under text, never on another page.
-  p.y += dyB;   // (from here on, the light and the ribbon are the back's: they stay with the sky as the layers part)
-  // (THE PLATES, 9: the ribbon alone. Every stroke below is a mix over what lies under it, so what is left of that
-  // (rKeep) and the difference are the ribbon as a layer of its own, premultiplied)
-  float rKeep = 1.0;
-  vec3 rBase = col;
-#ifdef EL_RIBBON
-  // (elements.ts ribbon: compiled in only when the ribbon is on; the vanguard round's A3 switched it off)
-  float pxp = max(abs(dFdy(p.y)), 1e-5);
-  // (suspended while a page change crosses the view, so it is never drawn over a painting that is fading)
-  if (heroW > 0.0 && tm > 0.0 && uSweep.z <= 0.0 && plate != 1) {   // (THE PLATES: the ribbon has a plate of its own, 9: the far plate holds none)
-    // a twisting strip. Two selvedges y = c +- W cos(ph) that cross where the silk turns
-    // edge-on (the twist travels slowly along it); between them a translucent body, pale cyan where its face is toward
-    // us, a deeper jade-cyan where we see its back. Never a vector point at its ends: the breadth
-    // holds and each end frays into three strands of its own length, torn by alpha noise over its last 20 %; the
-    // selvedges are 0.6 px hairs at <= 0.45, broken by gaps; the white heart shows only where the face turns up to the
-    // light; never over a sprite (the plum's white blossoms, the swallow: their alpha dilated ~2 px). Passes BEHIND the
-    // ink (laid only over pale air and mist). Never under text, Home only.
-    float u = p.x / HSW;
-    vec4 L0 = lightK0(0.0);
-    float sx = (u - L0.x) * HSW;
-    float s = (sx - 0.05) / 0.47;                   // -1 .. 1: from behind the host peak (left) to under the plum (right)
-    if (abs(s) < 1.0 && u < 1.3) {
-      float as = abs(s);
-      float s0 = -0.05 / 0.47;                        // (where it crosses the light)
-      float yc = L0.y + 0.042 * sin((s - s0) * 2.6 + 0.15) - 0.115 * (s - s0) * (s - s0) + 0.006 * sin(s * 5.0 - uTime * 0.16);
-      float ph = s * 5.4 + 0.5 - uTime * 0.085;       // the twist, travelling along the silk
-#ifdef EL_AIR
-      // the scroll's wind bows the silk (most in its middle) and runs its twist along it; both settle
-      yc += uAir2.y * (1.0 - s * s) * (0.8 + 0.2 * sin(s * 3.0 + 1.0));
-      ph -= uAir.z * 1.5;
-#endif
-      float cph = cos(ph);
-      float taper = pow(clamp(1.0 - s * s, 0.0, 1.0), 0.55);
-      float W = 0.019 * mix(0.55, 1.0, taper) * (0.75 + 0.25 * sin(s * 2.3 + 1.1));   // (never down to a point)
-      float cy = yc + 0.3 * W * sin(ph);              // (the turning strip's centre wanders a little: it is not a pipe)
-      float e1 = cy + W * cph, e2 = cy - W * cph;
-      float lo = min(e1, e2), hi = max(e1, e2);
-      float aa = 0.9 * pxp;
-      float inB = smoothstep(lo - aa, lo + aa, p.y) * (1.0 - smoothstep(hi - aa, hi + aa, p.y));
-      float frontF = smoothstep(-0.15, 0.15, cph);   // 1: its face toward us, 0: its back
-      // the frayed ends: over the last 20 % the silk opens into three strands that splay apart (across its full breadth,
-      // whatever its twist), each ending at its own length and torn by alpha noise: a frayed end, never a point
-      // (and wherever the silk fades out for any other reason: the window's feather, the words' clearing: there too it
-      // frays rather than thinning to a point)
-      float fadeV = heroW * (1.0 - clearK) * (1.0 - smoothstep(0.02, 0.3, veil));
-      float frE = max(smoothstep(0.78, 1.0, as), 1.0 - smoothstep(0.3, 0.97, fadeV));
-      float strK = 0.0;
-      for (int k = 0; k < 3; k++) {
-        float fk = float(k);
-        float hk = hash12(vec2(fk + 0.5, s > 0.0 ? 3.7 : 9.1));
-        float off = (fk - 1.0) * W * (0.45 + 0.9 * frE) + 0.3 * W * sin(s * 11.0 + fk * 2.1) * frE;
-        float sw = max(W * (0.26 - 0.1 * frE), 0.9 * pxp);
-        float sd = exp(-pow((p.y - cy - off) / sw, 2.0));
-        float aN = texture(uNoise, vec2(s * 2.3 + fk * 0.31, 0.57 + fk * 0.17)).g;
-        float endS = 0.88 + 0.11 * hk;
-        float endK = 1.0 - smoothstep(endS - 0.07, endS, as + 0.05 * (aN - 0.5));
-        strK = max(strK, sd * endK * smoothstep(0.34, 0.52, aN));
-      }
-      float dOut = max(max(lo - p.y, p.y - hi), 0.0);
-      float halo = exp(-dOut / 0.011) * (0.55 + 0.45 * smoothstep(0.0, 0.6, abs(cph)));
-      // torn by the mist (drifting)
-      float airS = 0.0;
-#ifdef EL_AIR
-      airS = uAir.z * 0.3;   // (the tears in the silk travel with the scroll too)
-#endif
-      float brk = smoothstep(0.22, 0.55, texture(uNoise, vec2(sx * 0.5 - uTime * 0.018 - airS, 0.37)).r * 0.7 + texture(uNoise, vec2(sx * 1.6 - uTime * 0.03 - airS * 1.6, 0.81)).g * 0.45);
-      brk = mix(0.18, 1.0, brk);
-      float lumR = dot(col, vec3(0.299, 0.587, 0.114));
-      float behind = smoothstep(0.8, 0.9, lumR);   // (only over the air and the mist: it passes behind every mountain)
-      float rk = heroW * behind * (1.0 - smoothstep(0.02, 0.3, veil)) * (1.0 - clearK) * (1.0 - lifeBD);
-      // the morning: the silk comes after the light: it unfurls from behind the peak toward the plum (1.0 - 2.2 s)
-      if (uMorn < 8.0) { float uf = clamp((uMorn - 1.0) / 1.2, 0.0, 1.0); uf = 1.0 - (1.0 - uf) * (1.0 - uf);
-        rk *= smoothstep(mix(-1.3, 1.25, uf), mix(-1.3, 1.25, uf) - 0.35, s) * smoothstep(0.0, 0.35, uf); }
-      float bodyK = brk * mix(inB, strK, frE);
-      float lineK = brk * (1.0 - frE);
-      { float kq = clamp(halo * 0.3 * brk * rk * (1.0 - 0.6 * frE), 0.0, 1.0); col = mix(col, vec3(0.985, 0.995, 1.0), kq); rKeep *= 1.0 - kq; }   // the clearing of light round it
-      // the body: pale cyan silk on its face, a deeper jade-cyan on its back; its white heart only where the face turns
-      // up toward the light (the twist's phase), so the white is light on silk, not a core line
-      float vb = clamp(abs(p.y - 0.5 * (lo + hi)) / max(0.5 * (hi - lo), 1e-4), 0.0, 1.0);
-      float turnL = smoothstep(0.15, 0.85, sin(ph)) * frontF;
-      vec3 faceC = mix(vec3(0.86, 0.955, 0.965), vec3(0.62, 0.88, 0.89), vb * vb);
-      faceC = mix(faceC, vec3(0.985, 1.0, 1.0), turnL * (1.0 - vb * vb));
-      vec3 backC = mix(vec3(0.70, 0.90, 0.90), vec3(0.45, 0.76, 0.78), vb);
-      float dens = mix(0.42, 0.62, 1.0 - abs(cph));
-      { float kq = clamp(bodyK * dens * rk, 0.0, 1.0); col = mix(col, mix(backC, faceC, frontF), kq); rKeep *= 1.0 - kq; }
-      // the selvedges: 0.6 px hairs, at most 0.45, each broken by its own gaps (~20 % of its length), heavier where the
-      // silk folds; the light beside them only where the face turns to the light
-      float l1 = exp(-pow((p.y - e1) / (0.6 * pxp), 2.0)), l2 = exp(-pow((p.y - e2) / (0.6 * pxp), 2.0));
-      float g1 = exp(-pow((p.y - e1) / (2.2 * pxp), 2.0)), g2 = exp(-pow((p.y - e2) / (2.2 * pxp), 2.0));
-      float gp1 = smoothstep(0.405, 0.435, texture(uNoise, vec2(s * 1.3 + 0.21, 0.29)).g);
-      float gp2 = smoothstep(0.405, 0.435, texture(uNoise, vec2(s * 1.3 + 0.67, 0.71)).g);
-      float lw = mix(0.2, 0.45, 1.0 - abs(cph)) * (0.75 + 0.25 * sin(s * 13.0 + 0.7));
-      { float kq = clamp((g1 * gp1 + g2 * gp2) * 0.3 * turnL * lineK * rk, 0.0, 1.0); col = mix(col, vec3(1.0), kq); rKeep *= 1.0 - kq; }
-      { float kq = clamp(max(l1 * gp1, l2 * gp2) * lw * lineK * rk, 0.0, 1.0); col = mix(col, vec3(0.25, 0.60, 0.66), kq); rKeep *= 1.0 - kq; }
-      // a fine companion thread that weaves round the silk, coming out of and going back into the mist (no ends)
-      float yt = cy + 0.024 * sin(s * 3.3 + 2.1 - uTime * 0.05) * taper + 0.004 * sin(s * 9.0 + uTime * 0.11);
-      float tk = smoothstep(-0.75, -0.4, s) * (1.0 - smoothstep(0.55, 0.9, s)) * (0.55 + 0.45 * sin(s * 6.0 + 1.3));
-      tk *= smoothstep(0.38, 0.5, texture(uNoise, vec2(s * 1.1 + 0.43, 0.12)).g);
-      float thr = exp(-pow((p.y - yt) / (0.6 * pxp), 2.0)), thg = exp(-pow((p.y - yt) / (2.6 * pxp), 2.0));
-      { float kq = clamp(thg * 0.25 * tk * brk * rk, 0.0, 1.0); col = mix(col, vec3(1.0), kq); rKeep *= 1.0 - kq; }
-      { float kq = clamp(thr * 0.4 * tk * brk * rk, 0.0, 1.0); col = mix(col, vec3(0.36, 0.70, 0.74), kq); rKeep *= 1.0 - kq; }
-    }
-  }
-#endif
-  if (plate == 9) { outColor = vec4(max(col - rBase * rKeep, 0.0), 1.0 - rKeep); return; }
   // the light's bloom, added after the grain, inside the painting only and never under the
   // text: a tight halo and a wide soft glow round each place's light (Home's the strongest), breathing slowly; it wraps
   // what stands in front of the light (thinner over dark ink), so the sun reads as a source, not a haze
@@ -2957,29 +2263,16 @@ void main() {
 #ifdef EL_HALO
   if (inWin > 0.0) {
     float bk = inWin * (1.0 - smoothstep(0.02, 0.3, veil)) * (1.0 - 0.7 * clearK) * glSun;
-    float u = p.x / HSW, kk = floor(u), add = 0.0, wa = 0.0;
+    float u = p.x / HSW, kk = floor(u), add = 0.0;
     for (int j = -1; j <= 1; j++) {
       vec4 Lj = lightK(kk + float(j));
       vec2 q = vec2((u - Lj.x) * HSW, p.y - Lj.y);
       float r = length(q) / max(Lj.z, 1e-3);
       float br = 1.0 + 0.08 * sin(uTime * 0.45 + float(j) * 1.7);
-      float mb = (uMorn < 8.0 && homeL(Lj)) ? smoothstep(0.85, 2.1, uMorn) : 1.0;   // (the morning: the bloom rises last)
-      add += (exp(-r * r * 3.2) * 0.075 + exp(-r * 1.5) * 0.04) * abs(Lj.w) * (homeL(Lj) ? 1.0 : 0.5) * br * mb;
-      wa += exp(-r * r * 0.45) * min(abs(Lj.w) * 1.4, 1.0) * mb;
+      add += (exp(-r * r * 3.2) * 0.075 + exp(-r * 1.5) * 0.04) * abs(Lj.w) * (homeL(Lj) ? 1.0 : 0.5) * br;
     }
     float lumB = dot(col, vec3(0.299, 0.587, 0.114));
-#ifdef EL_AIR
-    // one curve of light (a swell and a warmth): as the camera rises and as you read on the bloom grows and
-    // warms a little, the pale air round the light with it; a glow only, never the paper (masked off the veils, bk)
-    // (the swell widens the glow in the pale air only; it fades out before the core's own brightness, so the core never
-    // grows brighter than it is at rest)
-    vec3 addA = add * bk * mix(0.3, 1.0, smoothstep(0.35, 0.85, lumB)) * mix(vec3(0.975, 0.995, 1.0), vec3(1.0, 0.965, 0.9), uAir3.y);
-    col += addA;
-    col += addA * uAir3.x * (1.0 - smoothstep(0.86, 0.95, dot(col, vec3(0.299, 0.587, 0.114))));
-    col = mix(col, vec3(1.0, 0.975, 0.935), clamp(wa * uAir3.y * 0.22 * bk * smoothstep(0.72, 0.93, lumB), 0.0, 0.14));
-#else
     col += add * bk * mix(0.3, 1.0, smoothstep(0.35, 0.85, lumB)) * vec3(0.975, 0.995, 1.0);
-#endif
   }
 #endif
 
@@ -2992,20 +2285,5 @@ void main() {
   }
   // dither to kill banding in the long mist gradients
   col += (hash12(fc) - 0.5) / 255.0;
-#ifdef EL_SILK_VEIL
-  // a long jump's cross-dissolve: the last frame before the splice (uPrev, grabbed by gl.ts) dissolves
-  // into the new place through an fbm threshold as uHold falls 1 -> 0, with a breath of mist where the two meet
-  if (uHold > 0.0) {
-    vec3 pc = texelFetch(uPrev, ivec2(gl_FragCoord.xy), 0).rgb;
-    vec2 q = vec2(uv.x * aspect, uv.y) * 1.4 + vec2(uSweepSeed, 0.0);
-    float n = textureLod(uNoise, q * 0.5, 0.0).r * 0.7 + textureLod(uNoise, q * 1.4 + 0.5, 0.0).g * 0.3;
-    float nn = clamp((n - 0.5) / 0.32 + 0.5, 0.0, 1.0);
-    float r = uHold * 1.3 - 0.15;
-    float hk = 1.0 - smoothstep(r - 0.12, r + 0.12, nn);
-    float edge = hk * (1.0 - hk) * 4.0;
-    col = mix(col, pc, hk);
-    col = mix(col, MIST, edge * 0.35 * (1.0 - veil));
-  }
-#endif
   outColor = vec4(col, 1.0);
 }`;

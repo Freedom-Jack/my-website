@@ -9,7 +9,7 @@
  * Vectors are stored as 8-bit numbers (384 each). Run again whenever the words or the questions change (a unit test
  * fails while the index is older than the words):
  *
- *   npm run build:ask -- [--base http://127.0.0.1:3106] [--test "What did you build for insurers?"]
+ *   npm run build:ask -- [--base http://127.0.0.1:3100] [--test "What did you build for insurers?"]
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -26,10 +26,9 @@ import {
 } from '../src/features/ask/lines.ts';
 import { QUESTIONS } from '../src/features/ask/questions.ts';
 import { createTokenizer } from '../src/features/ask/tokenizer.ts';
+import { opt } from './lib.ts';
 
-const args = process.argv.slice(2);
-const opt = (k: string, d: string) => (args.includes(k) ? args[args.indexOf(k) + 1]! : d);
-const BASE = opt('--base', 'http://127.0.0.1:3106');
+const BASE = opt('--base', 'http://127.0.0.1:3100');
 const ROOT = path.resolve(import.meta.dirname, '..');
 const MODEL = path.join(ROOT, 'public/models/minilm');
 

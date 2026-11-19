@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { isSoftware } from './support/pages';
+import { isSoftware, PHONE } from './support/pages';
 
 /**
  * The live probe (features/landscape/probe.ts, 01-budgets.md "The painting's rules" as amended): on every device the
@@ -24,10 +24,12 @@ const engineRequests = (reqs: Req[], afterMs: number) =>
   reqs.filter((r) => (r.type === 'script' || r.type === 'other') && /\/_next\/static\//.test(r.url) && r.t > afterMs);
 
 /** The still stands for `reason` (R3: the probe's QA mark names it, so the zero-byte tests tell the checks apart on a
- *  software rasteriser too): data-live="still", no handle, no script fetched after the load, the still shown. */
-async function expectStillFor(page: Page, reqs: Req[], reason: string) {
+ *  software rasteriser too): data-live="still", no handle, no script fetched after the load, the still shown. `wait`
+ *  ms pass after the load first (the engine bytes are counted from the load all the same). */
+async function expectStillFor(page: Page, reqs: Req[], reason: string, wait = 0) {
   await page.waitForLoadState('load');
   const loadedAt = reqs.length ? Math.max(...reqs.map((r) => r.t)) : 0;
+  if (wait) await page.waitForTimeout(wait);
   await expect(page.locator('html')).toHaveAttribute('data-live', 'still', { timeout: 15_000 });
   expect(await page.evaluate(() => !!(window as unknown as { __ink?: unknown }).__ink)).toBe(false);
   expect(engineRequests(reqs, loadedAt), 'scripts requested after the page loaded').toEqual([]);
@@ -134,21 +136,9 @@ for (const quiet of ['reduced motion', 'Still the landscape', 'Save-Data'] as co
       });
     const { reqs } = watchRequests(page);
     await page.goto('/');
-    await page.waitForLoadState('load');
-    const loadedAt = reqs.length ? Math.max(...reqs.map((r) => r.t)) : 0;
     // (long enough for the import to have happened: first paint, the idle moment's 1.5 s ceiling, the probe's 1.5 s
     // and its retry)
-    await page.waitForTimeout(5500);
-    await expect(page.locator('html')).toHaveAttribute('data-live', 'still');
-    expect(await page.evaluate(() => !!(window as unknown as { __ink?: unknown }).__ink)).toBe(false);
-    expect(engineRequests(reqs, loadedAt), 'scripts requested after the page loaded').toEqual([]);
-    // the still is the painting: sharp and shown
-    const still = page.locator('[data-landscape="strip"] .strip__still--seed img');
-    await expect(still).toHaveCount(1);
-    expect(await still.evaluate((e) => getComputedStyle(e.closest('.strip__still')!).opacity)).toBe('1');
-    // (R3: the reason is asserted, not inferred: the probe's QA mark names it)
-    const marks = await page.evaluate(() => performance.getEntriesByType('mark').map((m) => m.name));
-    expect(marks).toContain(quiet === 'Save-Data' ? 'ink:still:save-data' : 'ink:still:quiet');
+    await expectStillFor(page, reqs, quiet === 'Save-Data' ? 'save-data' : 'quiet', 5500);
   });
 }
 
@@ -192,7 +182,7 @@ test.describe('the still in the HTML', () => {
     expect(reqs.filter((r) => /\/scenes\/hero\/home-phone/.test(r.url))).toEqual([]);
   });
   test.describe('a phone', () => {
-    test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+    test.use(PHONE);
     test('Home: the inline seed is the sharp @1x still itself (R9); the @2x is fetched once, at low priority', async ({
       page,
     }) => {
@@ -262,7 +252,7 @@ for (const [width, dpr] of [
   });
 
 test.describe('a phone, an inner page', () => {
-  test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+  test.use(PHONE);
   test('Work: the ~1 KB seed alone on the first screen; no sharp still is requested (R12)', async ({ page }) => {
     const { reqs } = watchRequests(page);
     const res = await page.goto('/work/');

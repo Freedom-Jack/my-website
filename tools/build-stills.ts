@@ -4,10 +4,11 @@
  * hidden: public/scenes/glimpse/<page>-<j>@1x|2x.webp + public/scenes/manifest.json. (The footer story map's five
  * place stills went with it in the vanguard round: the lead's ruling R12; nothing read them since P2's tail.)
  *
- *   NEXT_PUBLIC_INK_QA=1 npm run build && npm start     a QA build (it exposes the engine as window.__inkEngine)
- *   npm run build:stills                                cut them all; needs Google Chrome (headless, SwiftShader)
- *   npm run build:stills -- --preview <dir>             also keep the raw crops (outside the repo)
- *   npm run build:stills -- --check                     no browser: exit 1 when the stills are stale (CI)
+ *   NEXT_PUBLIC_INK_QA=1 npm run build && npm start -- -p 3100   a QA build (it exposes window.__inkEngine)
+ *   npm run build:stills                                          cut them all; needs Google Chrome (headless,
+ *                                                                 SwiftShader)
+ *   npm run build:stills -- --preview <dir>                       also keep the raw crops (outside the repo)
+ *   npm run build:stills -- --check                               no browser: exit 1 when the stills are stale (CI)
  *
  * Per page with windows (GLIMPSE_PAGES): opens it with "Still the landscape" on, scrolls each window to the middle of
  * the view, waits on the engine's own stats() (no fixed delays) until that window is painted and the loop is quiet,
@@ -18,20 +19,14 @@
  * each file's hash with the manifest and checks the size caps. Exit 1 = stale: regenerate.
  * REGENERATE AFTER ANY ENGINE, SET, PALETTE, PLACE OR STRIP-HEIGHT CHANGE.
  */
-import { createHash } from 'node:crypto';
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { chromium, type Page } from '@playwright/test';
+import { chromium } from '@playwright/test';
 import { PLACES as SITE_PLACES } from '../src/features/landscape/places.ts';
+import { flag, opt, plainWebp, rel, sha, waitFor, walk } from './lib.ts';
 
 const ROOT = process.cwd();
-const args = process.argv.slice(2);
-const flag = (name: string) => args.includes(name);
-const opt = (name: string, d: string) => {
-  const i = args.indexOf(name);
-  return i >= 0 && args[i + 1] ? args[i + 1]! : d;
-};
 
 const DENSITIES = [1, 2] as const;
 const STABLE_MS = 1500; // two captures this far apart must match before a still is cut
@@ -67,7 +62,7 @@ const GLIMPSE_SETTLE_JS = `(async ([n, j]) => {
   await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
   const h = window.__ink; if (!h) return false;
   const s = h.stats();
-  if (s.arriving || s.pending || s.sweeping || s.deferred || !s.still) return false;
+  if (s.arriving || s.pending || s.sweeping || !s.still) return false;
   const l = (s.glimpses && s.glimpses.list || []).filter((g) => !g.end && Number.isFinite(g.doc) && g.doc > 0);
   return l.length === n && l[j] && l[j].painted && l[j].live ? 'settled' : false;
 })`;
@@ -86,16 +81,6 @@ const GLIMPSE_ENCODE_JS = `(async ([b64, sizes, quality]) => {
 })`;
 
 // ------------------------------------------------------------------------------------------------ inputs and hashes
-const rel = (p: string) => path.relative(ROOT, p).split(path.sep).join('/');
-const sha = (data: string | Uint8Array) => createHash('sha256').update(data).digest('hex');
-
-function walk(dir: string): string[] {
-  return readdirSync(dir).flatMap((f) => {
-    const p = path.join(dir, f);
-    return statSync(p).isDirectory() ? walk(p) : [p];
-  });
-}
-
 /** Every input that shapes the stills, as [label, sha256] pairs, sorted by label. */
 function inputs(): [string, string][] {
   const items: [string, string][] = [];
@@ -129,36 +114,6 @@ function inputs(): [string, string][] {
   return items.sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
 }
 const inputHash = (items: [string, string][]) => sha(items.map(([a, b]) => `${a} ${b}`).join('\n'));
-
-/**
- * Chrome's encoder wraps the image in VP8X with an ICC profile (sRGB, ~0.5 KB). Keep only the lossy bitstream
- * ('VP8 ' in a bare RIFF/WEBP: untagged means sRGB): smaller, and no metadata chunk of any kind.
- */
-function plainWebp(data: Buffer): Buffer {
-  if (data.toString('latin1', 0, 4) !== 'RIFF' || data.toString('latin1', 8, 12) !== 'WEBP')
-    throw new Error('not a WebP');
-  const chunks = new Map<string, Buffer>();
-  let i = 12;
-  while (i + 8 <= data.length) {
-    const tag = data.toString('latin1', i, i + 4);
-    const n = data.readUInt32LE(i + 4);
-    if (!chunks.has(tag)) chunks.set(tag, data.subarray(i + 8, i + 8 + n));
-    i += 8 + n + (n & 1);
-  }
-  const body = chunks.get('VP8 ');
-  if (!body || chunks.has('ALPH') || chunks.has('ANIM')) return data; // not the simple lossy case: leave it whole
-  const size = Buffer.alloc(4);
-  size.writeUInt32LE(body.length);
-  const vp8 = Buffer.concat([
-    Buffer.from('VP8 ', 'latin1'),
-    size,
-    body,
-    body.length & 1 ? Buffer.alloc(1) : Buffer.alloc(0),
-  ]);
-  const riff = Buffer.alloc(4);
-  riff.writeUInt32LE(4 + vp8.length);
-  return Buffer.concat([Buffer.from('RIFF', 'latin1'), riff, Buffer.from('WEBP', 'latin1'), vp8]);
-}
 
 interface Manifest {
   about?: string;
@@ -218,15 +173,6 @@ function check(): number {
 }
 
 // ------------------------------------------------------------------------------------------------ build
-async function waitFor(page: Page, fn: string, arg: unknown, what: string, timeout: number) {
-  const until = Date.now() + timeout;
-  while (Date.now() < until) {
-    if (await page.evaluate(`${fn}(${JSON.stringify(arg)})`)) return;
-    await page.waitForTimeout(150);
-  }
-  throw new Error(`${what}: not settled in ${timeout} ms`);
-}
-
 async function build(): Promise<number> {
   const base = opt('--base', 'http://127.0.0.1:3100');
   const timeout = Number(opt('--timeout', '90000'));
@@ -240,7 +186,7 @@ async function build(): Promise<number> {
   const glimpseFiles = { ...man.glimpses };
   const report: Record<string, unknown>[] = [];
 
-  const browser = await chromium.launch({ ...(process.env.CI ? {} : { channel: 'chrome' }), args: CHROME_ARGS });
+  const browser = await chromium.launch({ channel: 'chrome', args: CHROME_ARGS });
   try {
     await mkdir(GLIMPSE_DIR, { recursive: true });
     const gctx = await browser.newContext({
@@ -253,8 +199,6 @@ async function build(): Promise<number> {
       (window as unknown as { __inkLive?: boolean }).__inkLive = true;
       try {
         localStorage.setItem('ink:still', '1');
-        sessionStorage.setItem('ink:morning', '1');
-        sessionStorage.setItem('ink:swash', '1');
       } catch {
         /* private mode */
       }

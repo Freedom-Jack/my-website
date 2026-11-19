@@ -12,8 +12,7 @@ import { z } from 'zod';
 
 /** Where a figure comes from (A1): only a `public-source` figure may link out from its measure; a `projected` one never
  *  sits in a figure column (it stays in prose, with the word "projected"). */
-export const FIGURE_BASES = ['public-source', 'internal', 'projected'] as const;
-export type FigureBasis = (typeof FIGURE_BASES)[number];
+const FIGURE_BASES = ['public-source', 'internal', 'projected'] as const;
 
 const link = z.object({ label: z.string().min(1), url: z.url() }).strict();
 

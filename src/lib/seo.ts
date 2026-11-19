@@ -33,9 +33,8 @@ export function pageMetadata(
   path: string,
   {
     type = 'website',
-    noindex = false,
     alternates,
-  }: { type?: 'website' | 'profile' | 'article'; noindex?: boolean; alternates?: Metadata['alternates'] } = {},
+  }: { type?: 'website' | 'profile' | 'article'; alternates?: Metadata['alternates'] } = {},
 ): Metadata {
   const image = card(path);
   // every page advertises the writing's feed (a page's own alternates, the Résumé's PDF and JSON, add to it)
@@ -47,7 +46,6 @@ export function pageMetadata(
     title: meta.title,
     description: meta.description,
     alternates: { canonical: absolute(path), ...alternates, types },
-    robots: noindex ? { index: false, follow: true } : undefined,
     openGraph: {
       type,
       siteName: site.name,

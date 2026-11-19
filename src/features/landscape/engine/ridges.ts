@@ -1,7 +1,6 @@
 // ridges.ts — ridge profiles for the ink landscape, shared by the WebGL painter (uploaded as a
 // small RGBA16F texture: crest height, smoothed slope, broad crest; plus two scene rows: water,
-// waterline, technique, strokes, reflection, banks), the Canvas2D fallback (drawn as paths) and the
-// footer strip (strip.ts).
+// waterline, technique, strokes, reflection, banks) and the Canvas2D fallback (drawn as paths).
 //
 // Heights are sampled in WORLD x (stretch units, see compose.ts), so the same mountains slide
 // across the screen when the camera pans: ridges stay continuous from one stretch to the next.
@@ -252,7 +251,7 @@ export function buildRidges(samples: number, view: RidgeView, P: Resolved, out?:
 }
 
 /** The world window a ridge buffer is built for (buildRidges). */
-export interface RidgeView {
+interface RidgeView {
   left: number;
   wvis: number;
   aspect: number;

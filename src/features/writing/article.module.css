@@ -223,7 +223,6 @@
 @media (min-width: 75rem) {
   .prose > :global(.table-wrap) {
     inline-size: min(var(--frame), 100vw - 2 * var(--gutter-x));
-    max-inline-size: none;
   }
 }
 .prose :global(.table) :global(thead) :global(th):first-child {

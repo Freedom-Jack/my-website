@@ -4,7 +4,7 @@
  * The old résumé PDF (it carried a phone number) goes to the résumé PAGE, never to the new /resume.pdf:
  * an old link should land on the page, not silently on a different file.
  */
-export interface Redirect {
+interface Redirect {
   from: string;
   to: string;
 }

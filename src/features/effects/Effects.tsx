@@ -8,8 +8,6 @@ import { initFinish } from './finish';
 /**
  * The small effects, bound to the DOM the server rendered (it reads the same without them): per page, its
  * <main>'s diagram draw-ins and the finish (the row rule, the diagram's flow dot), unbound when the page goes.
- * The vanguard round retired the seal's stamp, the name's settle and swash, the brush links, the ink buttons and
- * the nav's mark: the first screen is finished at first paint, and jade is a mark, never a gesture.
  * Rendered last in the root layout, so it runs after the page's own components have laid out.
  */
 export function Effects() {

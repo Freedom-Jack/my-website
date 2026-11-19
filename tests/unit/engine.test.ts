@@ -15,7 +15,7 @@ import {
   resolve,
   spec,
 } from '@/features/landscape/engine/compose';
-import { PALETTES, PIGMENTS, paletteName, pigmentAt } from '@/features/landscape/engine/palette';
+import { PALETTES, paletteName, pigmentAt } from '@/features/landscape/engine/palette';
 
 describe('the landscape engine, pure parts', () => {
   it('names each stretch of the one handscroll', () => {
@@ -133,13 +133,9 @@ describe('the landscape engine, pure parts', () => {
       expect(f[1], `waterline at u ${u.toFixed(2)}`).toBeCloseTo(0.29, 2);
     }
   });
-  it('keeps the paper cool and cinnabar for the seal only (no pigment is red or warm)', () => {
-    expect(Object.keys(PALETTES)).toEqual(['ink', 'misted', 'rich']);
+  it('paints with one palette, misted (any other name falls back to it), and reads its pigments along the scroll', () => {
+    expect(Object.keys(PALETTES)).toEqual(['misted']);
     expect(paletteName('nonsense')).toBe('misted');
-    const hex = Object.values(PIGMENTS)
-      .flat()
-      .filter((v) => typeof v === 'string') as string[];
-    expect(hex.map((h) => h.toUpperCase())).not.toContain('#B1362B');
     const c = pigmentAt(0.5, 'misted');
     expect(c).toHaveLength(3);
   });

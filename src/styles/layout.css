@@ -16,9 +16,6 @@
   width: min(var(--frame), 100% - 2 * var(--gutter-x));
   margin-inline: auto;
 }
-main {
-  display: block;
-}
 .bleed {
   margin-inline: calc(50% - 50vw);
 }
@@ -28,7 +25,7 @@ main {
    Work · Writing · Résumé · Contact, the painting's order; under the row the river line (components/layout/RiverLine).
    In normal flow, on paper, directly above the strip.
      <header class="site-header"><div class="site-header__inner frame">
-       <a class="home-link" href="/"><span class="home-link__name">Qijin Xu</span><span class="visually-hidden">, home</span></a>
+       <a class="home-link" href="/"><span>Qijin Xu</span><span class="visually-hidden">, home</span></a>
        <nav class="site-nav" aria-label="Main"><ul class="site-nav__list" role="list">…</ul></nav>
        <div class="river" aria-hidden="true"><span class="river__tick" data-stop="0"></span>…<span class="river__mark"></span></div>
      </div></header>
@@ -61,7 +58,6 @@ main {
   letter-spacing: 0.005em;
   color: var(--ink-1);
   text-decoration: none;
-  -webkit-tap-highlight-color: transparent;
 }
 .home-link:focus-visible {
   outline-offset: 3px;
@@ -273,7 +269,7 @@ main {
 /* ==========================================================================
    The painted strip (the vanguard round's first screen). Every page opens on a short, unframed,
    full-bleed band of its own scene; the engine paints it into .strip__art's box.
-     <header class="strip strip--home|sub|doc" aria-labelledby="…">
+     <header class="strip strip--home|sub" aria-labelledby="…">
        <div class="strip__art bleed" data-landscape="strip" data-wake aria-hidden="true"><picture class="strip__still">…</picture></div>
        <div class="strip__text" data-landscape="keepout" data-veil="0.85"> h1 + p … </div>
      </header>
@@ -287,7 +283,6 @@ main {
        (the keep-out: no colour or figures under it) and, when it is taller than the band (Home's first screen, a
        long case title), runs on down onto the paper below. The scene's figures stand to its right.
      below 1200: the art first, then the text on paper below it.
-     (doc, a low art-only band, is unused since round 5.)
    ========================================================================== */
 .strip {
   position: relative;
@@ -298,12 +293,9 @@ main {
 .strip--sub {
   --strip-h: var(--strip-sub);
 }
-.strip--doc {
-  --strip-h: var(--strip-doc);
-}
 .strip__art {
   position: relative; /* (the still's box) */
-  min-height: var(--strip-h, var(--strip-sub));
+  min-height: var(--strip-h);
 }
 /* The hero's still (components/page/Strip `still`): the strip's first frame as build:heroes cut it at this width
    class, the first screen's painting from the first paint (and the painting without JS or WebGL), over the art
@@ -387,9 +379,6 @@ html.is-still .strip__still {
 .strip__text > :is(h1, .name, .page-title) + * {
   margin-block-start: 0.875rem;
 }
-.strip__text > .lead + .lead {
-  margin-block-start: 0.75rem;
-}
 
 @media (min-width: 75rem) {
   .strip--home,
@@ -408,7 +397,6 @@ html.is-still .strip__still {
     z-index: 1;
     align-self: start;
     max-width: var(--strip-text-max);
-    padding-block: var(--space-m) var(--space-m);
   }
   /* every subpage's title starts at the same height: 240 px above the band's foot, so the title and a two-line intro
      end inside the band and a longer block (a case's two-line title and its facts) runs onto the paper below it */
@@ -495,9 +483,6 @@ html.no-landscape .closing__art {
   font-size: var(--fs-small);
   line-height: var(--lh-small);
   color: var(--ink-3);
-}
-.first__figure .fig {
-  font-size: var(--fs-figure);
 }
 .first__measure {
   max-width: 24em;
@@ -600,52 +585,15 @@ html.no-landscape .closing__art {
      <section class="sec" aria-labelledby="x-title" data-veil>
        <h2 class="sec__title" id="x-title">…</h2> <p>…</p> …
      </section>
-   Children are capped at the reading column (680) unless .wide (960: tables, diagrams).
+   Children are capped at the reading column (680).
    ========================================================================== */
-.sec {
-  margin-block-start: var(--space-section);
-}
 .sec > * {
   max-width: var(--measure-read);
-}
-.sec > :is(.wide, .table-wrap, figure.diagram) {
-  max-width: var(--measure-wide);
 }
 .sec > * + * {
   margin-block-start: var(--space-para);
 }
-.sec > .sec__title + * {
-  margin-block-start: var(--space-head);
-}
-.wide {
-  max-width: var(--measure-wide);
-}
 
-/* h2: the body face in bold (the heavy condensed face is for the name, the page titles and the figures only) */
-.sec__title {
-  font-family: var(--font-body);
-  font-size: var(--fs-h2);
-  font-weight: var(--w-strong);
-  line-height: var(--lh-h2);
-  letter-spacing: -0.01em;
-  color: var(--ink-1);
-}
-.sec__title--item {
-  font-size: var(--fs-item);
-  line-height: var(--lh-item);
-  letter-spacing: 0;
-} /* e.g. Work's "Six projects, newest first" */
-/* a date inside a heading: "Now · October 2026" */
-.sec__date {
-  margin-inline-start: 0.5em;
-  vertical-align: baseline;
-  font-size: var(--fs-small);
-  font-weight: var(--w-body);
-  line-height: 1;
-  letter-spacing: 0;
-  color: var(--ink-3);
-  white-space: nowrap;
-}
 /* h3 inside a section ("Early work, 2019–2020", "Recent") */
 .sec__sub {
   font-family: var(--font-body);
@@ -654,16 +602,10 @@ html.no-landscape .closing__art {
   line-height: var(--lh-item);
   color: var(--ink-1);
 }
-.sec > .sec__sub {
-  margin-block-start: var(--space-item);
-}
-.sec > .sec__sub + * {
-  margin-block-start: var(--space-head);
-}
 
 /* page titles (h1): the name face at 56 → 96 (a case's or a note's long title at 40 → 72), in ink */
 .page-title {
-  font-family: var(--font-display);
+  font-family: var(--font-name);
   font-size: var(--fs-title);
   font-weight: 900;
   line-height: var(--lh-title);
@@ -690,32 +632,6 @@ html.no-landscape .closing__art {
   margin-inline-start: -0.03em; /* the Q's side bearing: the stem sits on the frame's edge */
   padding-block-end: 0.06em; /* the Q's tail and the j's descender clear the lead */
 }
-/* his seal beside his name (round 6): on the name's baseline, a quarter of its height, as a painter's seal stands by
-   the signature; stamped once as the page arrives */
-html:not(.el-nameSeal) .name .seal {
-  display: none;
-}
-.name .seal {
-  display: inline-block;
-  width: 0.215em;
-  margin-inline-start: 0.07em;
-  vertical-align: 0.015em;
-}
-@media (prefers-reduced-motion: no-preference) {
-  html:not(.is-still) .name .seal {
-    animation: seal-stamp 560ms cubic-bezier(0.2, 0.9, 0.3, 1) 700ms both;
-  }
-}
-@keyframes seal-stamp {
-  from {
-    opacity: 0;
-    scale: 1.28;
-    rotate: -5deg;
-  }
-  60% {
-    opacity: 1;
-  }
-}
 
 .lead {
   font-size: var(--fs-lead);
@@ -729,9 +645,6 @@ html:not(.el-nameSeal) .name .seal {
   font-variant-numeric: lining-nums tabular-nums;
   color: var(--ink-3); /* 7.7:1 on paper, 6.3:1 on mist-2 */
 }
-.small--quiet {
-  color: var(--ink-4);
-} /* 5.1:1: plain paper only */
 
 /* ---------- tap targets (every link and button >= 44 × 44) ----------
    A standalone link shorter than 44 px (an action row's quiet link, a "… →" line) gets an invisible
@@ -759,8 +672,7 @@ html:not(.el-nameSeal) .name .seal {
   align-items: baseline; /* the action and the quiet link share a baseline */
   gap: 0.75rem 1.75rem;
 }
-.strip__text > .actions,
-.sec > .actions {
+.strip__text > .actions {
   margin-block-start: var(--space-m);
 }
 
@@ -821,17 +733,13 @@ html:not(.el-nameSeal) .name .seal {
 .more {
   margin-block-start: var(--space-s);
 }
-.sec > .more {
-  margin-block-start: var(--space-s);
-}
 
 /* ---------- the margin rail (wide only): .has-rail ----------
    A two-column grid: the reading column (680) and the rail (300), 48 apart. Children sit in the reading
-   column; margin notes in the rail beside the paragraph they follow; .wide blocks span both (capped at 960).
+   column; margin notes in the rail beside the paragraph they follow.
    Placement is in source order (sparse auto-flow, never `dense`, which would pile the notes at the top): a
    note that follows a paragraph shares its row. Nested lists opt in by subgrid: a case's .case__body and
-   its .case__part sections (and any .rail-sub) carry the rail through, so a note inside a part still reaches the
-   rail. */
+   its .case__part sections carry the rail through, so a note inside a part still reaches the rail. */
 @media (min-width: 75rem) {
   .has-rail {
     display: grid;
@@ -840,23 +748,11 @@ html:not(.el-nameSeal) .name .seal {
     align-items: start;
   }
   /* zero specificity, so a margin note's own rule (components.css) puts it in the rail */
-  :where(
-    .has-rail > *,
-    .has-rail .rail-sub > *,
-    .has-rail > .case__body > *,
-    .has-rail > .case__body > .case__part > *
-  ) {
+  :where(.has-rail > *, .has-rail > .case__body > *, .has-rail > .case__body > .case__part > *) {
     grid-column: 1;
     min-width: 0;
     max-width: none;
   }
-  .has-rail > .wide,
-  .has-rail > .table-wrap,
-  .has-rail > figure.diagram {
-    grid-column: 1 / -1;
-    max-width: var(--measure-wide);
-  }
-  .has-rail .rail-sub,
   .has-rail > .case__body,
   .has-rail > .case__body > .case__part {
     display: grid;
@@ -877,67 +773,6 @@ html:not(.el-nameSeal) .name .seal {
     grid-row: 1;
     inset-block-start: 0;
     inset-inline: 0;
-  }
-}
-
-/* ==========================================================================
-   The ending (components/page/NextPlace): every page but Contact and the 404 ends on one line pointing downstream,
-   the next place in the painting's order: the label in mono, the next place's name in the name face as the link
-   (with its arrow), and that page's own sentence. A real link; the page change is the painting's own pan.
-     <aside class="next" aria-label="Downstream: Work"><p class="next__head"><span class="next__label mono">Downstream</span>
-       <a class="next__link" href="/work/">Work</a></p><p class="next__line">…</p></aside>
-   ========================================================================== */
-.next {
-  max-width: var(--measure-read);
-  margin-block-start: var(--space-section);
-  padding-block-start: 1.25rem;
-  border-top: 1px solid var(--ink-1);
-}
-.next__head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  column-gap: 1rem;
-  row-gap: 0.25rem;
-}
-.next__label {
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-}
-.next__link {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.35em;
-  min-height: 44px;
-  font-family: var(--font-name);
-  font-weight: 900;
-  font-size: clamp(2.5rem, 1.8rem + 2.8vw, 3.75rem); /* 40 → 60 */
-  line-height: 1;
-  color: var(--ink-1);
-  text-decoration: none;
-}
-.next__link .action__arrow {
-  width: 0.75em;
-  height: 0.38em;
-  translate: 0 -0.08em;
-}
-.next__link:hover,
-.next__link:focus-visible {
-  text-decoration: underline;
-  text-decoration-thickness: 3px;
-  text-underline-offset: 0.08em;
-}
-.next__link:hover .action__arrow {
-  translate: 0.1em -0.08em;
-}
-.next__line {
-  margin-block-start: 0.5rem;
-  color: var(--ink-2);
-  max-width: 36em;
-}
-@media (forced-colors: active) {
-  .next {
-    border-color: CanvasText;
   }
 }
 
@@ -965,7 +800,7 @@ html:not(.el-nameSeal) .name .seal {
 /* ==========================================================================
    Windows into the painting (components/page/Glimpse; elements.ts glimpses): below 1200 px, at a page's major
    breaks, a short box the engine paints with the page's own place, each one further along the place (east and level
-   under the unroll; higher in one climb under the camera's travel: a handscroll unrolled down the page). It takes the
+   under the unroll: a handscroll unrolled down the page). It takes the
    section's gap (the section after it sits directly under it), so a break costs the reader about one window's height;
    its top and bottom 40 px are mist and paper (the painting keeps 40 px off the words on either side). Phones: a
    full-bleed 180 px box; tablets: the column's width (at most 40 rem) with paper on either side; a phone held
@@ -1052,61 +887,17 @@ html:not(.el-nameSeal) .name .seal {
 
 /* ==========================================================================
    The tail (components/layout/Tail; the footer, on every page): the colophon line, the build stamp in mono,
-   "Still the landscape", the five names in the painting's order (the current one marked), the email, and last the
-   one seal: the only red on the page and the only Chinese character on the site, a path. On paper; nothing here
-   moves. One register: no © line, no caption under the seal.
-     <footer class="site-footer tail"><div class="frame">
-       <p class="tail__colophon">…</p>
-       <p class="tail__stamp mono">Build 2026-11-12 · c974780 · Last changed October 2026</p>
-       <div class="tail__base"><p class="tail__still"><button class="still-toggle">Still the landscape</button></p>
-         <nav class="tail__names" aria-label="All pages"><ul role="list">…</ul></nav>
-         <p class="tail__mail"><a href="mailto:…">qxjack@gmail.com</a></p></div>
-       <p class="tail__seal"><span class="seal">…</span></p>
-       <p class="visually-hidden" id="route-announcer" aria-live="polite"></p>
-     </div></footer>
+   "Still the landscape", the email, and last the one seal: the only red on the page and the only Chinese character
+   on the site, a path. On paper. One register: no © line, no caption under the seal. Its markup and its layout:
+   body.css; here, its type and its controls' 44 px rows.
    ========================================================================== */
 .site-footer {
-  margin-block-start: var(--space-section);
-  padding-block: var(--space-m) max(var(--space-l), env(safe-area-inset-bottom, 0px));
   font-family: var(--font-body);
   font-size: var(--fs-small);
   font-weight: var(--w-body);
   line-height: var(--lh-small);
   color: var(--ink-3);
 }
-/* after a closing scene the art's feather is the gap */
-main:has(> .closing:last-child) + .site-footer {
-  margin-block-start: var(--space-2xs);
-}
-.tail > .frame {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr); /* (an implicit column would take a line's max-content width: sideways) */
-  gap: 0.75rem;
-  padding-block-start: var(--space-m);
-  border-top: 1px solid var(--rule);
-}
-.tail > .frame > * {
-  margin: 0;
-}
-.tail__colophon {
-  max-width: 44em;
-  color: var(--ink-2);
-}
-.tail__base {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  column-gap: 1.75rem;
-  row-gap: 0.25rem;
-}
-.tail__names ul {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  column-gap: 0.75rem;
-  margin-inline-start: -0.25rem; /* (each name's 44 px box pads it by 0.25rem: the first word stays on the frame's edge) */
-}
-.tail__names a,
 .tail__mail a,
 .tail .still-toggle,
 .tail .scroll-opener {
@@ -1114,24 +905,6 @@ main:has(> .closing:last-child) + .site-footer {
   align-items: center;
   min-block-size: 44px;
   color: var(--ink-2);
-}
-.tail__names a {
-  justify-content: center;
-  min-inline-size: 44px; /* a 44 × 44 target round a short name ("Home", "Work") */
-  padding-inline: 0.25rem;
-  text-decoration: none;
-  font-weight: var(--w-ui);
-}
-.tail__names a:hover,
-.tail__names a:focus-visible,
-.tail__names a[aria-current] {
-  color: var(--ink-1);
-}
-.tail__names a[aria-current] {
-  text-decoration: underline;
-  text-decoration-color: var(--ink-1);
-  text-decoration-thickness: 2px;
-  text-underline-offset: 0.3em;
 }
 .tail__mail a {
   color: var(--ink-1);
@@ -1158,19 +931,8 @@ main:has(> .closing:last-child) + .site-footer {
 html:not(.js) .tail__still {
   display: none;
 } /* it does nothing without JS */
-.tail__seal {
-  margin-block-start: 0.25rem;
-}
-.tail__seal .seal {
-  width: 2rem;
-}
 .tail time {
   white-space: nowrap;
-}
-@media (forced-colors: active) {
-  .tail > .frame {
-    border-color: CanvasText;
-  }
 }
 
 /* The 404: the far end of the handscroll (stretch 5). The page is short, so the tail (its names are
@@ -1179,7 +941,6 @@ html:not(.js) .tail__still {
 body:has(> main[data-page='not-found']) {
   display: flex;
   flex-direction: column;
-  min-height: 100svh;
 }
 body > main[data-page='not-found'] {
   flex: 1 0 auto;
@@ -1201,8 +962,6 @@ body:has(> main[data-page='not-found']) > .site-footer {
     line-height: var(--lh-small);
     color: var(--ink-3);
   }
-}
-@media print {
   .site-footer {
     display: none;
   }

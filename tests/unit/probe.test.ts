@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
  * The live probe's rollback watch (features/landscape/probe.ts), R4 of 01-budgets.md as amended after P1: two rAF
  * deltas over the limit inside a rolling second hand the page back to its still; the limit is 33 ms during the
  * painting's own motion (a pan, an arrival, a sweep), 20 ms once settled, and 0 (not counted) while the engine is
- * deferred or pending for another reason. Run on a fake requestAnimationFrame and clock, with no DOM.
+ * pending for another reason. Run on a fake requestAnimationFrame and clock, with no DOM.
  */
 type Frame = (t: number) => void;
 
@@ -47,9 +47,8 @@ describe('the rollback watch (probe.ts limitFor and watchFrames)', () => {
     return calls;
   }
 
-  it('limitFor: 0 deferred or pending, 33 in the painting’s own motion, 20 settled', async () => {
+  it('limitFor: 0 pending, 33 in the painting’s own motion, 20 settled', async () => {
     const { limitFor } = await import('@/features/landscape/probe');
-    expect(limitFor({ deferred: true, panning: true })).toBe(0);
     expect(limitFor({ panning: true })).toBe(33);
     expect(limitFor({ arriving: true })).toBe(33);
     expect(limitFor({ sweeping: true, pending: true })).toBe(33);
@@ -57,7 +56,7 @@ describe('the rollback watch (probe.ts limitFor and watchFrames)', () => {
     expect(limitFor({})).toBe(20);
     expect(limitFor(null)).toBe(20);
   });
-  it('two 34 ms frames during a pan return the still, and the mark names the motion', async () => {
+  it('two 34 ms frames during a pan return the still, and onSlow says they were motion', async () => {
     expect(await run([34, 34], () => 33)).toEqual([true]);
   });
   it('25 ms frames during a pan are within its limit', async () => {
@@ -69,7 +68,7 @@ describe('the rollback watch (probe.ts limitFor and watchFrames)', () => {
   it('one slow frame alone is not two in a second', async () => {
     expect(await run([25, 16, 16, 16, 16], () => 20)).toEqual([]);
   });
-  it('frames while the engine is pending or deferred are not counted', async () => {
+  it('frames while the engine is pending are not counted', async () => {
     expect(await run([60, 60, 60], () => 0)).toEqual([]);
   });
   it('the second slow frame must fall within a rolling second of the first', async () => {

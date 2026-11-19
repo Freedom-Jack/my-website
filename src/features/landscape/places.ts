@@ -11,15 +11,6 @@
  * prepare the destination's painting before the new page arrives, so the two never disagree.
  */
 
-// (with its extension: tools/build-stills.ts loads this file in Node's own TypeScript, which resolves no bare paths)
-import { ELEMENTS } from './elements.ts';
-
-/** The scroll motion (elements.ts unroll, or the camera's travel): every page on the map is a living ground; with
- *  neither on, only Home and Work are (4b). */
-const TRAVEL: 'living' | '' = ELEMENTS.unroll || ELEMENTS.cameraTravels ? 'living' : '';
-/** The unroll: the deep pages (a case, a note) are living ground too, and open inside their place (`inside`). */
-const DEEP: 'living' | '' = ELEMENTS.unroll ? 'living' : '';
-
 export type Distance = 'level' | 'high' | 'deep';
 export type PageId = 'home' | 'work' | 'case' | 'writing' | 'article' | 'resume' | 'contact' | 'not-found';
 
@@ -38,14 +29,13 @@ export interface Place {
   presence: number;
   /** 0..1: the desktop ink horizon's presence between the strip and the closing. */
   horizon: number;
-  /** 'living' (Home, Work): the page's own scene is its ground on wide screens painted by a hardware GPU. */
+  /** 'living' (every page on the map): the page's own scene is its ground on wide screens painted by a hardware GPU. */
   ground: 'living' | '';
   /**
    * The hero's kind (round 5: one hero system): home (the landing page's tall hero) or sub (every other page: the
-   * same height, the title at the same place). 'doc' (the low art-only band the Résumé and the Note had)
-   * is unused; it and the engine's framing for it go once Jack approves the round-5 heroes.
+   * same height, the title at the same place).
    */
-  strip: 'home' | 'sub' | 'doc';
+  strip: 'home' | 'sub';
   /**
    * Every page on the map ends the same way: on its own closing scene, a different view of the same place, then
    * the footer's story map. The 404 lies off the map, so its path just ends in mist (no closing).
@@ -88,10 +78,10 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
     presence: 1,
     horizon: 0.55,
     // (the unroll: a case is a living ground too, and opens inside the town, east of the bridge)
-    ground: DEEP,
+    ground: 'living',
     strip: 'sub',
     closing: true,
-    inside: !!DEEP,
+    inside: true,
   },
   writing: {
     page: 'writing',
@@ -99,7 +89,7 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
     distance: 'level',
     presence: 1,
     horizon: 0.5,
-    ground: TRAVEL,
+    ground: 'living',
     strip: 'sub',
     closing: true,
   },
@@ -110,10 +100,10 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
     presence: 1,
     horizon: 0.35,
     // (the unroll: a note opens inside the lake, the pavilion close)
-    ground: DEEP,
+    ground: 'living',
     strip: 'sub',
     closing: true,
-    inside: !!DEEP,
+    inside: true,
   },
   resume: {
     page: 'resume',
@@ -121,7 +111,7 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
     distance: 'level',
     presence: 1,
     horizon: 0.35,
-    ground: TRAVEL,
+    ground: 'living',
     strip: 'sub',
     closing: true,
   },
@@ -131,7 +121,7 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
     distance: 'level',
     presence: 1,
     horizon: 0.5,
-    ground: TRAVEL,
+    ground: 'living',
     strip: 'sub',
     closing: true,
   },

@@ -125,7 +125,7 @@ function caseBody(tree) {
     if (n.type === 'element' && n.tagName === 'h2') {
       const label = toString(n).trim();
       part = slug(label);
-      dd = el('section', { className: ['case__part'], dataPart: part }, [
+      dd = el('section', { className: ['case__part'] }, [
         el('h2', { className: ['case__label'], id: n.properties?.id }, n.children),
       ]);
       dl.children.push(dd);

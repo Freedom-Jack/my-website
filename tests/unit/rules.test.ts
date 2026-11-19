@@ -5,7 +5,6 @@ import { choose, denied, group, lineErrors, parseOverrides, repoSchema, type Rep
 import { CJK, findBreaches, PHONE } from '@/lib/compliance';
 import { redirects } from '@/lib/redirects';
 import { normPath, PLACES, placeForPath, STORY_MAP } from '@/features/landscape/places';
-import { ELEMENTS } from '@/features/landscape/elements';
 import { careerYears, fillTokens, typeset } from '@/lib/typography';
 import { plain } from '@/lib/markup';
 import { longDate, monthYear, shortMonthYear } from '@/lib/dates';
@@ -133,32 +132,24 @@ describe('places (features/landscape/places)', () => {
     expect(placeForPath('/contact/').stretch).toBe(4);
     expect(placeForPath('/nowhere/').stretch).toBe(5);
   });
-  it('paints every page with the one composition, so a place looks the same from every page (round 5)', () => {
+  it('paints every page with the one composition, so a place looks the same from every page', () => {
     const all = Object.values(PLACES);
     expect(new Set(all.map((p) => `${p.distance}:${p.presence}`)).size).toBe(1);
     // the story map: the places in the painting's order, one per stretch, the 404 off it
     expect(STORY_MAP.map((p) => p.stretch)).toEqual([0, 1, 2, 3, 4]);
   });
-  it('lives on every page of the scroll under the unroll (the deep pages inside their place), on the five map pages with the camera travelling, on Home and Work with neither; every page on the road ends on its closing scene', () => {
+  it('lives on every page of the scroll (the deep pages inside their place); every page on the map ends on its closing scene', () => {
     expect(
       Object.values(PLACES)
         .filter((p) => p.ground === 'living')
         .map((p) => p.page),
-    ).toEqual(
-      ELEMENTS.unroll
-        ? ['home', 'work', 'case', 'writing', 'article', 'resume', 'contact']
-        : ELEMENTS.cameraTravels
-          ? ['home', 'work', 'writing', 'resume', 'contact']
-          : ['home', 'work'],
-    );
-    // (the unroll: a case opens inside the town, a note inside the lake; nothing else is framed inside)
+    ).toEqual(['home', 'work', 'case', 'writing', 'article', 'resume', 'contact']);
+    // (a case opens inside the town, a note inside the lake; nothing else is framed inside)
     expect(
       Object.values(PLACES)
         .filter((p) => p.inside)
         .map((p) => p.page),
-    ).toEqual(ELEMENTS.unroll ? ['case', 'article'] : []);
-    // (the production table: the unroll on, the camera's travel kept only as the QA alternative; the vanguard round)
-    expect(ELEMENTS.unroll && !ELEMENTS.cameraTravels).toBe(true);
+    ).toEqual(['case', 'article']);
     expect(
       Object.values(PLACES)
         .filter((p) => !p.closing)

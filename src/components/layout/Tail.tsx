@@ -22,7 +22,7 @@ import { ScrollMap } from './ScrollMap';
 export function Tail() {
   const lcp = build.lcpMs === null ? null : `${(build.lcpMs / 1000).toFixed(1)} s`;
   return (
-    <footer className="site-footer tail" data-veil="bank" data-veil-foot="0">
+    <footer className="site-footer tail" data-veil="bank">
       <ScrollMap label={site.tail.names} places={STORY_MAP} />
       <div className="frame">
         <div className="tail__base spread">

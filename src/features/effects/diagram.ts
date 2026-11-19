@@ -34,16 +34,7 @@ function draw(el: Element) {
   const dur = token('--dur-draw', 520);
   const step = token('--draw-step', 90);
   const easing = 'cubic-bezier(.2, .7, .1, 1)';
-  const strokes = groups(el);
-  if (!strokes.length) {
-    el.animate([{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)' }], {
-      duration: dur,
-      easing,
-      fill: 'backwards',
-    });
-    return;
-  }
-  strokes.forEach((group, i) => {
+  groups(el).forEach((group, i) => {
     for (const s of group) {
       s.animate(
         [

@@ -40,7 +40,7 @@ export function Compare({ label, head, rows }: { label: string; head: string[]; 
         </ul>
         <div className={styles.sides} aria-live="polite">
           {[1, 2].map((c) => (
-            <div className={styles.side} key={c}>
+            <div key={c}>
               <h3 className="h-ink h-ink--s">{head[c]}</h3>
               <p key={`${at}-${c}`} className={turned ? `${styles.cell} ${styles.turned}` : styles.cell}>
                 <Inline text={row[c] ?? ''} />

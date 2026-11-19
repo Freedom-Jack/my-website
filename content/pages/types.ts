@@ -11,8 +11,3 @@ export interface PageMeta {
 export interface PageWords {
   meta: PageMeta;
 }
-
-export interface LinkWords {
-  label: string;
-  href: string;
-}

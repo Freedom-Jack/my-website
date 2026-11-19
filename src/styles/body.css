@@ -5,7 +5,7 @@
    page … even the footer is not perfectly aligned with the page"; "the whole idea is this is the whole big scroll.
    It's one big painting."
 
-   The painting runs the whole width behind the page (elements.ts curtain, off) and still slides west as the page
+   The painting runs the whole width behind the page and still slides west as the page
    is read. The words lie in its mist, across the whole frame: every block of words keeps a cloud of the paper's own
    mist behind it (plates/veils.ts), so a cloud carrying words drifts up across the peaks as the page scrolls; a few
    display words are inked INTO the painting, between its depth layers (.inked), so a ridge or a roof passes in
@@ -258,9 +258,6 @@ html[data-plates='on'] .inked {
   padding-block-end: 0.16em;
   transition: background-size 420ms var(--ease-wash);
 }
-main a.brush-link {
-  text-decoration: none;
-}
 .brush-link:is(:hover, :focus-visible) {
   background-size:
     100% 1.5px,
@@ -297,9 +294,6 @@ main a.brush-link {
   color: var(--ink-2);
   max-width: 34em;
 }
-.next__name {
-  margin: 0;
-}
 .next__link {
   display: inline-flex;
   align-items: baseline;
@@ -314,8 +308,11 @@ main a.brush-link {
   text-decoration: none;
   white-space: nowrap;
 }
-main a.next__link {
-  text-decoration: none;
+.next__link:hover,
+.next__link:focus-visible {
+  text-decoration: underline;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 0.08em;
 }
 .next__link .action__arrow {
   width: 0.62em;
@@ -413,11 +410,6 @@ main a.next__link {
 main:has(> .closing:last-child) + .site-footer.tail {
   margin-block-start: var(--space-s);
 }
-.tail > .frame {
-  display: block;
-  padding-block-start: 0;
-  border-top: 0;
-}
 /* the strip: on a wide screen the screen's width; below 1200 px a height it can be read at, wider than the screen,
    run sideways under the finger (no scrollbar shown: the strip running off both edges says so) */
 .scrollmap {
@@ -473,7 +465,6 @@ main:has(> .closing:last-child) + .site-footer.tail {
   inset: 0;
   text-decoration: none;
   color: var(--ink-2);
-  -webkit-tap-highlight-color: transparent;
 }
 .scrollmap button {
   padding: 0;
@@ -537,7 +528,6 @@ main:has(> .closing:last-child) + .site-footer.tail {
   }
 }
 .tail__base {
-  margin-block-start: 1rem;
   row-gap: 1.25rem;
   align-items: start;
 }

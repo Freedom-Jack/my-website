@@ -24,7 +24,7 @@ export interface Result {
   still: string;
 }
 
-export interface Meta {
+interface Meta {
   built: string;
   commit: string;
   corpusHash: string;

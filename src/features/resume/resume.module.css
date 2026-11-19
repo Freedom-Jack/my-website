@@ -130,9 +130,6 @@
   text-indent: 0;
   color: var(--ink-4);
 }
-.timeline__url {
-  overflow-wrap: anywhere;
-}
 
 /* ---------- skills: the group above its tools on phones; beside them from 640 ---------- */
 .cv-skills {
@@ -358,7 +355,6 @@
     font-size: 10pt;
     line-height: 1.42;
     word-spacing: 0.02em; /* helps PDF text extraction (ATS) find every space */
-    font-variation-settings: 'FLAR' 0;
     print-color-adjust: economy;
     -webkit-print-color-adjust: economy;
   }
@@ -367,7 +363,6 @@
   }
   .page :global(.strip),
   .page :global(.closing),
-  .page :global(.print-name),
   .cv-head__actions,
   .cv-head__updated,
   .timeline__line,

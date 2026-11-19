@@ -46,20 +46,13 @@ export interface Chunk {
   units: Array<{ end: number; section: number; anchor?: string; title?: true }>;
 }
 
-export interface SourceFile {
+interface SourceFile {
   file: string;
   hash: string;
   bytes: number;
 }
 
-export const PLACE_NAMES = [
-  'his mountain',
-  'the river town',
-  'the lake',
-  'the terraces',
-  'the crossing',
-  'the lone peak',
-];
+const PLACE_NAMES = ['his mountain', 'the river town', 'the lake', 'the terraces', 'the crossing', 'the lone peak'];
 
 const ROOT = process.cwd();
 const sha8 = (buf: Buffer | string) => createHash('sha256').update(buf).digest('hex').slice(0, 8);
@@ -167,10 +160,6 @@ export function bodyUnits(body: string): BodyUnit[] {
   const out: BodyUnit[] = [];
   let section = '';
   let anchor = '';
-  const push = (t: string, sec = section) => {
-    const s = stripInline(t);
-    if (s && /[A-Za-z]/.test(s)) out.push({ section: sec, anchor, text: s });
-  };
   const paras = body.split(/\n\s*\n/);
   for (const p of paras) {
     const t = p.trim();
@@ -217,7 +206,6 @@ export function bodyUnits(body: string): BodyUnit[] {
     add(t);
     return acc;
   }
-  void push;
 }
 
 interface CaseFM {
@@ -238,13 +226,13 @@ function mdxFiles(dir: string) {
     .map((f) => {
       const rel = `${dir}/${f}`;
       const src = readFileSync(path.join(/*turbopackIgnore: true*/ ROOT, rel), 'utf8');
-      return { slug: f.slice(0, -4), rel, ...frontMatter(src), source: source(rel) };
+      return { slug: f.slice(0, -4), rel, ...frontMatter(src) };
     });
 }
 
 // ---------------------------------------------------------------------------------------------- the corpus
 /** A passage at build: its text is its parts (each a verbatim unit of a content string) joined by one space. */
-export interface BuiltChunk extends Chunk {
+interface BuiltChunk extends Chunk {
   parts: string[];
 }
 

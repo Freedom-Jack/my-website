@@ -6,33 +6,22 @@
  *   NEXT_PUBLIC_INK_QA=1 npm run build && next start -p 3100       the QA build (CI's build; R10: the gate sees it)
  *   npm run check:budgets                                         every route, both presets, 5 runs, the phone run
  *   npm run check:budgets -- --routes /,/work/ --runs 5           some routes
- *   npm run check:budgets -- --no-phone | --no-lighthouse         one half (CI: --no-phone; the phone run needs a
- *                                                                 GPU and is the local release step)
+ *   npm run check:budgets -- --no-phone | --no-lighthouse         one half
  *   npm run check:budgets -- --forms mobile                       one Lighthouse preset
  *   npm run check:budgets -- --out <dir>                          the report's folder (default budgets-report/)
  *   npm run check:budgets -- --write                              on a pass, write Home's numbers into
  *                                                                 content/measured.json (the tail's build stamp)
- *   npm run check:budgets -- --no-webgl                           the browser without WebGL (CI: below)
- *   npm run check:budgets -- --runner                             the runner's gates for the CPU-bound numbers (CI)
  *
  * R7: run it with the machine quiet (Lighthouse first, the phone run after it: P1's one outlier came right after a
  * phone run). R12: the server is warmed first (one request per route, then two seconds: a cold route's first
  * Lighthouse run fell in the slow one of Lantern's two LCP modes, ~0.5 s apart), then FIVE runs per route and preset.
  * The gate is the MEDIAN of the runs, per metric; the min and max (both modes, when there are two) and the worst run
- * are recorded beside it. With --runner (CI) the three mobile gates that move with the machine's CPU take the runner's
- * values (score 90, LCP 2.8 s, TBT 250 ms): on GitHub's shared runner the same pages moved with a CPU that differs by
- * almost 2× between jobs, and an image LCP falls in either of Lantern's two modes on a millisecond's race
- * (tools/runner-gates.ts has the evidence). Every other gate, and every gate locally (the release step), is the budget.
+ * are recorded beside it.
  * The report's header names the runs' median benchmark index (Lighthouse's measure of the machine's CPU).
  * A run whose TBT is over 1 s is re-run once and reported as an outlier (the re-run takes its place). Every run's
  * trace is kept for a route and preset that fails, and for every outlier.
  * R9 and R10: every route's HTML is measured as served, gzip, and gated at 30,000 B (Work sits near it).
- * Locally Google Chrome runs on the GPU (Metal). In CI Playwright's Chromium runs on a runner with no GPU, with
- * --no-webgl: there headless Chrome hands WebGL a SwiftShader context that it does not flag as a performance caveat and
- * that takes seconds of main thread to create (CI's first budgets run, 2026-11-14: TBT 15 to 20 s on every route, the
- * probe passing and the engine booting on SwiftShader). A visitor's Chrome without a GPU offers no such context, and
- * the probe now refuses one by its renderer's name (features/landscape/probe.ts softwareRenderer), so CI runs the
- * browser without WebGL: the probe answers "gpu" at once and CI's numbers are the paper's.
+ * Google Chrome runs on the GPU (Metal).
  */
 import { execSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -42,18 +31,12 @@ import { chromium } from '@playwright/test';
 import * as chromeLauncher from 'chrome-launcher';
 import lighthouse from 'lighthouse';
 import desktopConfig from 'lighthouse/core/config/desktop-config.js';
-import { RUNNER_MOBILE_GATES } from './runner-gates.ts';
+import { flag, opt } from './lib.ts';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Json = Record<string, any>;
 
 const ROOT = process.cwd();
-const args = process.argv.slice(2);
-const flag = (name: string) => args.includes(name);
-const opt = (name: string, d: string) => {
-  const i = args.indexOf(name);
-  return i >= 0 && args[i + 1] ? args[i + 1]! : d;
-};
 const BASE = opt('--base', 'http://127.0.0.1:3100').replace(/\/$/, '');
 const RUNS = Number(opt('--runs', '5'));
 const OUT = path.resolve(ROOT, opt('--out', 'budgets-report'));
@@ -62,14 +45,7 @@ const ROUTES = opt(
   '/,/work/,/work/rag-assistant/,/writing/,/writing/what-is-an-ai-agent/,/resume/,/contact/,/no-such-page/',
 ).split(',');
 const MAC_CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-const CI = !!process.env.CI;
 const GPU_ARGS = process.platform === 'darwin' ? ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] : [];
-const LINUX_ARGS = process.platform === 'linux' ? ['--no-sandbox', '--disable-dev-shm-usage'] : [];
-/** --no-webgl: no WebGL in the browser (the probe answers "gpu" at once; CI's GPU-less runner, see above). */
-const NO_WEBGL = flag('--no-webgl');
-const WEBGL_ARGS = NO_WEBGL ? ['--disable-3d-apis'] : [];
-/** --runner (CI): the mobile score, LCP and TBT gates for GitHub's runner, whose CPU moves them (tools/runner-gates.ts). */
-const RUNNER = flag('--runner');
 const FORMS = opt('--forms', 'mobile,desktop')
   .split(',')
   .filter((f): f is 'mobile' | 'desktop' => f === 'mobile' || f === 'desktop');
@@ -236,7 +212,7 @@ async function lighthouseAll(routes: string[]): Promise<LhRow[]> {
   const chromePath = process.env.CHROME_PATH || (existsSync(MAC_CHROME) ? MAC_CHROME : chromium.executablePath());
   const chrome = await chromeLauncher.launch({
     chromePath,
-    chromeFlags: ['--headless=new', '--no-first-run', ...GPU_ARGS, ...LINUX_ARGS, ...WEBGL_ARGS],
+    chromeFlags: ['--headless=new', '--no-first-run', ...GPU_ARGS],
   });
   const rows: LhRow[] = [];
   try {
@@ -280,8 +256,7 @@ async function lighthouseAll(routes: string[]): Promise<LhRow[]> {
         const before = fails.length;
         const where = `Lighthouse ${form} ${route} (median of ${runs.length})`;
         if (form === 'mobile') {
-          // (--runner: the three numbers that move with the machine's CPU take the runner's gates)
-          const g = RUNNER ? { ...GATES.mobile, ...RUNNER_MOBILE_GATES } : GATES.mobile;
+          const g = GATES.mobile;
           gate(med.score >= g.score, `${where}: score ${med.score} < ${g.score}`);
           gate(med.lcp <= g.lcp, `${where}: LCP ${s2(med.lcp)} > ${s2(g.lcp)}`);
           gate(med.fcp <= g.fcp, `${where}: FCP ${s2(med.fcp)} > ${s2(g.fcp)}`);
@@ -362,8 +337,8 @@ interface PhoneRow {
 }
 async function phoneAll(): Promise<PhoneRow[]> {
   const browser = await chromium.launch({
-    ...(existsSync(MAC_CHROME) && !CI ? { channel: 'chrome' } : {}),
-    args: [...GPU_ARGS, ...WEBGL_ARGS, '--hide-scrollbars', '--enable-precise-memory-info'],
+    ...(existsSync(MAC_CHROME) ? { channel: 'chrome' } : {}),
+    args: [...GPU_ARGS, '--hide-scrollbars', '--enable-precise-memory-info'],
   });
   const rows: PhoneRow[] = [];
   try {
@@ -462,7 +437,7 @@ function shortSha() {
       .toString()
       .trim();
   } catch {
-    return (process.env.GITHUB_SHA ?? 'local').slice(0, 7);
+    return 'local';
   }
 }
 
@@ -490,9 +465,9 @@ async function main() {
 
   const date = new Date().toISOString();
   const L = [
-    `# Budgets · ${date.slice(0, 16).replace('T', ' ')} UTC · ${BASE} · commit ${shortSha()} · ${process.platform}${CI ? ' (CI)' : ''}${NO_WEBGL ? ' · no WebGL' : ''}${benchmarks.length ? ` · benchmark index ${Math.round(median(benchmarks))}` : ''}`,
+    `# Budgets · ${date.slice(0, 16).replace('T', ' ')} UTC · ${BASE} · commit ${shortSha()} · ${process.platform}${benchmarks.length ? ` · benchmark index ${Math.round(median(benchmarks))}` : ''}`,
     '',
-    `Verdict: ${fails.length ? `FAIL (${fails.length})` : 'pass'} · Lighthouse: median of ${RUNS} per metric after a warm-up (LCP's min–max and the worst beside it)${RUNNER ? ` · the runner's gates (--runner): mobile score ≥ ${RUNNER_MOBILE_GATES.score}, LCP ≤ ${s2(RUNNER_MOBILE_GATES.lcp)}, TBT ≤ ${RUNNER_MOBILE_GATES.tbt} ms` : ''} · ${Math.round((Date.now() - t0) / 1000)} s`,
+    `Verdict: ${fails.length ? `FAIL (${fails.length})` : 'pass'} · Lighthouse: median of ${RUNS} per metric after a warm-up (LCP's min–max and the worst beside it) · ${Math.round((Date.now() - t0) / 1000)} s`,
     '',
     '## HTML as served (gzip; gate 30,000 B)',
     '',
@@ -544,7 +519,6 @@ async function main() {
         date,
         base: BASE,
         benchmarkIndex: benchmarks.length ? Math.round(median(benchmarks)) : null,
-        runnerGates: RUNNER ? RUNNER_MOBILE_GATES : null,
         html,
         lighthouse: lh,
         phone,

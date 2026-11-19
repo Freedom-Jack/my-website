@@ -6,7 +6,6 @@ import heroes from '../../../public/scenes/hero/manifest.json';
  * the layout is the same with JS off, WebGL off, or the engine still loading), then the page's title block.
  *   home, sub: on wide screens (≥ 1200) the title sits in the art's mist (the keep-out: no colour or figures
  *              under it); below, on paper under the art.
- *   doc:       a low band over a document (the Résumé, a note): art only; the h1 follows it, outside.
  * `still`: the page's place on the map (home, work, writing, resume, contact), or a deep page's own opening (case,
  * note: inside its place, the vanguard round): its hero's still (public/scenes/hero/<place>-<class>@1x|2x.webp, cut by
  * build:heroes from the engine's own first frame at each width class) is the first screen's painting from the first
@@ -28,7 +27,7 @@ import heroes from '../../../public/scenes/hero/manifest.json';
  * broken-image box never shows over the seed.
  * Without JS or a landscape, the box shows a faint static ridge hint (layout.css) under the still, if any.
  */
-export type HeroPlace = 'home' | 'work' | 'writing' | 'resume' | 'contact' | 'case' | 'note';
+type HeroPlace = 'home' | 'work' | 'writing' | 'resume' | 'contact' | 'case' | 'note';
 type HeroClass = 'wide' | 'tablet' | 'phone';
 interface HeroEntry {
   box: [number, number];
@@ -60,14 +59,13 @@ const SEED_ALONE: ReadonlySet<HeroPlace> = new Set<HeroPlace>(['work']);
 /** The hero's still: one source per width class the tool cut (the engine frames each class differently). */
 function HeroStill({ place }: { place: HeroPlace }) {
   const s = HERO.stills[place];
-  if (!s) return null;
+  const phone = s?.phone;
+  const seed = phone?.seed;
+  if (!s || !phone || !seed) return null;
   const src = (c: HeroClass, d: '1' | '2') => `/scenes/hero/${s[c]!.files[d]}`;
   const set = (c: HeroClass) => `${src(c, '1')} 1x, ${src(c, '2')} 2x`;
-  // (the img itself is the narrowest class cut; wider classes are sources before it)
-  const base: HeroClass | undefined = (['phone', 'tablet', 'wide'] as const).find((c) => s[c]);
-  if (!base) return null;
-  const sources = (['wide', 'tablet'] as const).filter((c) => c !== base && s[c] && HERO.classes[c]);
-  const seed = base === 'phone' ? s.phone?.seed : undefined;
+  // (the img itself is the phone cut, its inline seed; the wider classes are sources before it)
+  const sources = (['wide', 'tablet'] as const).filter((c) => s[c] && HERO.classes[c]);
   // (no <link rel="preload"> for the still: measured on the phone profile, a head preload per width class brought the
   // image 50–90 ms sooner for 31 KB more on the wire and no change to its render time or to Lighthouse)
   return (
@@ -77,17 +75,16 @@ function HeroStill({ place }: { place: HeroPlace }) {
           <source key={c} media={HERO.classes[c]!.media} srcSet={set(c)} width={s[c]!.box[0]} height={s[c]!.box[1]} />
         ))}
         <img
-          src={seed ? `data:image/webp;base64,${seed.data}` : src(base, '1')}
-          srcSet={seed ? undefined : set(base)}
-          width={s[base]!.box[0]}
-          height={s[base]!.box[1]}
+          src={`data:image/webp;base64,${seed.data}`}
+          width={phone.box[0]}
+          height={phone.box[1]}
           alt=""
           decoding="async"
           fetchPriority="high"
           {...{ elementtiming: 'strip-still' }}
         />
       </picture>
-      {seed && SEED_ALONE.has(place) && !seed.sharp ? (
+      {SEED_ALONE.has(place) ? (
         <span
           className="strip__fallback"
           style={
@@ -96,21 +93,21 @@ function HeroStill({ place }: { place: HeroPlace }) {
             } as CSSProperties
           }
         />
-      ) : seed ? (
+      ) : (
         <picture className="strip__still strip__still--sharp">
           <source media={seed.sharp ? SHARP_SEED_ONLY : '(min-width: 40rem)'} srcSet={BLANK} />
           <img
             src={seed.sharp ? src('phone', '2') : src('phone', '1')}
             srcSet={seed.sharp ? undefined : set('phone')}
-            width={s.phone!.box[0]}
-            height={s.phone!.box[1]}
+            width={phone.box[0]}
+            height={phone.box[1]}
             alt=""
             decoding="async"
             fetchPriority="low"
             {...{ elementtiming: 'strip-still-sharp' }}
           />
         </picture>
-      ) : null}
+      )}
     </>
   );
 }
@@ -122,9 +119,9 @@ export function Strip({
   veil = 0.85,
   still,
 }: {
-  variant: 'home' | 'sub' | 'doc';
+  variant: 'home' | 'sub';
   labelledBy?: string;
-  children?: ReactNode;
+  children: ReactNode;
   veil?: number;
   still?: HeroPlace;
 }) {
@@ -133,11 +130,9 @@ export function Strip({
       <div className="strip__art bleed" data-landscape="strip" data-wake="" aria-hidden="true">
         {still ? <HeroStill place={still} /> : null}
       </div>
-      {children ? (
-        <div className="strip__text" data-landscape="keepout" data-veil={veil}>
-          {children}
-        </div>
-      ) : null}
+      <div className="strip__text" data-landscape="keepout" data-veil={veil}>
+        {children}
+      </div>
     </header>
   );
 }

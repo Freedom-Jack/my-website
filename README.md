@@ -36,7 +36,7 @@ npm run dev
 | `npm run build:heroes`     | each page's first-frame still (needs a QA build on 3100)                       |
 | `npm run build:og`         | link-preview cards (needs a QA build on 3100)                                  |
 | `npm run build:scroll`     | the strip of the whole scroll (needs a QA build on 3100)                       |
-| `npm run build:ask`        | the "Ask the painting" index                                                   |
+| `npm run build:ask`        | the "Ask the painting" index (needs a build on 3100)                           |
 
 A QA build: `NEXT_PUBLIC_INK_QA=1 npm run build && npm start -- -p 3100`.
 

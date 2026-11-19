@@ -148,11 +148,11 @@ export function ScrollSheet({ stops }: { stops: ScrollStop[] }) {
 
   /** A walk by the engine's own pan (keys, the stops, the detent's settle): a walking pace, a cut when quiet. */
   const walkTo = useCallback(
-    (x: number, dur?: number, dist: Distance = 'level') => {
+    (x: number, dur?: number) => {
       const L = land();
       target.current = clampX(x);
       setAtRest(false);
-      setDistance(dist);
+      setDistance('level');
       clearTimeout(restTimer.current);
       clearInterval(follow.current);
       if (!L) return;
@@ -160,7 +160,7 @@ export function ScrollSheet({ stops }: { stops: ScrollStop[] }) {
       const ms = quiet() ? 0 : (dur ?? durationFor(target.current - from));
       const mine = target.current;
       follow.current = window.setInterval(() => syncPlace(cameraX(target.current)), 100);
-      void L.panTo(mine, { duration: ms, ease: 'cubic-out', cloud: false, distance: dist }).then(() => {
+      void L.panTo(mine, { duration: ms, ease: 'cubic-out', cloud: false, distance: 'level' }).then(() => {
         clearInterval(follow.current);
         follow.current = 0;
         if (target.current === mine) {
@@ -495,22 +495,18 @@ export function ScrollSheet({ stops }: { stops: ScrollStop[] }) {
       <div className="scroll-body">
         <div className="frame scroll-inscription">
           <p className="scroll-place">
-            <a className="brush brush--display" href={stop.href}>
-              {stop.label}
-            </a>
+            <a href={stop.href}>{stop.label}</a>
           </p>
           <ul className="scroll-lines" role="list">
             {stop.lines.map((l) => (
               <li key={`${l.href}|${l.label}`}>
-                <a className="brush" href={l.href}>
-                  {l.label}
-                </a>
+                <a href={l.href}>{l.label}</a>
               </li>
             ))}
           </ul>
           <p className="scroll-distances" hidden={!atRest}>
             {DISTANCES.map((d) => (
-              <button key={d} type="button" className="brush" aria-pressed={distance === d} onClick={() => setDist(d)}>
+              <button key={d} type="button" aria-pressed={distance === d} onClick={() => setDist(d)}>
                 {site.scroll[d]}
               </button>
             ))}
@@ -524,7 +520,7 @@ export function ScrollSheet({ stops }: { stops: ScrollStop[] }) {
             onPick={(i) => walkTo(STORY_MAP[i]!.stretch)}
           />
           <p className="scroll-close">
-            <button type="button" className="brush" onClick={leave}>
+            <button type="button" onClick={leave}>
               {site.scroll.close}
             </button>
           </p>

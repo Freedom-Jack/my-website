@@ -51,7 +51,6 @@ summary:active,
   text-decoration-color: var(--ink-1);
   text-decoration-thickness: 2px;
   text-underline-offset: 0.3em;
-  -webkit-tap-highlight-color: transparent;
 }
 .action:hover,
 .action:focus-visible {
@@ -139,15 +138,12 @@ html.el-rowrule :is(.ink-row, .rule-row):is(:hover, :focus-within)::after {
 
 /* ==========================================================================
    Draw-ins (features/effects/diagram): diagram strokes draw in once, in flow order (they are not text).
-   An SVG whose [data-order] paths (pathLength="1") draw --dur-draw each, --draw-step apart;
-   or an HTML rule that draws in the reading direction. JS adds the waiting state.
+   An SVG whose [data-order] paths (pathLength="1") draw --dur-draw each, --draw-step apart. JS adds the waiting
+   state.
    ========================================================================== */
 html.js [data-draw].is-pending [data-order] {
   stroke-dasharray: 1 2;
   stroke-dashoffset: 1.001;
-}
-html.js [data-draw].is-pending:not(svg):not(:has([data-order])) {
-  clip-path: inset(0 100% 0 0);
 }
 
 /* ---------- flow (elements.ts flow; features/effects/finish.ts clones each edge): a small ink dot with a short
@@ -215,9 +211,6 @@ html.js [data-draw].is-pending:not(svg):not(:has([data-order])) {
     stroke-dasharray: none;
     stroke-dashoffset: 0;
   }
-  html.js [data-draw].is-pending:not(svg) {
-    clip-path: none;
-  }
 }
 html.is-still .action__arrow {
   transition: none;
@@ -236,9 +229,6 @@ html.is-still.el-rowrule :is(.ink-row, .rule-row):is(:hover, :focus-within)::aft
 
 /* Print: everything prints settled: strokes drawn, no ink layers. */
 @media print {
-  [data-draw] {
-    clip-path: none !important;
-  }
   [data-draw] [data-order] {
     stroke-dasharray: none !important;
     stroke-dashoffset: 0 !important;
@@ -269,8 +259,5 @@ html.is-still.el-rowrule :is(.ink-row, .rule-row):is(:hover, :focus-within)::aft
   html.js [data-draw].is-pending [data-order] {
     stroke-dasharray: none;
     stroke-dashoffset: 0;
-  }
-  html.js [data-draw].is-pending:not(svg) {
-    clip-path: none;
   }
 }

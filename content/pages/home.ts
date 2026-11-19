@@ -24,8 +24,6 @@ export const home = {
       'Lead AI/ML Architect at CGI’s AI Center of Excellence in Toronto. {I design} and ship {production AI} for banks and insurers: {LLM agents,} {retrieval systems,} and the data platforms underneath them.',
       'Right now I’m leading an agent that reads and documents legacy code written in a proprietary language.',
     ],
-    primary: { label: 'See the work', href: '/work/' },
-    secondary: { label: 'Résumé', href: '/resume/' },
   },
 
   /**

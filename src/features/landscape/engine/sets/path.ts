@@ -7,7 +7,7 @@
 //
 // Painted with the host's plane (2) before its own mist band (phase 0), so the plane's band softens the path's foot;
 // the cloud it ends in is this layer's own (soft gradient washes in the shader's mist colour). At wide sizes the
-// strip's bottom feather and the "Draft art" note keep its lower switchbacks (y < 0.33) out of sight: the wide picture is
+// strip's bottom feather keeps its lower switchbacks (y < 0.33) out of sight: the wide picture is
 // the upper three legs, the tree and the cloud; phones and tablets see the whole climb. No life anchor (the engine's
 // own drifting mist already passes over the cloud).
 // A figure set (figures.ts, THE SET API): meta + draw(env), in world px.
@@ -38,7 +38,7 @@ const LINE: [u: number, y: number][] = [
 export function* draw(env: Env) {
   const { ctx, P, ink } = env;
   const { C, rgba } = ink;
-  const own = streams(SEED, {});
+  const own = streams(SEED);
   const X = (u: number) => u * REF_PX, Y = (y: number) => (1 - y) * VH_PX;
   // the phone sees this place from further away (scale 450): marks are drawn heavier there, so the path and the tree
   // still read; their places never move (the path is registered to the flank, not to the screen)

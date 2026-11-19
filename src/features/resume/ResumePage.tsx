@@ -126,7 +126,7 @@ export function ResumePage() {
                       <Dates start={w.startDate} end={w.endDate} />
                     </span>
                     <span className={styles.timeline__dot}>{' · '}</span>
-                    <span className={styles.timeline__what}>
+                    <span>
                       {w.position}
                       {' · '}
                       <span className={styles.timeline__org}>{w.name}</span>
@@ -167,7 +167,7 @@ export function ResumePage() {
             </h2>
             {r.education.map((e) => (
               <Fragment key={e.institution}>
-                <p className={styles['cv-edu']}>
+                <p>
                   <b>{e.institution}</b>
                   {e.location ? `, ${e.location}` : ''}. {e.degree},{' '}
                   <span className="nowrap">

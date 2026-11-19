@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { VIEWPORTS, isSoftware, settle } from './support/pages';
+import { isSoftware, PHONE, settle } from './support/pages';
 
 /**
  * The scroll, held (elements.ts scroll; src/features/scroll): the footer's opener folds the page into the paper and
@@ -177,9 +177,7 @@ test.describe('the scroll, held (1440)', () => {
     expect(s.stretch, 'exactly at Home').toBe(0);
     if (!soft) expect(s.pending, 'nothing pending').toBe(false);
     expect(s.held ?? false, 'the keys walk by panTo, never the hand’s hold').toBe(false);
-    // nothing moves in the sheet: no fade, no slide, no Web Animation. The one thing allowed to run is the brush
-    // links' own 200 ms colour transition as "you are here" moves to the next stop (jade.css .brush: the interface's
-    // link grammar, which Still does not govern, as the header's slide in scroll.spec.ts), and by 500 ms not even that.
+    // nothing moves in the sheet: no fade, no slide, no Web Animation, at the key or after it
     const running = () =>
       page.evaluate(() =>
         document
@@ -191,11 +189,7 @@ test.describe('the scroll, held (1440)', () => {
             return `${a.constructor.name}:${prop}@${t?.tagName.toLowerCase()}.${[...(t?.classList ?? [])].join('.')}`;
           }),
       );
-    const now = await running();
-    expect(
-      now.filter((d) => !/^CSSTransition:(color|text-decoration-color)@button\.brush$/.test(d)),
-      `only the brush links' colour may transition (running now: ${now.join(', ') || 'nothing'})`,
-    ).toEqual([]);
+    expect(await running(), 'nothing runs inside the sheet at the key').toEqual([]);
     await page.waitForTimeout(500);
     expect(await running(), 'nothing runs inside the sheet half a second after the key').toEqual([]);
     await expect(page.locator('.scroll-place a')).toHaveText('Home');
@@ -216,13 +210,7 @@ test.describe('the scroll, held (1440)', () => {
 });
 
 test.describe('the scroll, held (390, a phone)', () => {
-  const vp = VIEWPORTS['390'];
-  test.use({
-    viewport: { width: vp.width, height: vp.height },
-    deviceScaleFactor: vp.dpr,
-    isMobile: vp.mobile,
-    hasTouch: vp.mobile,
-  });
+  test.use(PHONE);
 
   test('phone: the band, the stops and a swipe', async ({ page }) => {
     // (the hand moves the camera through the engine's hold, which reduced motion turns into steps: judged on a GPU)
@@ -238,7 +226,7 @@ test.describe('the scroll, held (390, a phone)', () => {
     expect(box, 'the band has a box').not.toBeNull();
     expect(box.height, 'the band’s height').toBeGreaterThanOrEqual(180);
     expect(box.height, 'the band’s height').toBeLessThanOrEqual(250);
-    expect(box.width, 'the band spans the viewport').toBeGreaterThanOrEqual(vp.width - 1);
+    expect(box.width, 'the band spans the viewport').toBeGreaterThanOrEqual(PHONE.viewport.width - 1);
     // the stops and the close: 44 px targets
     const stops = page.locator('.scrollmap--stops button');
     await expect(stops).toHaveCount(5);
