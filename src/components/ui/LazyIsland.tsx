@@ -3,13 +3,12 @@
 import { type ComponentType, type ReactNode, useEffect, useRef, useState } from 'react';
 
 /**
- * A piece of the page that needs script only once the reader is near it (round 7: "Ask the painting" on Home, the
- * search on Work and on a project page). The server renders its still form (`children`: plain markup, no script);
- * this small wrapper waits until the piece is within a screen and a half of the viewport (or is focused), fetches
- * its code and puts the live piece in the still one's place (the reader's focus and anything typed in its line go
- * with it: `initialValue`). So the piece costs a page's first load nothing: on a
- * phone every kilobyte of script before the first screen has settled counts (Lighthouse's simulated LCP moved 0.15 s
- * with 5 KB).
+ * A piece of the page that needs script only once the reader is near it ("Ask the painting" on Home, the search on
+ * Work and on a project page). The server renders its still form (`children`: plain markup, no script); this small
+ * wrapper waits until the piece is within a screen and a half of the viewport (or is focused), fetches its code and
+ * puts the live piece in the still one's place (the reader's focus and anything typed in its line go with it:
+ * `initialValue`). So the piece costs a page's first load nothing: on a phone every kilobyte of script before the
+ * first screen has settled counts (Lighthouse's simulated LCP moves 0.15 s with 5 KB).
  * The islands are named here, not passed in: a server component cannot hand a client one a function.
  */
 const ISLANDS = {

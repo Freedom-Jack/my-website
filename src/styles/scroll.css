@@ -17,7 +17,7 @@ html.no-landscape .scroll-opener-wrap {
   font: inherit;
   color: var(--ink-2);
   vertical-align: middle;
-} /* (its 44 px box and brush: layout.css's tail rules, beside .still-toggle) */
+} /* (its 44 px box: layout.css's tail rules, beside .still-toggle) */
 
 .scroll-sheet {
   position: fixed;
@@ -79,7 +79,7 @@ html.is-scroll-held :is(.site-header, .site-footer, .skip-link) {
 }
 .scroll-place {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-name);
   font-size: var(--fs-h2);
   line-height: var(--lh-h2);
   font-weight: var(--w-strong);

@@ -36,7 +36,6 @@ body {
   font-size: var(--fs-body);
   line-height: var(--lh-body);
   font-weight: var(--w-body);
-  font-variation-settings: 'FLAR' var(--flare-body);
   font-optical-sizing: auto;
   font-kerning: normal;
   -webkit-font-smoothing: antialiased;
@@ -192,16 +191,12 @@ time {
   white-space: nowrap;
 }
 /* ...except under 240 CSS px (a 390 px phone at 200 % page zoom, iOS Safari's aA: a 195 px viewport), where a kept
-   phrase ("2020 – 2021 · Research assistant", the Note's dateline) is wider than the column and the page never scrolls
-   sideways (html overflow-x: clip): the end of the line was simply lost. There it wraps (final review r1, item 6). */
+   phrase ("2020 – 2021 · Research assistant", the Note's dateline) is wider than the column and, since the page never
+   scrolls sideways (html overflow-x: clip), its end would be lost: there it wraps. */
 @media (max-width: 14.99rem) {
   .nowrap {
     white-space: normal;
   }
-}
-/* Round 4a: cinnabar is the seal's only. The round-3 accent full stops become plain ink. */
-.accent {
-  color: inherit;
 }
 /* the facts' voice: dates, labels, measures and the build stamp in the system mono at the small size, in ink-3, with
    tabular figures; never a paragraph. A link inside carries its underline on the link's own words only. */

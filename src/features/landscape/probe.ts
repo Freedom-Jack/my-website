@@ -1,10 +1,9 @@
 'use client';
 
 /**
- * The live probe (01-budgets.md "The painting's rules", as amended after the attack; the plain direction's probe):
- * on every device the painting is a pre-cut still first (components/page/Strip). Every "should the painting run"
- * check runs BEFORE the engine is imported, so a page that will not paint fetches 0 engine bytes:
- *   1. reduced motion, or "Still the landscape" (features/chrome/still): the still IS the quiet form;
+ * The live probe: on every device the painting is a pre-cut still first (components/page/Strip). Every "should the
+ * painting run" check runs before the engine is imported, so a page that will not paint fetches 0 engine bytes:
+ *   1. reduced motion, or "Still the landscape" (features/chrome/still): the still is the quiet form;
  *   2. Save-Data: the visitor asked for less, the still is enough;
  *   3. a WebGL2 context that the browser does not flag as a major performance caveat (a software rasteriser, a
  *      blocklisted GPU) and whose renderer is not named as software (headless Chrome's SwiftShader carries no caveat):
@@ -12,22 +11,20 @@
  *   4. the cadence: 1.5 s of requestAnimationFrame deltas with the main thread idle, none over 20 ms (one retry).
  * Only then is the engine's module asked for (Landscape.tsx). Once live, two rAF deltas over 20 ms inside a rolling
  * second (watchFrames) hand the page back to the still and pause the painting; frames during the painting's own
- * motion (a pan, an arrival, a sweep) count at 33 ms, and none while the engine is pending for another reason or
- * deferred (01-budgets.md, the amendment after P1: R4).
+ * motion (a pan, an arrival, a sweep) count at 33 ms, and none while the engine is pending for another reason.
  *
  * The result is one attribute on <html>, `data-live`, which layout.css reads to show or fade each page's still:
  *   (none)     server-rendered, or JS still deciding: the still stands;
  *   probing    the checks are running: the still stands;
  *   on         the painting may show: the strip's still fades out once the engine's first frame lands under it
  *              (the engine marks the strip's box `data-live` at that present);
- *   still      no live painting here: the still stands, and on phones the sharp phone still replaces the inline seed.
+ *   still      no live painting here: the still stands.
  * Nothing here touches the words.
  */
 
-export type LiveState = 'probing' | 'on' | 'still';
+type LiveState = 'probing' | 'on' | 'still';
 
 export const setLive = (s: LiveState) => document.documentElement.setAttribute('data-live', s);
-export const liveState = (): LiveState | null => document.documentElement.getAttribute('data-live') as LiveState | null;
 
 /** Save-Data: the visitor asked for less; the still is enough. */
 export function saveData(): boolean {
@@ -41,9 +38,8 @@ export const quietNow = () =>
 
 /**
  * A software rasteriser, by its renderer's name (the browser tests' isSoftware reads the same names). Headless Chrome
- * on a machine with no GPU hands WebGL a SwiftShader context WITHOUT the major-performance-caveat flag, so there the
- * name is the only sign (CI's first budgets run, 2026-11-14: the probe passed, the engine booted on SwiftShader and held
- * the main thread for seconds on every route).
+ * on a machine with no GPU hands WebGL a SwiftShader context without the major-performance-caveat flag, so there the
+ * name is the only sign (on SwiftShader the engine holds the main thread for seconds on every route).
  */
 export const softwareRenderer = (name: string): boolean =>
   /swiftshader|llvmpipe|softpipe|software|basic render|mesa offscreen|\bwarp\b/i.test(name);
@@ -84,7 +80,7 @@ export function gpuOK(): boolean {
 }
 
 /** Resolves once the document is visible (a tab opened in the background measures nothing until it is looked at). */
-export function whenVisible(): Promise<void> {
+function whenVisible(): Promise<void> {
   return new Promise((resolve) => {
     if (document.visibilityState !== 'hidden') return resolve();
     const on = () => {
@@ -96,11 +92,22 @@ export function whenVisible(): Promise<void> {
   });
 }
 
+/** The frame limit (ms) of a settled painting: a frame over it is a slow one (a slow place to read). */
+const LIMIT = 20;
+/** The cadence's length (ms). */
+const CADENCE_MS = 1500;
+/** The watch: two slow frames inside this rolling window (ms) hand the page back to its still... */
+const SPAN = 1000;
+/** ...and it sleeps once the visitor has given no input for this long (ms; the engine's own loop sleeps on the same
+ *  rule). */
+const IDLE = 45000;
+
 /**
- * `ms` of requestAnimationFrame deltas: true when no frame (after the first two) is over `limit` ms. Resolves early
- * with false on the first bad frame, so a struggling phone is answered at once; a hidden document waits to be seen.
+ * CADENCE_MS of requestAnimationFrame deltas: true when no frame (after the first two) is over LIMIT ms. Resolves
+ * early with false on the first bad frame, so a struggling phone is answered at once; a hidden document waits to be
+ * seen.
  */
-export async function cadence(ms = 1500, limit = 20): Promise<boolean> {
+export async function cadence(): Promise<boolean> {
   await whenVisible();
   return new Promise((resolve) => {
     const start = performance.now();
@@ -111,8 +118,8 @@ export async function cadence(ms = 1500, limit = 20): Promise<boolean> {
       last = t;
       n++;
       if (document.visibilityState === 'hidden') return resolve(false);
-      if (n > 2 && d > limit) return resolve(false);
-      if (t - start >= ms) return resolve(true);
+      if (n > 2 && d > LIMIT) return resolve(false);
+      if (t - start >= CADENCE_MS) return resolve(true);
       requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
@@ -120,41 +127,31 @@ export async function cadence(ms = 1500, limit = 20): Promise<boolean> {
 }
 
 /**
- * R4 (01-budgets.md, the amendment after P1): the frame limit for the engine's state now. 0 while the engine is
- * deferred, or pending for a reason other than its own motion (a scene or a layer on its way: there are no engine
- * frames then, so none are counted); 33 ms during the painting's own motion (a pan, an arrival, a sweep: a phone that
- * janks only during pans is handed back to its still too); 20 ms once settled (a slow place to read). The engine's
- * stats() is read each frame (Landscape.tsx); without stats, 20.
+ * The frame limit for the engine's current state: 0 while the engine is pending for a reason other than its own
+ * motion (a scene or a layer on its way: there are no engine frames then, so none are counted); 33 ms during the
+ * painting's own motion (a pan, an arrival, a sweep: a phone that janks only during pans is handed back to its still
+ * too); 20 ms once settled (a slow place to read). The engine's stats() is read each frame (Landscape.tsx); without
+ * stats, 20.
  */
 export function limitFor(
-  s:
-    | { deferred?: boolean; panning?: boolean; arriving?: boolean; sweeping?: boolean; pending?: boolean }
-    | null
-    | undefined,
+  s: { panning?: boolean; arriving?: boolean; sweeping?: boolean; pending?: boolean } | null | undefined,
 ): number {
   if (!s) return 20;
-  if (s.deferred) return 0;
   if (s.panning || s.arriving || s.sweeping) return 33;
   if (s.pending) return 0;
   return 20;
 }
 
 /**
- * While live: two rAF deltas over the limit inside a rolling `window` ms call `onSlow` once and stop. The limit is
- * `limit` ms (20: a slow place to read), or what `limitFor()` answers for this frame: 33 while the engine is in its own
- * motion (a pan, an arrival, a sweep: R4), 0 while it is pending for another reason or deferred (no engine frames then:
- * not counted). The loop runs only while the visitor is active (an input within `idle` ms; the engine's own loop sleeps
- * on the same rule) and the document is visible, so an idle page costs no frames. `onSlow(motion)` says whether one of
- * the two frames was a motion frame (the mark's reason). Returns the stop function.
+ * While live: two rAF deltas over the limit inside a rolling SPAN ms call `onSlow` once and stop. The limit is LIMIT
+ * ms (a slow place to read), or what `limitFor()` answers for this frame: 33 while the engine is in its own motion (a
+ * pan, an arrival, a sweep), 0 while it is pending for another reason (no engine frames then: not counted). The
+ * loop runs only while the visitor is active (an input within IDLE ms) and the document is visible, so an idle page
+ * costs no frames. `onSlow(motion)` says whether one of the two frames was a motion frame. Returns the stop function.
  */
 export function watchFrames(
   onSlow: (motion: boolean) => void,
-  {
-    limit = 20,
-    window: span = 1000,
-    idle = 45000,
-    limitFor,
-  }: { limit?: number; window?: number; idle?: number; limitFor?: () => number } = {},
+  { limitFor }: { limitFor?: () => number } = {},
 ): () => void {
   let raf = 0;
   let last = 0;
@@ -164,16 +161,16 @@ export function watchFrames(
   const step = (t: number) => {
     raf = 0;
     if (stopped) return;
-    if (document.visibilityState === 'hidden' || t - lastInput > idle) {
+    if (document.visibilityState === 'hidden' || t - lastInput > IDLE) {
       last = 0;
       return; // (asleep: the next input wakes it)
     }
     if (last) {
       const d = t - last;
-      const lim = limitFor ? limitFor() : limit;
+      const lim = limitFor ? limitFor() : LIMIT;
       if (lim > 0 && d > lim) {
-        slow.push({ t, motion: lim !== limit });
-        while (slow.length && t - slow[0]!.t > span) slow.shift();
+        slow.push({ t, motion: lim !== LIMIT });
+        while (slow.length && t - slow[0]!.t > SPAN) slow.shift();
         if (slow.length >= 2) {
           const motion = slow.some((s) => s.motion);
           stop();

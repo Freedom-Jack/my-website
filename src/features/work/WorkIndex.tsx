@@ -15,10 +15,9 @@ import { OldAnchors } from './OldAnchors';
 import styles from './work.module.css';
 
 /**
- * Work (/work/): a concise index. The first screen is the live site's: the market-town strip
- * with the title and intro in its mist.
+ * Work (/work/): a concise index. The first screen: the market-town strip with the title and intro in its mist.
  *
- * Below it (round 7) the page follows the river town as it crosses the screen:
+ * Below it the page follows the river town as it crosses the screen:
  *   "Six projects, newest first" at the left while the town still stands at the right: six rows the width of nine
  *   columns, each with its figure as an ink numeral (a projection as an outline, never filled ink), the project
  *   (leading to its own case page), its outcome and public evidence, its years and his role at the row's end;
@@ -55,11 +54,11 @@ export async function WorkIndex() {
         <ol className={styles.projects} role="list" data-veil="0.9">
           {cases.map((c) => {
             // the figure as an ink numeral (decorative: the outcome carries it in words); a projection is an outline
-            // under its own label, never filled ink (the vanguard round's A1 kept it out of the numerals altogether)
+            // under its own label, never filled ink
             const f = splitFigure(c.figure);
             const projected = c.figure.basis === 'projected';
             return (
-              // the row keeps the case's old anchor (/work/#rag-assistant), so links from before land here
+              // the row keeps the case's anchor (/work/#rag-assistant), so an old link lands on it without JS
               <li className={`${styles.project} ink-row`} key={c.slug} id={c.slug}>
                 <p
                   className={projected ? `num ${styles.numeral} ${styles.outline}` : `num ${styles.numeral}`}

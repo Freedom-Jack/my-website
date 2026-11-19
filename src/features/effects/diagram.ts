@@ -1,5 +1,5 @@
 /**
- * Diagram strokes draw in, once (they are not text, so they keep their draw-in).
+ * Diagram strokes draw in, once.
  *   <svg data-draw> … <path class="diagram__edge" pathLength="1" data-order="1" d="…"/> …
  * When the element's top crosses 90% of the viewport its strokes draw in flow order (stroke-dashoffset 1 → 0
  * over --dur-draw each, --draw-step apart; strokes sharing a data-order draw together), and everything is drawn by
@@ -34,16 +34,7 @@ function draw(el: Element) {
   const dur = token('--dur-draw', 520);
   const step = token('--draw-step', 90);
   const easing = 'cubic-bezier(.2, .7, .1, 1)';
-  const strokes = groups(el);
-  if (!strokes.length) {
-    el.animate([{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)' }], {
-      duration: dur,
-      easing,
-      fill: 'backwards',
-    });
-    return;
-  }
-  strokes.forEach((group, i) => {
+  groups(el).forEach((group, i) => {
     for (const s of group) {
       s.animate(
         [

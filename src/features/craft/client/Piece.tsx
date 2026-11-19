@@ -8,10 +8,10 @@ import { fill } from './fill';
 import styles from '../craft.module.css';
 
 /**
- * One live piece of "Under the hood" (round 7: the pieces lie open on Work, no fold to click). Nothing of it loads
- * until the reader is within half a screen of it; then its module and its JSON (/craft/<kind>.json) arrive together,
- * counted by the search's status line (bytes.ts). Until then the piece says how much data it will fetch (measured at
- * build). It opens with the JSON's tie to a production claim and the link to its case, then its own view.
+ * One live piece of "Under the hood", open on the page. Nothing of it loads until the reader is within half a screen
+ * of it; then its module and its JSON (/craft/<kind>.json) arrive together, counted by the search's status line
+ * (bytes.ts). Until then the piece says how much data it will fetch (measured at build). It opens with the JSON's tie
+ * to a production claim and the link to its case, then its own view.
  */
 export type PieceKind = 'lineage' | 'mask' | 'eval';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- each piece reads its own JSON shape

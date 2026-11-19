@@ -5,7 +5,7 @@ import { COMPOUND, fillTokens, typeset } from './typography';
 
 /** Renders the inline markup of content strings (lib/markup.ts, CONTENT.md). */
 
-export function isInternal(href: string): boolean {
+function isInternal(href: string): boolean {
   return href.startsWith('/') && !href.startsWith('//');
 }
 

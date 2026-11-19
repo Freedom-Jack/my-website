@@ -1,27 +1,27 @@
 import resume from './resume.json' with { type: 'json' };
 
 /**
- * The site's own settings: the address, the nav, the footer's "Updated", and what search engines and AI agents
- * are told about him. The facts themselves (name, title, email, city, profiles) come from content/resume.json,
+ * The site's own settings: the address, the nav, the tail's words and "Last changed", and what search engines and AI
+ * agents are told about him. The facts themselves (name, title, email, city, profiles) come from content/resume.json,
  * the single source: change them there. How to edit anything: CONTENT.md.
  *
- * Hard rules (CLAUDE.md): no phone number anywhere, no street address (the city only), no project-management credential, the public
- * email is qxjack@gmail.com, and the only Chinese character on the site is the seal's.
+ * Hard rules (CLAUDE.md): no phone number anywhere, no street address (the city only), no project-management
+ * credential, the public email is qxjack@gmail.com, and the only Chinese character on the site is the seal's.
  */
 
 const github = resume.basics.profiles.find((p) => p.network === 'GitHub')!;
 const linkedin = resume.basics.profiles.find((p) => p.network === 'LinkedIn')!;
 
 export const site = {
-  /** The name shown everywhere. "Jack" appears visibly only in the About-me sign-off and "Goes by Jack". */
+  /** The name shown everywhere: "Qijin Xu", never with "(Jack)" in it (CLAUDE.md, hard rules). */
   name: resume.basics.name,
   givenName: 'Qijin',
   familyName: 'Xu',
-  /** The name he goes by: the About-me sign-off ("— Jack") and the Résumé's "Goes by Jack". */
+  /** The name he goes by: the Résumé's "Goes by Jack". */
   goesBy: 'Jack',
   /** Search engines and AI agents only (titles, meta, JSON-LD), never visible text. */
   searchName: 'Qijin (Jack) Xu',
-  /** The author line under a note and a case (the colophon), third person; the name links home. */
+  /** A third-person line about him: the search and Ask read it under Home's "About me" (Home does not print it). */
   bio: '[Qijin Xu](/) is a Lead AI/ML Architect at CGI’s AI Center of Excellence in Toronto. He designs and ships production AI for banks and insurers: LLM agents, RAG systems, and data platforms.',
   alternateNames: ['Jack Xu', 'Qijin (Jack) Xu'],
   jobTitle: resume.basics.label,
@@ -41,13 +41,14 @@ export const site = {
   url: 'https://my-website-freedomjack.vercel.app',
 
   links: {
-    github: { label: 'GitHub', handle: github.username, url: github.url },
-    linkedin: { label: 'LinkedIn', handle: linkedin.username, url: linkedin.url },
+    github: { handle: github.username, url: github.url },
+    linkedin: { url: linkedin.url },
   },
 
   /**
-   * The header's nav, in the painting's order (round 5): the nav, the handscroll and the footer's
-   * story map all run Work → Writing → Résumé → Contact, so moving along the nav moves along the painting.
+   * The header's nav, in the painting's order: the nav, the handscroll and the tail's scroll map
+   * (components/layout/ScrollMap) all run Work → Writing → Résumé → Contact, so moving along the nav moves along the
+   * painting.
    */
   nav: [
     { label: 'Work', href: '/work/' },
@@ -60,16 +61,16 @@ export const site = {
   stillHint: 'Stops the painting’s motion; remembered on this device.',
 
   /**
-   * The way on (the vanguard round): every page but Contact and the 404 ends on one line pointing downstream, to the
-   * next place in the painting's order, with that page's own sentence (components/page/NextPlace). The label is new.
+   * The way on: every page but Contact and the 404 ends on one line pointing downstream, to the next place in the
+   * painting's order, with that page's own sentence (components/page/NextPlace).
    */
   ending: { label: 'Downstream' },
 
   /**
    * The tail of the scroll (the footer on every page; components/layout/Tail): the colophon line (DRAFT, for Jack:
    * its honesty about how the site was made is his to word), the build stamp (the short commit and the date, written
-   * at build; a measured number only when CI wrote content/measured.json, with its profile named), "Last changed",
-   * Still, the five names, the email and the one seal.
+   * at build; a measured number only once `npm run check:budgets -- --write` has filled content/measured.json, with
+   * its profile named), "Last changed", Still, the five names, the email and the one seal.
    */
   tail: {
     colophon:
@@ -99,8 +100,9 @@ export const site = {
   updated: '2026-10',
 
   /**
-   * The footer's "Source code" link and Work's entry for this repository stay withheld until the public repo no
-   * longer holds the old résumé file (CLAUDE.md, hard rules, the launch gate). Set to true only after Jack confirms.
+   * The launch gate (CLAUDE.md, hard rules): no "Source code" link and no Work entry for this repository while the
+   * public repo still holds the old résumé file. Set to true only after Jack confirms. No code reads it: the tail has
+   * no such link, and github/rules.ts DENY keeps the repository off Work.
    */
   showSourceCode: false,
   sourceCodeUrl: 'https://github.com/Freedom-Jack/my-website',
@@ -139,5 +141,3 @@ export const site = {
     ],
   },
 } as const;
-
-export type Site = typeof site;

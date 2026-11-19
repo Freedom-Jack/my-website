@@ -1,6 +1,6 @@
 /**
  * The scroll, held: the arithmetic of the hand (pure; tests/unit/scroll.test.ts). World x is in stretches along the
- * handscroll: Home 0, Work 1, Writing 2, Résumé 3, Contact 4 (places.ts STORY_MAP). The hand never wanders past the
+ * handscroll: Home 0, Work 1, Writing 2, Résumé 3, Contact 4 (places.ts SCROLL_MAP). The hand never wanders past the
  * crossing into the 404's mist.
  */
 export const FIRST = 0;

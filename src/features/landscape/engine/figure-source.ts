@@ -1,15 +1,12 @@
-// figure-source.ts: where figure layers are drawn (main thread only; the engine, index.ts, is its one user).
+// figure-source.ts: where figure layers are drawn (main thread only: index.ts requests them, Landscape.tsx warms it).
 // A module worker (figures.worker.ts) with OffscreenCanvas where the browser has both, else idle chunks here.
 // Kept apart from figures.ts (the drawing kit, which the worker imports): a module that both spawns the worker and is
 // part of the worker's own graph makes the worker's bundle reference itself, which a production Turbopack build never
 // finishes resolving.
 
 import type { Ctx2D, LayerParams } from './figures';
-import { mark } from './marks';
 import { qaOverrideLists } from '../elements';
 import type { FigureReply, FigureRequest, FigureResult } from './renderer';
-
-const QA = typeof process !== 'undefined' && process.env.NEXT_PUBLIC_INK_QA === '1';   // (the boot's marks, QA builds only)
 
 /** The figure layers' source (createFigureSource). */
 export interface FigureSource {
@@ -32,7 +29,7 @@ export function warmFigureSource(): void {
 /**
  * Where figure layers are drawn: a module worker with OffscreenCanvas when the browser has both (Safari 16.4+), else
  * the main thread in idle chunks of <= 8 ms. request() resolves to { width, height, data (premultiplied RGBA bytes,
- * top row first) | bitmap, sprites? (out 'gpu': the boats cut out of it), ms, life (the layer's life anchors) }.
+ * top row first) | bitmap, sprites? (out 'gpu': one atlas of its moving things), life (the layer's life anchors) }.
  */
 export function createFigureSource(fresh = false): FigureSource {
   if (!fresh && warmed) { const w = warmed; warmed = null; return w; }   // (the source warmed before the engine arrived)
@@ -43,7 +40,6 @@ export function createFigureSource(fresh = false): FigureSource {
     if (worker || broken || !canWorker) return worker;
     try {
       worker = new Worker(new URL('./figures.worker.ts', import.meta.url), { type: 'module', name: 'figures' });
-      if (QA) mark('worker:spawn');
       worker.onmessage = (e: MessageEvent<FigureReply>) => {
         const p = pending.get(e.data?.id);
         if (!p) return;
@@ -104,7 +100,6 @@ async function idleDraw(p: LayerParams) {
     const ctx = canvas.getContext('2d', { willReadFrequently: true }) as Ctx2D | null;
     if (!ctx) { reject(new Error('no 2d context')); return; }
     const steps = paintSteps(ctx, p);
-    let ms = 0;
     // (no requestIdleCallback, Safari: a timer, with a deadline of 8 ms)
     const ric: (f: IdleRequestCallback, o?: IdleRequestOptions) => unknown = typeof requestIdleCallback === 'function' ? requestIdleCallback : (f) => setTimeout(() => f({ timeRemaining: () => 8 } as IdleDeadline), 16);
     const run = (deadline?: IdleDeadline) => {
@@ -114,18 +109,16 @@ async function idleDraw(p: LayerParams) {
         while (performance.now() - t0 < budget) {
           const step = steps.next();
           if (step.done) {
-            ms += performance.now() - t0;
             const life = step.value || [];
-            if (p.out === 'bitmap') resolve({ width, height, bitmap: canvas, ms, life });
+            if (p.out === 'bitmap') resolve({ width, height, bitmap: canvas, life });
             else {
               const img = ctx.getImageData(0, 0, width, height);
-              resolve({ width, height, data: premultiply(img.data), ms, life });
+              resolve({ width, height, data: premultiply(img.data), life });
             }
             return;
           }
         }
       } catch (err) { reject(err); return; }
-      ms += performance.now() - t0;
       ric(run, { timeout: 300 });
     };
     ric(run, { timeout: 300 });

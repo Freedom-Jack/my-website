@@ -17,9 +17,9 @@ const config: NextConfig = {
   turbopack: {
     root: process.cwd(),
     rules: {
-      // the engine's shader module: its GLSL loses its comments and indentation in the bundle (tools/glsl-loader.cjs),
-      // which takes the engine's chunk under its 100 KB (gzip) budget; the source stays readable and the programs are
-      // the same tokens. (A glob with a `/` matches the project-relative path; the `**/` form is what matched.)
+      // the engine's shader module: tools/glsl-loader.cjs strips its GLSL's comments and indentation from the bundle,
+      // so the engine's chunk is lighter while the source keeps them; the programs are the same tokens. (A glob with a
+      // `/` matches the project-relative path, hence the leading `**/`.)
       '**/landscape/engine/shaders.ts': {
         loaders: [path.join(process.cwd(), 'tools/glsl-loader.cjs')],
         as: '*.ts',
@@ -27,9 +27,9 @@ const config: NextConfig = {
     },
   },
   experimental: {
-    // Fewer, larger client chunks on a first load (the budgets' request gate: 12 first-load requests as the target,
-    // 15 the gate): the App Router's defaults split the framework and the site's own code into eight scripts; merging
-    // the small ones costs nothing on a site this size and saves requests on every cold visit.
+    // Fewer, larger client chunks on a first load: the App Router's defaults split the framework and the site's own
+    // code into many small scripts; merging them costs nothing on a site this size and saves requests on every cold
+    // visit (check:budgets gates first-load requests at 15).
     turbopackChunking: { minChunkSize: 200000, maxChunkCountPerGroup: 5, requestCost: 500000 },
   },
   outputFileTracingRoot: process.cwd(),

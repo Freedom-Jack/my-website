@@ -3,8 +3,8 @@ import { isSoftware, ROUTES, settle } from './support/pages';
 
 // A smoke test per route: it answers, says what it is, holds one <main> and one h1, is marked as the page it is,
 // paints (or falls back), and logs no errors. Plus the hard rules on the rendered page (CLAUDE.md).
-// (a software rasteriser repaints the ambient painting forever and stalls the page's main thread; the checks here
-// are DOM-only, so on software the painting runs still — reduced motion — and the page answers at once)
+// (the checks here are DOM-only: on a software rasteriser the painting runs still, under reduced motion, so the page
+// answers at once)
 test.beforeEach(async ({ page }) => {
   if (await isSoftware(page)) await page.emulateMedia({ reducedMotion: 'reduce' });
 });

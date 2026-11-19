@@ -1,24 +1,15 @@
 /**
  * Where each page stands in the one painting.
  *
- * One river runs the whole scroll (round 5): it falls from his mountain (Home), runs past the river town where
- * the work gets done (Work and its cases), opens into the still lake by the pavilion where he writes (Writing, the
- * notes), narrows at the foot of the terraced fields of his record (Résumé) and opens into the crossing, where the
- * ferry brings you across to meet him (Contact). Beyond the water, off the map, the path climbs a lone peak into
- * mist (404). One place per stretch, in the nav's order.
+ * One river runs the whole scroll: it falls from his mountain (Home), runs past the river town where the work gets
+ * done (Work and its cases), opens into the still lake by the pavilion where he writes (Writing, the notes), narrows
+ * at the foot of the terraced fields of his record (Résumé) and opens into the crossing, where the ferry brings you
+ * across to meet him (Contact). Beyond the water, off the map, the path climbs a lone peak into mist (404). One place
+ * per stretch, in the nav's order.
  *
  * The page renders its <main> from this table (components/page/PageMain), and the navigation reads it to
  * prepare the destination's painting before the new page arrives, so the two never disagree.
  */
-
-// (with its extension: tools/build-stills.ts loads this file in Node's own TypeScript, which resolves no bare paths)
-import { ELEMENTS } from './elements.ts';
-
-/** The scroll motion (elements.ts unroll, or the camera's travel): every page on the map is a living ground; with
- *  neither on, only Home and Work are (4b). */
-const TRAVEL: 'living' | '' = ELEMENTS.unroll || ELEMENTS.cameraTravels ? 'living' : '';
-/** The unroll: the deep pages (a case, a note) are living ground too, and open inside their place (`inside`). */
-const DEEP: 'living' | '' = ELEMENTS.unroll ? 'living' : '';
 
 export type Distance = 'level' | 'high' | 'deep';
 export type PageId = 'home' | 'work' | 'case' | 'writing' | 'article' | 'resume' | 'contact' | 'not-found';
@@ -26,36 +17,34 @@ export type PageId = 'home' | 'work' | 'case' | 'writing' | 'article' | 'resume'
 export interface Place {
   /** The page's id: <main data-page>, its CSS Module's scope. */
   page: PageId;
-  /** Position along the handscroll: Home 0, Work 1, Writing 2, Résumé 3, Contact 4, 404 5 (round 5: one place per
-   *  stretch; the road, a stretch with no page between Work and Writing, is gone). */
+  /** Position along the handscroll, one place per stretch: Home 0, Work 1, Writing 2, Résumé 3, Contact 4, 404 5. */
   stretch: number;
   /**
-   * The composition the page paints the scroll with: the same on every page (round 5: one world, compose.ts WORLD), so
-   * a place looks the same from every page and the scenes line up. A page with its own would re-compose the whole
-   * scroll while it shows (tests/unit/rules.test.ts keeps them equal).
+   * The composition the page paints the scroll with: the same on every page (one world, compose.ts WORLD), so a place
+   * looks the same from every page and the scenes line up. A page with its own would re-compose the whole scroll
+   * while it shows (tests/unit/rules.test.ts keeps them equal).
    */
   distance: Distance;
   presence: number;
   /** 0..1: the desktop ink horizon's presence between the strip and the closing. */
   horizon: number;
-  /** 'living' (Home, Work): the page's own scene is its ground on wide screens painted by a hardware GPU. */
+  /** 'living' (every page on the map): the page's own scene is its ground on wide screens painted by a hardware GPU. */
   ground: 'living' | '';
   /**
-   * The hero's kind (round 5: one hero system): home (the landing page's tall hero) or sub (every other page: the
-   * same height, the title at the same place). 'doc' (the low art-only band the Résumé and the Note had)
-   * is unused; it and the engine's framing for it go once Jack approves the round-5 heroes.
+   * The hero's kind: home (the landing page's tall hero) or sub (every other page: the same height, the title at the
+   * same place).
    */
-  strip: 'home' | 'sub' | 'doc';
+  strip: 'home' | 'sub';
   /**
    * Every page on the map ends the same way: on its own closing scene, a different view of the same place, then
-   * the footer's story map. The 404 lies off the map, so its path just ends in mist (no closing).
+   * the footer's scroll map (components/layout/ScrollMap). The 404 lies off the map, so its path just ends in mist
+   * (no closing).
    */
   closing: boolean;
   /**
-   * (the vanguard round) A deep page (a case, a note) opens INSIDE its place: its hero looks closer (compose.ts
-   * HERO.inside) and further along the place (the scene's Frame.insideU), rather than on the place's postcard. A page
-   * may name its own stretch-local u instead (A2's sub-anchors: a case's own quay in the town), which <main>'s
-   * data-inside carries as a number.
+   * A deep page (a case, a note) opens inside its place: its hero looks closer (compose.ts HERO.inside) and further
+   * along the place (the scene's Frame.insideU), rather than on the place's postcard. A number names the page's own
+   * stretch-local u instead, which <main>'s data-inside carries.
    */
   inside?: boolean | number;
 }
@@ -87,11 +76,11 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
     distance: 'level',
     presence: 1,
     horizon: 0.55,
-    // (the unroll: a case is a living ground too, and opens inside the town, east of the bridge)
-    ground: DEEP,
+    // (a case is a living ground too, and opens inside the town, east of the bridge)
+    ground: 'living',
     strip: 'sub',
     closing: true,
-    inside: !!DEEP,
+    inside: true,
   },
   writing: {
     page: 'writing',
@@ -99,7 +88,7 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
     distance: 'level',
     presence: 1,
     horizon: 0.5,
-    ground: TRAVEL,
+    ground: 'living',
     strip: 'sub',
     closing: true,
   },
@@ -109,11 +98,11 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
     distance: 'level',
     presence: 1,
     horizon: 0.35,
-    // (the unroll: a note opens inside the lake, the pavilion close)
-    ground: DEEP,
+    // (a note opens inside the lake, the pavilion close)
+    ground: 'living',
     strip: 'sub',
     closing: true,
-    inside: !!DEEP,
+    inside: true,
   },
   resume: {
     page: 'resume',
@@ -121,7 +110,7 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
     distance: 'level',
     presence: 1,
     horizon: 0.35,
-    ground: TRAVEL,
+    ground: 'living',
     strip: 'sub',
     closing: true,
   },
@@ -131,7 +120,7 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
     distance: 'level',
     presence: 1,
     horizon: 0.5,
-    ground: TRAVEL,
+    ground: 'living',
     strip: 'sub',
     closing: true,
   },
@@ -170,9 +159,9 @@ export function placeForPath(path: string): Place {
   return PLACES['not-found'];
 }
 
-/** The five places in the painting's order (not the nav's), each a link: the river line's stops and the tail's names
- *  (the vanguard round; before it, the footer's story map, whose stills tools/build-stills.ts still names). */
-export const STORY_MAP = [
+/** The five places in the painting's order: the links of the footer's scroll map (components/layout/ScrollMap) and the
+ *  stops of the scroll, held (features/scroll). `still` is the place's key into scroll.json `places`. */
+export const SCROLL_MAP = [
   { stretch: 0, label: 'Home', href: '/', still: 'home' },
   { stretch: 1, label: 'Work', href: '/work/', still: 'work' },
   { stretch: 2, label: 'Writing', href: '/writing/', still: 'writing' },
@@ -181,10 +170,10 @@ export const STORY_MAP = [
 ] as const;
 
 /**
- * The way on (the vanguard round's endings, components/page/NextPlace): every page but Contact and the 404 ends on
- * the next place downstream. A case ends on the place after the town; a note on the place after the lake. The
- * ending's words come from that page's own content.
- * `inked`: the next place's name stands INTO the painting (body.css .inked: behind the place's leaf), where the
+ * The way on (components/page/NextPlace): every page but Contact and the 404 ends on the next place downstream. A
+ * case ends on the place after the town; a note on the place after the lake. The ending's words come from that
+ * page's own content.
+ * `inked`: the next place's name is inked into the painting (body.css .inked: behind the place's leaf), where the
  * page's travel has brought the next place under it by the page's end (Home, Writing, a note). Where the travel
  * holds the page's own place beside the words (the engine's hold: Work, a case, the Résumé), that place still
  * stands where the name does, and its roofs or its hill would cover the letters: there the name stands in front.

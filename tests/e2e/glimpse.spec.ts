@@ -1,18 +1,18 @@
 import { expect, test, type Page } from '@playwright/test';
-import { isSoftware, settle } from './support/pages';
+import { isSoftware, PHONE, settle } from './support/pages';
 
 /**
  * Windows into the painting (elements.ts glimpses), below 1200 px: the hard rules on the rendered pages.
  * The page's own rules, whatever the windows paint:
- *   - laptops: no window is laid out, and the page is the approved one (flag on = flag off, "Still the landscape" on);
+ *   - laptops: no window is laid out, and the page is the same with the flag on or off ("Still the landscape" on);
  *   - phones: every window is painted and scrolling past all of them paints no scene;
  *   - the words keep 40 px of paper: no figure pixel (lum < 190 or C* > 28) within 40 px of a text line;
  *   - reduced motion: a window is its rest pose wherever it stands on the screen;
  * and the windows' own rules:
  *   - nothing in a window is lighter than the paper round it; no figure within 24 px of the screen's sides;
  *   - windows never share a screen: >= 1.1 viewports apart, <= 30 % of any screen;
- *   - a short page's end (Writing, Contact) is uncovered at the end of the page at 390, 768 and 1024;
- *   - the fallback is the window's own still; a phone held sideways lays out no window (the strip and the closing).
+ *   - a short page's end (Contact) is uncovered at the end of the page at 390, 768 and 1024;
+ *   - the fallback is the window's own still; a phone held sideways lays out no window (the strip and the page's last picture).
  *   - the Résumé's timeline is never cut: its windows stand only before Experience and before Skills.
  * They read the QA build's window.__ink (NEXT_PUBLIC_INK_QA=1), like the other e2e probes.
  */
@@ -22,7 +22,6 @@ const PAGES = [
   { path: '/work/', n: 2, tablet: 2 },
   { path: '/resume/', n: 2, tablet: 2 },
 ];
-const PHONE = { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true };
 const stats = (page: Page) => page.evaluate(() => (window as unknown as { __ink: { stats(): S } }).__ink.stats());
 const boxes = (page: Page, sel = '[data-landscape="glimpse"]') =>
   page.evaluate(
@@ -82,7 +81,7 @@ const diffFrac = (page: Page, a: Buffer, b: Buffer, thr: number) =>
   );
 const HIDE_TEXT = `*, *::before, *::after { color: transparent !important; -webkit-text-fill-color: transparent !important;
   text-decoration-color: transparent !important; caret-color: transparent !important; transition: none !important; }
-.seal, .seal *, .site-header, .ink-btn, .brush, svg, img { visibility: hidden !important; }`;
+.seal, .seal *, .site-header, svg, img { visibility: hidden !important; }`;
 /**
  * One window measured on a viewport screenshot (glyphs hidden): its figure pixels' least distance to any text line
  * on screen (CSS px), its figure pixels within 24 px of the box's sides, and its pixels lighter than the paper just
@@ -216,23 +215,12 @@ const still = (page: Page) =>
     (window as unknown as { __inkLive?: boolean }).__inkLive = true;
     try {
       localStorage.setItem('ink:still', '1');
-      sessionStorage.setItem('ink:morning', '1');
-      sessionStorage.setItem('ink:swash', '1');
-    } catch {
-      /* private mode */
-    }
-  });
-const noMorning = (page: Page) =>
-  page.addInitScript(() => {
-    try {
-      sessionStorage.setItem('ink:morning', '1');
-      sessionStorage.setItem('ink:swash', '1');
     } catch {
       /* private mode */
     }
   });
 
-test.describe('glimpses: laptops are the approved page', () => {
+test.describe('glimpses: laptops are the page without windows', () => {
   for (const vp of [
     { width: 1440, height: 900 },
     { width: 1280, height: 720 },
@@ -246,7 +234,7 @@ test.describe('glimpses: laptops are the approved page', () => {
         await probe.close();
         // (the page is judged on a real GPU; a software rasteriser paints less, and at 1440 it can
         // hold the main thread long enough that the page cannot be measured at all)
-        test.skip(sw, 'the approved page is judged on a real GPU');
+        test.skip(sw, 'the page is judged on a real GPU');
         const shots: Buffer[] = [];
         const heights: number[] = [];
         for (const off of [false, true]) {
@@ -280,7 +268,6 @@ test.describe('glimpses: phones', () => {
   for (const p of PAGES) {
     test(`${p.path}: every window painted, and no scene while scrolling past them`, async ({ page }) => {
       test.skip(await isSoftware(page), 'a software rasteriser shows the stills');
-      await noMorning(page);
       await page.goto(p.path);
       await settle(page);
       const bx = (await boxes(page)).filter((b) => b.h > 0);
@@ -304,7 +291,6 @@ test.describe('glimpses: phones', () => {
       page,
     }) => {
       test.skip(await isSoftware(page), 'a software rasteriser shows the stills');
-      await noMorning(page);
       await page.goto(p.path);
       await settle(page);
       await paintAll(page, 844);
@@ -361,7 +347,7 @@ test.describe('glimpses: phones', () => {
     // would differ by far more)
     expect(d).toBeLessThan(0.002);
   });
-  test('fallback: each window shows its own still until it is painted, fetched only near the viewport (R5)', async ({
+  test('fallback: each window shows its own still until it is painted, fetched only near the viewport', async ({
     page,
   }) => {
     await page.goto('/');
@@ -400,49 +386,45 @@ test.describe('glimpses: a short page ends on its place, uncovered', () => {
     { width: 768, height: 1024, dpr: 2, mobile: true },
     { width: 1024, height: 768, dpr: 1, mobile: false },
   ])
-    // (round 7: below 1200 px Writing ends on the next place's own picture under its name, not on a window of its
-    // own; Contact, the last place, keeps its end)
-    for (const path of ['/contact/'])
-      test(`${path} at ${vp.width}: the end painted at the page's end`, async ({ browser }) => {
-        const ctx = await browser.newContext({
-          viewport: { width: vp.width, height: vp.height },
-          deviceScaleFactor: vp.dpr,
-          isMobile: vp.mobile,
-          hasTouch: vp.mobile,
-        });
-        const page = await ctx.newPage();
-        test.skip(await isSoftware(page), 'a software rasteriser shows the stills');
-        await noMorning(page);
-        await page.goto(path);
-        await settle(page);
-        const H = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
-        await jumpTo(page, H);
-        await settle(page);
-        await page.waitForFunction(() => (window as any).__ink.stats().glimpses.list.every((g: S) => g.painted), null, {
-          timeout: 15_000,
-        });
-        await page.waitForTimeout(600);
-        const [b] = await boxes(page, '[data-glimpse="end"]');
-        const top = b.top - (await page.evaluate(() => scrollY));
-        const png = await page.screenshot({ clip: { x: 0, y: Math.max(0, top), width: vp.width, height: b.h } });
-        const share = await page.evaluate(async (b64) => {
-          const img = new Image();
-          img.src = `data:image/png;base64,${b64}`;
-          await img.decode();
-          const cv = document.createElement('canvas');
-          cv.width = img.width;
-          cv.height = img.height;
-          const g = cv.getContext('2d')!;
-          g.drawImage(img, 0, 0);
-          const D = g.getImageData(0, 0, cv.width, cv.height).data;
-          let n = 0;
-          for (let k = 0; k < D.length; k += 4)
-            if (Math.max(Math.abs(D[k] - 239), Math.abs(D[k + 1] - 241), Math.abs(D[k + 2] - 238)) > 10) n++;
-          return n / (D.length / 4);
-        }, png.toString('base64'));
-        expect(share).toBeGreaterThan(0.25);
-        await ctx.close();
+    test(`/contact/ at ${vp.width}: the end painted at the page's end`, async ({ browser }) => {
+      const ctx = await browser.newContext({
+        viewport: { width: vp.width, height: vp.height },
+        deviceScaleFactor: vp.dpr,
+        isMobile: vp.mobile,
+        hasTouch: vp.mobile,
       });
+      const page = await ctx.newPage();
+      test.skip(await isSoftware(page), 'a software rasteriser shows the stills');
+      await page.goto('/contact/');
+      await settle(page);
+      const H = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
+      await jumpTo(page, H);
+      await settle(page);
+      await page.waitForFunction(() => (window as any).__ink.stats().glimpses.list.every((g: S) => g.painted), null, {
+        timeout: 15_000,
+      });
+      await page.waitForTimeout(600);
+      const [b] = await boxes(page, '[data-glimpse="end"]');
+      const top = b.top - (await page.evaluate(() => scrollY));
+      const png = await page.screenshot({ clip: { x: 0, y: Math.max(0, top), width: vp.width, height: b.h } });
+      const share = await page.evaluate(async (b64) => {
+        const img = new Image();
+        img.src = `data:image/png;base64,${b64}`;
+        await img.decode();
+        const cv = document.createElement('canvas');
+        cv.width = img.width;
+        cv.height = img.height;
+        const g = cv.getContext('2d')!;
+        g.drawImage(img, 0, 0);
+        const D = g.getImageData(0, 0, cv.width, cv.height).data;
+        let n = 0;
+        for (let k = 0; k < D.length; k += 4)
+          if (Math.max(Math.abs(D[k] - 239), Math.abs(D[k + 1] - 241), Math.abs(D[k + 2] - 238)) > 10) n++;
+        return n / (D.length / 4);
+      }, png.toString('base64'));
+      expect(share).toBeGreaterThan(0.25);
+      await ctx.close();
+    });
 });
 
 test.describe('glimpses: a phone held sideways', () => {
@@ -450,7 +432,6 @@ test.describe('glimpses: a phone held sideways', () => {
   for (const p of PAGES)
     test(`${p.path}: no window mid-page`, async ({ page }) => {
       test.skip(await isSoftware(page), 'a software rasteriser shows the stills');
-      await noMorning(page);
       await page.goto(p.path);
       await settle(page);
       expect((await boxes(page)).filter((b) => b.h > 0).length).toBe(0);

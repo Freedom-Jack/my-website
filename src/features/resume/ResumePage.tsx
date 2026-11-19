@@ -11,16 +11,16 @@ import { bareUrl, resume } from './resume';
 import styles from './resume.module.css';
 
 /**
- * The Résumé (/resume/), rendered from content/resume.json. The first screen is the live site's: the terraced fields'
- * hero with the name and the title.
+ * The Résumé (/resume/), rendered from content/resume.json. The first screen: the terraced fields' hero with the name
+ * and the title.
  *
- * Below it (round 7), on screen: the letterhead (the contact line, "Updated", three actions: the PDF, the JSON, the
+ * Below it, on screen: the letterhead (the contact line, "Updated", three actions: the PDF, the JSON, the
  * email) and the summary at the left while the terraces stand at the right; Experience as a timeline the reading
  * draws (a brush line down the roles that runs as far as the reader has read, a mark per role, the years in their
  * own column in mono, the title and the organisation, the points under them); Skills in four columns across the
  * frame; Education beside Awards and certifications; then the ending downstream (Contact).
- * This page's print stylesheet IS the PDF (tools/build-pdf.ts prints it), so the page and the PDF never disagree:
- * every screen rule of round 7 is inside `@media screen`, and the document's order and words are untouched.
+ * This page's print stylesheet is the PDF (tools/build-pdf.ts prints it), so the page and the PDF never disagree:
+ * every screen-only rule is inside `@media screen`, and the document's order and words are the same in both.
  * No phone number, ever: the schema refuses one (features/resume/schema.ts).
  */
 
@@ -55,7 +55,7 @@ export function ResumePage() {
           <p className={`page-title ${styles['cv-head__name']}`}>{r.basics.name}</p>
           <p className={`lead ${styles['cv-head__role']}`}>{r.basics.label}</p>
           <p className={`small ${styles['cv-head__contact']}`}>
-            {/* No phone number: Jack decided it stays off the public résumé and its PDF. */}
+            {/* No phone number: never on the public résumé or its PDF (CLAUDE.md, hard rules). */}
             <span>{t.goesBy.replace('{name}', site.goesBy)}</span>
             <span>
               {r.basics.location.city}, {r.basics.location.region}, {site.countryName}
@@ -126,7 +126,7 @@ export function ResumePage() {
                       <Dates start={w.startDate} end={w.endDate} />
                     </span>
                     <span className={styles.timeline__dot}>{' · '}</span>
-                    <span className={styles.timeline__what}>
+                    <span>
                       {w.position}
                       {' · '}
                       <span className={styles.timeline__org}>{w.name}</span>
@@ -167,7 +167,7 @@ export function ResumePage() {
             </h2>
             {r.education.map((e) => (
               <Fragment key={e.institution}>
-                <p className={styles['cv-edu']}>
+                <p>
                   <b>{e.institution}</b>
                   {e.location ? `, ${e.location}` : ''}. {e.degree},{' '}
                   <span className="nowrap">

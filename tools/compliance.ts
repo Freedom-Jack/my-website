@@ -3,8 +3,8 @@
  *   no phone number anywhere (site, PDF, JSON, comments) · no street address · no project-management credential ·
  *   never the old résumé PDF (not served, not linked; only its 301 to /resume/) · no Chinese characters at all in
  *   text (the seal's glyph is an outline) · no file name with CJK.
- * It reads the sources (content/, src/, public/), the built pages (.next/server/app: what visitors get, HTML and
- * RSC payloads) and the PDF's own text.
+ * It reads the sources (content/, src/, public/, tools/, tests/, .github/, next.config.ts, package.json), the built
+ * pages (.next/server/app: what visitors get, HTML and RSC payloads) and the PDF's own text.
  *
  *   npm run check:compliance            (after npm run build; without a build it checks the sources only)
  */

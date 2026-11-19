@@ -1,23 +1,18 @@
 /* ==========================================================================
-   body.css — round 7 (2026-11-16): everything below the first screen, on every page.
+   body.css — everything below the first screen, on every page.
 
-   Jack: "the rest of the page has no visual effects and it's all terrible … The body is like only left side of the
-   page … even the footer is not perfectly aligned with the page"; "the whole idea is this is the whole big scroll.
-   It's one big painting."
-
-   The painting runs the whole width behind the page (elements.ts curtain, off) and still slides west as the page
-   is read. The words lie in its mist, across the whole frame: every block of words keeps a cloud of the paper's own
-   mist behind it (plates/veils.ts), so a cloud carrying words drifts up across the peaks as the page scrolls; a few
-   display words are inked INTO the painting, between its depth layers (.inked), so a ridge or a roof passes in
-   front of the letters. What moves is ink, wash, mist, paper or the seal: figures as ink numerals that rise like
-   ink in paper, a wash that blooms under the pointer, the seal pressed when something is done. (The first build
-   drew a dry-brush bar under every title, box and section; Jack: "why there are so many big bold lines?" They are
-   gone: a line here is a hairline, as the header's are.) Reading keeps its normal sizes; nothing is hidden at first paint without JavaScript or scroll timelines
-   (every effect's finished state is the default).
+   The whole site is one big painting, one scroll: it runs the whole width behind the page and slides west as the
+   page is read. The words lie in its mist across the whole frame, not down its left side: every block of words keeps
+   a cloud of the paper's own mist behind it (plates/veils.ts), so a cloud carrying words drifts up across the peaks
+   as the page scrolls; a few display words are inked into the painting, between its depth layers (.inked), so a
+   ridge or a roof passes in front of the letters. What moves is ink, wash, mist, paper or the seal: figures as ink
+   numerals that rise like ink in paper, a wash that blooms under the pointer, the seal pressed when something is
+   done. A line here is a hairline, as the header's are: no bold brush bars. Reading keeps its normal sizes; nothing
+   is hidden at first paint without JavaScript or scroll timelines (every effect's finished state is the default).
 
    One grid: the page frame (1200) in twelve columns, the header's own edges. Every page's blocks are placed on it
-   by the page's CSS Module; the tail (the footer) stands on it too.
-   Load order: tokens → base → layout → plates → effects → components → body → the CSS Modules.
+   by the page's CSS Module, and the tail (the footer) stands on it too, so everything lines up with the header.
+   Load order: tokens.css's header.
    ========================================================================== */
 
 :root {
@@ -180,7 +175,7 @@
   }
 }
 
-/* ---------- words inked INTO the painting ----------
+/* ---------- words inked into the painting ----------
    .inked stands between the painting's two leaves (plates.css): behind the place, in front of the sky and the far
    ranges, so a peak or a roof passes in front of the letters as the scroll slides. Only while the plates are the
    stage; elsewhere (a phone, a page change, no painting) the words stand on the page as any others. Never inside a
@@ -258,9 +253,6 @@ html[data-plates='on'] .inked {
   padding-block-end: 0.16em;
   transition: background-size 420ms var(--ease-wash);
 }
-main a.brush-link {
-  text-decoration: none;
-}
 .brush-link:is(:hover, :focus-visible) {
   background-size:
     100% 1.5px,
@@ -280,13 +272,11 @@ main a.brush-link {
      <aside class="next spread" aria-label="Downstream: Work">
        <div class="next__text" data-veil><p class="tag">Downstream</p><p class="next__line">…</p></div>
        <p class="next__name inked"><a class="next__link" href="/work/">Work<span class="action__arrow"></span></a></p>
+       <img class="next__still" …>
      </aside>
    ========================================================================== */
 .next {
-  max-width: none;
   margin-block-start: var(--space-body);
-  padding-block-start: 0;
-  border-top: 0;
   row-gap: 1.25rem;
 }
 .next__text {
@@ -296,9 +286,6 @@ main a.brush-link {
   margin-block-start: 0.5rem;
   color: var(--ink-2);
   max-width: 34em;
-}
-.next__name {
-  margin: 0;
 }
 .next__link {
   display: inline-flex;
@@ -314,8 +301,11 @@ main a.brush-link {
   text-decoration: none;
   white-space: nowrap;
 }
-main a.next__link {
-  text-decoration: none;
+.next__link:hover,
+.next__link:focus-visible {
+  text-decoration: underline;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 0.08em;
 }
 .next__link .action__arrow {
   width: 0.62em;
@@ -365,9 +355,6 @@ main a.next__link {
   .next__still {
     display: none;
   }
-  .next {
-    align-items: start;
-  }
   /* the page's last screen: the ending's words and the next place's name at its top, the place itself standing clear
      under them (the closing's gap: nothing lies there but the painting), then the tail */
   .next + .closing {
@@ -392,7 +379,7 @@ main a.next__link {
 
 /* ==========================================================================
    The tail (components/layout/Tail; the footer, on every page): the end of the scroll.
-   First the whole scroll in miniature: ONE strip of the painting, Home's peaks to the crossing with the stretches
+   First the whole scroll in miniature: one strip of the painting, Home's peaks to the crossing with the stretches
    between them, the screen's width, each page's name under its own place and the current one sealed (ScrollMap).
    Then, on the page's own twelve columns, the colophon and the build stamp at the left, "Still the landscape", the
    email and the seal at the right: everything starts on the frame's left edge or ends on its right one, as the
@@ -412,11 +399,6 @@ main a.next__link {
 }
 main:has(> .closing:last-child) + .site-footer.tail {
   margin-block-start: var(--space-s);
-}
-.tail > .frame {
-  display: block;
-  padding-block-start: 0;
-  border-top: 0;
 }
 /* the strip: on a wide screen the screen's width; below 1200 px a height it can be read at, wider than the screen,
    run sideways under the finger (no scrollbar shown: the strip running off both edges says so) */
@@ -473,7 +455,6 @@ main:has(> .closing:last-child) + .site-footer.tail {
   inset: 0;
   text-decoration: none;
   color: var(--ink-2);
-  -webkit-tap-highlight-color: transparent;
 }
 .scrollmap button {
   padding: 0;
@@ -537,9 +518,7 @@ main:has(> .closing:last-child) + .site-footer.tail {
   }
 }
 .tail__base {
-  margin-block-start: 1rem;
   row-gap: 1.25rem;
-  align-items: start;
 }
 .tail__words {
   display: grid;

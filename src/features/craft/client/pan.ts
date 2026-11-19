@@ -2,14 +2,13 @@ import { landscape } from '@/features/landscape/store';
 import { currentMain, placeOf } from '@/features/landscape/targets';
 
 /**
- * The search's pan (the attack's A2): on a wide screen with a fine pointer, a focused result moves the painting to its
- * passage's place, but only while the painting is live (`html[data-live="on"]`), 150 ms after the focus settles. A
- * result at the page's own view does not move it, and when the focus leaves the results the painting goes back. On a
- * phone it never moves (the "show the place" still instead).
- * (Round 7: the painting stands the whole width behind the whole page, so the pan no longer waits for the strip to be
- * on screen: the search lies well below it now.)
+ * The search's pan: on a wide screen with a fine pointer, a focused result moves the painting to its passage's place,
+ * but only while the painting is live (`html[data-live="on"]`), 150 ms after the focus settles. A result at the page's
+ * own view does not move it, and when the focus leaves the results the painting goes back. On a phone it never moves
+ * (the "show the place" still instead). The painting stands behind the whole page, so the pan does not wait for the
+ * strip to be on screen.
  */
-export interface Target {
+interface Target {
   stretch: number;
   u: number | null;
 }

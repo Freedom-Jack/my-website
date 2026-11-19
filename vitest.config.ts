@@ -1,8 +1,8 @@
 import path from 'node:path';
 import { defineConfig } from 'vitest/config';
 
-// Unit tests: the content files and their schemas, the rules (GitHub, compliance, typography, places) and the
-// landscape engine's pure parts. Browser behaviour is Playwright's (tests/e2e).
+// Unit tests (tests/unit, in Node): the content and its schemas, the hard rules, and the pure logic of the site and
+// the painting. Browser behaviour is Playwright's (tests/e2e).
 export default defineConfig({
   resolve: {
     alias: {

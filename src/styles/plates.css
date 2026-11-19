@@ -1,14 +1,14 @@
 /* ==========================================================================
-   plates.css — THE PLATES (round 6): the stage as the page's own layers.
+   plates.css — the plates: the stage as the page's own layers.
    On wide screens the engine develops each depth layer of the painting once into a canvas here and the browser moves
    them with a scroll timeline (features/landscape/plates/sink.ts): a scroll runs no script and draws nothing.
    Shown while html[data-plates="on"]; the engine's own canvas (.landscape) rests then.
    ========================================================================== */
 
-/* Two leaves (round 7): .plates__back holds what lies behind the place (the far plate: the sky, the light, the far
-   ranges; its top under the header's band; the haze), .plates__fore the place and everything in front of it (the
+/* Two leaves: .plates__back holds what lies behind the place (the far plate: the sky, the light, the far
+   ranges; its top under the header's band), .plates__fore the place and everything in front of it (the
    middle and near plates, the sea of mist, what is pinned). Each is a fixed layer of the page's root, so a page can
-   ink words INTO the painting between them (body.css .inked: z-index between the two) and a ridge passes in front
+   ink words into the painting between them (body.css .inked: z-index between the two) and a ridge passes in front
    of the letters. The wrapper keeps the stage's variables and attributes and has no box. Plain layers only: no
    mask, filter or blend mode on either leaf or anything in it. */
 .plates {
@@ -51,50 +51,7 @@ html.no-landscape :is(.plates__back, .plates__fore) {
   backface-visibility: hidden;
 }
 
-/* ---------- depth you can feel (elements.ts depth) ----------
-   Each plate answers the pointer by its own depth: the far ranges least, the near crags and the pinned bough most
-   (--d, px at the screen's edge), against the pointer, eased with weight. The pointer's place is two numbers on
-   .plates (sink.ts: --px, --py, -1..1); the move itself is the compositor's (translate beside the scroll's
-   transform). Fine pointers only; never under reduced motion or Still. */
-html.el-depth .plates canvas {
-  translate: calc(var(--px, 0) * var(--d, 0) * -1px) calc(var(--py, 0) * var(--d, 0) * -0.45px);
-  transition: translate 1100ms cubic-bezier(0.16, 0.72, 0.2, 1);
-}
-.plates canvas[data-plate='1'],
-.plates canvas[data-plate='10'],
-.plates canvas[data-plate='9'] {
-  --d: 4;
-}
-.plates canvas[data-plate='7'] {
-  --d: 6;
-}
-.plates canvas[data-plate='2'] {
-  --d: 10;
-}
-.plates canvas[data-plate='8'],
-.plates canvas[data-plate='4'] {
-  --d: 13;
-}
-.plates canvas[data-plate='3'] {
-  --d: 17;
-}
-.plates canvas[data-plate='5'] {
-  --d: 24;
-}
-html.is-still .plates canvas {
-  translate: none;
-}
-@media (prefers-reduced-motion: reduce) {
-  html.el-depth .plates canvas {
-    translate: none;
-    transition: none;
-  }
-}
-
-/* the standing curtain (the unroll): left of the reading column's edge the middle and near plates are in mist, so the
-   place passes in the margin and goes into the mist as it reaches the words; the far ranges run on behind the words.
-   A plain clip of the two plates at the curtain's line and a band of the paper's own mist over that line (the wisp:
-   plates/edges.ts). Never a mask: a mask over moving layers makes the browser composite the whole page itself. */
+/* the middle plates' two wrappers (Landscape.tsx): plain boxes at the leaf's origin; they clip nothing */
 .plates__front,
 .plates__in {
   position: absolute;
@@ -105,126 +62,6 @@ html.is-still .plates canvas {
 }
 .plates__in {
   width: 100vw;
-}
-.plates[data-curtain] .plates__front {
-  left: calc(var(--curtain) - 72px);
-  width: auto;
-  right: 0;
-  overflow: hidden;
-}
-.plates[data-curtain] .plates__in {
-  left: calc(72px - var(--curtain));
-}
-.plates__wisp {
-  display: none;
-  position: absolute;
-  top: 0;
-  height: 100%;
-  /* (its solid part over the clip's line: edges.ts WISP_AT from its left) */
-  left: calc(var(--curtain) - 72px - 80px);
-  width: 320px;
-  background: var(--wisp, none) 0 0 / 320px 1536px repeat-y;
-}
-.plates[data-curtain] .plates__wisp {
-  display: block;
-}
-
-/* ---------- the weather (elements.ts weather): falling snow, rain ----------
-   A scene that asks for snow or rain gets it on the page's own layers too (the painting's own snow and rain are part
-   of the mood's grade): tiles of flakes or streaks, each layer moved by one transform on the compositor (plain
-   layers: no mask, no blend). Under the veils, so nothing falls across the words. */
-.weather {
-  position: fixed;
-  inset: 0;
-  z-index: var(--z-landscape);
-  height: 100lvh;
-  overflow: hidden;
-  pointer-events: none;
-  display: none;
-  contain: strict;
-}
-html.el-weather[data-snow] .weather,
-html.el-weather[data-rain] .weather {
-  display: block;
-}
-html.no-landscape .weather,
-html.is-still .weather {
-  display: none;
-}
-.weather i {
-  position: absolute;
-  inset: -520px -40px 0 -40px;
-  display: none;
-  will-change: transform;
-}
-/* snow: two depths of flakes, the nearer larger and quicker; each sways a little as it falls */
-html[data-snow] .weather__a,
-html[data-snow] .weather__b {
-  display: block;
-}
-.weather__a {
-  background-image:
-    radial-gradient(circle at 12% 18%, #fff 0 2.1px, rgb(190 208 222 / 0.5) 2.5px, transparent 3.5px),
-    radial-gradient(circle at 46% 9%, #fff 0 1.7px, rgb(190 208 222 / 0.5) 2.1px, transparent 3px),
-    radial-gradient(circle at 78% 31%, #fff 0 2.4px, rgb(190 208 222 / 0.5) 2.8px, transparent 3.9px),
-    radial-gradient(circle at 27% 57%, #fff 0 1.9px, rgb(190 208 222 / 0.5) 2.3px, transparent 3.2px),
-    radial-gradient(circle at 63% 72%, #fff 0 2.2px, rgb(190 208 222 / 0.5) 2.6px, transparent 3.6px),
-    radial-gradient(circle at 91% 88%, #fff 0 1.6px, rgb(190 208 222 / 0.5) 2px, transparent 2.9px);
-  background-size: 260px 260px;
-  animation:
-    snow-fall 9.5s linear infinite,
-    snow-sway 6.5s ease-in-out infinite alternate;
-  animation-composition: add;
-}
-.weather__b {
-  background-image:
-    radial-gradient(circle at 8% 40%, rgb(255 255 255 / 0.9) 0 1.1px, rgb(190 208 222 / 0.4) 1.4px, transparent 2.1px),
-    radial-gradient(circle at 33% 12%, rgb(255 255 255 / 0.9) 0 0.9px, rgb(190 208 222 / 0.4) 1.2px, transparent 1.9px),
-    radial-gradient(circle at 57% 49%, rgb(255 255 255 / 0.9) 0 1.2px, rgb(190 208 222 / 0.4) 1.5px, transparent 2.2px),
-    radial-gradient(circle at 71% 83%, rgb(255 255 255 / 0.9) 0 1px, rgb(190 208 222 / 0.4) 1.3px, transparent 2px),
-    radial-gradient(circle at 89% 22%, rgb(255 255 255 / 0.9) 0 0.9px, rgb(190 208 222 / 0.4) 1.2px, transparent 1.9px),
-    radial-gradient(circle at 20% 77%, rgb(255 255 255 / 0.9) 0 1.1px, rgb(190 208 222 / 0.4) 1.4px, transparent 2.1px),
-    radial-gradient(circle at 44% 94%, rgb(255 255 255 / 0.9) 0 0.8px, rgb(190 208 222 / 0.4) 1.1px, transparent 1.8px);
-  background-size: 190px 190px;
-  animation:
-    snow-fall-b 17s linear infinite,
-    snow-sway 9s ease-in-out infinite alternate-reverse;
-  animation-composition: add;
-}
-@keyframes snow-fall {
-  to {
-    transform: translate3d(0, 520px, 0);
-  }
-}
-@keyframes snow-fall-b {
-  to {
-    transform: translate3d(0, 380px, 0);
-  }
-}
-@keyframes snow-sway {
-  from {
-    transform: translate3d(-18px, 0, 0);
-  }
-  to {
-    transform: translate3d(18px, 0, 0);
-  }
-}
-/* rain: short slanted strokes in the ink's own blue-grey, falling fast */
-html[data-rain] .weather__c {
-  display: block;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='200'%3E%3Cg stroke='%2345637d' stroke-opacity='.42' stroke-width='1' stroke-linecap='round'%3E%3Cpath d='M22 8l-6 26M71 52l-6 26M44 104l-6 26M92 141l-6 26M13 163l-5 22M60 12l-4 18'/%3E%3C/g%3E%3C/svg%3E");
-  background-size: 100px 200px;
-  animation: rain-fall 0.62s linear infinite;
-}
-@keyframes rain-fall {
-  to {
-    transform: translate3d(-100px, 400px, 0);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .weather i {
-    animation: none !important;
-  }
 }
 
 /* ---------- the veils: the paper kept behind the words (features/landscape/plates/veils.ts) ----------
@@ -243,7 +80,7 @@ html[data-rain] .weather__c {
 html[data-plates='on'] .veils {
   display: block;
 }
-/* THE FIRST SCREEN'S PATCHES (.veil--hero: the title block; round 6's, unchanged: the header is the live site's).
+/* The first screen's patches (.veil--hero: the title block).
    A patch is two nested masks, so its edges meet without a seam: the outer one ends it sideways (a plain soft edge at
    its left, where no painting stands; a torn edge of mist at its right, toward the painting), the inner one above and
    below (the same torn edge lying down). Between the edges: solid paper. */
@@ -338,7 +175,7 @@ html[data-plates='on'] .veils {
   -webkit-mask-composite: source-over;
   mask-composite: add;
 }
-/* THE BODY'S FIELD OF MIST (round 7; plates/veils.ts): one sheet of the paper's own tile the size of the page, whose
+/* The body's field of mist (plates/veils.ts): one sheet of the paper's own tile the size of the page, whose
    mask is the field the page computes from where its words stand (solid behind every line, thinning out in billows
    with the distance to the nearest words; --field, a small image stretched over the sheet). It scrolls with the
    words; the browser moves it. */
@@ -367,14 +204,11 @@ html[data-plates='on'] .veils {
   width: 100%;
   height: 150px;
   background: var(--paper) var(--paper-tile, none) 0 0 / var(--paper-tile-size, 512px) var(--paper-tile-size, 512px);
-  -webkit-mask-size: auto;
-  mask-size: auto;
   -webkit-mask-position: 0 0;
   mask-position: 0 0;
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
-  /* (and it ends a little past the nav's last word: the screen's top right corner is the painting's, where Home's
-     plum bough comes into the frame) */
+  /* (the band runs the full width: --band-end, where its right end would fade out, lies past the screen's edge) */
   --band-end: 200%;
   -webkit-mask-image:
     linear-gradient(
@@ -415,15 +249,11 @@ html[data-plates='on'] .veils {
   -webkit-mask-composite: source-in;
   mask-composite: intersect;
 }
-html.el-corner .veil--head {
-  --band-end: calc(50% + min(var(--frame), 100% - 2 * var(--gutter-x)) / 2 + 1.25rem);
-}
 
 @media print {
   .plates__back,
   .plates__fore,
-  .veils,
-  .weather {
+  .veils {
     display: none;
   }
 }

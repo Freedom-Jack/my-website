@@ -6,8 +6,7 @@ import { SearchShell } from './SearchShell';
 import styles from './craft.module.css';
 
 /**
- * "Under the hood" on Work (round 7: Work's moment, out of the folds and into the page). Four real things that run
- * in the visitor's own browser, laid open across the frame:
+ * "Under the hood" on Work: four real things that run in the visitor's own browser, laid open across the frame:
  *   Constrain the output   a grammar holding a model's output: a case record written one token at a time, the tokens
  *                          the grammar forbids struck through (it writes itself once it is on screen);
  *   How good is the search?  the search's own test, run again in front of the reader, a mark per question;

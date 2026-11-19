@@ -1,13 +1,13 @@
-// lights.ts — THE one table of each place's light (the engine's lightK0), shared by the shaders (lightsGLSL), the
-// story-map stills tool (tools/build-stills.ts writes each still's sun position into public/scenes/manifest.json) and
-// the footer's story map (StoryMap reads that position for its "you are here" warmth). Change a light here only.
+// lights.ts — the one table of each place's light (the engine's lightK0), read by the shaders (lightsGLSL). Change a
+// light here only.
 //
 // Per place k (stretch k): [u, y, r, w] = world x (stretches), scene height (0 = the scene's foot, y up), the glow's
 // radius (viewport heights) and its strength (w > 0: a light with a heart and, on still water, a glitter column; w < 0:
-// a sky glow only). No disc, no ring anywhere.
-export type Light = readonly [u: number, y: number, r: number, w: number];
+// a sky glow only). The scene paints it as a bloom, never a disc or a ring; where a window into the painting keeps
+// it, the light is a small disc of the paper's white (shaders.ts).
+type Light = readonly [u: number, y: number, r: number, w: number];
 
-export const LIGHTS: readonly Light[] = [
+const LIGHTS: readonly Light[] = [
   [0.724, 0.518, 0.155, 1.0], // Home: behind the host peak, low enough to clear the header
   [1.8, 0.5, 0.24, -0.45], // Work: a wide sky glow over the bridge and the town
   [2.85, 0.47, 0.11, 0.62], // Writing: a low moon glow over the lake, glittering in it

@@ -1,22 +1,20 @@
 /**
- * The long words of Work's "Under the hood" folds and the search's honesty notes. They never sit in Work's HTML (the
- * attack's A8: the page's HTML stays under 30 KB gzipped): the build puts each fold's words into that fold's JSON
- * (src/app/craft/*), fetched only when the fold is opened. Every sentence in Jack's voice is DRAFT until he rewords it.
- * Each fold opens with its tie and its case (moved out of Work's HTML, ruling R10). Tokens in {braces} are filled by the page with measured or computed values.
+ * The long words of Work's "Under the hood" pieces. They never sit in Work's HTML, which stays under 30 KB gzipped:
+ * the build puts each piece's words into that piece's JSON (src/app/craft/*), fetched as the reader reaches it. Each
+ * piece opens with its tie and its case. Every sentence in Jack's voice is DRAFT until he rewords it. Tokens in
+ * {braces} are filled by the page with measured or computed values.
  */
 export const hood = {
   lineage: {
-    /** the fold's first line: its tie to a production claim, then the link to that case (content/work/data-operations.mdx) */
+    /** the piece's first line: its tie to a production claim, then the link to that case (content/work/data-operations.mdx) */
     tie: 'At CGI I built a lineage tool that documents where data came from; this is that record for the words of this site.',
     case: 'data-operations',
     /** the one plain line after the tie */
     result:
       '{files} content files fed {passages} passages; the search, the vocabulary and the eval were all built from them at {commit}.',
-    list: 'The record',
-    /** (round 7) the fold that holds the list, under the drawing */
+    /** the fold that holds the list, under the drawing */
     listFold: 'Read the record as a list',
     drawing: 'The same record, drawn',
-    from: 'from',
     edges: {
       joined: 'run together from',
       indexed: 'built from',
@@ -28,7 +26,7 @@ export const hood = {
     },
   },
   mask: {
-    /** the fold's first line: its tie to a production claim, then the link to that case (content/work/proprietary-language-agent.mdx) */
+    /** the piece's first line: its tie to a production claim, then the link to that case (content/work/proprietary-language-agent.mdx) */
     tie: 'The agent for a proprietary language keeps every output inside an EBNF grammar; this is that constraint on a case record, one token at a time.',
     case: 'proprietary-language-agent',
     result:
@@ -37,12 +35,11 @@ export const hood = {
     record: 'The record so far',
     state: 'Inside',
     strip: 'The five highest-scored tokens at this step, and the five best legal ones',
-    columns: { rank: 'Rank', token: 'Token', share: 'Share', mask: 'Mask', id: 'Id' },
     legal: 'legal',
     blocked: 'blocked',
     next: 'Take the best legal token',
     again: 'Start again',
-    /** (round 7) the record writes itself, one token at a time, once it is on screen; these stop and resume it */
+    /** the record writes itself, one token at a time, once it is on screen; these stop and resume it */
     pause: 'Pause',
     resume: 'Go on',
     done: 'The record is complete and valid against the grammar.',
@@ -50,7 +47,7 @@ export const hood = {
     of: 'of',
   },
   eval: {
-    /** the fold's first line: its tie to a production claim, then the link to that case (content/work/rag-assistant.mdx) */
+    /** the piece's first line: its tie to a production claim, then the link to that case (content/work/rag-assistant.mdx) */
     tie: 'The insurance assistant answered from retrieved passages, so retrieval had to be measured; this is the same measure for the search above.',
     case: 'rag-assistant',
     result: 'On {n} questions the search returns the right passage first {at1} and in the top three {at3}.',
@@ -58,9 +55,9 @@ export const hood = {
       'The questions were written by the site’s author, not Jack; Jack’s own held-out set replaces them. Nothing in the search was tuned on them: BM25’s defaults, a stop list and a score floor fixed beforehand.',
     columns: { q: 'Question', rank: 'Right passage at', top: 'First result' },
     misses: 'Misses (the right passage not in the top three)',
-    /** (round 7) the fold that holds every question and its result, under the dots */
+    /** the fold that holds every question and its result, under the dots */
     every: 'Every question and its result',
-    /** (round 7) over the dots while the questions are being run, here, in the reader's browser */
+    /** over the dots while the questions are being run, here, in the reader's browser */
     running: 'Running the {n} questions in your browser…',
     ran: 'Run just now, in your browser: {n} questions in {ms} ms.',
     dots: 'The questions, one mark each',

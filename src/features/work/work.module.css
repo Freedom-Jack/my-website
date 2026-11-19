@@ -1,6 +1,6 @@
-/* Work's LAYOUT (round 7): the index (/work/) and the case pages (/work/<slug>/). The shared files (body.css,
-   components.css) carry type, ink and motion; this places Work's blocks on the frame's twelve columns and tunes their
-   spacing with tokens.
+/* Work's layout: the index (/work/) and the case pages (/work/<slug>/). The shared files (body.css, components.css)
+   carry type, ink and motion; this places Work's blocks on the frame's twelve columns and tunes their spacing with
+   tokens.
      index: strip (h1 "Work" + intro) · "Six projects, newest first" (rows, the left nine columns) · How I build (the
             whole frame: the statement and the drawing) · Under the hood (features/craft) · In the open (the right
             columns, once the town has gone west) · the ending
@@ -128,9 +128,6 @@
 .buildArt {
   margin-block-start: var(--space-m);
 }
-.buildArt :global(.diagram) {
-  max-width: none;
-}
 @media (min-width: 75rem) {
   /* the statement at the left, its line beside it; the drawing under them, the frame's whole width (its wide form) */
   .build > .buildText {
@@ -182,9 +179,9 @@
 }
 
 /* ---------- tap targets (>= 44 px), without moving a pixel ----------
-   In both tables a row is one target: its first link (the project's case, the repository) covers the row, and the
-   other links in the row sit above it. Stand-alone links (evidence, "All repositories") get an invisible hit area
-   that reaches 44 px; nothing reflows and the brush stays where it is. */
+   In the open's table a row is one target: its repository link covers the row. Stand-alone links (evidence,
+   "All repositories") get an invisible hit area that reaches 44 px; nothing reflows and the underline stays where it
+   is. */
 .open :global(tbody) :global(tr) {
   position: relative;
   cursor: pointer;
@@ -205,7 +202,7 @@
   inset: -0.9em -0.25em; /* (0.9em above and below a 14 px line: 45 px) */
 }
 
-/* ---------- a case page (round 7) ----------
+/* ---------- a case page ----------
      case: strip (h1 the case + its meta) · the summary, the figure in words, the NDA line (left) and the figure
            inked into the painting (right) · the diagram, the frame's width · the spine (Problem · My part · Outcome
            and status · Evidence · Stack) with the notes in the rail · the live piece tied to the case (three cases)
@@ -250,7 +247,7 @@
   color: var(--ink-3);
 }
 /* the figure itself: one numeral, the largest thing on the page: 112 @ 390 → 272 @ 1440. It stands in full view
-   beside the summary. Where the plates are the stage it is also inked INTO the painting: as the page scrolls, the
+   beside the summary. Where the plates are the stage it is also inked into the painting: as the page scrolls, the
    numeral in front goes into the mist at the town's shore (a soft edge that stays on the shore's line: a scroll
    timeline on the numeral itself, body.css --rise) while its twin, behind the place's leaf (body.css .inked),
    rises over the roofs. Without scroll timelines, under reduced motion, on a still painting and below 1200 px
@@ -309,9 +306,6 @@
       animation-range: exit -15% exit 115%;
     }
   }
-}
-.drawing :global(.diagram) {
-  max-width: none;
 }
 
 /* the spine: each part opens on its label in the name face */

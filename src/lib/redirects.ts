@@ -1,10 +1,10 @@
 /**
  * The old site's URLs and where they go now. Served as 301s by next.config.ts.
  *
- * The old résumé PDF (it carried a phone number) goes to the résumé PAGE, never to the new /resume.pdf:
+ * The old résumé PDF (it carried a phone number) goes to the résumé page, never to the new /resume.pdf:
  * an old link should land on the page, not silently on a different file.
  */
-export interface Redirect {
+interface Redirect {
   from: string;
   to: string;
 }

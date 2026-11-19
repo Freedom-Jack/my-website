@@ -17,7 +17,7 @@ function Rows({ title, items }: { title: string; items: Entry[] }) {
       <h3 className="sec__sub">{title}</h3>
       <ul className="rows" role="list">
         {items.map((e) => (
-          <li className="row ink-row" key={e.name}>
+          <li className="ink-row" key={e.name}>
             <h4 className="row__title">
               <InlineLink href={e.url}>{e.name}</InlineLink>
             </h4>
@@ -49,7 +49,7 @@ export async function InTheOpen() {
     </>
   ) : null;
   const table = (
-    <div className="table-wrap wide">
+    <div className="table-wrap">
       <table className="table table--quiet" role="table">
         <caption className="table__caption visually-hidden">{open.earlyCaption}</caption>
         <thead role="rowgroup">

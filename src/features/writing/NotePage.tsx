@@ -19,7 +19,7 @@ function Quote({ cite, children }: { cite?: string; children: ReactNode }) {
 /**
  * One note (/writing/<slug>/): the lake's hero with the title and the byline (the article's own header, the same
  * hero as every subpage), the note in the reading column, and at its end the way home; then the ending downstream
- * (the Résumé) and the lake once more. The seal signs the site once, at the tail. Words: content/writing/<slug>.mdx
+ * (the Résumé) and, on wide screens, the lake once more. The seal signs the page once, at the tail. Words: content/writing/<slug>.mdx
  * and content/pages/writing.ts.
  */
 export function NotePage({ note }: { note: Note }) {
@@ -37,7 +37,7 @@ export function NotePage({ note }: { note: Note }) {
       ]}
     >
       <div className={styles['read-progress']} aria-hidden="true" />
-      <article className="note" aria-labelledby="note-title">
+      <article aria-labelledby="note-title">
         <Strip variant="sub" labelledBy="note-title" still="note">
           <h1 className="page-title page-title--long" id="note-title">
             {meta.title}

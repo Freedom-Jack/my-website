@@ -1,9 +1,8 @@
 /**
- * The craft's text tools, pure and shared by the build (the index, the eval, the recorded run) and the browser (the
- * search box), so a number computed at build is the number the visitor's own run would give.
+ * The craft's text tools, pure and shared by the build (the index, the eval) and the browser (the search box, the
+ * eval's run on Work), so a number computed at build is the number the visitor's own run would give.
  *   tokenize  lowercase, accents folded, a short stop list, a light suffix strip (never a dictionary)
  *   BM25      the lexical index over the site's chunks (Robertson's k1 = 1.2, b = 0.75)
- *   rrf       reciprocal rank fusion of two rankings (Cormack, Clarke and Buettcher's k = 60)
  * Nothing here generates words: a result is always one of the chunks, verbatim.
  */
 
@@ -25,7 +24,7 @@ export function stem(w: string): string {
   return w;
 }
 
-export function tokenize(text: string): string[] {
+function tokenize(text: string): string[] {
   return text
     .normalize('NFKD')
     .replace(/[̀-ͯ]/g, '')
@@ -36,7 +35,7 @@ export function tokenize(text: string): string[] {
     .map(stem);
 }
 
-export interface Doc {
+interface Doc {
   id: string;
   text: string;
 }
@@ -63,7 +62,7 @@ export function buildIndex(docs: Doc[]): Index {
   return { n: docs.length, avgdl: total / Math.max(1, docs.length), df, docs: out };
 }
 
-export interface Hit {
+interface Hit {
   id: string;
   score: number;
   /** the query terms (stemmed) found in the chunk */
@@ -92,24 +91,6 @@ export function search(index: Index, query: string, k = 8): Hit[] {
   }
   hits.sort((a, b) => b.score - a.score || (a.id < b.id ? -1 : 1));
   return hits.slice(0, k);
-}
-
-/** Reciprocal rank fusion of ranked id lists: the ids ordered by the sum of 1 / (60 + rank). */
-export function rrf(lists: string[][], k = 8): Array<{ id: string; score: number; ranks: number[] }> {
-  const score = new Map<string, number>();
-  const ranks = new Map<string, number[]>();
-  lists.forEach((list, li) => {
-    list.forEach((id, r) => {
-      score.set(id, (score.get(id) ?? 0) + 1 / (60 + r + 1));
-      const rs = ranks.get(id) ?? lists.map(() => 0);
-      rs[li] = r + 1;
-      ranks.set(id, rs);
-    });
-  });
-  return [...score.entries()]
-    .map(([id, s]) => ({ id, score: s, ranks: ranks.get(id)! }))
-    .sort((a, b) => b.score - a.score || (a.id < b.id ? -1 : 1))
-    .slice(0, k);
 }
 
 /** How a chunk's words match the query, for the "matched terms" line: the query's stems found in it. */

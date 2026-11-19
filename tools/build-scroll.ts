@@ -1,40 +1,33 @@
 /**
- * The whole scroll in miniature (the tail's map, components/layout/ScrollMap): ONE strip of the painting from Home's
+ * The whole scroll in miniature (the tail's map, components/layout/ScrollMap): one strip of the painting from Home's
  * peaks to the crossing, the stretches between the places included, cut from the real engine on this machine's GPU:
  * public/scenes/scroll/scroll.webp and scroll.json (its size, the stretches it shows, and where along it each place
  * stands, which ScrollMap reads to put each page's name under its place).
- * Jack, of the five separate place stills that stood here: "it is not a coherent scroll … also include the
- * transitions".
  *
- *   NEXT_PUBLIC_INK_QA=1 npm run build && npm start -- -p 3106   a QA build (it exposes the engine as window.__ink)
- *   npm run build:scroll -- --base http://127.0.0.1:3106          cut it; needs Google Chrome (headless, Metal)
+ *   NEXT_PUBLIC_INK_QA=1 npm run build && npm start -- -p 3100   a QA build (it exposes the engine as window.__ink)
+ *   npm run build:scroll -- --base http://127.0.0.1:3100          cut it; needs Google Chrome (headless, Metal)
  *   npm run build:scroll -- --preview <dir>                       also keep the raw strip (outside the repo)
  *
  * How: Home at 1520 × 800 (one stretch of the scroll per screen), its words hidden and the keep-out dropped (no mist
  * under a title that is not there). The engine's camera is taken along the scroll in nine stands half a stretch apart
  * (panTo); at each, once the place and its figures are painted, the loop is held (the QA hold) and the screen is
- * captured until two captures match, and
- * stats().stage.framing says where in the world that view starts. A pan moves every layer of the painting alike, so
- * two neighbouring views show the same world where they overlap and differ only in their light: the strip is the
- * views laid side by side, each fading into the next across their overlap, so the light changes along it as it does
- * for a visitor walking the scroll, and no seam shows.
+ * captured until two captures match, and stats().stage.framing says where in the world that view starts. A pan moves
+ * every layer of the painting alike, so two neighbouring views show the same world where they overlap and differ only
+ * in their light: the strip is the views laid side by side, each fading into the next across their overlap, so the
+ * light changes along it as it does for a visitor walking the scroll, and no seam shows.
  * The framing willow boughs (elements.ts boughs: Work's and Writing's) hang into a page's first screen from above
  * it; in a strip they would hang in the middle of the sky, so the strip is cut with that switch off (the table's own
  * QA override, window.__elOff).
- * REGENERATE AFTER ANY ENGINE, SET, PALETTE, LIGHT OR PLACE CHANGE (as the stills; no --check: the strip is one
+ * Regenerate after any engine, set, palette, light or place change (as the stills; no --check: the strip is one
  * picture, looked at whenever it is cut).
  */
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { chromium } from '@playwright/test';
+import { opt, plainWebp } from './lib.ts';
 
 const ROOT = process.cwd();
-const args = process.argv.slice(2);
-const opt = (name: string, d: string) => {
-  const i = args.indexOf(name);
-  return i >= 0 && args[i + 1] ? args[i + 1]! : d;
-};
-const BASE = opt('--base', 'http://127.0.0.1:3106').replace(/\/$/, '');
+const BASE = opt('--base', 'http://127.0.0.1:3100').replace(/\/$/, '');
 const PREVIEW = opt('--preview', '');
 
 const VIEW = { width: 1520, height: 800 }; // aspect 1.9: one stretch of the scroll across the screen
@@ -54,33 +47,6 @@ const HIDE_CSS = `
   html { scrollbar-width: none; }`;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-/** Chrome's encoder wraps the image in VP8X with an ICC profile: keep only the lossy bitstream (as the stills). */
-function plainWebp(data: Buffer): Buffer {
-  if (data.toString('latin1', 0, 4) !== 'RIFF' || data.toString('latin1', 8, 12) !== 'WEBP')
-    throw new Error('not a WebP');
-  const chunks = new Map<string, Buffer>();
-  let i = 12;
-  while (i + 8 <= data.length) {
-    const tag = data.toString('latin1', i, i + 4);
-    const n = data.readUInt32LE(i + 4);
-    if (!chunks.has(tag)) chunks.set(tag, data.subarray(i + 8, i + 8 + n));
-    i += 8 + n + (n & 1);
-  }
-  const body = chunks.get('VP8 ');
-  if (!body || chunks.has('ALPH') || chunks.has('ANIM')) return data;
-  const size = Buffer.alloc(4);
-  size.writeUInt32LE(body.length);
-  const vp8 = Buffer.concat([
-    Buffer.from('VP8 ', 'latin1'),
-    size,
-    body,
-    body.length & 1 ? Buffer.alloc(1) : Buffer.alloc(0),
-  ]);
-  const riff = Buffer.alloc(4);
-  riff.writeUInt32LE(4 + vp8.length);
-  return Buffer.concat([Buffer.from('RIFF', 'latin1'), riff, Buffer.from('WEBP', 'latin1'), vp8]);
-}
 
 async function main() {
   const browser = await chromium.launch({ channel: 'chrome', args: CHROME_ARGS });
@@ -109,7 +75,7 @@ async function main() {
         await sleep(k ? 300 : 600);
         const f = (await page.evaluate(
           `(() => { const s = window.__ink.stats(); const f = s.stage && s.stage.framing; const figs = Object.values(s.figures || {});
-            return { busy: !!(s.pending || s.panning || s.arriving || s.sweeping || s.deferred || figs.includes('pending')) || !(s.stage && s.stage.ready && (s.stage.painted || []).every(Boolean)) || !(s.plates && s.plates.on),
+            return { busy: !!(s.pending || s.panning || s.arriving || s.sweeping || figs.includes('pending')) || !(s.stage && s.stage.ready && (s.stage.painted || []).every(Boolean)) || !(s.plates && s.plates.on),
               left: f ? f.worldLeft : null, scale: f ? f.scale : null }; })()`,
         )) as { busy: boolean; left: number | null; scale: number | null };
         if (f.busy || f.left === null || f.scale === null) {

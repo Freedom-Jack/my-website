@@ -4,9 +4,8 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 /**
- * Before the cases had pages of their own they were anchors on /work/ (/work/#rag-assistant: Home linked them,
- * and so may others). A hash names no server route, so it cannot be a 301: an arrival with an old case anchor
- * goes on to the case's own page. (Without JS the anchor lands on the case's row in the index.)
+ * A link to a case's anchor on the index (/work/#rag-assistant) goes on to the case's own page. A hash names no
+ * server route, so it cannot be a redirect in src/lib/redirects.ts. (Without JS the anchor lands on the case's row.)
  */
 export function OldAnchors({ slugs }: { slugs: string[] }) {
   const router = useRouter();

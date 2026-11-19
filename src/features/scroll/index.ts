@@ -3,22 +3,20 @@ import { contact } from '@content/pages/contact';
 import { home } from '@content/pages/home';
 import { resumePage } from '@content/pages/resume';
 import { site } from '@content/site';
-import { STORY_MAP } from '@/features/landscape/places';
+import { SCROLL_MAP } from '@/features/landscape/places';
 import { allCases } from '@/features/work/cases';
 import { allNotes } from '@/features/writing/notes';
 import { plain } from '@/lib/markup';
 import { fillTokens } from '@/lib/typography';
 import type { ScrollLine, ScrollStop } from './types';
 
-export type { ScrollLine, ScrollStop } from './types';
-
 /**
  * The scroll, held: what each place on the map holds, as the sheet's inscription under the band (ScrollSheet). Every
  * line is a string the site already shows and a real link, so travelling the scroll is browsing the site's own
  * structure and every stop is rewarded by words: Home's section titles (HomePage's ids), the six projects (newest
- * first, as Work's table), the notes (newest first), the résumé's five sections (ResumePage's ids), Contact's one line
- * and the email. Nothing is written here; nothing for the 404 (it lies off the map). Built on the server once per
- * render of the root layout (ScrollMount).
+ * first, as Work lists them), the notes (newest first), the résumé's five sections (ResumePage's ids), Contact's one
+ * line and the email. Nothing is written here; nothing for the 404 (it lies off the map). Built on the server once
+ * per render of the root layout (ScrollMount).
  */
 export async function scrollIndex(): Promise<ScrollStop[]> {
   const text = (s: string) => plain(fillTokens(s));
@@ -44,5 +42,5 @@ export async function scrollIndex(): Promise<ScrollStop[]> {
       { label: text(contact.emailLabel), href: `mailto:${site.email}` },
     ],
   };
-  return STORY_MAP.map((p) => ({ stretch: p.stretch, label: p.label, href: p.href, lines: lines[p.stretch] ?? [] }));
+  return SCROLL_MAP.map((p) => ({ stretch: p.stretch, label: p.label, href: p.href, lines: lines[p.stretch] ?? [] }));
 }

@@ -6,11 +6,10 @@ import { useRef } from 'react';
 import { site } from '@content/site';
 import { useCurrent } from '@/features/chrome/current';
 import { useReturningHeader } from '@/features/chrome/returning-header';
-import { useStackedHeader } from '@/features/chrome/stacked-header';
 import { RiverLine } from './RiverLine';
 
 /**
- * The header: the name as text, a link home (its accessible name "Qijin Xu, home"; the seal signs once, at the tail),
+ * The header: the name as text, a link home (its accessible name "Qijin Xu, home"; the seal signs at the tail),
  * then Work · Writing · Résumé · Contact (content/site.ts, the painting's order), and under the row the river line
  * (RiverLine: a hairline with a tick per stop and the mark that stands under the current page and travels as the
  * page scrolls). In normal flow, on paper, above the strip; once the strip has scrolled away it returns, solid, on
@@ -22,7 +21,6 @@ export function SiteHeader() {
   const current = useCurrent();
   const pathname = usePathname();
   useReturningHeader(ref, pathname);
-  useStackedHeader(ref);
   return (
     <header className="site-header" ref={ref}>
       <div className="site-header__inner frame">
@@ -32,7 +30,7 @@ export function SiteHeader() {
           aria-current={current('/') === 'page' ? 'page' : undefined}
           prefetch={false}
         >
-          <span className="home-link__name">{site.name}</span>
+          <span>{site.name}</span>
           <span className="visually-hidden">, home</span>
         </Link>
         <nav className="site-nav" aria-label="Main">

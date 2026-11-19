@@ -22,7 +22,7 @@ function startAt(): number {
 }
 
 /**
- * The footer's "Open the scroll" (elements.ts scroll): one quiet brush link after "Still the landscape" that opens the
+ * The footer's "Open the scroll" (elements.ts scroll): one quiet button after "Still the landscape" that opens the
  * handscroll in the hand (ScrollSheet). Hidden without JS, without the painting, and with the element off (scroll.css).
  * With no live painting (the engine failed, or is static) the click does nothing: there is nothing to hold.
  */
@@ -31,7 +31,7 @@ export function ScrollOpener() {
   return (
     <>
       <button
-        className="scroll-opener brush"
+        className="scroll-opener"
         type="button"
         aria-haspopup="dialog"
         aria-expanded={open}

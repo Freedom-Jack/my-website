@@ -1,14 +1,13 @@
 /**
- * The interface finish: the two page-level effects that need a little script (finish.css draws them).
- *   rowrule  Work's table rows are given .rule-row, so CSS draws their rule as it does an .ink-row's.
+ * The interface finish: the page-level effects that need a little script (effects.css and body.css draw them).
+ *   rowrule  every body row of a table.table is given .rule-row, so CSS draws its rule as it does an .ink-row's.
  *   flow     each brush diagram gets, per edge, a light (tail, body, core: three clones of the edge's line, without
  *            its arrowhead). On hover/focus of the figure, or a tap on the drawing, one bead of light runs along each
  *            edge in flow order (data-order; equal orders run together), each edge starting as the previous one is
  *            three-quarters through (a small ink dot with a short tapering tail; no glow, the arrowhead does not
- *            light). Once per hover, with a 4 s rest; it never loops. Labels and nodes never move. It reads its flag
- *            at the moment it acts (fxOn), so a runtime toggle is honoured, and does nothing under reduced motion or
- *            Still.
- *   wash     (round 7) a row answers the pointer with a pale blot of wet ink that stands where the pointer is
+ *            light). Once per hover, with a 4 s rest; it never loops. Labels and nodes never move. It checks its flag
+ *            each time it acts (fxOn), and does nothing under reduced motion or Still.
+ *   wash     a row answers the pointer with a pale blot of wet ink that stands where the pointer is
  *            (body.css .wash): one element for the page, moved at most once a frame. Fine pointers only.
  */
 import { fxOn } from '@/features/landscape/elements';

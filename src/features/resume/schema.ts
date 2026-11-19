@@ -93,4 +93,3 @@ export const resumeSchema = z
   .strict();
 
 export type Resume = z.infer<typeof resumeSchema>;
-export type WorkEntry = Resume['work'][number];

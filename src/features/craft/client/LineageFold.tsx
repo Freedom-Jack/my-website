@@ -11,9 +11,9 @@ interface Data extends Lineage {
 }
 
 /**
- * "Where the words came from" (the attack's A7; round 7: laid open): the lineage drawn top to bottom, narrow enough
- * for a phone (the content files drawn as one node), its lines drawing themselves in from the files down once it is
- * on screen; then the same record as a list, one fold away (each artefact, what it was made from and how).
+ * "Where the words came from": the lineage drawn top to bottom, narrow enough for a phone (the content files drawn
+ * as one node), its lines drawing themselves in from the files down once it is on screen; then the same record as a
+ * list, one fold away (each artefact, what it was made from and how).
  */
 export function LineageFold({ data }: { data: Data }) {
   const w = data.words;

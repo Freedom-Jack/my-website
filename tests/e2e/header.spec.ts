@@ -2,9 +2,9 @@ import { expect, test } from '@playwright/test';
 import { isSoftware } from './support/pages';
 
 /**
- * The header keeps one row on the phone widths the budgets suite does not visit (one row at 360 px and
- * up; the iPhone SE, mini and 8 are 375 wide). The nav's row is the home link's row; every target is 44 px tall; the
- * river line runs under the row with a tick per stop and its mark under the current one (Home).
+ * The header keeps one row on a phone: at 375 px (the iPhone SE, mini and 8) and at 360 px. The nav's row is the home
+ * link's row; every target is 44 px tall; the river line runs under the row with a tick per stop and its mark under
+ * the current one (Home).
  */
 for (const [width, height] of [
   [375, 667],
@@ -18,8 +18,7 @@ for (const [width, height] of [
       hasTouch: true,
     });
     const page = await ctx.newPage();
-    // (a software rasteriser repaints the ambient painting forever; the header's rows are DOM-only, so on software
-    // the painting runs still and the page answers at once)
+    // (the header's rows are DOM-only: on a software rasteriser the painting runs still, so the page answers at once)
     if (await isSoftware(page)) await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/');
     await page.waitForFunction(() => document.fonts.status === 'loaded');

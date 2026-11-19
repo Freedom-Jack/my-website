@@ -41,11 +41,6 @@ export function Diagram({
     '</ol></details>',
   ].join('');
   return (
-    <figure
-      className="diagram wide"
-      data-diagram={name}
-      data-fold={fold ? 'phone' : undefined}
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
+    <figure className="diagram" data-fold={fold ? 'phone' : undefined} dangerouslySetInnerHTML={{ __html: html }} />
   );
 }

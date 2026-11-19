@@ -1,9 +1,5 @@
-/* Home's layout below the first screen (round 7): where each block stands on the frame's twelve columns. Colours,
-   faces, sizes and motion come from the design system (styles/body.css); this file only places and spaces. */
-
-.page {
-  display: block;
-}
+/* Home's layout below the first screen: where each block stands on the frame's twelve columns. Colours, faces,
+   sizes and motion come from the design system (styles/body.css); this file only places and spaces. */
 
 /* ---------- About me and Now ---------- */
 .aboutMain {

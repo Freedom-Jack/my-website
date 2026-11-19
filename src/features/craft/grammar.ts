@@ -2,14 +2,14 @@
  * The site's own case record compiled to a byte-level automaton, and a token mask over any vocabulary: a token is legal
  * in a state when every one of its bytes keeps the automaton alive. This is the mechanism grammar-constrained decoding
  * uses (a state, a mask, a chosen token); nothing here is a model. Pure: it runs at build (the opening step, the unit
- * test) and in the browser (the mask fold).
+ * test) and in the browser (the mask piece).
  *
- * The grammar branches (the attack's A6): the role is one of the roles the cases name, the years a pattern
+ * The grammar branches: the role is one of the roles the cases name, the years a pattern
  * (`\d{4} – (\d{4}|present)`), the status one of three words, and the figure an optional field. It is compiled to a
  * Thompson NFA over bytes; a state is the set of live nodes.
  */
 
-export const MAX_STR = 48;
+const MAX_STR = 48;
 export const STATUSES = ['shipped', 'in progress', 'projected'] as const;
 
 type Expr =
@@ -28,7 +28,7 @@ const digit: Expr = { k: 'cls', test: 'digit' };
 const str: Expr = { k: 'str' };
 
 /** The record, as an expression over the roles the cases name. */
-export function recordExpr(roles: readonly string[]): Expr {
+function recordExpr(roles: readonly string[]): Expr {
   const year = seq(digit, digit, digit, digit);
   return seq(
     lit('{"title": "'),

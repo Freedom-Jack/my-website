@@ -5,14 +5,14 @@ import { choose, group, type Groups, parseOverrides, repoSchema, USER } from './
 
 /**
  * Jack's public repositories, read on the server only: at build time, then again at most once a day (the Work
- * page revalidates every 24 h). The visitor's browser never calls GitHub (Jack: "don't slow down the website just
- * for live updating repos"). GITHUB_TOKEN (optional, server-side) raises the API's rate limit. If GitHub cannot be
- * reached, the committed snapshot (content/github/snapshot.json) stands in, so the page always builds.
+ * page revalidates every 24 h). The visitor's browser never calls GitHub: the list never slows the page.
+ * GITHUB_TOKEN (optional, server-side) raises the API's rate limit. If GitHub cannot be reached, the committed
+ * snapshot (content/github/snapshot.json) stands in, so the page always builds.
  */
 const API = `https://api.github.com/users/${USER}/repos?per_page=100&sort=pushed`;
-export const REVALIDATE = 86400;
+const REVALIDATE = 86400;
 
-export async function openSource(): Promise<Groups & { source: 'github' | 'snapshot'; fetched: string }> {
+export async function openSource(): Promise<Groups> {
   const overrides = parseOverrides(overridesRaw);
   try {
     const token = process.env.GITHUB_TOKEN;
@@ -29,10 +29,10 @@ export async function openSource(): Promise<Groups & { source: 'github' | 'snaps
     if (!res.ok) throw new Error(`GitHub ${res.status}`);
     const repos = repoSchema.array().parse(await res.json());
     const fetched = new Date().toISOString();
-    return { ...group(choose(repos, overrides, fetched)), source: 'github', fetched };
+    return group(choose(repos, overrides, fetched));
   } catch (err) {
     console.warn(`In the open: GitHub unavailable (${String(err)}); using the snapshot of ${snapshot.fetched}`);
     const repos = repoSchema.array().parse(snapshot.repos);
-    return { ...group(choose(repos, overrides, snapshot.fetched)), source: 'snapshot', fetched: snapshot.fetched };
+    return group(choose(repos, overrides, snapshot.fetched));
   }
 }

@@ -9,14 +9,14 @@ import { Familjen_Grotesk, Sofia_Sans_Extra_Condensed } from 'next/font/google';
 // metric-matched local fallbacks. The seal's one glyph is an outline in components/ui/Seal: no CJK font is loaded at all.
 
 /** Body, UI and headings: variable (wght 400–700), one static Latin subset. */
-export const bodyFace = Familjen_Grotesk({
+const bodyFace = Familjen_Grotesk({
   subsets: ['latin'],
   display: 'swap',
   adjustFontFallback: false,
 });
 
 /** The name, the page titles and the figures (Sofia Sans Extra Condensed 900). */
-export const nameFace = Sofia_Sans_Extra_Condensed({
+const nameFace = Sofia_Sans_Extra_Condensed({
   subsets: ['latin'],
   weight: '900',
   display: 'swap',

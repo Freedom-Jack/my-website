@@ -1,18 +1,14 @@
 'use client';
 
 /**
- * The windows' stills (components/page/Glimpse; the lead's ruling R5): each window's <img> carries its sources as data
- * attributes and gets them only once the window comes within half a viewport, so no window still joins the first
- * load. `loading="lazy"` alone does not do it: Chrome fetches a lazy image within 1250 px of the viewport at once, and
- * Home's first window on a phone stands about 650 px below the fold. Home's portrait (`img[data-near]`, P6) is held the same way: as a
- * lazy image it joined Home's first load on a 412 px phone (66 KB, before the painting), and Lighthouse's simulated
- * LCP counted it. Called by the landscape at its mount and by the
- * navigation on every page change (both already client code: no island of its own, no request for one); without
- * JavaScript the <noscript> twin shows the still from the first paint.
- * Round 7: the ending's picture of the next place (below 1200 px) and the tail's scroll in miniature are held the
- * same way (as lazy images they joined the first load of every page on a phone, 80 KB before the first screen had
- * settled, and Lighthouse's simulated LCP went past 2.5 s); such an image may name a second source for 640 px and
- * up (`data-src-wide`). The landscape watches the tail once (it stays across pages).
+ * Images held until the reader nears them: each window's still (components/page/Glimpse) and every `img[data-near]`
+ * (Home's portrait, the ending's picture of the next place, the tail's scroll map). Each carries its sources as data
+ * attributes and gets them only once it comes within 60 % of a viewport's height, so none joins a page's first load
+ * (`loading="lazy"` is not enough: Chrome fetches a lazy image within 1250 px of the viewport at once, and on a phone
+ * it would count in Lighthouse's simulated LCP). `data-src-wide` names a second source for 640 px and up. Called by
+ * the landscape at its mount (the page, and the tail once: it stays across pages) and by the navigation on every page
+ * change (both already client code: no island of its own, no request for one). Without JavaScript a <noscript> twin,
+ * where there is one, shows the image from the first paint.
  */
 export function watchGlimpseStills(main: HTMLElement | null): () => void {
   if (!main) return () => {};

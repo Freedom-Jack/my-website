@@ -1,12 +1,13 @@
 import 'server-only';
-import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { evalSet } from '@content/craft/eval';
 import { hood } from '@content/craft/hood';
+import { workCraft } from '@content/pages/work-craft';
 import { type Bigram, scores, trainBigram } from './bigram';
 import { type BPE, encode, trainBPE } from './bpe';
+import { build } from '@/lib/build';
 import { plain } from '@/lib/markup';
 import { buildCorpus, type Chunk, type Corpus, frontMatter } from './corpus';
 import { compile, fieldOf, grammarText, mask, record, type State, stepToken } from './grammar';
@@ -16,7 +17,7 @@ import { buildIndex, closeHits, search } from './text';
  * Everything the craft on Work needs, computed once per build from content/ (the routes under src/app/craft/ serve the
  * pieces as static JSON; the unit test runs the same function). Nothing is fetched from anywhere: the corpus is the
  * site's own words, the vocabulary and the scores are learned from them, and every artefact carries the build's commit
- * and the corpus hash so the lineage can be traced. The replay fold and the dense gate are cut this round (A4, A7).
+ * and the corpus hash so the lineage can be traced.
  */
 
 export interface EvalRow {
@@ -32,10 +33,10 @@ export interface EvalRow {
 }
 
 export interface Opening {
-  /** the case whose record the fold walks, and its link */
+  /** the case whose record the mask piece walks, and its link */
   title: string;
   href: string;
-  /** the record's tokens, and the step where the fold opens (the tokens before it are already written) */
+  /** the record's tokens, and the step the piece opens on (the tokens before it are already written) */
   tokens: number[];
   at: number;
 }
@@ -51,7 +52,7 @@ export interface Craft {
     misses: string[];
   };
   lineage: Lineage;
-  /** the gzip sizes of the folds' JSON, as the page says them before a click (bytes) */
+  /** the gzip size of each JSON the craft fetches, as the page says it before it loads (bytes) */
   sizes: Record<'corpus' | 'mask' | 'lineage' | 'eval', number>;
 }
 
@@ -64,20 +65,6 @@ export interface Lineage {
 
 const MERGES = 256;
 
-function commit(): string {
-  const env = process.env.VERCEL_GIT_COMMIT_SHA;
-  if (env) return env.slice(0, 7);
-  try {
-    return (
-      execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] })
-        .toString()
-        .trim() || 'local'
-    );
-  } catch {
-    return 'local';
-  }
-}
-
 const gz = (v: unknown) => gzipSync(JSON.stringify(v)).length;
 
 /** A passage as the browser receives it (the build-only parts left out). */
@@ -88,9 +75,9 @@ export function publicChunk(c: Corpus['chunks'][number]): Chunk {
 }
 
 /**
- * The step the mask fold opens on (A6): the first step of a real case record where the highest-scored token in the
+ * The step the mask piece opens on: the first step of a real case record where the highest-scored token in the
  * whole vocabulary is blocked and two or more legal tokens keep a meaningful share (10 % or more of the legal mass),
- * preferring the role and status fields, where the grammar branches. None: the fold is cut.
+ * preferring the role and status fields, where the grammar branches. None: the piece is cut.
  */
 function findOpening(
   records: Array<{ text: string; title: string; href: string }>,
@@ -130,7 +117,7 @@ let memo: Craft | null = null;
 export function buildCraft(): Craft {
   if (memo) return memo;
   const built = new Date().toISOString();
-  const sha = commit();
+  const sha = build.sha;
   const corpus = buildCorpus();
   const index = buildIndex(corpus.chunks);
   const meta = {
@@ -204,9 +191,9 @@ export function buildCraft(): Craft {
       { id: 'vocab', kind: 'dataset', label: `${bpe.vocab.length} byte-pair tokens` },
       { id: 'scores', kind: 'dataset', label: 'the bigram scores' },
       { id: 'eval', kind: 'dataset', label: `${rows.length} questions` },
-      { id: 'search', kind: 'fold', label: 'Search these pages' },
-      { id: 'mask', kind: 'fold', label: 'Constrain the output' },
-      { id: 'evalFold', kind: 'fold', label: 'How good is the search?' },
+      { id: 'search', kind: 'fold', label: workCraft.search.label },
+      { id: 'mask', kind: 'fold', label: workCraft.hood.mask.title },
+      { id: 'evalFold', kind: 'fold', label: workCraft.hood.eval.title },
     ],
     edges: [
       ...corpus.files.map((f) => [f.file, 'passages', 'joined'] as Lineage['edges'][number]),

@@ -5,8 +5,8 @@ import { Seal } from '@/components/ui/Seal';
 import styles from './contact.module.css';
 
 /**
- * "Copy email": copies the address; the seal is pressed beside it (round 7: Contact's moment; the stamp says the
- * thing is done, as a seal does) and "Copied" is said in mono. The word is also the live region: empty at rest,
+ * "Copy email": copies the address; the seal is pressed beside it (the stamp says the thing is done, as a seal
+ * does) and "Copied" is said in mono. The word is also the live region: empty at rest,
  * written on every copy, so screen readers hear it each time; the word and the seal rest 2.4 s and go. If the
  * clipboard is unavailable the address is selected instead, so it can be copied by hand (and nothing claims it was
  * copied). Hidden without JS (contact.module.css): the address stays a mailto link.

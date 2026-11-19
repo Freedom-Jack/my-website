@@ -46,12 +46,12 @@ function read(g: Grammar, vocab: number[][], bigram: Bigram, toks: number[]) {
 }
 
 /**
- * "Constrain the output" (the attack's A6; round 7: Work's moment, laid open on the page): a real case record written
- * one token at a time over a vocabulary learned from these pages. It opens on the step the build found where the
- * grammar strikes the highest-scored token and leaves two or more real choices. Once it is on screen the record writes
- * itself, a token every 0.8 s: at each step the candidates stand in score order, the ones the grammar forbids struck
- * through with a brush, each legal one with its share as a stroke that long; the best legal token joins the record.
- * The reader can pause it, take a step by hand, or start again. Reduced motion and Still: nothing runs by itself.
+ * "Constrain the output": a real case record written one token at a time over a vocabulary learned from these pages.
+ * It opens on the step the build found where the grammar strikes the highest-scored token and leaves two or more real
+ * choices. Once it is on screen the record writes itself, a token every 0.8 s: at each step the candidates stand in
+ * score order, the ones the grammar forbids struck through with a brush, each legal one with its share as a stroke
+ * that long; the best legal token joins the record. The reader can pause it, take a step by hand, or start again.
+ * Reduced motion and Still: nothing runs by itself.
  */
 const STEP_MS = 800;
 

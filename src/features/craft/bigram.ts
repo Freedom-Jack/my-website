@@ -1,5 +1,5 @@
 /**
- * The scores the mask demo samples from: a bigram model of the site's own words over the learned vocabulary, fitted at
+ * The scores behind the mask piece: a bigram model of the site's own words over the learned vocabulary, fitted at
  * build (add-α smoothing against the unigram counts). It is labelled on the page as what it is: counts of his words,
  * not a neural model. The table ships sparse (each token's top continuations) so the browser can score any step.
  */
@@ -52,38 +52,4 @@ export function scores(model: Bigram, prev: number): Float64Array {
     out[t] = Math.log((c + model.alpha * u) / (rowT + model.alpha));
   }
   return out;
-}
-
-/** A seeded uniform generator (mulberry32), so a run replays the same way for everyone. */
-export function rng(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-/** Sample one token from the (masked) scores: softmax at temperature 1 over the legal tokens. */
-export function sample(logp: Float64Array, legal: Uint8Array | null, next: () => number): number {
-  let max = -Infinity;
-  for (let t = 0; t < logp.length; t += 1) if ((!legal || legal[t]) && logp[t]! > max) max = logp[t]!;
-  if (max === -Infinity) return -1;
-  const w = new Float64Array(logp.length);
-  let sum = 0;
-  for (let t = 0; t < logp.length; t += 1) {
-    if (legal && !legal[t]) continue;
-    w[t] = Math.exp(logp[t]! - max);
-    sum += w[t]!;
-  }
-  let r = next() * sum;
-  for (let t = 0; t < logp.length; t += 1) {
-    if (legal && !legal[t]) continue;
-    r -= w[t]!;
-    if (r <= 0) return t;
-  }
-  for (let t = logp.length - 1; t >= 0; t -= 1) if (!legal || legal[t]) return t;
-  return -1;
 }

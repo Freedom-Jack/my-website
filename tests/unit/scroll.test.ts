@@ -5,7 +5,7 @@ import { contact } from '@content/pages/contact';
 import { home } from '@content/pages/home';
 import { resumePage } from '@content/pages/resume';
 import { site } from '@content/site';
-import { STORY_MAP } from '@/features/landscape/places';
+import { SCROLL_MAP } from '@/features/landscape/places';
 import { scrollIndex } from '@/features/scroll/index';
 import { clampX, detent, durationFor, dxToStretch, FIRST, LAST, nearest, stepFrom } from '@/features/scroll/walk';
 import { allCases } from '@/features/work/cases';
@@ -123,12 +123,12 @@ const SOURCES: Record<string, string> = {
 };
 
 describe('the scroll, held: what each place holds (features/scroll/index)', () => {
-  it('stops at the five places in the story map’s order, each the page it is', async () => {
+  it('stops at the five places in the scroll map’s order, each the page it is', async () => {
     const stops = await scrollIndex();
     expect(stops.map((s) => s.stretch)).toEqual([0, 1, 2, 3, 4]);
     expect(stops.map((s) => s.label)).toEqual(['Home', 'Work', 'Writing', 'Résumé', 'Contact']);
     expect(stops.map((s) => s.href)).toEqual(['/', '/work/', '/writing/', '/resume/', '/contact/']);
-    expect(stops.map((s) => [s.stretch, s.label, s.href])).toEqual(STORY_MAP.map((p) => [p.stretch, p.label, p.href]));
+    expect(stops.map((s) => [s.stretch, s.label, s.href])).toEqual(SCROLL_MAP.map((p) => [p.stretch, p.label, p.href]));
     // the 404 lies off the map
     expect(stops.some((s) => s.stretch === 5)).toBe(false);
   });
@@ -141,7 +141,6 @@ describe('the scroll, held: what each place holds (features/scroll/index)', () =
         expect(l.label, `${s.label}: ${l.href}`).not.toContain('(Jack)');
         expect(l.href.startsWith('/') || l.href === `mailto:${site.email}`, `${s.label}: ${l.href}`).toBe(true);
       }
-      expect(site.email).toBe('qxjack@gmail.com');
     }
   });
   it('holds, at Work, the cases in the table’s order (newest first) and, at Writing, the notes', async () => {

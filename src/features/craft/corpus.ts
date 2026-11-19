@@ -12,11 +12,11 @@ import { plain } from '@/lib/markup';
 
 /**
  * The site's words as a corpus (the craft's one source): section-sized passages of content/ (paragraphs, rows and
- * list items run together until about forty words, never a lone short sentence; the attack's A4) with their page,
- * section, anchor, place and position in the painting (A2) and the hash of the file they came from. Built at build time by the routes under
+ * list items run together until about forty words, never a lone short sentence) with their page, section, anchor,
+ * place and position in the painting and the hash of the file they came from. Built at build time by the routes under
  * src/app/craft/ and by the unit test; never generated, never edited: a chunk is a verbatim passage (the inline
  * markup removed, the {{years}} token filled, as the page prints it). A chunk's `id` is stable across builds
- * (page, section, order), so the DRAFT eval set and the recorded run point at the same passages tomorrow.
+ * (page, section, order).
  */
 
 export interface Chunk {
@@ -46,20 +46,13 @@ export interface Chunk {
   units: Array<{ end: number; section: number; anchor?: string; title?: true }>;
 }
 
-export interface SourceFile {
+interface SourceFile {
   file: string;
   hash: string;
   bytes: number;
 }
 
-export const PLACE_NAMES = [
-  'his mountain',
-  'the river town',
-  'the lake',
-  'the terraces',
-  'the crossing',
-  'the lone peak',
-];
+const PLACE_NAMES = ['his mountain', 'the river town', 'the lake', 'the terraces', 'the crossing', 'the lone peak'];
 
 const ROOT = process.cwd();
 const sha8 = (buf: Buffer | string) => createHash('sha256').update(buf).digest('hex').slice(0, 8);
@@ -167,10 +160,6 @@ export function bodyUnits(body: string): BodyUnit[] {
   const out: BodyUnit[] = [];
   let section = '';
   let anchor = '';
-  const push = (t: string, sec = section) => {
-    const s = stripInline(t);
-    if (s && /[A-Za-z]/.test(s)) out.push({ section: sec, anchor, text: s });
-  };
   const paras = body.split(/\n\s*\n/);
   for (const p of paras) {
     const t = p.trim();
@@ -217,7 +206,6 @@ export function bodyUnits(body: string): BodyUnit[] {
     add(t);
     return acc;
   }
-  void push;
 }
 
 interface CaseFM {
@@ -238,13 +226,13 @@ function mdxFiles(dir: string) {
     .map((f) => {
       const rel = `${dir}/${f}`;
       const src = readFileSync(path.join(/*turbopackIgnore: true*/ ROOT, rel), 'utf8');
-      return { slug: f.slice(0, -4), rel, ...frontMatter(src), source: source(rel) };
+      return { slug: f.slice(0, -4), rel, ...frontMatter(src) };
     });
 }
 
 // ---------------------------------------------------------------------------------------------- the corpus
 /** A passage at build: its text is its parts (each a verbatim unit of a content string) joined by one space. */
-export interface BuiltChunk extends Chunk {
+interface BuiltChunk extends Chunk {
   parts: string[];
 }
 
@@ -255,7 +243,7 @@ export interface Corpus {
   hash: string;
 }
 
-/** A passage is at least this many words (A4: section-sized, never a single short sentence). */
+/** A passage is at least this many words (section-sized, never a single short sentence). */
 export const MIN_WORDS = 40;
 const wordsOf = (t: string) => t.split(/\s+/).filter(Boolean).length;
 
@@ -392,7 +380,7 @@ export function buildCorpus(): Corpus {
     ]);
   });
 
-  // each note on the lake (Writing's own intro is one short sentence, so it is not a passage: A4)
+  // each note on the lake (Writing's own intro is one short sentence, so it is not a passage)
   for (const n of mdxFiles('content/writing'))
     emit(
       `note.${n.slug}`,

@@ -1,5 +1,5 @@
-/* Writing's LAYOUT (round 7): each note opened out on the lake. The title in the name face, the note's own
-   comparison turned aspect by aspect. Type and ink come from the design system. */
+/* Writing's layout: each note opened out on the lake. The title in the name face, the note's own comparison turned
+   aspect by aspect. Type and ink come from the design system. */
 
 .leaf__main {
   position: relative;
@@ -55,7 +55,6 @@
   min-block-size: 44px;
   min-inline-size: 44px;
   border: 0;
-  background: none;
   padding: 0;
   font-family: var(--font-code);
   font-size: var(--fs-small);

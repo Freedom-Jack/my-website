@@ -18,8 +18,8 @@ npm ci
 npm run dev
 ```
 
-`.env.local` may hold a read-only `GITHUB_TOKEN` for Work's "In the open" list. Without one the build falls back to
-`content/github/snapshot.json`.
+`.env.local` may hold a read-only `GITHUB_TOKEN` for Work's "In the open" list: it raises GitHub's rate limit. When
+GitHub cannot be reached, the build falls back to `content/github/snapshot.json`.
 
 | Command                    | What it does                                                                   |
 | -------------------------- | ------------------------------------------------------------------------------ |
@@ -36,7 +36,7 @@ npm run dev
 | `npm run build:heroes`     | each page's first-frame still (needs a QA build on 3100)                       |
 | `npm run build:og`         | link-preview cards (needs a QA build on 3100)                                  |
 | `npm run build:scroll`     | the strip of the whole scroll (needs a QA build on 3100)                       |
-| `npm run build:ask`        | the "Ask the painting" index                                                   |
+| `npm run build:ask`        | the "Ask the painting" index (needs a build on 3100)                           |
 
 A QA build: `NEXT_PUBLIC_INK_QA=1 npm run build && npm start -- -p 3100`.
 
@@ -44,7 +44,7 @@ A QA build: `NEXT_PUBLIC_INK_QA=1 npm run build && npm start -- -p 3100`.
 
 - Words: `content/`, explained in [CONTENT.md](CONTENT.md).
 - The painting: `src/features/landscape/`, explained in [ENGINE.md](src/features/landscape/ENGINE.md).
-- CI: `.github/workflows/ci.yml` runs on every push.
+- CI: `.github/workflows/ci.yml` runs on every pull request and every push to `master`.
 
 ## Deploying
 

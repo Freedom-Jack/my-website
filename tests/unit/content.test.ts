@@ -76,7 +76,7 @@ describe('content/work/*.mdx', () => {
       const labels = [...c.body.matchAll(/^## (.+)$/gm)].map((m) => m[1]);
       expect(labels.length).toBeGreaterThan(0);
       for (const l of labels)
-        // the case's spine (P5): a missing part is left out, never renamed
+        // the case's spine: a missing part is left out, never renamed
         expect(['Problem', 'My part', 'The hard part', 'Outcome and status', 'Evidence', 'Stack']).toContain(l);
     });
   }
@@ -110,7 +110,7 @@ describe('content/work/*.mdx', () => {
     const slugs = cases.map((c) => c.slug);
     for (const row of home.workOn.rows) expect(slugs).toContain(row.href.replace(/^\/work\/|\/$/g, ''));
   });
-  it('the first screen’s proof is the approved row, split round the case’s own figure; its cases exist', () => {
+  it('the first screen’s proof is the first "What I work on" row, split round the case’s own figure; its cases exist', () => {
     const slugs = cases.map((c) => c.slug);
     expect(slugs).toContain(home.first.proof.case);
     expect(slugs).toContain(home.first.now.case);
@@ -150,7 +150,7 @@ describe('the hard rules, across every content file (CLAUDE.md)', () => {
   });
 });
 
-describe('figures say where they come from (A1), and Now stays dated', () => {
+describe('figures say where they come from, and Now stays dated', () => {
   const cases = mdxFiles('content/work');
   for (const c of cases) {
     const fm = c.data as { figure: { basis: string; note: string; value: string }; outcome: string };

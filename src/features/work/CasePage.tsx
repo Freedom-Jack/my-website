@@ -21,13 +21,13 @@ import { caseLd } from './jsonld';
 import styles from './work.module.css';
 
 /**
- * One Work case, on its own page (/work/<slug>/), opening inside the town. The first screen is
- * the live site's: the market's strip with the case's title (the long title size) and its meta line in the mist.
+ * One Work case, on its own page (/work/<slug>/), opening inside the town. The first screen: the market's strip with
+ * the case's title (the long title size) and its meta line in the mist.
  *
- * Below it (round 7):
+ * Below it:
  *   the case's summary set large at the left, with its figure in words, where the figure comes from and the NDA line
  *   where there is no public evidence; and at the right the page's moment: the figure itself as one large numeral,
- *   in full view beside the summary and INKED INTO THE PAINTING: as the page scrolls it sinks into the mist at the
+ *   in full view beside the summary and inked into the painting: as the page scrolls it sinks into the mist at the
  *   town's shore and rises again behind the roofs (its twin stands between the painting's two leaves, body.css
  *   .inked; a projection is an outline, never filled ink: it is not yet real);
  *   its brush diagram across the frame (the flagships; on phones it folds behind "Read as steps");
@@ -122,12 +122,12 @@ export function CasePage({ c }: { c: Case }) {
       </section>
 
       {meta.diagram ? (
-        <section className={`part ${styles.drawing}`} data-veil="">
+        <section className="part" data-veil="">
           <Diagram name={meta.diagram.name} caption={meta.diagram.caption} steps={meta.diagram.steps} fold />
         </section>
       ) : null}
 
-      <article className={`part case case--flagship has-rail ${styles.case}`} aria-labelledby="case-title" data-veil="">
+      <article className={`part case has-rail ${styles.case}`} aria-labelledby="case-title" data-veil="">
         <Body components={{ Note: MarginNote }} />
       </article>
 

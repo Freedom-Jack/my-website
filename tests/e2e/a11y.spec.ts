@@ -1,20 +1,19 @@
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, type Page, test } from '@playwright/test';
 import { fontsReady, isSoftware, ROUTES } from './support/pages';
+import { tapsAndOverflow } from './support/taps';
 
 /**
- * Accessibility, enforced (vanguard research/accessibility-of-the-moves.md §5b; the lead's package P6):
+ * Accessibility, enforced:
  *   - axe-core (through @axe-core/playwright) on every route at 1440 × 900 and 360 × 800, tags wcag2a, wcag2aa,
- *     wcag21aa, wcag22aa and best-practice: zero violations. The rules §5b names are asserted to exist in the installed
- *     axe and to have run, so a renamed rule cannot silently drop out. color-contrast results axe could not decide
- *     ("incomplete": text over the painting or its still, which axe cannot sample) are decided by §5b's pixel-sampled
+ *     wcag21aa, wcag22aa and best-practice: zero violations. The RULES are asserted to exist in the installed axe and
+ *     to have run, so a renamed rule cannot silently drop out. color-contrast results axe could not decide
+ *     ("incomplete": text over the painting or its still, which axe cannot sample) are decided by a pixel-sampled
  *     test instead: the text is made transparent, its box is captured as painted, and the text colour must reach 4.5:1
  *     (3:1 for large text) against both the lightest and the darkest 5 % of the ground under it; a node that cannot be
- *     sampled (not rendered, off the page) is a failure.
- *   - the tap-target sweep (the attack's A12) at 360 × 800 on every route: every standalone target 44 × 44 (the sweep at
- *     390 runs in budgets.spec, on every route; inline links in a sentence are WCAG 2.5.8's exception).
+ *     found or read is a failure, and one with no box is noted in the report.
+ *   - the tap-target sweep at 360 × 800 on every route: every standalone target 44 × 44 (inline links in a sentence
+ *     are WCAG 2.5.8's exception).
  * On a software rasteriser the pages run under reduced motion (the still; the painting is judged on a GPU).
  */
 const RULES = [
@@ -43,11 +42,9 @@ const RULES = [
   'image-alt',
 ] as const;
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'];
-/** (Round 7: a token struck through with a brush, [data-struck], is struck by its own ::after; like a line-through,
- *  the strike is the text's decoration, not the ground under it, so the probe takes it away with the text.) */
-/** §5b's pixel-sampled contrast for the nodes axe could not decide: [selector, worst ratio, needed, note]. A node that
- *  cannot be sampled is never a silent pass (the P6 review): `missing` (its selector finds nothing, or it cannot be
- *  read) fails the test; `hidden` (laid out with no box: nothing on screen to read) is annotated. */
+/** The pixel-sampled contrast for the nodes axe could not decide: [selector, worst ratio, needed, note]. A node that
+ *  cannot be sampled is never a silent pass: `missing` (its selector finds nothing, or it cannot be read) fails the
+ *  test; `hidden` (laid out with no box: nothing on screen to read) is annotated. */
 async function sampledContrast(page: Page, selectors: string[]) {
   const out: Array<{ sel: string; worst: number; need: number; note: string; unsampled?: 'missing' | 'hidden' }> = [];
   for (const sel of selectors.slice(0, 40)) {
@@ -73,6 +70,8 @@ async function sampledContrast(page: Page, selectors: string[]) {
       continue;
     }
     await el.evaluate((e) => e.classList.add('__contrast-probe'));
+    // (the text made transparent; a token struck through with a brush, [data-struck], is struck by its own ::after:
+    // like a line-through, the strike is the text's decoration, not the ground under it, so it goes with the text)
     const style = await page.addStyleTag({
       content:
         '.__contrast-probe, .__contrast-probe * { color: transparent !important; -webkit-text-fill-color: transparent !important; fill: transparent !important; text-decoration-color: transparent !important; text-shadow: none !important; caret-color: transparent !important; } .__contrast-probe::placeholder { color: transparent !important; -webkit-text-fill-color: transparent !important; } .__contrast-probe[data-struck]::after { visibility: hidden !important; }',
@@ -113,9 +112,6 @@ async function sampledContrast(page: Page, selectors: string[]) {
   return out;
 }
 
-const MEASURE = readFileSync(path.join(import.meta.dirname, 'support/measure.js'), 'utf8');
-type M = Record<string, any>;
-
 test.beforeEach(async ({ page }) => {
   if (await isSoftware(page)) await page.emulateMedia({ reducedMotion: 'reduce' });
 });
@@ -133,8 +129,8 @@ for (const [width, height] of [
       test(r.id, async ({ page }) => {
         await page.goto(r.path);
         await fontsReady(page);
-        // (round 7: the page as a reader who has gone down it meets it: the pieces that take their code and data as
-        // they are reached, Ask, the search, Work's live pieces, are in their live form before anything is judged)
+        // (the page as a reader who has gone down it meets it: the pieces that take their code and data as they are
+        // reached, Ask, the search, Work's live pieces, are in their live form before anything is judged)
         await page.evaluate(async () => {
           for (let y = 0; y < document.documentElement.scrollHeight; y += innerHeight / 2) {
             scrollTo(0, y);
@@ -145,14 +141,14 @@ for (const [width, height] of [
         await page.waitForTimeout(700);
         const axe = await new AxeBuilder({ page })
           .withTags(TAGS)
-          // (every rule §5b names, enabled explicitly: a rename fails the "did not run" check below)
+          // (every rule in RULES, enabled explicitly: a rename fails the "did not run" check below)
           .options({ rules: Object.fromEntries(RULES.map((id) => [id, { enabled: true }])) })
           .analyze();
         const ran = new Set(
           [...axe.passes, ...axe.violations, ...axe.incomplete, ...axe.inapplicable].map((x) => x.id),
         );
         const missing = RULES.filter((id) => !ran.has(id));
-        expect(missing, 'rules §5b names that did not run').toEqual([]);
+        expect(missing, 'rules that did not run').toEqual([]);
         const fail = axe.violations.map(
           (v) =>
             `${v.id} (${v.nodes.length}): ${v.nodes
@@ -163,7 +159,7 @@ for (const [width, height] of [
         const all = axe.incomplete
           .filter((x) => x.id === 'color-contrast')
           .flatMap((v) => v.nodes.map((n) => String(n.target[0])));
-        // (round 7: a figure drawn large beside its own sentence is decoration, hidden from assistive technology:
+        // (a figure drawn large beside its own sentence is decoration, hidden from assistive technology:
         // its words are the sentence's, which is checked; an outlined numeral has no fill for the sampler to read)
         const undecided: string[] = [];
         for (const sel of all) {
@@ -200,16 +196,16 @@ for (const [width, height] of [
   });
 }
 
-test.describe('tap targets at 360 × 800 (A12)', () => {
+test.describe('tap targets at 360 × 800', () => {
   test.use({ viewport: { width: 360, height: 800 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
   for (const r of ROUTES) {
     test(r.id, async ({ page }) => {
       await page.goto(r.path);
       await fontsReady(page);
-      const m = (await page.evaluate(`(${MEASURE})({ taps: true })`)) as M;
-      const small = (m.taps?.small ?? []).map((t: M) => `${t.el} '${t.name}' ${t.hitW}×${t.hitH}`);
+      const m = await page.evaluate(tapsAndOverflow);
+      const small = m.small.map((t) => `${t.el} '${t.name}' ${t.hitW}×${t.hitH}`);
       expect(small, `${r.id}: standalone targets under 44 × 44`).toEqual([]);
-      expect(m.overflow.sideways || m.overflow.offenderCount ? m.overflow.offenders?.slice(0, 3) : []).toEqual([]);
+      expect(m.offenders.slice(0, 3)).toEqual([]);
     });
   }
 });

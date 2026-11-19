@@ -1,271 +1,112 @@
 /**
- * Spring ink's elements: THE one switch table for every new element (scene, motion and interface). Set a flag to false
- * and that element is gone: its engine, effects and figure-set paths are skipped and its <html> class (`el-<name>`,
- * server-rendered, so no flash) is not set, so its CSS does not apply. silkVeil, air, glimpses, ribbon and halo compile
- * their shader code out (a GLSL #define: elementDefines); the others' shader code stays compiled in, idle, since the
- * engine leaves their uniforms at rest. Nothing else changes.
- * Read on the main thread (engine, effects, layout), in the figure worker (the sets) and by the boot script.
+ * The switch table: one flag per painted or interface element. Set a flag to false and that element is gone: its
+ * engine, effects and figure-set paths are skipped and its <html> class (`el-<name>`, server-rendered, so no flash) is
+ * not set, so its CSS does not apply. glimpses and halo compile their shader code out (GLSL #defines:
+ * elementDefines); the others' shader code stays compiled in, idle, with its uniforms at rest. Read on the main thread
+ * (engine, effects, layout), in the figure worker (the sets) and by the boot script. Every element keeps the engine's
+ * rules: nothing behind text, text never moves, ambient motion <= 15 fps and asleep after 45 s (on THE PLATES, wide
+ * screens: <= 30 fps and asleep after five minutes: engine/index.ts PLATE_MS, PLATE_IDLE), pointer answers <= 30 fps
+ * and only while the pointer moves, a still frame and still UI under reduced motion and "Still the landscape", phones
+ * calm.
  *
- * Every element keeps the engine's rules: nothing behind text (the veils, the keep-out, the 40 px text guard), text never
- * moves, ambient motion <= 15 fps and asleep after 45 s, pointer answers <= 30 fps and only while they move, reduced
- * motion and "Still the landscape" = a still frame and still UI, phones calm.
- *
- * Round 6 (2026-11-15, Jack's brief: "make everything on it cool"; the live site as the base): the vanguard round's
- * tests (subtraction, referent, one living element per place) are cancelled. The test now is whether the site is more
- * alive, more beautiful and easier to remember with the thing than without it. What that round switched off is back
- * on wherever it still fits (the swallows, the silk ribbon, the falling petals, the plum's gust, the water you can
- * stir, the scroll's wind); what waits for its part of the new Home is still off here and says so. Each flag's older
- * comment keeps what the element IS; its v3 ruling is history.
- * On wide screens the stage is THE PLATES now (features/landscape/plates): every element here keeps working on them.
- *
- * Round 7 (2026-11-16, Jack: "you're just like messing up the header"; "No bird and no cherry blossom"; "I don't like
- * the new color theme"): the header is the live site's again. Everything round 6 put into the painting or switched
- * back on is off (hours, weather, swallows, ribbon, petals, corner, nameSeal, depth, stir, plumGust, air), and so is
- * the plum bough the live site pinned to the screen's corner (plum): nothing is laid over the painting or pinned in
- * front of it. Round 6's lag fix (the plates) and the question half of Ask stay. The body below the first screen is
- * the round's work (styles/body.css).
- *
- * The preview's panel (features/qa/Switches, QA builds) flips each flag in this browser.
- *
- * QA builds only (NEXT_PUBLIC_INK_QA=1): a flag is switched OFF in that browser with localStorage 'ink-elements' =
- * '{"silkVeil":false}' or window.__elOff = ['morning', ...] (injected before the page's scripts), and ON, against the
- * table, with '{"cameraTravels":true}' or window.__elOn = [...]: the side by side the synthesis asks for (the unroll
- * against the camera's travel) runs on one build: {"unroll":false,"cameraTravels":true}. The figure worker gets the
- * same overrides with each layer it draws (figure-source.ts).
+ * QA builds only (NEXT_PUBLIC_INK_QA=1): a flag is switched off in one browser by localStorage 'ink-elements' =
+ * '{"glimpses":false}' (the preview's panel, features/qa/Switches, writes it) or by window.__elOff = ['boughs', ...]
+ * (injected before the page's scripts). The figure worker gets the same overrides with each layer it draws
+ * (figure-source.ts).
  */
 export const ELEMENTS = {
   // ---- the painting (engine)
-  /** Morning opens: Home's first full load of a session, the light rises and opens, two banks of cloud part from it,
-   *  the plum blooms from its root, the swallow flies in, the ribbon unfurls after the light (shorter on phones).
-   *  OFF (P2): the first screen is finished at first paint, the still being its first frame (the still-first boot
-   *  already runs no arrival); off loses a 2.3 s wait and nothing a reader needs; its only recall was "it took a
-   *  while to appear". */
-  morning: false,
-  /** Water you can stir: one small, flat, broken ink ring where the pointer rests over open water (>= 450 ms) or a
-   *  tap lands; at most two at once, never over a reflection; the ferry's own drops use the same grammar. OFF (P3, the
-   *  synthesis: "the pointer stir and petals" are cut): off, a visitor loses nothing they came for; its referent was
-   *  the pointer itself, which the digest's anti-patterns name; recall: "it rippled when I hovered". The ferry's own
-   *  drops (contactLife) keep the ring. */
-  // (round 7: off again, with everything round 6 put into the header's painting)
-  stir: false,
-  /** The plum answers: a damped nudge of Home's bough, and three to five of its own petals let go one after another
-   *  and drift down with the breeze (at most once every 8 s). OFF (P3, with stir: nothing answers the pointer). */
-  // (round 6: back on)
-  plumGust: false,
-  /** The waterfall falls: broken lights slide down Home's fall, spray breathes at its foot. Home's one living element
-   *  (A3): the river's source. */
+  /** The waterfall falls: broken lights slide down Home's fall, spray breathes at its foot. Home's one living element:
+   *  the river's source. */
   waterfall: true,
-  /** Contact's signature: the rushes bend in a breeze; the ferryman's pole and the bow drop a ring now and then.
-   *  Contact's one living element (A3): the ferry. */
+  /** Contact's one living element, the ferry: the rushes bend in a breeze; the ferryman's pole and the bow drop a ring
+   *  now and then. */
   contactLife: true,
   /** "Still the landscape" lets the painting settle over 0.8 s instead of cutting (reduced motion stays a cut). */
   stillSettle: true,
-  /** Home's plum bough: the one spring accent, entering from the top-right corner, its blossoms in three sizes, its
-   *  slow swing (~0.5 deg at ~0.08 Hz) kept; moved off the light (A3: it crossed the halo). Subtraction: off, Home's
-   *  first screen is winter. Referent: the season of the one painting. Control: none needed (a still thing that
-   *  breathes). Cost: a sprite in the figure layer, 0 frames of its own. Recall: "a plum bough over his mountain".
-   *  QA switches it off for Jack's side by side (the brief, A3). */
-  plum: false,
-  /** The framing willow boughs of two first screens (the live site's): Work's willow tip out of the top edge over
-   *  the town, and Writing's willow let down from the top-right corner over the lake. On. Off: neither is drawn.
-   *  The tail's strip of the whole scroll (tools/build-scroll.ts) is cut with them off: a bough that frames one
-   *  page's opening would hang in the middle of the sky of a strip. */
+  /** The framing willow boughs of two first screens: Work's willow tip out of the top edge over the town, and
+   *  Writing's willow let down from the top-right corner over the lake. Off: neither is drawn. The tail's strip of
+   *  the whole scroll (tools/build-scroll.ts) is cut with them off: a bough that frames one page's opening would hang
+   *  in the middle of the sky of a strip. */
   boughs: true,
-  /** The swallows: Home's one swallow gliding across the open sky (and its three far birds), Work's pair low over the
-   *  river, the Résumé's one sweeping over the fields. OFF (P3, A3: one named element per place; "no swallow on
-   *  Home", "Work's swallows go", "the Résumé's swallow goes"): off, a visitor loses a second moving thing in three
-   *  places, none of which is the place's own; the critic read Home's first frame as a collage. */
-  // (round 6: back on)
-  swallows: false,
-  /** The silk mist-ribbon: one long S from behind Home's host peak through the light, twisting and torn by the mist
-   *  (shaders.ts, compiled in with EL_RIBBON). OFF (P3, A3: "no silk ribbon on Home"): off, the light stands alone
-   *  as the painting's one bright thing; the ribbon had no referent but ornament, and crossed the plum. */
-  // (round 6: back on)
-  ribbon: false,
-  /** Falling petals: the few that let go of Home's plum and drift down, and the ones that fall through Writing's air
-   *  over the lake (the petals lying on the still water stay: they are paint, not motion). OFF (P3, A3: "Writing's
-   *  petals go"; one living element per place: Home's is the fall, Writing's the shimmer). */
-  // (round 6: back on)
-  petals: false,
-  /** The light's bloom in the present pass: a tight halo and a wide soft glow round each place's light, breathing
-   *  slowly, Home's the strongest (shaders.ts, compiled in with EL_HALO; the light's core in the scene is the
-   *  painting's). ON: the light is Home's named element with the mountain and the fall. QA switches it off for Jack's
-   *  side by side (the brief, A3: Home with and without the plum and the light's halo). */
+  /** The light's bloom: a tight halo and a wide soft glow round each place's light, breathing slowly, Home's the
+   *  strongest (shaders.ts, compiled in with EL_HALO). Off: the light keeps only its core, which the scene paints. */
   halo: true,
-  // ---- round 6: what is new (each on its own switch, for Jack's side by side)
-  /** The painting keeps time: it follows the visitor's own clock. Dawn (rose), the day as it was painted, dusk (the
-   *  low sun's apricot and rose, the hills violet, the hut's lamp lit), night (the air a deep indigo wash round a
-   *  moon, the lamps lit). A grade of what is painted (features/landscape/mood.ts; shaders.ts moodGrade): no scene is
-   *  repainted and the paper stays the paper. Off: always the day. */
-  hours: false,
-  /** Weather on the page's own layers when a scene asks for it: falling snow, rain (plates.css; the painting's own
-   *  snow and rain are part of the mood's grade). */
-  weather: false,
-  /** Depth you can feel: on wide screens each plate of the painting answers the pointer by its own depth (the near
-   *  crags most, the far ranges least), eased with weight. Fine pointers only; never under reduced motion or Still. */
-  depth: false,
+  // ---- the ask line
   /** Ask the painting: one line on Home. A small language model in the visitor's own browser (hosted with the site,
-   *  loaded only when they ask) reads what they type: a scene ("snow at dusk, the lanterns lit") repaints the
-   *  painting; a question about the work is answered from the site's own words, and the painting travels to the
-   *  place that holds the answer (features/ask). */
+   *  loaded only when they ask) reads their question about the work; it is answered from the site's own words, and
+   *  the painting travels to the place that holds the answer (features/ask). */
   ask: true,
-  /** His seal beside his name on Home, as a painter's seal stands by the signature (stamped once as the page
-   *  arrives); the tail keeps its own. */
-  nameSeal: false,
-  /** The screen's top right corner is the painting's: the header's band of paper ends a little past the nav's last
-   *  word, so Home's plum bough comes into the first screen (wide screens). Off: the band runs the screen's width. */
-  corner: false,
   // ---- the scroll
-  /**
-   * THE UNROLL (P3; direction A, "The handscroll, unrolled", the jury's winner for the scroll). On wide screens the
-   * living ground is the handscroll: the page's three depth layers are painted once at the hero framing, wider to the
-   * east by the page's travel, and slid west in the present pass as the page scrolls, linearly: the end of a page
-   * stands `share` (0.6) of the way to the next place's hero, and the page change's pan carries the rest (a click
-   * never jumps back). No lift, no parting, no cloud, no descent: once the reading starts, a standing curtain of mist
-   * keeps the middle and near layers out from under the reading column, and the far ranges run on behind the words
-   * under their own paper. Below 1200 px the strip drifts west as it leaves, the closing comes in from the east, and
-   * Work's and the Résumé's windows look east along the place, level.
-   * Subtraction: off, the reader loses "the next page lies downstream, already in view" and the reading's place on the
-   * river. Referent: distance along the river = how far down the page you have read. Control: native scroll, linear,
-   * reverses and stops with the hand; nothing exists only inside it (the ending is text). Cost: present-only, 0 scenes
-   * while scrolling; reduced motion and Still: the hero pose, then one cut to the end pose once the ending is on
-   * screen. Recall: "the painting slid along with my reading, and the next page was already there."
-   */
-  unroll: true,
-  /** The unroll's standing curtain: once the reading starts, the middle and near layers left of the title block's
-   *  column are in mist, so the place passes in the right margin only. OFF (round 7; Jack: "The body is like only
-   *  left side of the page"): the painting runs the whole width behind the page from top to bottom, and the words
-   *  keep only a breath of mist of their own (plates/veils.ts) wherever they lie. The hold stays (the engine's
-   *  unroll: Work, the project pages, the Résumé and Contact stop their travel with the place's last named thing
-   *  beside the reading column, as on the live site): without it a long page slid its place behind its own words
-   *  half way down and read to the end beside open water. */
-  curtain: false,
-  /** The camera travels (the approved round-5 motion): on wide screens the scene's depth layers part as you scroll
-   *  (near crags and the plum drop away fastest, the middle settles over a sea of mist, the far range barely moves),
-   *  the place parks beside the reading column and the camera comes down to the closing view at the end, with each
-   *  place's own choreography (places' STAGE_AT). Below 1200 px the strip's and the closing's layers part as they
-   *  leave and gather as they arrive, with mist rising between them. OFF (P3, the synthesis: parallax in kind, no
-   *  referent a reader is told about, its one recall "the background moved"); KEPT in the engine as the QA
-   *  alternative until Jack has seen both side by side ({"unroll":false,"cameraTravels":true} in a QA build), by the
-   *  one switch table. Where both are on, the unroll wins. */
-  cameraTravels: false,
-  /** The scroll's air (a wind on the figures only): the scroll's speed is a breeze. Home's plum leans on a damped
-   *  spring and two or three of its petals blow off it, the silk ribbon bows and its twist runs along it, Work's
-   *  willows stream and Contact's rushes bend; all of it settles within 1.5 s of the scroll stopping. OFF (P3): one
-   *  scroll motion only, the unroll; a second one, whose referent ("the scroll is a wind") no reader is told, fails
-   *  subtraction (off, nothing is lost but a stir) and recall. The figures' own small life (the willows' sway, the
-   *  rushes in the breeze, the bough's swing) stays: it is the painting's, not the scroll's. */
-  // (round 6: back on)
-  air: false,
   /** Windows into the painting, below 1200 px only: at the page's major section breaks a short, full-bleed
    *  window of the page's own place opens in the gap (<Glimpse>, [data-landscape="glimpse"]), each one further along
-   *  the place (the unroll: east, level; the camera's travel: higher in one climb). Present-only: painted once at
-   *  idle, slid in the present as the window passes; the window's own still until then and wherever the painting
-   *  cannot come (the probe: live only after it). Reduced motion and Still: each window at its rest pose. At 1200 px
-   *  and up the windows are not laid out at all. Subtraction: off, a phone loses the river's progress through the
-   *  page. Referent: each window looks further along the river than the one before. Control: the scroll's. Cost: zero
-   *  scroll-time scenes; the still as the fallback. Recall: "pictures of the same river kept appearing between the
-   *  sections, each a little further along." */
+   *  the place (east, level). Present-only: painted once at idle, slid in the present as the window passes; the
+   *  window's own still until then and wherever the painting cannot come (the probe: live only after it). Reduced
+   *  motion and Still: each window at its rest pose. At 1200 px and up the windows are not laid out at all. Off: no
+   *  windows. */
   glimpses: true,
-  // ---- the page change
-  /** The page change as a mist dissolve (340 ms): mist gathers and clears across the hero window only, right of the
-   *  words; a long jump cross-dissolves the old place into the new one. OFF (P2, the attack's A10): one grammar, the
-   *  river's: the painting pans on to the next place under a plain crossfade of the words (features/navigation); a
-   *  second device for the same moment fails subtraction, and the dissolve had no referent of its own. */
-  silkVeil: false,
-  /** The nav's current-page mark lifts off the old word at the click and is laid wet under the new one. OFF (P2): the
-   *  river line's dot is the current page's one mark and travels with the reading (riverMark); nothing is lifted or
-   *  laid. */
-  navMark: false,
   // ---- the chrome
   /** The river line (components/layout/RiverLine): a hairline under the header's row with a tick per stop and a jade
-   *  dot that stands under the current page's tick and travels to the next stop as the page scrolls. Subtraction:
-   *  off, "where am I on the whole scroll" between the stops is lost and the current page has no mark. Referent: the
-   *  reading's distance along the river, the same as the unroll's. Control: the scroll's, on the compositor (a CSS
-   *  scroll timeline). Cost: 0 bytes per frame; the finished state (the dot under the stop) is the default CSS;
-   *  reduced motion and Still keep it there. Recall: "a dot moved along a line under the menu as I read." */
+   *  dot that stands under the current page's tick and travels to the next stop as the page scrolls, on the
+   *  compositor (a CSS scroll timeline). The dot under the current stop is the default CSS; reduced motion and Still
+   *  keep it there. Off: no river line. */
   riverMark: true,
   // ---- the interface
-  /** The name's swash laid down after the name's ink settle, and one warm wet sheen along it, once, when the morning's
-   *  light is up (the first load only). OFF (P2): the name at a fifth of the screen is the gesture; the swash was
-   *  ornament with no referent. */
-  swash: false,
-  /** The story map: the current place holds its sun (a warmth, not a disc, no tick); hovering another raises its light.
-   *  OFF (P2): the story map is gone (the river line in the header carries "you are here"; the tail names the places). */
-  sun: false,
   /** A small ink dot runs along Work's diagrams' arrows once per hover, in flow order (no glow). */
   flow: true,
   /** Focus and selection: a 2 px ink ring with a jade second line; selection in glow-tinted paper; a jade scrollbar
-   *  (effects.css). On: feedback for the keyboard, with the control itself as its referent. */
+   *  (effects.css). */
   focus: true,
   /** Rows: a 1.5 px jade rule drawn in from the left on the row's bottom border on hover and focus (nothing behind
-   *  the text). On: feedback with a referent (the row under the hand). */
+   *  the text). */
   rowrule: true,
   /** The scroll, held (src/features/scroll): after the words, one quiet link in the footer opens the handscroll in the
    *  hero's own band and the hand moves the painting (drag, wheel, the arrow keys, a tap on a place); every walk returns
    *  to the one composition; at rest a place may be seen high or deep. Off: no opener, no sheet, no CSS, no hold. */
   scroll: true,
-  /** The story map kept a little light on the places visited this session. Off: the story map is gone (P2). */
-  visited: false,
 };
 
 export type ElementName = keyof typeof ELEMENTS;
 
 const QA = typeof process !== 'undefined' && process.env.NEXT_PUBLIC_INK_QA === '1';
 
-/** The QA overrides in this browser (none in production): flag -> on or off. In the worker (no document, no storage)
- *  only the lists the engine passes with each layer (figure-source.ts) count. */
+/** QA builds only: the flags switched off in this browser. In the worker (no document, no storage) only the list the
+ *  engine passes with each layer (figure-source.ts) counts. */
 // (globalThis, never `typeof window`: the bundler folds `typeof window` to "object" in client code, the figure worker
-// included, where window is not defined; reading it there threw and sent every Home layer to the main-thread fallback,
-// which has no sprites)
-function qaOverrides(): Map<string, boolean> {
-  const o = new Map<string, boolean>();
-  if (!QA) return o;
-  const g = globalThis as unknown as {
-    document?: unknown;
-    localStorage?: Storage;
-    __elOff?: unknown;
-    __elOn?: unknown;
-  };
+// included, where window is not defined: reading it there throws, and the worker's layers fall back to the main thread)
+function qaOff(): Set<string> {
+  const off = new Set<string>();
+  const g = globalThis as unknown as { document?: unknown; localStorage?: Storage; __elOff?: unknown };
   if (g.document) {
     try {
       const j = JSON.parse(g.localStorage?.getItem('ink-elements') || '{}') as Record<string, unknown>;
-      for (const [k, v] of Object.entries(j)) if (typeof v === 'boolean') o.set(k, v);
+      for (const [k, v] of Object.entries(j)) if (v === false) off.add(k);
     } catch {
       /* no storage: the defaults */
     }
   }
-  if (Array.isArray(g.__elOff)) for (const k of g.__elOff) o.set(String(k), false);
-  if (Array.isArray(g.__elOn)) for (const k of g.__elOn) o.set(String(k), true);
-  return o;
+  if (Array.isArray(g.__elOff)) for (const k of g.__elOff) off.add(String(k));
+  return off;
 }
 
-/** Is this element on (the table, unless a QA override says otherwise)? */
+/** Is this element on (the table, unless a QA override switches it off)? */
 export function elementOn(name: ElementName): boolean {
-  const o = qaOverrides().get(name);
-  return o === undefined ? ELEMENTS[name] : o;
+  if (!QA) return ELEMENTS[name];
+  return ELEMENTS[name] && !qaOff().has(name);
 }
 /** Short alias (the engine and the sets). */
 export const el = elementOn;
 
-/** QA only: the overrides to hand the figure worker with a layer (it reads no storage and no window). */
-export function qaOverrideLists(): { on: string[]; off: string[] } | undefined {
+/** QA only: the flags switched off, to hand the figure worker with a layer (it reads no storage and no window). */
+export function qaOverrideLists(): { off: string[] } | undefined {
   if (!QA) return undefined;
-  const on: string[] = [];
-  const off: string[] = [];
-  for (const [k, v] of qaOverrides()) (v ? on : off).push(k);
-  return on.length || off.length ? { on, off } : undefined;
+  const off = [...qaOff()];
+  return off.length ? { off } : undefined;
 }
 
 /** The switches the present shader reads, as GLSL #defines (an element that is off is not compiled in). */
 export function elementDefines(): string {
-  return [
-    elementOn('silkVeil') ? '#define EL_SILK_VEIL 1' : '',
-    elementOn('air') ? '#define EL_AIR 1' : '',
-    elementOn('glimpses') ? '#define EL_GLIMPSE 1' : '',
-    elementOn('ribbon') ? '#define EL_RIBBON 1' : '',
-    elementOn('halo') ? '#define EL_HALO 1' : '',
-  ]
+  return [elementOn('glimpses') ? '#define EL_GLIMPSE 1' : '', elementOn('halo') ? '#define EL_HALO 1' : '']
     .filter(Boolean)
     .join('\n');
 }
@@ -277,13 +118,13 @@ export const elementClasses = (): string =>
     .map((k) => `el-${k}`)
     .join(' ');
 
-/** The boot script's part (in <head>, before first paint): QA builds drop the classes of elements switched off and add
- *  those switched on (localStorage 'ink-elements' with true / false values, window.__elOff, window.__elOn). */
+/** The boot script's part (in <head>, before first paint): QA builds drop the classes of elements switched off
+ *  (localStorage 'ink-elements' with false values, window.__elOff). */
 export function bootElements(): string {
   if (!QA) return '';
-  return `try{var O=[],N=[];try{var J=JSON.parse(l&&l.getItem('ink-elements')||'{}');for(var k in J){if(J[k]===false)O.push(k);else if(J[k]===true)N.push(k)}}catch(e){}if(Array.isArray(w.__elOff))O=O.concat(w.__elOff);if(Array.isArray(w.__elOn))N=N.concat(w.__elOn);O.forEach(function(n){h.classList.remove('el-'+n)});N.forEach(function(n){h.classList.add('el-'+n)})}catch(e){}`;
+  return `try{var O=[];try{var J=JSON.parse(l&&l.getItem('ink-elements')||'{}');for(var k in J){if(J[k]===false)O.push(k)}}catch(e){}if(Array.isArray(w.__elOff))O=O.concat(w.__elOff);O.forEach(function(n){h.classList.remove('el-'+n)})}catch(e){}`;
 }
 
-/** Is this interface element on right now (its <html> class: the flag, a QA override or a runtime toggle)? */
+/** Is this interface element on, by its <html> class (the flag, unless a QA override switched it off)? */
 export const fxOn = (k: ElementName): boolean =>
   typeof document !== 'undefined' && document.documentElement.classList.contains(`el-${k}`);

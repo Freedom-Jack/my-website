@@ -2,9 +2,8 @@ import { z } from 'zod';
 import { CJK, PHONE } from '@/lib/compliance';
 
 /**
- * Work's "In the open": which of Jack's public GitHub repositories are listed, and how (the demo's
- * tools/sync-projects.py, as a tested module). Pure: the fetch lives in fetch.ts, at build time / ISR, never in
- * the visitor's browser.
+ * Work's "In the open": which of Jack's public GitHub repositories are listed, and how. Pure: the fetch lives in
+ * fetch.ts, at build time / ISR, never in the visitor's browser.
  *
  * Rules, in order: public; not a fork; not archived; not empty; never a denied repository; placeholders skipped
  * (under 10 KB, or described "TBA", "To be announced", "coming soon": they appear by themselves once real code
@@ -15,11 +14,11 @@ import { CJK, PHONE } from '@/lib/compliance';
 
 /** Never listed. Personal application materials; and this site's own source, until its public history no longer
  *  holds the old résumé file (CLAUDE.md, hard rules, the launch gate: content/site.ts showSourceCode). */
-export const DENY = new Set(['job-application', 'my-website']);
-export const PLACEHOLDER_KB = 10;
-export const PLACEHOLDER = /^(tba|to be (announced|anounced)|coming soon)\.?$/i;
-export const RECENT_MONTHS = 24;
-export const LINE_MAX = 160;
+const DENY = new Set(['job-application', 'my-website']);
+const PLACEHOLDER_KB = 10;
+const PLACEHOLDER = /^(tba|to be (announced|anounced)|coming soon)\.?$/i;
+const RECENT_MONTHS = 24;
+const LINE_MAX = 160;
 export const USER = 'Freedom-Jack';
 
 export const repoSchema = z.object({
@@ -36,7 +35,7 @@ export const repoSchema = z.object({
 });
 export type Repo = z.infer<typeof repoSchema>;
 
-export const overridesSchema = z
+const overridesSchema = z
   .object({
     updated: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     repos: z.array(
@@ -54,8 +53,8 @@ export const overridesSchema = z
     ),
   })
   .strict();
-export type Overrides = z.infer<typeof overridesSchema>;
-export type Override = Overrides['repos'][number];
+type Overrides = z.infer<typeof overridesSchema>;
+type Override = Overrides['repos'][number];
 
 export interface Entry {
   name: string;
@@ -98,7 +97,7 @@ export function parseOverrides(raw: unknown): Map<string, Override> {
 }
 
 /** The public candidates the API returned (what the snapshot keeps). */
-export function candidates(repos: Repo[]): Repo[] {
+function candidates(repos: Repo[]): Repo[] {
   return repos.filter((r) => !r.private && !r.fork && !r.archived && (r.size ?? 0) > 0 && !denied(r.name));
 }
 

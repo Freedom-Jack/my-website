@@ -6,14 +6,13 @@ const num = (v: string | undefined, d: number) =>
   v === undefined || v === '' || Number.isNaN(Number(v)) ? d : Number(v);
 
 /** The page's own place, as its <main> declares it (components/page/PageMain). */
-export interface MainPlace {
+interface MainPlace {
   stretch: number;
   distance: Distance;
   presence: number;
   horizon: number;
   ground: 'living' | '';
-  /** (the vanguard round) the page opens inside its place: a closer hero, further along it; a number = its own
-   *  stretch-local u (a case's sub-anchor). */
+  /** The page opens inside its place: a closer hero, further along it; a number = its own stretch-local u. */
   inside: boolean | number;
 }
 
@@ -39,12 +38,10 @@ export function targetsOf(main: HTMLElement): LandscapeTargets {
     keepout: main.querySelectorAll('[data-landscape="keepout"]'),
     // (the windows into the painting at the page's section breaks; none when the flag is off)
     glimpse: elementOn('glimpses') ? main.querySelectorAll('[data-landscape="glimpse"], [data-glimpse="end"]') : [],
-    // (on a living page the tail's lines are veiled too: on a short living page the painting reaches under them)
+    // (the tail's lines too: on a short living page the painting reaches under them)
     veil: [
       ...main.querySelectorAll('[data-veil]'),
-      ...(elementOn('cameraTravels') || elementOn('unroll')
-        ? document.querySelectorAll('.site-footer .scrollmap, .site-footer .tail__words, .site-footer .tail__side')
-        : []),
+      ...document.querySelectorAll('.site-footer .scrollmap, .site-footer .tail__words, .site-footer .tail__side'),
     ],
     wake: main.querySelectorAll('[data-wake]'),
     horizon: place.horizon,

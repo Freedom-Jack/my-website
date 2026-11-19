@@ -5,7 +5,7 @@ import { absolute, card } from '@/lib/seo';
 import type { CaseMeta } from './cases';
 
 /** A case as schema.org CreativeWork: the same claims as its page (no figure that is not visible there). */
-export function creativeWork(c: CaseMeta) {
+function creativeWork(c: CaseMeta) {
   const url = absolute(c.href);
   const image = card(c.href);
   // "2023 – 2024" → "2023/2024"; "2025 – present" → "2025/.." (an ISO 8601 interval)

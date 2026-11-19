@@ -1,5 +1,5 @@
 /**
- * DRAFT (for Jack): the evaluation set behind the eval fold on Work ("How good is the search?"). Twenty questions a
+ * DRAFT (for Jack): the evaluation set behind the eval piece on Work ("How good is the search?"). Twenty questions a
  * visitor might ask these pages, written by the site's author (not Jack), each with the passage that answers it (named
  * by a phrase it contains; the build resolves it to its passage). Recall@1 and @3 of the lexical search are computed at
  * build from this list and printed with n, the author and every miss. Nothing in the search is tuned on these

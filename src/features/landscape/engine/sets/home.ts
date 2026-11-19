@@ -2,28 +2,28 @@
 // path comes up out of the mist along the ridge, over a small knoll and down into the saddle, then climbs a few steps
 // cut in the rock to a ledge where a thatched hut stands with its front open, a low brushwood fence before it and a
 // pine leaning over its roof. The traveller (him) walks up the path toward it: a broad hat, sloped shoulders, a white
-// robe flaring at the hem, a bundle on his back and a staff planted ahead. Life: a thread of smoke from the hut's
-// ridge (an anchor only: it is not drawn here, so the present pass never doubles it). Round 5: the river starts here. In
-// the cleft between the near crag's two summits a thin fall drops in two tiers into the mist at its foot, where the
-// river comes out from behind his mountain toward the town (compose.ts: one river the whole length).
+// robe flaring at the hem, a bundle on his back and a staff planted ahead. The river starts here: in the cleft between
+// the near crag's two summits a thin fall drops in two tiers into the mist at its foot, where the river comes out from
+// behind his mountain toward the town (compose.ts: one river the whole length). Life: a thread of smoke from the
+// hut's ridge (an anchor only: it is not drawn here, so the present pass never doubles it), and lights sliding down
+// the fall (elements.ts waterfall).
 //
 // A figure set (figures.ts, THE SET API): meta + draw(env), in world px.
 
-import { plumFrame, plumLine, swallowInk, farBird } from './young';
 import { el } from '../../elements';
-import { ownSprite, REF_PX, VH_PX, planeTop, streams, vnoise, mix, mix3, runs, stroke, wash, softWash, dotTree, ellipse, anchor, type Env, type FigureMeta, type Pt, type Rng } from '../figures';
+import { REF_PX, VH_PX, planeTop, streams, vnoise, mix, mix3, runs, stroke, wash, softWash, dotTree, ellipse, anchor, type Env, type FigureMeta, type Pt, type Rng } from '../figures';
 
-// u1 reaches past the crag (1.06, not 0.9): on phones the hut is drawn larger and must stay clear of the right end's
-// melt (the last 13 % of the rect's width), and the fall in the crag's cleft (u 0.94) stands clear of it too
-export const meta: FigureMeta = { rect: [0.50, 1.10, 0.06, 0.87], plane: 3, phase: 1 };   // (up into the sky for the bough and the swallows)
+// u1 reaches past the crag: on phones the hut is drawn larger and must stay clear of the right end's melt (the last
+// 13 % of the rect's width), and so must the fall in the crag's cleft (u 0.94)
+export const meta: FigureMeta = { rect: [0.50, 1.10, 0.06, 0.87], plane: 3, phase: 1 };   // (y1 up into the sky: the rect sizes and places the layer)
 
 const SEED = 5;
-const OB: Pt = [0.72, -0.48];   // the Song oblique (figures.ts D, copied: a set's top level runs before figures.ts's own)
+const OB: Pt = [0.72, -0.48];   // the Song oblique (a copy of figures.ts D)
 
 export function* draw(env: Env) {
   const { ctx, P, ink } = env;
   const { C, rgba } = ink;
-  const own = streams(SEED, PINS);   // one stream per element (figures.ts streams)
+  const own = streams(SEED);   // one stream per element (figures.ts streams)
   // The phone's album leaf sees this place from further away, so its figures are drawn larger (a painter's licence:
   // figures are always drawn to be read): the traveller by `big` (ts below), so he is never under 12 CSS px tall; the
   // hut by a little less, the trees and the ground marks by less again.
@@ -51,7 +51,7 @@ export function* draw(env: Env) {
   }
   const Rs = own('slope');   // texture strokes down the near face, slanting (none where the traveller stands)
   // the traveller's scale: about 22 CSS px tall on desktops; on phones >= 12 CSS px even where the strip shows this
-  // layer at 0.8 of its scale (320 and 375 px wide phones: 216 CSS px per stretch, not 270)
+  // layer at 0.8 of its scale (compose.ts bandFrame)
   const ts = Math.max(2.1, 2.05 * big);
   const tx = X(0.788), tReach = 4.5 * ts;
   for (let i = 3; i < ridge.length - 2; i += 4) {
@@ -62,7 +62,7 @@ export function* draw(env: Env) {
     stroke(ctx, [[x, y + 2.4 * bg], [x - (1.4 + Rs() * 1.6) * bg, y + 2.4 * bg + len]], { w: 0.8 * bg, col: rgba(C.ink, 0.16 + Rs() * 0.14), tin: 0.1, tout: 0.75, dry: 0.4, seed: i });
   }
   const Rm = own('moss');
-  const mossC = ink.strength > 0 ? mix3(C.ink, C.malD, 0.3) : C.ink;
+  const mossC = mix3(C.ink, C.malD, 0.3);
   for (let i = 1; i < ridge.length; i += 5) {
     if (Rm() < 0.55) continue;
     const [x, y] = ridge[i];
@@ -172,8 +172,9 @@ export function* draw(env: Env) {
   pineOver(env, hx - 0.6 * bh, y0 + 1.1 * bh, 0.78 * bt, 4.2, own('hut pine'));
   // life: a thread of smoke from the ridge's far end, rising and leaning a little downwind
   const src: Pt = [mix(hut.rL[0], hut.rR[0], 0.72), hut.rL[1] - 0.5 * bh];
-  // (THE MOODS) the lamp in the hut's open room: lit at dusk and at night
-  anchor(env, 'smoke', { x: hx, y: y0 - 12 * bh, w: HW, h: 12 * bh }, { lamp: [hx + HW * 0.36, y0 - 4.2 * bh], lampR: 15 * bh });
+  // (an anchor that is no life, LifeParams.lamp: it holds its index, so the smoke's and the fall's anchors after it keep
+  // their phase seeds, index.ts lifeU)
+  anchor(env, 'smoke', { x: hx, y: y0 - 12 * bh, w: HW, h: 12 * bh }, { lamp: [hx + HW * 0.36, y0 - 4.2 * bh] });
   anchor(env, 'smoke', { x: src[0] - 9 * bh, y: src[1] - 36 * bh, w: 24 * bh, h: 36 * bh }, { src });
   yield;
 
@@ -185,59 +186,10 @@ export function* draw(env: Env) {
   // ---- the fall in the cleft between the near crag's summits: where the river begins
   waterfall(env, X(0.942), crestY, 1 + (big - 1) * 0.7, own('fall'));
   yield;
-  // ---- the young elements. A plum bough framing the scene hard from its top-right corner (young.ts plumFrame:
-  // a near-camera element, its limbs running out of the frame, blossoms in three size classes), petals falling from it
-  // (life: the petals kind, drawn by the present pass), a swallow in colour gliding up across the light (a bird: its
-  // wings beat), two far ones misted
-  // (it enters from the top-right corner, out of the paper under the header, and arcs down and left across the
-  // sky above the right crag; its lowest blossom stays above the crag's shoulder, right of the fall; the hut, the
-  // cleft and the host peak stay clear. On phones it is drawn larger, from the same corner.)
-  const bs0 = 1.28 + (big - 1) * 0.6;
-  // (phones: the bough is smaller and tucked into the strip's top-right corner, so the host peak and its light stay
-  // clear; laptops: 0.78 of its round-5 size, the size the corner has room for off the light (below))
-  const phoneK = big > 1.5;
-  const bs = phoneK ? bs0 * 0.6 : bs0 * 0.78;
-  // (a story-map still leaves the near framing out: one continuous strip; so does a window into the painting, inlay,
-  // where the bough would hang from no edge, a sticker in the sky)
-  if (!env.still && !env.inlay && el('plum')) {
-    // (drawn as its own sprite so it can swing about its root, ~0.5 deg at ~0.08 Hz, in the present pass; a painting
-    // without sprites paints it into the layer)
-    // (the vanguard round, A3: the bough moved off the light; the fix round: the whole bough, in the corner it has room
-    // for, pinned to the frame. At 1440 x 900 the corner is bounded by the header's paper band above (world y ~290 at
-    // the hero: raised to clear the halo, the limb's arc stood under the band, leaving a stub and a lone blossom), the
-    // light's halo below and left (lights.ts: Home's light at u 0.724, y 0.518, r 0.155 vh; its rim at x ~1190 at the
-    // bough's height) and the frame's east edge: a pocket ~250 px wide. The bough enters at world (1478, 250), its root
-    // 90 px past the edge, its limb's arc 16 px under the band, its tail shortened (young.ts plumCtl) so the tip stands
-    // at x ~1196, 158 px from the light's centre, its lowest blossom ~190 px from it. THE UNROLL (elements.ts unroll):
-    // the sprite is pinned (figures.ts LifeParams.pinned; index.ts lifeU), so the painting slides west under it and the
-    // bough keeps its corner, as the near framing bough of a handscroll belongs to the opening the reader looks
-    // through, not to the distance; its root, which lies on the layer's eastern reach, is never slid into view as a cut
-    // end. Phones: the strip rides with its box, no slide; the bough as before, its tail shortened the same way.)
-    const ex = 1478 + (big - 1) * 14, ey = phoneK ? 110 : 250, Rb = own('d5 bough');
-    const trim = phoneK ? 0.2 : 0.45;
-    // (plumGust: the limb's line rides along, so the pointer can find the bough)
-    const limb = el('plumGust') ? { limb: plumLine(ex, ey, bs, trim) } : {};
-    ownSprite(env, 'boat', { x: ex - 400 * bs, y: ey - 70 * bs, w: 460 * bs, h: 260 * bs }, { swing: true, pinned: true, range: [ex - 4000, ex + 4000], ...limb }, (e) => { plumFrame(e, ex, ey, bs, Rb, { trim }); });
-    // (the petals that let go of it and drift down: elements.ts petals, off since A3)
-    if (el('petals')) anchor(env, 'smoke', { x: ex - 400 * bs, y: ey + 64 * bs, w: 300 * bs, h: 220 * bs }, { petals: { n: 8, size: 5.5 * bs, speed: 1 } });
-  }
-  yield;
-  // (elements.ts swallows: Home's swallow and its far birds, off since A3: one named element per place)
-  if (!env.still && el('swallows')) {
-    // one swallow in the open sky left of the peak (never over the light), gliding on a curving line; two tiny far ones
-    const sx = big > 1.5 ? 730 : 812, sy = big > 1.5 ? 470 : 470, path: Pt[] = [];   // (on phones too, left of the peak inside the tighter frame)
-    for (let k = 0; k <= 30; k++) { const u = k / 30; path.push([sx + 150 - 330 * u, sy + 40 - 70 * u - 46 * Math.sin(u * Math.PI)]); }
-    // (a window into the painting, inlay, keeps only the far birds: the strip's large swallow, magnified there, crowded it)
-    if (!env.inlay) ownSprite(env, 'walker', { x: sx - 48 * bs0 / 1.28, y: sy - 42 * bs0 / 1.28, w: 96 * bs0 / 1.28, h: 84 * bs0 / 1.28 }, { path, home: [sx, sy], speed: 10, bird: true }, (e) => swallowInk(e, sx, sy, 62 * bs0, -0.3, own('d5 swallow', 0), { bank: 0.7, lift: 0.35 }));
-    // (the far birds are tiny thick-thin open V glides, hazed by the mist, never grey crescents)
-    farBird(env, 1184, 552, 9, -0.12, own('d5 swallow', 1), 0.5);
-    farBird(env, 1203, 540, 6.5, 0.18, own('d5 swallow', 2), 0.6);
-    farBird(env, 1226, 548, 7.5, -0.05, own('d5 swallow', 3), 0.55);
-  }
 }
 
 /**
- * A thin fall in a cleft of the crag (round 5: the source of the one river), as the painters leave one: unpainted paper
+ * A thin fall in a cleft of the crag (the source of the one river), as the painters leave one: unpainted paper
  * in a shaded cleft. Out of the notch at x (a world px column) it drops in broken strands that step a little aside where
  * the rock steps; its foot is lost in a plume of mist (the river comes out of the mist, beyond the crag). s: scale
  * (phones draw it larger).
@@ -277,7 +229,7 @@ function waterfall(env: Env, x: number, crestY: (x: number) => number, s: number
   softWash(env, ellipse(x + 8 * s, fy + 4 * s, 44 * s, 9 * s, 18), rgba(C.mist, 0.36), 12 * s);
   softWash(env, ellipse(x + 18 * s, fy + 12 * s, 70 * s, 10 * s, 18), rgba(C.mist, 0.28), 16 * s);
   // life (elements.ts waterfall): lights slide down the strands, the spray at the foot breathes
-  if (el('waterfall') && !env.still) anchor(env, 'smoke', { x: x - 46 * s, y: y0 - 8 * s, w: 104 * s, h: H + 44 * s }, { fall: { x: x + 0.3 * s, y0, y1: y0 + H * 0.9, hw: 7 * s } });
+  if (el('waterfall')) anchor(env, 'smoke', { x: x - 46 * s, y: y0 - 8 * s, w: 104 * s, h: H + 44 * s }, { fall: { x: x + 0.3 * s, y0, y1: y0 + H * 0.9, hw: 7 * s } });
 }
 const smoothstep01 = (t: number) => { const c = Math.min(1, Math.max(0, t)); return c * c * (3 - 2 * c); };
 
@@ -441,8 +393,8 @@ function fence(env: Env, x0: number, x1: number, yAt: (x: number) => number, b: 
 }
 
 /**
- * A pine leaning a known way (figures.ts pine() picks its lean at random; this one must lean over the hut): a
- * crooked trunk and flat needle tiers, wider on the side it leans to. (x, y) = the foot; lean in units of s.
+ * A pine leaning a known way (it must lean over the hut): a crooked trunk and flat needle tiers, wider on the side it
+ * leans to. (x, y) = the foot; lean in units of s.
  */
 function pineOver(env: Env, x: number, y: number, s: number, lean: number, R: Rng) {
   const { ctx, ink } = env;
@@ -452,7 +404,7 @@ function pineOver(env: Env, x: number, y: number, s: number, lean: number, R: Rn
   const at = (t: number): Pt => [x + L * Math.pow(t, 1.6) + Math.sin(t * 7) * 0.5 * s, y - H * t];
   stroke(ctx, [[x, y + 0.5], at(0.3), at(0.55), at(0.8), at(1)], { w: 1.6 * s, col: rgba(C.ink, 0.9), tin: 0, tout: 0.5, wob: 0.45, seed: x * 3 });
   stroke(ctx, [at(0.55), [at(0.55)[0] + 4.5 * s, at(0.55)[1] - 1.2 * s]], { w: 0.8 * s, col: rgba(C.ink, 0.8), tin: 0, tout: 0.6, seed: x * 3 + 1 });   // a bough reaching out
-  const needle = ink.strength > 0 ? mix3(C.ink, C.malD, 0.22) : C.ink;
+  const needle = mix3(C.ink, C.malD, 0.22);
   for (let i = 0; i < 5; i++) {
     const t = 0.48 + i * 0.12;
     const [bx, by] = at(Math.min(1, t));
@@ -475,7 +427,3 @@ function gated(pts: Pt[], keep: (x: number) => boolean) {
   if (cur.length > 1) out.push(cur);
   return out;
 }
-
-// PINS: seed data. In 4a each element's place in the set's single stream was pinned here; every element of this scene
-// has since been repainted, so none is pinned and each draws from stream(SEED, ...key).
-const PINS: Record<string, number> = {};

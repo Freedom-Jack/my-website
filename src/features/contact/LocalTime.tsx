@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 
 /**
  * The local time where he is (", 9:41 there"), for a visitor elsewhere: formatted in the browser from the site's time
- * zone, refreshed every 30 s. Rendered as nothing on the server and without JS, so the sentence reads as before.
+ * zone, refreshed every 30 s. Rendered as nothing on the server and without JS: the sentence then reads without it.
  */
 export function LocalTime({ zone, text }: { zone: string; text: string }) {
   const [time, setTime] = useState<string | null>(null);

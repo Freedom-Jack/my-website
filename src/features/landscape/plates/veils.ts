@@ -1,32 +1,30 @@
 /**
- * THE VEILS, as the page's own layers (round 6; they were rects in the engine's screen pass).
+ * THE VEILS, as the page's own layers.
  *
  * Nothing of the painting stands behind text: behind every block of words the page keeps its own paper, cut from the
  * paper's tile (the engine's grain, plates/sink.ts), in the page's flow, so the browser moves it with the words and no
  * frame is drawn for it. Shown only while the plates are (html[data-plates="on"]); wherever the engine lays the stage
- * on its own canvas (a page change, a narrow window) it draws its own veils, as before.
+ * on its own canvas (a page change, a narrow window) it draws its own veils.
  *
  * Two kinds:
  *   THE FIRST SCREEN (the header's band of paper, and the title block: [data-landscape="keepout"] or anything in
- *   .strip): as round 6 laid them, patches that end in torn edges of mist (plates/edges.ts), a plain soft edge at
- *   the left where no painting stands. The first screen is the live site's: nothing about its paper changes.
+ *   .strip): patches that end in torn edges of mist (plates/edges.ts), a plain soft edge at the left where no
+ *   painting stands.
  *
- *   THE BODY (round 7, as corrected after Jack's verdict "everything under the header is just straight downhill
- *   toilet paper": the first field kept solid paper far round every block, and with the words across the whole
- *   frame it whited the painting out): the painting stands at full strength through the whole page, and the words
- *   keep only A BREATH OF MIST. One field for the page, computed from where the words stand:
+ *   THE BODY: the painting stands at full strength through the whole page, and the words keep only a breath of mist
+ *   (solid paper round every block, with words across the whole frame, would white the painting out). One field for
+ *   the page, computed from where the words stand:
  *     - behind small text (and a drawing) the mist is strong (PEAK: the words read on any ground, the painting
  *       only a ghost behind them) and thins out to nothing close by, in billows (a slow noise), so the peaks and
  *       roofs stand clear on every side of a block and between two blocks;
- *     - behind display words (a title, a numeral: .h-ink, .num, [data-veil-light]) only a faint breath (LIGHT):
- *       they are read straight on the painting;
+ *     - behind display words (DISPLAY: a title, a numeral, the next place's name) only a faint breath (LIGHT): they
+ *       are read straight on the painting;
  *     - [data-veil="bank"] lays a bank of whole paper the width of the screen behind a section (the tail);
- *     - round words inked INTO the painting (body.css .inked; [data-veil-clear] names a box that holds some) the
+ *     - round words inked into the painting (body.css .inked; [data-veil-clear] names a box that holds some) the
  *       mist opens: they stand behind this sheet.
  *   The field is drawn small (one sample per 8 CSS px: mist has no detail finer than that), handed to CSS as the
  *   mask of one sheet of the paper's tile the size of the page, and drawn again whenever the words move (a new
- *   page, a new layout, a fold opened). A margin note, and anything that asks for its own paper ([data-veil-own]),
- *   is veiled on its own lines.
+ *   page, a new layout, a fold opened). A margin note is veiled on its own lines.
  */
 
 import { EDGE_W, mountEdges } from './edges';
@@ -50,7 +48,7 @@ const BANK_PAD = 12; // a bank's whole paper above its section's first line and 
 const BANK_THIN = 100; // ...and how far its edge thins out
 const CLEAR = 80; // the mist closes again over about this much round words inked into the painting (it billows too)
 /** Display words: read straight on the painting, with only a breath of mist. */
-const DISPLAY = '.h-ink, .num, .next__link, [data-veil-light]';
+const DISPLAY = '.h-ink, .num, .next__link';
 
 type Box = [left: number, top: number, right: number, bottom: number];
 
@@ -65,7 +63,6 @@ function unrendered(pe: Element) {
 /**
  * An element's words and pictures as a few bands down its height (viewport px). `which`: all of them (the first
  * screen's patches), its small text and pictures ('body'), or its display words alone ('display': DISPLAY).
- * A picture that carries its own soft edge ([data-veil-skip]) asks for no mist.
  */
 function bandsOf(el: Element, which: 'all' | 'body' | 'display' = 'all'): Box[] {
   const r = el.getBoundingClientRect();
@@ -75,7 +72,7 @@ function bandsOf(el: Element, which: 'all' | 'body' | 'display' = 'all'): Box[] 
   if (which !== 'display')
     for (const m of el.querySelectorAll('img, svg, video, canvas')) {
       if (m.tagName.toLowerCase() === 'svg' && m.parentElement?.closest('svg')) continue;
-      if (which === 'body' && m.closest(`[data-veil-skip], ${DISPLAY}`)) continue;
+      if (which === 'body' && m.closest(DISPLAY)) continue;
       const q = m.getBoundingClientRect();
       if (q.width >= 2 && q.height >= 2 && inside(q)) items.push([q.left, q.top, q.right, q.bottom]);
     }
@@ -84,11 +81,10 @@ function bandsOf(el: Element, which: 'all' | 'body' | 'display' = 'all'): Box[] 
   for (let n = walk.nextNode(), i = 0; n && i < 900; n = walk.nextNode(), i++) {
     if (!(n as Text).data.trim()) continue;
     const pe = n.parentElement;
-    // (a margin note, and anything that asks for its own paper, data-veil-own, is veiled on its own lines)
-    const own = pe?.closest('.margin-note, [data-veil-own]');
+    // (a margin note is veiled on its own lines)
+    const own = pe?.closest('.margin-note');
     if (!pe || pe.closest('svg') || (own && own !== el && el.contains(own)) || unrendered(pe)) continue;
-    if (which !== 'all' && (pe.closest('[data-veil-skip]') || !!pe.closest(DISPLAY) !== (which === 'display')))
-      continue;
+    if (which !== 'all' && !!pe.closest(DISPLAY) !== (which === 'display')) continue;
     range.selectNodeContents(n);
     for (const q of range.getClientRects())
       if (q.width >= 2 && q.height >= 2 && inside(q)) items.push([q.left, q.top, q.right, q.bottom]);
@@ -142,8 +138,6 @@ function bandsOf(el: Element, which: 'all' | 'body' | 'display' = 'all'): Box[] 
 }
 
 export interface Veils {
-  /** Measure the page's words again (a new page, a new layout). */
-  refresh(): void;
   destroy(): void;
 }
 
@@ -314,7 +308,7 @@ export function createVeils(): Veils {
     const x = window.scrollX || 0;
     const docW = document.documentElement.clientWidth;
 
-    // ---- the first screen's patches (round 6's)
+    // ---- the first screen's patches
     const hero = new Set<Element>();
     if (main) for (const el of main.querySelectorAll('[data-landscape="keepout"], .strip [data-veil]')) hero.add(el);
     // (beside a block the paper reaches further on a wide window, where the painting is larger)
@@ -361,12 +355,12 @@ export function createVeils(): Veils {
       });
     }
 
-    // ---- the body's field of mist (round 7)
+    // ---- the body's field of mist
     const words: Words = { body: [], display: [], banks: [], clear: [] };
     const body = new Set<Element>();
     if (main) for (const el of main.querySelectorAll('[data-veil]')) if (!hero.has(el)) body.add(el);
     for (const el of document.querySelectorAll('.site-footer[data-veil], .site-footer [data-veil]')) body.add(el);
-    for (const el of [...body]) for (const n of el.querySelectorAll('.margin-note, [data-veil-own]')) body.add(n);
+    for (const el of [...body]) for (const n of el.querySelectorAll('.margin-note')) body.add(n);
     const foot = document.querySelector('.site-footer');
     const end = Math.round(
       (foot ?? main ?? document.body).getBoundingClientRect().bottom + y, // (the page's own end: the sheet adds no scroll)
@@ -433,7 +427,6 @@ export function createVeils(): Veils {
   refresh();
 
   return {
-    refresh,
     destroy() {
       dead = true;
       clearTimeout(timer);

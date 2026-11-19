@@ -58,7 +58,11 @@ describe('the GLSL loader', () => {
     expect(ticks(out)).toBe(ticks(src));
     expect(holes(out)).toBe(holes(src));
     expect(pre(out)).toBe(pre(src));
-    expect(out.length).toBeLessThan(src.length * 0.6);
+    // the GLSL keeps no comment, indentation or blank line (a line with an interpolation is only trimmed)
+    const glsl = [...out.matchAll(/`((?:\\[\s\S]|[^`\\])*)`/g)].flatMap((m) => (m[1] ? m[1].split('\n') : []));
+    const left = glsl.filter((l) => !l || l !== l.trim() || (!l.includes('${') && l.includes('//')));
+    expect(left).toEqual([]);
+    expect(out.length).toBeLessThan(src.length);
     expect(loader.transform(out)).toBe(out); // idempotent
     // the bundler must still parse it: the literals paired as before, every escape intact
     expect(() => transformSync(out, { loader: 'ts', format: 'esm' })).not.toThrow();

@@ -4,20 +4,20 @@ import { quiet } from '@/features/chrome/still';
 import { cssTime } from '@/lib/css-time';
 
 /**
- * How one page gives way to the next inside the one painting: one grammar, the river's (the vanguard round, A10).
- * The painting pans to the destination's place (P3: from where the unroll left it) and the words cross-fade under
- * it, plainly: no drift, no blur, no mist sweep, no stagger.
+ * How one page gives way to the next inside the one painting: one grammar, the river's. The painting pans to the
+ * destination's place (from where the unroll left it) and the words cross-fade under it, plainly: no drift, no blur,
+ * no mist sweep, no stagger.
  *
  *   t (ms)   0     the old <main> fades (160 ms)
- *            ≤ 50  landscape.panTo(dest, 600 ms, cubic-out; under the unroll from where the page's slide left the
- *                  painting, in proportion to the way left: a page read to its end settles in ~300 ms)
+ *            ≤ 50  landscape.panTo(dest, 600 ms, cubic-out; from where the page's slide left the painting, in
+ *                  proportion to the way left: a page read to its end settles in ~300 ms)
  *            160   the new page replaces <main>; it fades in over 260 ms
  *            ≈ 420 readable · ≤ 650 the painting has arrived
  *
- * A long jump (Home to Contact) pans the whole way, 120 ms longer per stretch beyond the first: no splice, no mist
- * (A10: one grammar, the river's). Reduced motion or "Still the landscape": a 150 ms cross-fade (exit 60 ms, enter
- * 90 ms), the painting cuts at the swap. Back/forward: no exit or enter; the content is there at once and the
- * painting pans back over 400 ms behind it (or cuts).
+ * A long jump (Home to Contact) pans the whole way, 120 ms longer per stretch beyond the first: no splice, no mist.
+ * Reduced motion or "Still the landscape": a 150 ms cross-fade (exit 60 ms, enter 90 ms), the painting cuts at the
+ * swap. Back/forward: no exit or enter; the content is there at once and the painting pans back over 400 ms behind
+ * it (or cuts).
  */
 
 const root = () => document.documentElement;
@@ -94,7 +94,7 @@ export function restore(main: HTMLElement | null) {
 }
 
 /** The new words fade in, as one. */
-export function enter(main: HTMLElement | null, { signal }: { signal?: AbortSignal } = {}) {
+export function enter(main: HTMLElement | null) {
   if (!main) return Promise.resolve();
   const dur = quiet() ? 90 : token('--dur-route-enter', 260);
   const anims = blocks(main).map((el) =>
@@ -105,7 +105,6 @@ export function enter(main: HTMLElement | null, { signal }: { signal?: AbortSign
       fill: 'backwards',
     }),
   );
-  signal?.addEventListener('abort', () => anims.forEach((a) => a.finish()), { once: true });
   return Promise.all(anims.map((a) => a.finished.catch(() => null))).then(() => {});
 }
 

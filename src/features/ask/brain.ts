@@ -7,24 +7,19 @@
  *      line is filed under (questions.ts); the three closest are reported with their scores, and under a floor it
  *      says it does not know: it never writes an answer of its own;
  *   4. every step is reported as it happens, with its real numbers (the page draws them).
- *
- * Round 7: the other half (a scene read from the words, repainting the painting by hour and weather) is gone with
- * the colours it painted (Jack: "It looks not inked Chinese painting"). Every line is a question now.
  */
 import { cosine, unpackVector } from './encoder';
 import { LEANS, linesOf, sentences, type AskChunk, type Line } from './lines';
 
 /** A step of the trace, as it happens. */
 export type Step =
-  | { kind: 'load'; loaded: number; total: number; done: boolean; ms?: number }
-  | { kind: 'read'; tokens: number; pieces: string[] }
+  | { kind: 'load'; loaded: number; total: number; done: boolean }
+  | { kind: 'read'; tokens: number }
   | { kind: 'embed'; dim: number; ms: number }
   | { kind: 'guard' }
   | {
       kind: 'search';
       lines: number;
-      source: string;
-      score: number;
       floor: number;
       /** the three closest lines, the closest first: where each stands and its score */
       top: { source: string; score: number }[];
@@ -41,14 +36,12 @@ export type Answer =
       after: string[];
       source: string;
       href: string;
-      place: string;
       stretch: number;
       u: number | null;
-      score: number;
     }
   | { kind: 'private' }
   | { kind: 'unknown'; score: number; floor: number }
-  | { kind: 'error'; message: string };
+  | { kind: 'error' };
 
 /** public/ask/index.json (tools/build-ask.ts): one entry for every line of the corpus, in its order. */
 interface Index {
@@ -59,10 +52,10 @@ interface Index {
 
 /**
  * Under this the closest line is no answer (the model's own score, 0..1, of the question against the line or
- * against a question the line is filed under). Set on 2026-11-15 on 39 questions written after the filed ones, in
- * other words, and 50 the site cannot answer, run in the browser: 33 of the 39 were answered rightly, 1 arguably,
- * 5 were turned away; of the 50, 49 were turned away (15 by the guard) and 1, about a job, was shown where to
- * write. The set was the builder's; Jack's own questions replace it (NEW-WORDS.md).
+ * against a question the line is filed under). Measured in the browser on 39 questions worded unlike the filed ones
+ * and 50 the site cannot answer: 33 of the 39 are answered rightly, 1 arguably, 5 turned away; of the 50, 49 are
+ * turned away (15 by the guard) and 1, about a job, is shown where to write. The builder wrote that set, not Jack
+ * (NEW-WORDS.md).
  */
 const FLOOR = 0.55;
 /** What the site does not hold on purpose: turned away before anything is searched. */
@@ -81,7 +74,6 @@ const names = (line: string, thing: string) => {
 };
 export function createBrain(onStep: (s: Step) => void) {
   let worker: Worker | null = null;
-  let ready = false;
   let seq = 0;
   const waiting = new Map<
     number,
@@ -105,7 +97,7 @@ export function createBrain(onStep: (s: Step) => void) {
         id?: number;
         loaded?: number;
         total?: number;
-        ms?: number | number[];
+        ms?: number[];
         bytes?: number;
         vectors?: Float32Array[];
         pieces?: string[][];
@@ -114,11 +106,9 @@ export function createBrain(onStep: (s: Step) => void) {
     ) => {
       const m = e.data;
       if (m.type === 'progress') onStep({ kind: 'load', loaded: m.loaded!, total: m.total!, done: false });
-      else if (m.type === 'ready') {
-        ready = true;
-        onStep({ kind: 'load', loaded: m.bytes!, total: m.bytes!, done: true, ms: m.ms as number });
-      } else if (m.type === 'vectors') {
-        waiting.get(m.id!)?.resolve({ vectors: m.vectors!, pieces: m.pieces!, ms: m.ms as number[] });
+      else if (m.type === 'ready') onStep({ kind: 'load', loaded: m.bytes!, total: m.bytes!, done: true });
+      else if (m.type === 'vectors') {
+        waiting.get(m.id!)?.resolve({ vectors: m.vectors!, pieces: m.pieces!, ms: m.ms! });
         waiting.delete(m.id!);
       } else if (m.type === 'error') {
         const err = new Error(m.message || 'the model could not run');
@@ -170,13 +160,10 @@ export function createBrain(onStep: (s: Step) => void) {
     })());
 
   return {
-    get ready() {
-      return ready;
-    },
     async ask(line: string): Promise<Answer> {
       try {
         const [D, E] = await Promise.all([load(), embed([line])]);
-        onStep({ kind: 'read', tokens: E.pieces[0]!.length, pieces: E.pieces[0]! });
+        onStep({ kind: 'read', tokens: E.pieces[0]!.length });
         onStep({ kind: 'embed', dim: E.vectors[0]!.length, ms: E.ms[0]! });
         const whole = E.vectors[0]!;
 
@@ -217,8 +204,7 @@ export function createBrain(onStep: (s: Step) => void) {
           if (top.length >= 3) break;
           if (!top.some((t) => t.source === where(r.l))) top.push({ source: where(r.l), score: Math.max(0, r.score) });
         }
-        const shown = hit && hit.score >= FLOOR ? hit.score : under(hit?.score ?? 0);
-        onStep({ kind: 'search', lines: count, source, score: shown, floor: FLOOR, top });
+        onStep({ kind: 'search', lines: count, floor: FLOOR, top });
         if (!hit || hit.score < FLOOR) return { kind: 'unknown', score: under(hit?.score ?? 0), floor: FLOOR };
 
         // what is shown, word for word: the sentence the question was filed under; or the line, when it is not
@@ -268,13 +254,11 @@ export function createBrain(onStep: (s: Step) => void) {
           after,
           source,
           href: l.anchor ? `${l.chunk.href}#${l.anchor}` : l.chunk.href,
-          place: l.chunk.place,
           stretch: l.chunk.stretch,
           u: l.chunk.u,
-          score: hit.score,
         };
-      } catch (err) {
-        return { kind: 'error', message: String((err as Error)?.message || err) };
+      } catch {
+        return { kind: 'error' };
       }
     },
     destroy() {

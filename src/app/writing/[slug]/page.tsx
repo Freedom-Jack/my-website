@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
 import { site } from '@content/site';
 import { NotePage } from '@/features/writing/NotePage';
 import { loadNote, noteSlugs } from '@/features/writing/notes';
@@ -16,7 +15,6 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  if (!noteSlugs().includes(slug)) return {};
   const { meta } = await loadNote(slug);
   return pageMetadata({ title: `${site.searchName} · ${meta.title}`, description: meta.metaDescription }, meta.href, {
     type: 'article',
@@ -25,6 +23,5 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Page({ params }: Props) {
   const { slug } = await params;
-  if (!noteSlugs().includes(slug)) notFound();
   return <NotePage note={await loadNote(slug)} />;
 }

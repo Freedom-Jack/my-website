@@ -1,15 +1,15 @@
-// sets/path.ts — the 404 (stretch 5): the lone peak, and the path running into mist. Off the road entirely: a narrow
-// mountain path comes up out of the mist at the peak's foot and climbs the face under the summit in a few switchbacks
-// (a pale strip the brush left bare, the shade of its bank below it, broken dry edges, a few stone steps where it is
-// steep, a rock or a tuft beside it), past one bare winter tree leaning out from a turn, fainter as it goes; partway
-// up, a cloud rises off the right flank and the path goes into it and does not come out. The summit stands clear above
-// the cloud. Nobody on it. Ink only (the lone peak takes no pigment).
+// sets/path.ts — the 404 (stretch 5): the lone peak, and the path running into mist. Beyond the water, off the map: a
+// narrow mountain path comes up out of the mist at the peak's foot and climbs the face under the summit in a few
+// switchbacks (a pale strip the brush left bare, the shade of its bank below it, broken dry edges, a few stone steps
+// where it is steep, a rock or a tuft beside it), past one bare winter tree leaning out from a turn, fainter as it
+// goes; partway up, a cloud rises off the right flank and the path goes into it and does not come out. The summit
+// stands clear above the cloud. Nobody on it. Ink only: the path, the tree and the cloud take no pigment.
 //
 // Painted with the host's plane (2) before its own mist band (phase 0), so the plane's band softens the path's foot;
 // the cloud it ends in is this layer's own (soft gradient washes in the shader's mist colour). At wide sizes the
-// strip's bottom feather and the "Draft art" note keep its lower switchbacks (y < 0.33) out of sight: the wide picture is
-// the upper three legs, the tree and the cloud; phones and tablets see the whole climb. No life anchor (the engine's
-// own drifting mist already passes over the cloud).
+// strip's bottom feather keeps its lower switchbacks (y < 0.33) out of sight: the wide picture is the upper three
+// legs, the tree and the cloud; phones and tablets see the whole climb. No life anchor (the engine's own drifting mist
+// already passes over the cloud).
 // A figure set (figures.ts, THE SET API): meta + draw(env), in world px.
 
 import { REF_PX, VH_PX, planeTop, streams, vnoise, mix, smooth, stroke, wash, type Env, type FigureMeta, type Pt, type RGB, type Rng } from '../figures';
@@ -38,10 +38,10 @@ const LINE: [u: number, y: number][] = [
 export function* draw(env: Env) {
   const { ctx, P, ink } = env;
   const { C, rgba } = ink;
-  const own = streams(SEED, {});
+  const own = streams(SEED);
   const X = (u: number) => u * REF_PX, Y = (y: number) => (1 - y) * VH_PX;
-  // the phone sees this place from further away (scale 450): marks are drawn heavier there, so the path and the tree
-  // still read; their places never move (the path is registered to the flank, not to the screen)
+  // where the layer is drawn small (under 720 CSS px per stretch) its marks are heavier, so the path and the tree still
+  // read; their places never move (the path is registered to the flank, not to the screen)
   const big = Math.max(1, 0.5 * REF_PX / env.scale);
   // ...but the path's own width grows less: its switchbacks lie only ~18 world px apart, and a wider band would fill them
   const bw = Math.max(1, 0.38 * REF_PX / env.scale);

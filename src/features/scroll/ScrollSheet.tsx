@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from '
 import { site } from '@content/site';
 import { ScrollMap } from '@/components/layout/ScrollMap';
 import { quiet } from '@/features/chrome/still';
-import { STORY_MAP, normPath } from '@/features/landscape/places';
+import { SCROLL_MAP, normPath } from '@/features/landscape/places';
 import { landscape } from '@/features/landscape/store';
 import { currentMain, placeOf, targetsOf } from '@/features/landscape/targets';
 import type { LandscapeHandle } from '@/features/landscape/types';
@@ -19,7 +19,7 @@ import { LAST, clampX, detent, durationFor, dxToStretch, nearest, stepFrom } fro
  * page into the paper (the route exit's own way, <main> inert) and this sheet stands over it: the painting in the
  * hero's own band, bound to the one persistent canvas (rebind: the band is the strip window; no closing, no veils, no
  * keep-out, no stage), the place's name and what its page holds under it (the server-built index: existing strings,
- * real links), and the story map lifted off the footer as the stops.
+ * real links), and the tail's scroll map (components/layout/ScrollMap) as the stops.
  *
  * The hand moves the painting. Drag and wheel set the camera through the engine's hold(x) once per animation frame
  * (one governed scene per frame, nothing on a clock); a release within the detent of a place settles there (300 ms);
@@ -148,11 +148,11 @@ export function ScrollSheet({ stops }: { stops: ScrollStop[] }) {
 
   /** A walk by the engine's own pan (keys, the stops, the detent's settle): a walking pace, a cut when quiet. */
   const walkTo = useCallback(
-    (x: number, dur?: number, dist: Distance = 'level') => {
+    (x: number, dur?: number) => {
       const L = land();
       target.current = clampX(x);
       setAtRest(false);
-      setDistance(dist);
+      setDistance('level');
       clearTimeout(restTimer.current);
       clearInterval(follow.current);
       if (!L) return;
@@ -160,7 +160,7 @@ export function ScrollSheet({ stops }: { stops: ScrollStop[] }) {
       const ms = quiet() ? 0 : (dur ?? durationFor(target.current - from));
       const mine = target.current;
       follow.current = window.setInterval(() => syncPlace(cameraX(target.current)), 100);
-      void L.panTo(mine, { duration: ms, ease: 'cubic-out', cloud: false, distance: dist }).then(() => {
+      void L.panTo(mine, { duration: ms, ease: 'cubic-out', cloud: false, distance: 'level' }).then(() => {
         clearInterval(follow.current);
         follow.current = 0;
         if (target.current === mine) {
@@ -423,7 +423,7 @@ export function ScrollSheet({ stops }: { stops: ScrollStop[] }) {
 
   const onSheetKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key !== 'Tab' || !sheet.current) return;
-    // a manual focus trap: the header above is never inert, but the scroll's own controls are the sheet's
+    // a manual focus trap: Tab and Shift+Tab cycle through the sheet's own controls
     const items = [...sheet.current.querySelectorAll<HTMLElement>('a[href], button, [tabindex="0"]')].filter(
       (el) => !el.hidden && !el.closest('[hidden]'),
     );
@@ -495,22 +495,18 @@ export function ScrollSheet({ stops }: { stops: ScrollStop[] }) {
       <div className="scroll-body">
         <div className="frame scroll-inscription">
           <p className="scroll-place">
-            <a className="brush brush--display" href={stop.href}>
-              {stop.label}
-            </a>
+            <a href={stop.href}>{stop.label}</a>
           </p>
           <ul className="scroll-lines" role="list">
             {stop.lines.map((l) => (
               <li key={`${l.href}|${l.label}`}>
-                <a className="brush" href={l.href}>
-                  {l.label}
-                </a>
+                <a href={l.href}>{l.label}</a>
               </li>
             ))}
           </ul>
           <p className="scroll-distances" hidden={!atRest}>
             {DISTANCES.map((d) => (
-              <button key={d} type="button" className="brush" aria-pressed={distance === d} onClick={() => setDist(d)}>
+              <button key={d} type="button" aria-pressed={distance === d} onClick={() => setDist(d)}>
                 {site.scroll[d]}
               </button>
             ))}
@@ -519,12 +515,12 @@ export function ScrollSheet({ stops }: { stops: ScrollStop[] }) {
         <div className="frame scroll-stops">
           <ScrollMap
             label={site.tail.names}
-            places={STORY_MAP}
+            places={SCROLL_MAP}
             here={k}
-            onPick={(i) => walkTo(STORY_MAP[i]!.stretch)}
+            onPick={(i) => walkTo(SCROLL_MAP[i]!.stretch)}
           />
           <p className="scroll-close">
-            <button type="button" className="brush" onClick={leave}>
+            <button type="button" onClick={leave}>
               {site.scroll.close}
             </button>
           </p>
