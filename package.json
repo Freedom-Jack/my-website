@@ -22,13 +22,11 @@
     "check:compliance": "node tools/compliance.ts",
     "check:links": "node tools/linkcheck.ts",
     "build:pdf": "node tools/build-pdf.ts",
-    "build:stills": "node tools/build-stills.ts",
     "build:og": "node tools/build-og.ts",
     "build:ask": "node tools/build-ask.ts",
-    "build:heroes": "node tools/build-heroes.ts",
-    "build:scroll": "node tools/build-scroll.ts",
+    "build:band": "node tools/build-band.ts",
     "check:budgets": "node tools/check-budgets.ts",
-    "ci": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run build:stills -- --check && npm run build:heroes -- --check"
+    "ci": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run build:band -- --check"
   },
   "dependencies": {
     "@mdx-js/loader": "3.1.1",

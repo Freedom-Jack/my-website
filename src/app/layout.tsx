@@ -1,27 +1,23 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import { site } from '@content/site';
+import { Band } from '@/components/layout/Band';
 import { BootScript } from '@/components/layout/BootScript';
 import { InkDefs } from '@/components/layout/InkDefs';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import { Tail } from '@/components/layout/Tail';
-import { Effects } from '@/features/effects/Effects';
+import { AskHost } from '@/features/ask/AskHost';
 import { elementClasses } from '@/features/landscape/elements';
-import { Landscape } from '@/features/landscape/Landscape';
 import { Navigation } from '@/features/navigation/Navigation';
 import { Switches } from '@/features/qa/Switches';
-import { ScrollMount } from '@/features/scroll/ScrollMount';
 import { JsonLd, personLd } from '@/lib/jsonld';
-import { fontFaces } from './fonts';
+import { fontClasses } from './fonts';
 // The design system, in order (each feature's CSS Module adds its own layout after these).
 import '@/styles/tokens.css';
 import '@/styles/base.css';
-import '@/styles/layout.css';
-import '@/styles/plates.css'; // the stage as the page's own layers on wide screens (features/landscape/plates)
-import '@/styles/effects.css'; // the ink in the UI: links, the text action, focus, the row rule, the diagrams' draw-in and flow dot
-import '@/styles/components.css';
-import '@/styles/body.css'; // everything below the first screen (the grid, the ink, the ending, the tail)
-import '@/styles/scroll.css'; // the scroll, held (elements.ts scroll; features/scroll), loaded last
+import '@/styles/band.css'; // the painting: one band across the top of every page, in front of the words
+import '@/styles/shell.css'; // the header, the page's frame, the way on, the tail
+import '@/styles/prose.css'; // the three voices and the pieces set in them
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -41,14 +37,14 @@ export const viewport: Viewport = {
 };
 
 /**
- * Every page: the paper, the one persistent landscape canvas behind everything, the header with its river line, the
- * page's <main>, the tail (the scroll in miniature with the five places' names, the colophon, the build stamp,
- * "Still the landscape", the email, the seal, the route announcer), and the Person JSON-LD.
- * The canvas and the chrome persist across pages; only <main> changes (features/navigation).
+ * Every page: the paper; the band (the one painting, fixed across the top, persistent across pages); the header on
+ * its sky; the page's <main>, whose words rise under the band; the tail (the scroll in miniature with the five
+ * places' names, the colophon, the build stamp, "Still the landscape", the email, the seal, the route announcer);
+ * and the Person JSON-LD. Only <main> changes between pages (features/navigation).
  */
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en-CA" className={elementClasses()} style={fontFaces} suppressHydrationWarning>
+    <html lang="en-CA" className={`${elementClasses()} ${fontClasses}`} suppressHydrationWarning>
       <head>
         <BootScript />
       </head>
@@ -56,15 +52,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <a className="skip-link" href="#main">
           Skip to content
         </a>
-        <Landscape />
+        <Band />
         <InkDefs />
         <SiteHeader />
         {children}
         <Tail />
+        <AskHost />
         <JsonLd data={personLd()} />
         <Navigation />
-        <ScrollMount />
-        <Effects />
         {/* the preview's switch panel: QA builds only (never in the production site) */}
         {process.env.NEXT_PUBLIC_INK_QA === '1' ? <Switches /> : null}
       </body>

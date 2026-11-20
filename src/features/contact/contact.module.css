@@ -1,139 +1,233 @@
-/* Contact's layout: the address written large across the water, the seal pressed when it is copied, the other ways
-   across the frame, the time zone. Type and ink come from the design system; no form, no boxes. */
+/* Contact (/contact/): the ferry crossing. The invitation and the address under the mist, the other ways across a
+   ruled row, his third-person line beside his portrait, then open paper. Three edges hold the page: column one
+   (the invitation, GitHub, the rail), column seven (the address, LinkedIn, the bio) and column ten (the résumé). */
 
-/* ---------- the address: the focal point, in the name face ---------- */
-.contact__mail {
+/* where he is, under the title: on a phone its two lines break evenly */
+.where {
+  text-wrap: balance;
+}
+
+/* ---------- the first row: the invitation, and the address ---------- */
+.first {
+  row-gap: var(--s-7);
+  align-items: start;
+}
+.intro {
+  grid-column: 1 / span 5;
+  max-width: 31ch;
+}
+.mail {
+  grid-column: 7 / -1;
+  container-type: inline-size; /* the address is sized by the columns it fills */
+}
+/* The page's one large line: the address in the brush, exactly as wide as its columns (its sixteen characters set
+   7 em wide; 7.2 leaves the fallback face room), on one line down to a 320 px phone. */
+.address {
+  margin-top: var(--s-1);
+  margin-left: -0.035em;
+  font-size: clamp(2rem, 5.4vw, 5rem); /* (where there are no container units: by the window) */
+  font-size: clamp(2rem, 100cqi / 7.2, 6.5rem);
+  line-height: 1.16;
+  overflow-wrap: anywhere; /* (one line by its own sizing; it breaks rather than leave the window under a reader's own text spacing) */
+}
+.address a {
+  display: inline-block;
+  color: var(--ink);
+  text-decoration: none;
+}
+.address a:hover {
+  color: var(--indigo);
+}
+
+/* under the address, on its ruled line: "Copy email" and the seal it presses; the one line about answering */
+.under {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  column-gap: var(--space-m);
-  row-gap: 0.25rem;
-  margin-block-start: 0.25rem;
+  justify-content: space-between;
+  column-gap: var(--s-6);
+  margin-top: var(--s-3);
+  padding-top: var(--s-2);
+  border-top: 1px solid var(--line);
 }
-/* 40 @ 390 (one line at 320) → 124 @ 1440: the page's one large thing */
-.contact__email {
-  font-family: var(--font-name);
-  font-weight: 900;
-  font-size: clamp(2.5rem, 0.55rem + 8vw, 7.75rem);
-  line-height: 0.96;
-  letter-spacing: 0.006em;
-  font-variant-numeric: lining-nums;
+.response {
+  padding-block: var(--s-2);
 }
-.contact__email :global(a) {
-  display: inline-flex;
-  align-items: center;
-  min-block-size: 44px;
-  color: var(--ink-1);
-  white-space: nowrap; /* the address never breaks */
-  text-decoration: none;
-  /* an ink line under the address, drawn on hover and focus */
-  background: linear-gradient(currentColor, currentColor) left 100% / 0% 2px no-repeat;
-  padding-block-end: 0.06em;
-  transition: background-size 520ms var(--ease-wash);
-}
-.contact__email :global(a):is(:hover, :focus-visible) {
-  background-size: 100% 2px;
-}
-.contact__email :global(a):focus-visible {
-  outline-offset: 2px;
-}
-/* Under 240 CSS px (a 390 px phone at 200 % zoom) the address cannot hold one line: it breaks after the "@" (the
-   <wbr>), mid-word only as a last resort. */
-@media (max-width: 14.99rem) {
-  .contact__email :global(a) {
-    white-space: normal;
-    overflow-wrap: anywhere;
-  }
-}
-
-/* "Copy email", the seal it presses, and its one word, beside the address (below it when the line is too short) */
-.contact__copy {
+.copy {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  min-height: 44px;
+  gap: var(--s-2);
+  min-height: 2.75rem;
 }
-:global(html:not(.js)) .contact__copy {
-  display: none;
-} /* copying needs JS; the address is a mailto link */
-.contact__seal {
-  display: inline-block;
-  inline-size: 2.5rem;
+:global(html:not(.js)) .copy {
+  display: none; /* copying needs JavaScript; the address is a mailto link either way */
 }
-.contact__seal :global(.seal) {
-  inline-size: 100%;
-}
-.contact__done {
-  min-width: 4em;
-}
-.contact__done:empty {
-  display: none;
-}
-/* the response line: one quiet sentence under the address */
-.contact__response {
-  margin-block-start: var(--space-s);
-  font-size: var(--fs-lead);
-  color: var(--ink-2);
-}
-
-/* ---------- the other ways: a mono label over its link, three across from 640 ---------- */
-.contact__list {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 1.25rem var(--grid-gap);
-  margin-block-start: var(--space-l);
-}
-.contact__way {
-  display: grid;
-  row-gap: 0.125rem;
-  padding-block-start: 0.75rem;
-  border-top: 1px solid var(--rule);
-}
-.contact__way :global(dd) {
-  margin: 0;
-  min-width: 0;
-  font-size: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem); /* 20 → 26 */
-  font-weight: var(--w-ui);
-  letter-spacing: -0.008em;
-}
-.contact__way :global(a) {
+/* a real control that reads as underlined text; its two labels keep one width, so the seal never shifts */
+.copyButton {
   display: inline-flex;
   align-items: center;
-  min-block-size: 44px;
-  color: var(--ink-1);
+  min-height: 2.75rem;
+  min-width: 5.4em;
+  font-size: var(--t-small);
+  font-weight: 500;
+  text-align: left;
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--line-2);
+  text-underline-offset: 0.24em;
+  transition:
+    color var(--dur-hover) var(--ease-out),
+    text-decoration-color var(--dur-hover) var(--ease-out);
 }
-.contact__where {
-  margin-block-start: var(--space-m);
+.copyButton:hover {
+  color: var(--indigo);
+  text-decoration-color: currentColor;
 }
-@media (min-width: 40rem) {
-  .contact__list {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+/* the seal: pressed a little askew, as a hand presses it; lifted (faded) when its moment has passed */
+.copySeal {
+  flex: none;
+  width: 1.875rem;
+  opacity: 0;
+  transform: rotate(-4deg);
+}
+.copySeal :global(.seal) {
+  display: block;
+  width: 100%;
+}
+.copySeal[data-pressed] {
+  opacity: 1;
+}
+@keyframes press {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -0.4rem, 0) rotate(-10deg) scale(1.32);
+  }
+  55% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(-4deg) scale(0.93);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(-4deg) scale(1);
   }
 }
-@media (min-width: 75rem) {
-  .contact__list {
-    max-width: calc((100% - 11 * var(--grid-gap)) / 12 * 9 + 8 * var(--grid-gap)); /* nine of the twelve columns */
+@media (prefers-reduced-motion: no-preference) {
+  :global(html:not(.is-still)) .copySeal {
+    transition: opacity 480ms var(--ease-out);
   }
-}
-@media (max-width: 14.99rem) {
-  .contact__way :global(a) {
-    overflow-wrap: anywhere;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .contact__email :global(a) {
+  :global(html:not(.is-still)) .copySeal[data-pressed] {
     transition: none;
+    animation: press 340ms var(--ease-ink) both;
   }
 }
 
-/* ---------- forced colours ---------- */
+/* ---------- the other ways: three across a ruled row, on the page's three edges ---------- */
+.waysRow {
+  padding-top: 0;
+}
+.ways {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 6fr 3fr 3fr;
+  column-gap: var(--gap);
+  border-top: 1px solid var(--line);
+}
+.way {
+  padding-top: var(--s-4);
+}
+.way dd {
+  margin-top: var(--s-1);
+}
+.way a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  text-decoration: none;
+  background: linear-gradient(var(--line-2), var(--line-2)) 0 calc(50% + 0.82em) / 100% 1px no-repeat;
+}
+.way a:hover {
+  background-image: linear-gradient(currentColor, currentColor);
+}
+
+/* ---------- for an introduction: the portrait, and his third-person line ---------- */
+.bio {
+  align-items: center;
+  padding-bottom: clamp(5rem, 11vw, 10rem); /* the paper is left open before the tail */
+}
+.bio :global(.sec__rail) {
+  align-self: start;
+}
+.photo {
+  grid-column: 5 / span 2;
+  width: 100%;
+}
+.bioLine {
+  grid-column: 7 / -1;
+  max-width: 44ch;
+}
+
+/* ---------- tablets ---------- */
+@media (max-width: 61.99rem) {
+  .intro,
+  .mail {
+    grid-column: 1 / -1;
+  }
+  .address {
+    font-size: clamp(2rem, 11.4vw, 6rem);
+    font-size: clamp(2rem, 100cqi / 7.2, 6.5rem);
+  }
+  .ways {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .photo {
+    grid-column: 1 / span 3;
+  }
+  .bioLine {
+    grid-column: 5 / -1;
+  }
+}
+
+/* ---------- phones: the ways become a ruled list, the portrait stands before its line ---------- */
+@media (max-width: 39.99rem) {
+  .first {
+    row-gap: var(--s-6);
+  }
+  .ways {
+    grid-template-columns: minmax(0, 1fr);
+    border-top: 0;
+  }
+  .way {
+    display: grid;
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    align-items: center;
+    padding-block: var(--s-2);
+    border-top: 1px solid var(--line);
+  }
+  .way:last-child {
+    border-bottom: 1px solid var(--line);
+  }
+  .way dd {
+    margin-top: 0;
+  }
+  .photo {
+    grid-column: 1 / -1;
+    width: 46%;
+  }
+  .bioLine {
+    grid-column: 1 / -1;
+    margin-top: var(--s-5);
+  }
+}
+
 @media (forced-colors: active) {
-  .contact__way {
-    border-color: CanvasText;
+  .way a {
+    background: none;
+    text-decoration: underline;
   }
 }
 @media print {
-  .contact__copy {
+  .copy {
     display: none;
   }
 }

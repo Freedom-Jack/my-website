@@ -1,0 +1,19 @@
+/* A glossary note (components/ui/MarginNote): small and quiet, set off by a hairline at its left. Two or more in a
+   row (div.margin-notes, made by the MDX transform) stand on one unbroken hairline. */
+.note {
+  padding-left: var(--s-4);
+  border-left: 1px solid var(--line);
+  font-size: var(--t-note);
+  line-height: 1.55;
+  color: var(--ink-3);
+}
+.note + .note {
+  padding-top: var(--s-3);
+}
+.term {
+  margin-right: 0.35em;
+  font: 400 0.75rem / 1 var(--font-record);
+  font-style: normal;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}

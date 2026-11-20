@@ -26,25 +26,12 @@ const token = (name: string, fallback: number) => cssTime(name, fallback, root()
 const EASE_OUT = 'cubic-bezier(.3, .6, .2, 1)';
 
 /**
- * What actually fades: `els` themselves, except a block that holds an element blended into the paper (Home's photo,
- * `mix-blend-mode: multiply`). Opacity below 1 or a transform on any of its ancestors makes that ancestor a group
- * of its own, the multiply stops at the group, and the photo's white wall shows as a hard white box. So such a block
- * fades by its children instead, down to the blended element, which fades by its own opacity (multiply at any
- * opacity still turns its white into the paper). Every other block fades as one.
+ * What actually fades: the page's own blocks, one by one, never <main> itself. Opacity below 1 would make <main> a
+ * layer of its own, and the title inscribed in the painting's sky (styles/band.css .inscription, in front of the
+ * band) would sink behind the band with the rest of it for the length of the fade.
  */
-function layers(main: HTMLElement, els: Element[]): Element[] {
-  const blended = [...main.querySelectorAll('*')].filter((el) => getComputedStyle(el).mixBlendMode !== 'normal');
-  if (!blended.length) return els;
-  const split = (list: Iterable<Element>): Element[] =>
-    [...list].flatMap((el) => {
-      if (blended.some((b) => b !== el && el.contains(b))) return split(el.children);
-      return getComputedStyle(el).display === 'none' ? [] : [el]; // (<main>'s JSON-LD and print-only lines)
-    });
-  return split(els);
-}
-
-/** The page's blocks as they fade: <main> itself, unless it holds a blended element. */
-const blocks = (main: HTMLElement) => layers(main, [main]);
+const blocks = (main: HTMLElement) =>
+  [...main.children].filter((el) => !/^(script|style)$/i.test(el.tagName) && getComputedStyle(el).display !== 'none');
 const opacityOf = (els: Element[]) => Math.max(0, ...els.map((el) => Number(getComputedStyle(el).opacity) || 0));
 
 /** Resolves after `ms` on the clock, not on the animation's last frame (a busy GPU delivers `finished` late). */

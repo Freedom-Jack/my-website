@@ -1,16 +1,14 @@
 /**
- * The switch table: one flag per painted or interface element. Set a flag to false and that element is gone: its
- * engine, effects and figure-set paths are skipped and its <html> class (`el-<name>`, server-rendered, so no flash) is
- * not set, so its CSS does not apply. glimpses and halo compile their shader code out (GLSL #defines:
- * elementDefines); the others' shader code stays compiled in, idle, with its uniforms at rest. Read on the main thread
- * (engine, effects, layout), in the figure worker (the sets) and by the boot script. Every element keeps the engine's
- * rules: nothing behind text, text never moves, ambient motion <= 15 fps and asleep after 45 s (on THE PLATES, wide
- * screens: <= 30 fps and asleep after five minutes: engine/index.ts PLATE_MS, PLATE_IDLE), pointer answers <= 30 fps
- * and only while the pointer moves, a still frame and still UI under reduced motion and "Still the landscape", phones
- * calm.
+ * The switch table: one flag per painted element. Set a flag to false and that element is gone: its engine and
+ * figure-set paths are skipped and its <html> class (`el-<name>`, server-rendered) is not set. glimpses and halo
+ * compile their shader code out (GLSL #defines: elementDefines); the others' shader code stays compiled in, idle,
+ * with its uniforms at rest. Read on the main thread (the engine), in the figure worker (the sets) and by the boot
+ * script. Every element keeps the engine's rules: ambient motion at most 30 fps on the plates and asleep after a
+ * minute without input (engine/index.ts PLATE_MS, PLATE_IDLE), a still frame under reduced motion and "Still the
+ * landscape".
  *
  * QA builds only (NEXT_PUBLIC_INK_QA=1): a flag is switched off in one browser by localStorage 'ink-elements' =
- * '{"glimpses":false}' (the preview's panel, features/qa/Switches, writes it) or by window.__elOff = ['boughs', ...]
+ * '{"halo":false}' (the preview's panel, features/qa/Switches, writes it) or by window.__elOff = ['boughs', ...]
  * (injected before the page's scripts). The figure worker gets the same overrides with each layer it draws
  * (figure-source.ts).
  */
@@ -25,45 +23,17 @@ export const ELEMENTS = {
   /** "Still the landscape" lets the painting settle over 0.8 s instead of cutting (reduced motion stays a cut). */
   stillSettle: true,
   /** The framing willow boughs of two first screens: Work's willow tip out of the top edge over the town, and
-   *  Writing's willow let down from the top-right corner over the lake. Off: neither is drawn. The tail's strip of
-   *  the whole scroll (tools/build-scroll.ts) is cut with them off: a bough that frames one page's opening would hang
-   *  in the middle of the sky of a strip. */
-  boughs: true,
+   *  Writing's willow let down from the top-right corner over the lake. Off: the painting is seen as a band of the
+   *  scroll that stands back and unrolls (styles/band.css), and a bough that frames one first screen would hang in
+   *  the middle of the sky of that band, as it would in the tail's strip of the whole scroll. */
+  boughs: false,
   /** The light's bloom: a tight halo and a wide soft glow round each place's light, breathing slowly, Home's the
    *  strongest (shaders.ts, compiled in with EL_HALO). Off: the light keeps only its core, which the scene paints. */
   halo: true,
-  // ---- the ask line
-  /** Ask the painting: one line on Home. A small language model in the visitor's own browser (hosted with the site,
-   *  loaded only when they ask) reads their question about the work; it is answered from the site's own words, and
-   *  the painting travels to the place that holds the answer (features/ask). */
-  ask: true,
-  // ---- the scroll
-  /** Windows into the painting, below 1200 px only: at the page's major section breaks a short, full-bleed
-   *  window of the page's own place opens in the gap (<Glimpse>, [data-landscape="glimpse"]), each one further along
-   *  the place (east, level). Present-only: painted once at idle, slid in the present as the window passes; the
-   *  window's own still until then and wherever the painting cannot come (the probe: live only after it). Reduced
-   *  motion and Still: each window at its rest pose. At 1200 px and up the windows are not laid out at all. Off: no
-   *  windows. */
-  glimpses: true,
-  // ---- the chrome
-  /** The river line (components/layout/RiverLine): a hairline under the header's row with a tick per stop and a jade
-   *  dot that stands under the current page's tick and travels to the next stop as the page scrolls, on the
-   *  compositor (a CSS scroll timeline). The dot under the current stop is the default CSS; reduced motion and Still
-   *  keep it there. Off: no river line. */
-  riverMark: true,
-  // ---- the interface
-  /** A small ink dot runs along Work's diagrams' arrows once per hover, in flow order (no glow). */
-  flow: true,
-  /** Focus and selection: a 2 px ink ring with a jade second line; selection in glow-tinted paper; a jade scrollbar
-   *  (effects.css). */
-  focus: true,
-  /** Rows: a 1.5 px jade rule drawn in from the left on the row's bottom border on hover and focus (nothing behind
-   *  the text). */
-  rowrule: true,
-  /** The scroll, held (src/features/scroll): after the words, one quiet link in the footer opens the handscroll in the
-   *  hero's own band and the hand moves the painting (drag, wheel, the arrow keys, a tap on a place); every walk returns
-   *  to the one composition; at rest a place may be seen high or deep. Off: no opener, no sheet, no CSS, no hold. */
-  scroll: true,
+  // ---- how the painting meets the page
+  /** Windows into the painting between a page's sections (the engine's glimpse windows). Off: the painting is the
+   *  band alone (styles/band.css); the page has no windows, and the engine compiles their shader code out. */
+  glimpses: false,
 };
 
 export type ElementName = keyof typeof ELEMENTS;

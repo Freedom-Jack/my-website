@@ -1,98 +1,57 @@
 import { work } from '@content/pages/work';
-import { monthYear } from '@/lib/dates';
+import styles from '@/features/work/work.module.css';
 import { InlineLink } from '@/lib/inline';
 import { openSource } from './fetch';
 import type { Entry } from './rules';
 
 /**
  * Work's "In the open": rendered on the server from Jack's public repositories (features/github).
- * Featured and Recent as rows; the older ones as a quiet table, "Early work, 2019 – 2020", folded behind its
- * heading (course work on request, never the section's face). An empty group renders
- * nothing: no heading, no placeholder. No stars, heatmaps, widgets or language dots.
+ * One ruled list, the featured ones first, then the recent: the year in the record's voice, the repository's name
+ * (a link), its line. The older ones stand behind a plain fold, "Early work, 2019 – 2020" (course work on request,
+ * never the section's face). An empty group renders nothing. No stars, heatmaps, widgets or language dots.
  */
-function Rows({ title, items }: { title: string; items: Entry[] }) {
+function Rows({ items }: { items: Entry[] }) {
   const { open } = work;
   return (
-    <>
-      <h3 className="sec__sub">{title}</h3>
-      <ul className="rows" role="list">
-        {items.map((e) => (
-          <li className="ink-row" key={e.name}>
-            <h4 className="row__title">
-              <InlineLink href={e.url}>{e.name}</InlineLink>
-            </h4>
-            <p className="row__line">{e.line}</p>
-            <p className="row__meta small">
-              {open.updated} {monthYear(e.pushed.slice(0, 7))}
-              {e.demo ? (
-                <>
-                  {' · '}
-                  <InlineLink href={e.demo}>{open.demo}</InlineLink>
-                </>
-              ) : null}
-            </p>
-          </li>
-        ))}
-      </ul>
-    </>
+    <ul role="list">
+      {items.map((e) => (
+        <li className={styles.repo} key={e.name}>
+          <p className="rec">{e.year}</p>
+          <h3 className={`h-item ${styles.repoName}`}>
+            <InlineLink href={e.url}>{e.name}</InlineLink>
+          </h3>
+          <p className="small soft">
+            {e.line}
+            {e.demo ? (
+              <>
+                {' '}
+                <InlineLink href={e.demo}>{open.demo}</InlineLink>
+              </>
+            ) : null}
+          </p>
+        </li>
+      ))}
+    </ul>
   );
 }
 
 export async function InTheOpen() {
   const { open } = work;
   const g = await openSource();
+  const shown = [...g.featured, ...g.recent];
   const range = g.earlyRange;
-  const early = range ? (
-    <>
-      {range.last > 2020 ? open.earlier : open.early},{' '}
-      {range.first === range.last ? range.first : `${range.first} – ${range.last}`}
-    </>
-  ) : null;
-  const table = (
-    <div className="table-wrap">
-      <table className="table table--quiet" role="table">
-        <caption className="table__caption visually-hidden">{open.earlyCaption}</caption>
-        <thead role="rowgroup">
-          <tr role="row">
-            <th scope="col" role="columnheader">
-              {open.columns.year}
-            </th>
-            <th scope="col" role="columnheader">
-              {open.columns.repository}
-            </th>
-            <th scope="col" role="columnheader">
-              {open.columns.what}
-            </th>
-          </tr>
-        </thead>
-        <tbody role="rowgroup">
-          {g.early.map((e) => (
-            <tr role="row" key={e.name}>
-              <td role="cell" data-label={open.columns.year}>
-                {e.year}
-              </td>
-              <th scope="row" role="rowheader">
-                <InlineLink href={e.url}>{e.name}</InlineLink>
-              </th>
-              <td role="cell" data-label={open.columns.what}>
-                {e.line}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
   return (
     <>
-      {g.featured.length ? <Rows title={open.featured} items={g.featured} /> : null}
-      {g.recent.length ? <Rows title={open.recent} items={g.recent} /> : null}
+      {shown.length ? <Rows items={shown} /> : null}
       {g.early.length && range ? (
-        <details className="fold">
+        <details className={styles.early}>
           <summary>
-            <h3 className="sec__sub">{early}</h3>
+            <span>
+              {range.last > 2020 ? open.earlier : open.early},{' '}
+              {range.first === range.last ? range.first : `${range.first} – ${range.last}`}
+            </span>
           </summary>
-          {table}
+          <Rows items={g.early} />
         </details>
       ) : null}
     </>

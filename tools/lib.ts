@@ -1,9 +1,7 @@
-// What the tools share: their command-line options, hashing, a folder's files, Chrome's WebP made plain, and a wait on
-// a condition in the page.
+// What the tools share: their command-line options, hashing, a folder's files and Chrome's WebP made plain.
 import { createHash } from 'node:crypto';
 import { readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
-import type { Page } from '@playwright/test';
 
 const args = process.argv.slice(2);
 /** Whether a bare option was passed (`--check`). */
@@ -54,15 +52,4 @@ export function plainWebp(data: Buffer): Buffer {
   const riff = Buffer.alloc(4);
   riff.writeUInt32LE(4 + vp8.length);
   return Buffer.concat([Buffer.from('RIFF', 'latin1'), riff, Buffer.from('WEBP', 'latin1'), vp8]);
-}
-
-/** Until `fn(arg)` (a function's source, called in the page) answers truthy, asked every 150 ms; `what` names it in
- *  the error after `timeout` ms. */
-export async function waitFor(page: Page, fn: string, arg: unknown, what: string, timeout: number) {
-  const until = Date.now() + timeout;
-  while (Date.now() < until) {
-    if (await page.evaluate(`${fn}(${JSON.stringify(arg)})`)) return;
-    await page.waitForTimeout(150);
-  }
-  throw new Error(`${what}: not ready in ${timeout} ms`);
 }

@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" class="diagram__art diagram__art--wide" viewBox="0 0 1200 492" role="img" aria-labelledby="dg-agent-t dg-agent-d" data-draw="">
+<svg xmlns="http://www.w3.org/2000/svg" class="diagram__art diagram__art--wide" viewBox="0 0 1200 492" role="img" aria-labelledby="dg-agent-t dg-agent-d">
 <title id="dg-agent-t">How the agent works</title>
 <desc id="dg-agent-d">Legacy scripts in a proprietary language go into a LangGraph workflow, which coordinates vLLM-served models with retrieval. Guardrails keep personal information out and constrain every output to what the grammar allows. What comes out: documentation, business rules and code prepared for migration.</desc>
 <g class="diagram__bands">

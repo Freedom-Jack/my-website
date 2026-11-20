@@ -1,18 +1,17 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
+import { bandGeometry } from '@/features/landscape/band-geometry';
 import { PLACES, type PageId } from '@/features/landscape/places';
 import { site } from '@content/site';
 import { JsonLd } from '@/lib/jsonld';
-import { Closing } from './Closing';
 import { NextPlace } from './NextPlace';
 
 /**
  * A page's <main>: it declares the page's place in the painting (data-stretch, data-distance, data-presence,
- * data-horizon, data-ground, data-inside: a deep page opens inside its place, and may name its own stretch-local u
- * there; the landscape and the navigation read them), ends on the way on (NextPlace: one line
- * pointing downstream, every page but Contact and the 404) and then on the page's own closing scene (every page but
- * the 404, which lies off the map). The print-only name line opens it (every page but the Résumé, which has its own
- * letterhead): printed pages hide the header. The page's own structured data (`ld`) goes
- * first, so the closing stays <main>'s last child and the tail its next sibling (layout.css).
+ * data-horizon, data-ground, data-inside; the landscape and the navigation read them), holds the engine's anchor
+ * (the strip's box at the page's top, out of the flow: styles/shell.css .band-anchor), sets the page's band
+ * geometry for its styles (how close it stands, how far it travels: features/landscape/band-geometry) and ends on
+ * the way on (NextPlace: every page but Contact and the 404). The print-only name line opens it (every page but the Résumé,
+ * which has its own letterhead). The page's own structured data (`ld`) goes first.
  */
 export function PageMain({
   page,
@@ -20,7 +19,6 @@ export function PageMain({
   className,
   ld = [],
   printName = true,
-  glimpseEnd = false,
 }: {
   page: PageId;
   children: ReactNode;
@@ -29,15 +27,15 @@ export function PageMain({
   /** the page's JSON-LD blocks (Person is in the root layout) */
   ld?: unknown[];
   printName?: boolean;
-  /** elements.ts glimpses: a short page ends on the place settled, near and large (Closing `end`) */
-  glimpseEnd?: boolean;
 }) {
   const place = PLACES[page];
+  const g = bandGeometry(page);
   return (
     <main
       id="main"
       tabIndex={-1}
-      className={className ? `frame ${className}` : 'frame'}
+      className={className}
+      style={{ '--band-inside': g.inside, '--travel': g.travel } as CSSProperties}
       data-page={place.page}
       data-stretch={place.stretch}
       data-distance={place.distance}
@@ -49,6 +47,7 @@ export function PageMain({
       {ld.map((data, i) => (
         <JsonLd key={i} data={data} />
       ))}
+      <div className="band-anchor" data-landscape="strip" aria-hidden="true" />
       {printName ? (
         <p className="print-name">
           {site.name} · {new URL(site.url).host}
@@ -56,7 +55,6 @@ export function PageMain({
       ) : null}
       {children}
       <NextPlace page={page} />
-      {place.closing ? <Closing end={glimpseEnd} /> : null}
     </main>
   );
 }

@@ -1,39 +1,19 @@
-'use client';
-
-import { type ReactNode, useState } from 'react';
-
-const slug = (s: string) =>
-  s
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
+import type { ReactNode } from 'react';
+import styles from './MarginNote.module.css';
 
 /**
- * A glossary note beside the text it explains: a definition of a public tool, never a claim about
- * Jack. It comes right after the paragraph it annotates (in MDX: <Note term="vLLM">An open-source engine …</Note>).
- *   ≥ 75rem  in the margin rail of its .has-rail block, beside its paragraph, simply shown
- *   < 75rem  a "Note: {term}" toggle opens it inline (components.css; without JS it shows inline, always open)
- * Two or more in a row share one rail cell (div.margin-notes, made by the MDX transform).
+ * A glossary note beside the text it explains: a definition of a public tool, never a claim about Jack. In MDX it
+ * comes right after the paragraph it annotates (<Note term="vLLM">An open-source engine …</Note>); two or more in a
+ * row share one cell (div.margin-notes, made by the MDX transform). Always shown, small and quiet: the term in the
+ * record's voice, its meaning in the text's. The page places it ([data-margin-note]): in the margin beside its
+ * paragraph on wide screens, under it on narrow ones. Plain markup, no script.
  */
 export function MarginNote({ term, children }: { term: string; children: ReactNode }) {
-  const id = `note-${slug(term)}`;
-  const [open, setOpen] = useState(false);
   return (
-    <aside className="margin-note small" id={id} aria-label={`Note: ${term}`}>
-      <button
-        type="button"
-        className="margin-note__toggle"
-        aria-expanded={open}
-        aria-controls={`${id}-body`}
-        onClick={() => setOpen((o) => !o)}
-      >
-        Note: {term}
-      </button>
-      <div className="margin-note__body" id={`${id}-body`}>
-        <p>
-          <b className="margin-note__term">{term}:</b> {children}
-        </p>
-      </div>
+    <aside className={styles.note} data-margin-note="">
+      <p>
+        <dfn className={styles.term}>{term}</dfn> {children}
+      </p>
     </aside>
   );
 }

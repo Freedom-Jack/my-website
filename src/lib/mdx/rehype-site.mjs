@@ -4,7 +4,7 @@
 // 1. Typography in every text node (as lib/typography.ts does for content strings): a number keeps its unit on
 //    its line ("200 ms", "2 TB"), "≥" keeps its number, and a short hyphenated compound ("top-five", "T-SQL",
 //    "CNN-LSTM") never breaks at its hyphen (a nowrap span).
-// 2. A GFM table becomes the shared scannable table (components.css .table): wrapped in div.table-wrap, explicit
+// 2. A GFM table becomes the shared scannable table (features/writing/article.module.css .table): wrapped in div.table-wrap, explicit
 //    ARIA roles (they keep the table's semantics when the narrow layout restacks it), the first cell of each body
 //    row a row header, every other cell labelled with its column (data-label, shown when a row restacks on
 //    phones), its contents in one span, and the table labelled by the heading just above it.

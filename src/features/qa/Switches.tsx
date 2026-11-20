@@ -25,16 +25,6 @@ const GROUPS: { title: string; items: [ElementName, string][] }[] = [
       ['stillSettle', '“Still the landscape” settles instead of cutting'],
     ],
   },
-  {
-    title: 'The page',
-    items: [
-      ['ask', 'Ask the painting: the line on Home (a real model in the browser)'],
-      ['glimpses', 'Windows into the painting between sections (phones)'],
-      ['flow', 'The dot that runs along Work’s diagrams'],
-      ['focus', 'Ink focus rings and selection'],
-      ['rowrule', 'The jade rule under a hovered row'],
-    ],
-  },
 ];
 
 function read(): Overrides {

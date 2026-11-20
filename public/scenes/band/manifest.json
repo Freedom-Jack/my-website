@@ -1,0 +1,663 @@
+{
+ "about": "The band's stills (the stage as the band shows it, one picture per page kind, in parts), made by tools/build-band.ts from the engine; regenerate after any engine, place or band change. Lengths are in window widths of the cut (1440 px).",
+ "stills": {
+  "home": {
+   "water": 0.44,
+   "h": 0.7535,
+   "travel": 0.5226,
+   "inside": 1,
+   "wide": {
+    "a": {
+     "files": [
+      "home-wide-a@1x.webp",
+      "home-wide-a@2x.webp"
+     ],
+     "x": 0,
+     "w": 1,
+     "size": [
+      1440,
+      1085
+     ],
+     "bytes": [
+      40112,
+      71862
+     ]
+    },
+    "b": {
+     "files": [
+      "home-wide-b@1x.webp",
+      "home-wide-b@2x.webp"
+     ],
+     "x": 0.9986,
+     "w": 1.1315,
+     "size": [
+      1629,
+      1085
+     ],
+     "bytes": [
+      37984,
+      63308
+     ]
+    }
+   },
+   "phone": {
+    "a": {
+     "files": [
+      "home-phone-a.webp"
+     ],
+     "x": 0.53,
+     "w": 0.5128,
+     "size": [
+      780,
+      1146
+     ],
+     "bytes": [
+      25366
+     ]
+    },
+    "b": {
+     "files": [
+      "home-phone-b.webp"
+     ],
+     "x": 1.0414,
+     "w": 0.9569,
+     "size": [
+      1455,
+      1146
+     ],
+     "bytes": [
+      37288
+     ]
+    }
+   },
+   "tabletX": 0.08
+  },
+  "work": {
+   "water": 0.44,
+   "h": 0.7535,
+   "travel": 0.741,
+   "inside": 1,
+   "wide": {
+    "a": {
+     "files": [
+      "work-wide-a@1x.webp",
+      "work-wide-a@2x.webp"
+     ],
+     "x": 0,
+     "w": 1,
+     "size": [
+      1440,
+      1085
+     ],
+     "bytes": [
+      55018,
+      94286
+     ]
+    },
+    "b": {
+     "files": [
+      "work-wide-b@1x.webp",
+      "work-wide-b@2x.webp"
+     ],
+     "x": 0.9986,
+     "w": 1.3502,
+     "size": [
+      1944,
+      1085
+     ],
+     "bytes": [
+      28566,
+      52958
+     ]
+    }
+   },
+   "phone": {
+    "a": {
+     "files": [
+      "work-phone-a.webp"
+     ],
+     "x": 0.459,
+     "w": 0.5128,
+     "size": [
+      780,
+      1146
+     ],
+     "bytes": [
+      34370
+     ]
+    },
+    "b": {
+     "files": [
+      "work-phone-b.webp"
+     ],
+     "x": 0.9704,
+     "w": 1.1753,
+     "size": [
+      1788,
+      1146
+     ],
+     "bytes": [
+      27078
+     ]
+    }
+   },
+   "tabletX": 0.1
+  },
+  "case": {
+   "water": 0.44,
+   "h": 0.7535,
+   "travel": 0.6828,
+   "inside": 1.15,
+   "wide": {
+    "a": {
+     "files": [
+      "case-wide-a@1x.webp",
+      "case-wide-a@2x.webp"
+     ],
+     "x": 0,
+     "w": 1,
+     "size": [
+      1440,
+      1085
+     ],
+     "bytes": [
+      59656,
+      100860
+     ]
+    },
+    "b": {
+     "files": [
+      "case-wide-b@1x.webp",
+      "case-wide-b@2x.webp"
+     ],
+     "x": 0.9986,
+     "w": 1.2922,
+     "size": [
+      1861,
+      1085
+     ],
+     "bytes": [
+      26060,
+      48806
+     ]
+    }
+   },
+   "phone": {
+    "a": {
+     "files": [
+      "case-phone-a.webp"
+     ],
+     "x": 0.5215,
+     "w": 0.5128,
+     "size": [
+      780,
+      1146
+     ],
+     "bytes": [
+      31940
+     ]
+    },
+    "b": {
+     "files": [
+      "case-phone-b.webp"
+     ],
+     "x": 1.033,
+     "w": 1.1171,
+     "size": [
+      1699,
+      1146
+     ],
+     "bytes": [
+      23508
+     ]
+    }
+   },
+   "tabletX": 0.1
+  },
+  "writing": {
+   "water": 0.44,
+   "h": 0.7535,
+   "travel": 0.51,
+   "inside": 1,
+   "wide": {
+    "a": {
+     "files": [
+      "writing-wide-a@1x.webp",
+      "writing-wide-a@2x.webp"
+     ],
+     "x": 0,
+     "w": 1,
+     "size": [
+      1440,
+      1085
+     ],
+     "bytes": [
+      33676,
+      64504
+     ]
+    },
+    "b": {
+     "files": [
+      "writing-wide-b@1x.webp",
+      "writing-wide-b@2x.webp"
+     ],
+     "x": 0.9986,
+     "w": 1.1193,
+     "size": [
+      1612,
+      1085
+     ],
+     "bytes": [
+      27488,
+      48952
+     ]
+    }
+   },
+   "phone": {
+    "a": {
+     "files": [
+      "writing-phone-a.webp"
+     ],
+     "x": 0.494,
+     "w": 0.5128,
+     "size": [
+      780,
+      1146
+     ],
+     "bytes": [
+      21586
+     ]
+    },
+    "b": {
+     "files": [
+      "writing-phone-b.webp"
+     ],
+     "x": 1.0054,
+     "w": 0.9443,
+     "size": [
+      1436,
+      1146
+     ],
+     "bytes": [
+      27638
+     ]
+    }
+   },
+   "tabletX": 0.1
+  },
+  "article": {
+   "water": 0.44,
+   "h": 0.7535,
+   "travel": 0.4965,
+   "inside": 1.15,
+   "wide": {
+    "a": {
+     "files": [
+      "article-wide-a@1x.webp",
+      "article-wide-a@2x.webp"
+     ],
+     "x": 0,
+     "w": 1,
+     "size": [
+      1440,
+      1085
+     ],
+     "bytes": [
+      34248,
+      65042
+     ]
+    },
+    "b": {
+     "files": [
+      "article-wide-b@1x.webp",
+      "article-wide-b@2x.webp"
+     ],
+     "x": 0.9986,
+     "w": 1.1051,
+     "size": [
+      1591,
+      1085
+     ],
+     "bytes": [
+      28912,
+      51492
+     ]
+    }
+   },
+   "phone": {
+    "a": {
+     "files": [
+      "article-phone-a.webp"
+     ],
+     "x": 0.51,
+     "w": 0.5128,
+     "size": [
+      780,
+      1146
+     ],
+     "bytes": [
+      22238
+     ]
+    },
+    "b": {
+     "files": [
+      "article-phone-b.webp"
+     ],
+     "x": 1.0215,
+     "w": 0.9308,
+     "size": [
+      1416,
+      1146
+     ],
+     "bytes": [
+      27706
+     ]
+    }
+   },
+   "tabletX": 0.1
+  },
+  "resume": {
+   "water": 0.44,
+   "h": 0.7535,
+   "travel": 0.618,
+   "inside": 1,
+   "wide": {
+    "a": {
+     "files": [
+      "resume-wide-a@1x.webp",
+      "resume-wide-a@2x.webp"
+     ],
+     "x": 0,
+     "w": 1,
+     "size": [
+      1440,
+      1085
+     ],
+     "bytes": [
+      40026,
+      72010
+     ]
+    },
+    "b": {
+     "files": [
+      "resume-wide-b@1x.webp",
+      "resume-wide-b@2x.webp"
+     ],
+     "x": 0.9986,
+     "w": 1.2271,
+     "size": [
+      1767,
+      1085
+     ],
+     "bytes": [
+      26310,
+      48592
+     ]
+    }
+   },
+   "phone": {
+    "a": {
+     "files": [
+      "resume-phone-a.webp"
+     ],
+     "x": 0.394,
+     "w": 0.5128,
+     "size": [
+      780,
+      1146
+     ],
+     "bytes": [
+      25460
+     ]
+    },
+    "b": {
+     "files": [
+      "resume-phone-b.webp"
+     ],
+     "x": 0.9054,
+     "w": 1.0523,
+     "size": [
+      1601,
+      1146
+     ],
+     "bytes": [
+      25342
+     ]
+    }
+   },
+   "tabletX": 0.1
+  },
+  "contact": {
+   "water": 0.44,
+   "h": 0.7535,
+   "travel": 0.35,
+   "inside": 1,
+   "wide": {
+    "a": {
+     "files": [
+      "contact-wide-a@1x.webp",
+      "contact-wide-a@2x.webp"
+     ],
+     "x": 0,
+     "w": 1,
+     "size": [
+      1440,
+      1085
+     ],
+     "bytes": [
+      34992,
+      65946
+     ]
+    },
+    "b": {
+     "files": [
+      "contact-wide-b@1x.webp",
+      "contact-wide-b@2x.webp"
+     ],
+     "x": 0.9986,
+     "w": 0.9586,
+     "size": [
+      1380,
+      1085
+     ],
+     "bytes": [
+      19772,
+      36628
+     ]
+    }
+   },
+   "phone": {
+    "a": {
+     "files": [
+      "contact-phone-a.webp"
+     ],
+     "x": 0.474,
+     "w": 0.5128,
+     "size": [
+      780,
+      1146
+     ],
+     "bytes": [
+      22406
+     ]
+    },
+    "b": {
+     "files": [
+      "contact-phone-b.webp"
+     ],
+     "x": 0.9854,
+     "w": 0.7843,
+     "size": [
+      1193,
+      1146
+     ],
+     "bytes": [
+      17406
+     ]
+    }
+   },
+   "tabletX": 0.1
+  },
+  "not-found": {
+   "water": 0.44,
+   "h": 0.7535,
+   "travel": 0.35,
+   "inside": 1,
+   "wide": {
+    "a": {
+     "files": [
+      "not-found-wide-a@1x.webp",
+      "not-found-wide-a@2x.webp"
+     ],
+     "x": 0,
+     "w": 1,
+     "size": [
+      1440,
+      1085
+     ],
+     "bytes": [
+      35534,
+      66812
+     ]
+    },
+    "b": {
+     "files": [
+      "not-found-wide-b@1x.webp",
+      "not-found-wide-b@2x.webp"
+     ],
+     "x": 0.9986,
+     "w": 0.9352,
+     "size": [
+      1347,
+      1085
+     ],
+     "bytes": [
+      17916,
+      34474
+     ]
+    }
+   },
+   "phone": {
+    "a": {
+     "files": [
+      "not-found-phone-a.webp"
+     ],
+     "x": 0.454,
+     "w": 0.5128,
+     "size": [
+      780,
+      1146
+     ],
+     "bytes": [
+      21494
+     ]
+    },
+    "b": {
+     "files": [
+      "not-found-phone-b.webp"
+     ],
+     "x": 0.9654,
+     "w": 0.7843,
+     "size": [
+      1193,
+      1146
+     ],
+     "bytes": [
+      16842
+     ]
+    }
+   },
+   "tabletX": 0.1
+  }
+ },
+ "transit": {
+  "file": "transit.webp",
+  "size": [
+   4248,
+   543
+  ],
+  "bytes": 39830,
+  "from": 0,
+  "to": 5.9,
+  "water": 0.44,
+  "h": 0.7534722222222222,
+  "places": {
+   "home": 0.1339,
+   "work": 0.2653,
+   "writing": 0.4746,
+   "resume": 0.6186,
+   "contact": 0.7932
+  },
+  "pages": {
+   "home": {
+    "left": 0,
+    "inside": 1,
+    "travel": 0.5226
+   },
+   "work": {
+    "left": 0.871,
+    "inside": 1,
+    "travel": 0.741
+   },
+   "case": {
+    "left": 1.1165,
+    "inside": 1.15,
+    "travel": 0.5937
+   },
+   "writing": {
+    "left": 2.106,
+    "inside": 1,
+    "travel": 0.51
+   },
+   "article": {
+    "left": 2.2365,
+    "inside": 1.15,
+    "travel": 0.4317
+   },
+   "resume": {
+    "left": 2.956,
+    "inside": 1,
+    "travel": 0.618
+   },
+   "contact": {
+    "left": 3.986,
+    "inside": 1,
+    "travel": 0.35
+   },
+   "not-found": {
+    "left": 5.106,
+    "inside": 1,
+    "travel": 0.35
+   }
+  }
+ },
+ "inputs": "4e8c7b61b1fdaac91314b11b65ce393b17e7868bcf005f78683b5ac79db0ca1a",
+ "inputList": {
+  "src/features/landscape/band-geometry.ts": "a144c54498cf46e9c7f1a02dbfe2d16f35928674b5ff9ee46521f22966d66059",
+  "src/features/landscape/band.ts": "15717284f40d8848b9e1157f02646a7b00a1a46618748c41bbc243e93445942c",
+  "src/features/landscape/elements.ts": "b52085cb661b10a70d463a7065be2cd2e1249ee3a726c862b706a7980adfe432",
+  "src/features/landscape/engine/canvas2d.ts": "c49e1f0782a6f330fa978be846ea4f9b26d04188202a08b43618f2b48f32a63d",
+  "src/features/landscape/engine/compose.ts": "f4fa753c18c24e60ddfb2bd0a6d2e0f0c63b122d2a25dafa3aea62cc41073423",
+  "src/features/landscape/engine/figure-meta.ts": "36c23533b1ac42ee84e7deae37ccd864e531e6bc0c78ec98002077d0ea4e65a3",
+  "src/features/landscape/engine/figure-source.ts": "02e430977e3831bf96b37f835a7d26415257d0154ed1905e32207a02d6e0a487",
+  "src/features/landscape/engine/figures.ts": "7eec7c5615db179bda3496715625193a36d5acefa5a9f2ce4295592f92dcb319",
+  "src/features/landscape/engine/figures.worker.ts": "e78143c062279d6ef0875c7373e1671e2bfd765e942990b05dc02af28cdeaff5",
+  "src/features/landscape/engine/gl.ts": "5c9c0b61b28f5c5bb864fdc7f022b5248413175593895cccc60976fac1d99608",
+  "src/features/landscape/engine/index.ts": "59d66d07b5a3d90a467d278d83ff50f7ab8155ce8685465adc745c2a19d986ff",
+  "src/features/landscape/engine/lights.ts": "406ddc6b587c1287a1a3b54792038decdc73a31eba8e3a16536089519bc6d16a",
+  "src/features/landscape/engine/palette.ts": "e3de805a55715b40cbd408e52f258ce3b8416eddc3a9d50b86ce4a38d0ba6ed3",
+  "src/features/landscape/engine/renderer.ts": "743f9df82b3befaeac113a1bc2236913aa79e01be79f9c30f0e205dc052b92c8",
+  "src/features/landscape/engine/ridges.ts": "97c582fc997de28784105fab5c34cd7e86a77bd5de9a7875cf204c9c907bcefd",
+  "src/features/landscape/engine/sets/ferry.ts": "745e288fdf86b3d1d2266b664c405ce9604e92c87eeb057b56b002b3b3bf440c",
+  "src/features/landscape/engine/sets/home.ts": "2de787bff45c66c15a06cf4a937afa7767b375593ace85aa5e4292d1b024760e",
+  "src/features/landscape/engine/sets/index.ts": "2ea32ee6d591b3c785466434844dc74ff7bb0d0cfda10786d882588bb1f101b1",
+  "src/features/landscape/engine/sets/market.ts": "fc13a657ce2f66fa7c43c784611f2d58d4181962ace65ffa47c179edde79c117",
+  "src/features/landscape/engine/sets/path.ts": "7117ad91d60f0e1cbcdd5ca80d936fb5fe6e8a9b0a531082dc8ff8447682d61f",
+  "src/features/landscape/engine/sets/pavilion.ts": "9f14966330fc49df86ab3450e0d7155fd558740608f01619b56ad71a9ef3c0fc",
+  "src/features/landscape/engine/sets/terraces.ts": "5a66635f89f2fa781723a245de920f35d5c7cdebb07eb774499093a1190a98c3",
+  "src/features/landscape/engine/sets/young.ts": "6a45fbbd8b39af89c97a45b044e7fddb1c481b5936aa52ec366d14105698a32e",
+  "src/features/landscape/engine/shaders.ts": "1fdfe8cc86cb645d6a6f6152531d2fc34cad8826eec7c2b52d3913ec88fece3c",
+  "src/features/landscape/places.ts": "6e89afd71a50ea339c1b5bfb1eca758807facc3af14cada26bb7d35602217c20",
+  "tools/build-band.ts": "89de22d719d7a16089d297f9985dde9e64b2a2f2b963fbfd362db1b2dec80580"
+ }
+}

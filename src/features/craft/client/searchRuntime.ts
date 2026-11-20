@@ -1,11 +1,11 @@
-import { placeForPath } from '@/features/landscape/places';
 import type { Chunk } from '../corpus';
 import { buildIndex, closeHits, matchedWords, search } from '../text';
 
 /**
- * The search's runtime, loaded on the box's first focus with /craft/corpus.json (0 bytes before): the index is built
- * here, in the browser, and every query is scored here; nothing typed leaves the page. A result is a passage, verbatim,
- * with its source, its place and the position the painting pans to.
+ * The search by word as the eval's run on a case page uses it (client/EvalFold), loaded with /craft/corpus.json when
+ * that piece is reached: the index is built here, in the browser, and every query is scored here. A result is a
+ * passage, verbatim, with its source and its place. ("Ask the painting" has its own, features/ask/search.ts, over
+ * the same text.ts: the search box that stood on Work is gone.)
  */
 export interface Result {
   id: string;
@@ -20,8 +20,6 @@ export interface Result {
   rel: number;
   stretch: number;
   u: number | null;
-  /** the place's pre-cut still at phone size (the hero's) */
-  still: string;
 }
 
 interface Meta {
@@ -31,8 +29,6 @@ interface Meta {
   passages: number;
   files: number;
 }
-
-const STILL: Record<string, string> = { article: 'note', 'not-found': 'home' };
 
 export function makeSearch(data: { meta: Meta; chunks: Chunk[] }) {
   const index = buildIndex(data.chunks);
@@ -45,7 +41,6 @@ export function makeSearch(data: { meta: Meta; chunks: Chunk[] }) {
       return hits.flatMap((h) => {
         const c = byId.get(h.id);
         if (!c) return [];
-        const page = placeForPath(c.href).page;
         return [
           {
             id: c.id,
@@ -57,7 +52,6 @@ export function makeSearch(data: { meta: Meta; chunks: Chunk[] }) {
             rel: h.score / top,
             stretch: c.stretch,
             u: c.u,
-            still: `/scenes/hero/${STILL[page] ?? page}-phone@1x.webp`,
           },
         ];
       });
@@ -65,5 +59,3 @@ export function makeSearch(data: { meta: Meta; chunks: Chunk[] }) {
   };
 }
 export type SearchRuntime = ReturnType<typeof makeSearch>;
-
-export { makePanner } from './pan';

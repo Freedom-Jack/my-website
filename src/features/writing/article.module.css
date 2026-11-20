@@ -1,256 +1,393 @@
-/* A note's layout: the lake's hero (the sub strip every inner page has) with the title (the long title size) and the
-   byline, then the note in the shared reading column (680); its comparison is the shared .table. One reading aid
-   this page owns: the reading-progress stroke along the top edge (scroll-linked state, never a text animation;
-   NoteEffects sets it where scroll timelines are missing). Nothing in the text moves. */
+/* A note (/writing/<slug>/): his name in the left rail, the note in a reading measure on columns 3 to 9, what is
+   set side by side across the full width (a short list in ruled columns; the comparison, its aspects hanging in the
+   rail), a quotation's source in the right margin, and the way back. Nothing in the text moves. */
 
-@property --read {
-  /* how much of the note has been brought into view, 0% → 100% */
-  syntax: '<percentage>';
-  inherits: false;
-  initial-value: 0%;
-}
-
-/* ---------- reading progress: a dry-brush stroke along the top edge ----------
-   Draws from the left as the note comes into view and reaches the stroke's dry tail when its last line
-   reaches the bottom of the screen. */
-.read-progress {
-  --stroke: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 12' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='i' x2='1'%3E%3Cstop offset='0'/%3E%3Cstop offset='.55' stop-opacity='.94'/%3E%3Cstop offset='1' stop-opacity='.6'/%3E%3C/linearGradient%3E%3Cmask id='m' maskUnits='userSpaceOnUse' x='0' y='0' width='1200' height='12'%3E%3Crect width='1200' height='12' fill='%23fff'/%3E%3Cg stroke='%23000' stroke-linecap='round' fill='none'%3E%3Cpath d='M560 4.4H1200' stroke-width='.6' stroke-dasharray='180 26 240 40 120 70'/%3E%3Cpath d='M650 7.4H1200' stroke-width='.9' stroke-dasharray='120 60 40 30 220 45'/%3E%3Cpath d='M830 5.9H1200' stroke-width='1.1' stroke-dasharray='70 25 30 50 140 20'/%3E%3C/g%3E%3C/mask%3E%3C/defs%3E%3Cpath mask='url(%23m)' fill='url(%23i)' d='M1 6.3C1.1 3.1 4 2.3 10 2.4 120 2.9 400 3.3 700 3.7 900 4 1080 4.2 1190 4.3Q1199 4.4 1199 5.8 1199 7.2 1190 7.3C1080 7.45 900 7.8 700 8.2 400 8.7 120 9.1 10 9.6 4 9.7 1 8.9 1 6.3Z'/%3E%3C/svg%3E");
-  --drawn: linear-gradient(90deg, #000 calc(var(--read) - 1.2%), transparent calc(var(--read) + 0.4%));
-  /* the loaded cap: the brush is still pressing at the front, so the last stretch before the front is
-     solid ink inside the stroke's own silhouette, however dry the stroke behind it has run */
-  --solid: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 12' preserveAspectRatio='none'%3E%3Cpath d='M1 6.3C1.1 3.1 4 2.3 10 2.4 120 2.9 400 3.3 700 3.7 900 4 1080 4.2 1190 4.3Q1199 4.4 1199 5.8 1199 7.2 1190 7.3C1080 7.45 900 7.8 700 8.2 400 8.7 120 9.1 10 9.6 4 9.7 1 8.9 1 6.3Z'/%3E%3C/svg%3E");
-  --cap: linear-gradient(
-    90deg,
-    transparent calc(var(--read) - 3%),
-    #000 calc(var(--read) - 1.5%) var(--read),
-    transparent calc(var(--read) + 0.4%)
-  );
-  position: fixed;
-  inset: 0 0 auto;
-  z-index: calc(var(--z-header) + 2);
-  height: clamp(5px, 0.26rem + 0.12vw, 7px);
-  pointer-events: none;
-  background: linear-gradient(90deg, var(--ink-1), var(--ink-1) 50%, var(--ink-2));
-  -webkit-mask-image: var(--solid), var(--cap), var(--drawn), var(--stroke);
-  -webkit-mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-composite: source-in, source-over, source-in, source-over;
-  mask-image: var(--solid), var(--cap), var(--drawn), var(--stroke);
-  mask-size: 100% 100%;
-  mask-repeat: no-repeat;
-  mask-composite: intersect, add, intersect, add;
-  opacity: 0.86;
-}
-@supports (animation-timeline: view()) {
-  .page {
-    timeline-scope: --prose;
-  }
-  .prose {
-    view-timeline: --prose block;
-  }
-  .read-progress {
-    animation: readProgress linear both;
-    animation-timeline: --prose;
-    /* 0 % at scroll 0 (the prose starts a hero below the fold, so "cover 0 %" is already past at the top) */
-    animation-range-start: cover calc(100svh - var(--header-h) - var(--strip-sub) - var(--space-m));
-    animation-range-end: contain 100%;
-  }
-}
-@keyframes readProgress {
-  from {
-    --read: 0%;
-  }
-  to {
-    --read: 100%;
-  }
-}
-
-/* ---------- the head: the title and the byline, in the hero (layout.css .strip) ---------- */
-.page :global(.strip__text) > :global(.page-title) {
-  max-width: var(--measure-read);
-}
-.page :global(.strip__text) > .note__byline {
-  margin-block-start: 0.625rem;
-  max-width: var(--measure-read);
-}
-/* phones: the typo-fix date takes a line of its own, so no line ends on a dangling dot or splits the phrase */
-@media (max-width: 39.99rem) {
-  .note__fixed {
-    display: block;
-  }
-  .note__sep {
-    display: none;
-  }
-}
-/* the name in the byline: a 44 px tall target that changes nothing in the line's layout */
-.note__byline :global(a),
-.prose :global(p) > :global(a) {
-  display: inline-block;
-  padding-block: 12px;
-  margin-block: -12px;
-}
-
-/* ---------- the note: the reading column (its first paragraph a little larger, its section headings in the name
-   face, its quotation set large, its comparison the frame's width) ---------- */
 .prose {
-  max-width: var(--measure-read);
-  margin-block-start: var(--space-body);
+  row-gap: 0;
+  align-items: start;
+  font-size: clamp(1.0625rem, 0.95rem + 0.3vw, 1.125rem);
+  line-height: 1.66;
   hanging-punctuation: first;
 }
-.prose > * + * {
-  margin-block-start: var(--space-para);
+/* every block stands in the reading column; the wide ones below say otherwise */
+.prose > * {
+  grid-column: 3 / 10;
+  max-width: 38rem;
 }
-.prose > :global(p):first-child {
-  font-size: var(--fs-lead);
-  line-height: var(--lh-lead);
+.prose > * + * {
+  margin-top: 1.2em;
+}
+.prose :global(strong) {
+  font-weight: 600;
 }
 
-/* h2: a section of the note, in the name face */
-.prose :global(h2) {
-  font-family: var(--font-name);
-  font-size: clamp(1.875rem, 1.6rem + 1.15vw, 2.5rem); /* 30 → 40 */
-  font-weight: 900;
-  line-height: 1;
-  letter-spacing: 0.005em;
-  color: var(--ink-1);
-  text-wrap: balance;
+/* his name, in the rail beside the opening */
+.prose > .by {
+  grid-column: 1 / 3;
+  grid-row: 1;
+  padding-top: 0.6rem;
 }
+.by a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  margin-block: -0.95rem;
+}
+
+/* the opening */
+.prose > .by + :global(p) {
+  margin-top: 0;
+  font-size: var(--t-lead);
+  line-height: var(--lh-lead);
+  letter-spacing: -0.014em;
+  max-width: 32ch;
+}
+/* (what the note stresses in its opening is said by the size it already has, not by weight) */
+.prose > .by + :global(p) :global(strong) {
+  font-weight: 500;
+}
+.prose > .by + :global(p) + * {
+  margin-top: var(--s-6);
+}
+
+/* a section of the note: the brush, under a page title's size */
 .prose > :global(h2) {
-  margin-block-start: var(--space-body);
-}
-.prose > :global(h2):first-child {
-  margin-block-start: 0;
+  grid-column: 3 / -1;
+  max-width: 21ch;
+  margin-top: clamp(3.5rem, 7vw, 6rem);
 }
 .prose > :global(h2) + * {
-  margin-block-start: 1rem;
-}
-/* h3: a heading in bold at body size, with room above it */
-.prose :global(h3) {
-  font-family: var(--font-body);
-  font-size: inherit;
-  font-weight: var(--w-strong);
-  line-height: var(--lh-item);
-  color: var(--ink-1);
+  margin-top: var(--s-5);
 }
 .prose > :global(h3) {
-  margin-block-start: var(--space-m);
-}
-.prose > :global(h2) + :global(h3) {
-  margin-block-start: var(--space-head);
+  margin-top: var(--s-7);
 }
 .prose > :global(h3) + * {
-  margin-block-start: 0.5em;
+  margin-top: var(--s-2);
 }
 
-/* the quotation: no box and no italics; set large, in ink, with a hanging wash-coloured mark (the face's own curly
-   opening quote) in the margin on wide screens */
-.prose :global(blockquote) {
-  position: relative;
-  padding-inline-start: 1.1em;
-  margin-block: var(--space-m);
-  font-size: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem); /* 20 → 26 */
-  line-height: 1.34;
-  font-weight: var(--w-ui);
-  letter-spacing: -0.008em;
-  color: var(--ink-1);
-}
-.prose :global(blockquote)::before {
-  content: '“' / '';
-  position: absolute;
-  left: -0.04em;
-  top: 0.02em;
-  font-family: var(--font-body);
-  font-weight: var(--w-strong);
-  font-size: 2em;
-  line-height: 1;
-  color: var(--wash);
-}
-@media (min-width: 75rem) {
-  .prose :global(blockquote) {
-    padding-inline-start: 0;
-    /* (it runs past the reading column into the open paper: nine columns of the frame) */
-    inline-size: min(54rem, 100vw - 2 * var(--gutter-x));
-    max-inline-size: none;
-  }
-  .prose :global(blockquote)::before {
-    left: auto;
-    right: calc(100% + 0.14em);
-  } /* hangs fully in the margin */
-}
-
-/* lists: short dry-brush dashes for markers, the labels bold at text size */
-.prose > :global(.note__list-title) + .note__list {
-  margin-block-start: 0.5em;
-}
-.note__list {
+/* ---------- the quotation: the text's voice, a hairline at its left; its source in the right margin ---------- */
+.prose > .quote {
+  grid-column: 3 / -1;
+  max-width: none;
+  margin-block: var(--s-6) calc(var(--s-6) - 1.2em);
   display: grid;
-  gap: 0.5em;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  column-gap: var(--gap);
+  align-items: start;
 }
-.note__list :global(li) {
+.quote blockquote {
+  grid-column: 1 / span 7;
+  max-width: 38rem;
+  padding-left: var(--s-5);
+  border-left: 1px solid var(--line-2);
+  font-size: var(--t-say);
+  line-height: 1.5;
+  letter-spacing: -0.006em;
+  color: var(--ink);
+}
+.quote blockquote > * + * {
+  margin-top: 0.8em;
+}
+.quote figcaption {
+  grid-column: 8 / -1;
+  padding-top: 0.3rem;
+}
+.quote figcaption a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  margin-block: -0.85rem;
+}
+
+/* ---------- lists: a quiet mark; two or three things, side by side and ruled apart ---------- */
+.list {
+  display: grid;
+  row-gap: 0.55em;
+  padding-left: 1.5em;
+}
+.list > li {
   position: relative;
-  padding-inline-start: 1.55em;
 }
-.note__list :global(li)::before {
+.list > li::before {
   content: '';
   position: absolute;
-  left: 0;
-  top: 0.74em;
-  width: 0.95em;
-  height: 0.32em;
-  background: url('../../styles/svg/brush-2.svg') 0 0 / 100% 100% no-repeat;
-  opacity: 0.72;
+  left: -1.5em;
+  top: 0.8em;
+  width: 0.7em;
+  height: 1px;
+  background: var(--ink-4);
+}
+/* the line that names a list ("**Core components**:") stands close over it */
+.prose > :global(.note__list-title) {
+  margin-top: var(--s-7);
+  font-size: var(--t-h3);
+  line-height: 1.28;
+  letter-spacing: -0.008em;
+  color: var(--ink);
+}
+.prose > :global(.note__list-title) :global(strong) {
+  font-weight: 500;
+}
+.prose > :global(.note__list-title) + .list {
+  margin-top: var(--s-4);
+}
+.prose > .cols {
+  grid-column: 3 / -1;
+  max-width: none;
+  margin-block: var(--s-6) calc(var(--s-5) - 1.2em);
+  padding-left: 0;
+  row-gap: 0;
+}
+.prose > .trio {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.prose > .pair {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.cols > li {
+  padding-inline: var(--gap);
+  border-left: 1px solid var(--line);
+}
+.cols > li:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+.cols > li:last-child {
+  padding-right: 0;
+}
+.cols > li::before {
+  content: none;
+}
+.headed {
+  font-size: var(--t-small);
+  line-height: 1.58;
+  color: var(--ink-2);
+}
+.prose .headed > strong:first-child {
+  display: block;
+  margin-bottom: var(--s-2);
+  font-size: var(--t-h3);
+  font-weight: 500;
+  line-height: 1.28;
+  letter-spacing: -0.008em;
+  color: var(--ink);
+}
+/* two things: on the page's own columns (3-7 and 8-12), the hairline a gap's width before the second */
+@media (min-width: 62rem) {
+  .prose > .pair {
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    column-gap: var(--gap);
+  }
+  .pair > li {
+    grid-column: span 5;
+    padding-inline: 0 var(--gap);
+  }
+  .pair > li + li {
+    margin-left: calc(var(--gap) * -1);
+    padding-inline: var(--gap) 0;
+  }
 }
 
-/* the comparison: the shared table, given the frame's whole width on wide screens (the note's one spread) */
+/* ---------- the comparison: ruled columns, a hairline under the head row ---------- */
 .prose > :global(.table-wrap) {
-  margin-block: var(--space-m) 0;
+  grid-column: 3 / -1;
+  max-width: none;
+  margin-top: var(--s-7);
 }
 .prose :global(.table) {
-  font-size: var(--fs-body);
-  line-height: 1.5;
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  text-align: left;
 }
-.prose :global(.table) :global(thead) :global(th) {
-  font-family: var(--font-name);
-  font-weight: 900;
-  font-size: 1.5rem;
+.prose :global(.table) :is(th, td) {
+  padding: var(--s-4) var(--gap) var(--s-4) 0;
+  vertical-align: baseline;
+  font-weight: 400;
+}
+.prose :global(.table) thead th {
+  padding-block: 0 var(--s-4);
+  vertical-align: bottom;
+  border-bottom: 1px solid var(--line-2);
+  font: italic 300 clamp(1.75rem, 2.5vw, 2.25rem) / 1.06 var(--font-brush);
+  letter-spacing: -0.02em;
+  font-synthesis: none;
+}
+.prose :global(.table) thead th:first-child {
+  width: 19%;
+  font: 400 var(--t-label) / 1.5 var(--font-record);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.prose :global(.table) tbody th {
+  font: 400 0.875rem/1.4 var(--font-record);
   letter-spacing: 0.01em;
-  text-transform: none;
-  color: var(--ink-1);
+  color: var(--ink-2);
 }
-@media (min-width: 75rem) {
-  .prose > :global(.table-wrap) {
-    inline-size: min(var(--frame), 100vw - 2 * var(--gutter-x));
+.prose :global(.table) :is(th, td):nth-child(n + 3) {
+  padding-left: var(--gap);
+  border-left: 1px solid var(--line);
+}
+.prose :global(.table) :is(th, td):last-child {
+  padding-right: 0;
+}
+
+/* a comparison of two things (three columns), wide: the aspects hang in the rail (1-2), the two sides stand on
+   3-7 and 8-12, as the lists above them do */
+@supports (grid-template-columns: subgrid) and selector(:has(a)) {
+  @media (min-width: 62rem) {
+    .prose > :global(.table-wrap):has(thead th:nth-child(3):last-child) {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: subgrid;
+    }
+    .prose :global(.table):has(thead th:nth-child(3):last-child) {
+      position: relative;
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: subgrid;
+      align-items: baseline;
+    }
+    .prose :global(.table):has(thead th:nth-child(3):last-child) :is(thead, tbody, tr) {
+      display: contents;
+    }
+    .prose :global(.table):has(thead th:nth-child(3):last-child) :is(th, td) {
+      padding-right: 0;
+      padding-left: 0;
+      border-left: 0;
+    }
+    .prose :global(.table):has(thead th:nth-child(3):last-child) :is(th, td):nth-child(1) {
+      grid-column: 1 / 3;
+      width: auto;
+    }
+    .prose :global(.table):has(thead th:nth-child(3):last-child) :is(th, td):nth-child(2) {
+      grid-column: 3 / 8;
+      padding-right: var(--gap);
+    }
+    .prose :global(.table):has(thead th:nth-child(3):last-child) :is(th, td):nth-child(3) {
+      grid-column: 8 / -1;
+    }
+    /* the head row's rule is one line: its cells are as tall as each other, their words at the foot (the small
+       label lifted onto the brush's baseline), and it runs unbroken across the columns' gaps */
+    .prose :global(.table):has(thead th:nth-child(3):last-child) thead th {
+      align-self: stretch;
+      display: flex;
+      align-items: flex-end;
+    }
+    .prose :global(.table):has(thead th:nth-child(3):last-child) thead th:first-child {
+      padding-bottom: calc(var(--s-4) + clamp(1.75rem, 2.5vw, 2.25rem) * 0.3 - 0.28rem);
+    }
+    .prose :global(.table):has(thead th:nth-child(3):last-child) thead th:not(:last-child) {
+      margin-right: calc(var(--gap) * -1);
+    }
+    /* the one hairline between the two sides: a gap's width before the second (column 8's edge, less a gap) */
+    .prose :global(.table):has(thead th:nth-child(3):last-child)::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: calc(100% * 7 / 12 - var(--gap) * 5 / 12);
+      width: 1px;
+      background: var(--line);
+    }
   }
 }
-.prose :global(.table) :global(thead) :global(th):first-child {
-  width: 22%;
+
+/* ---------- the end: the way back ---------- */
+.end {
+  padding-bottom: clamp(3rem, 6.4vw, 6rem);
+}
+.end > p {
+  grid-column: 3 / -1;
 }
 
-/* ---------- the end: the way home (one quiet link) ---------- */
-.note__end {
-  margin-block-start: var(--space-section);
-  max-width: var(--measure-read);
+/* ---------- tablets and phones ---------- */
+@media (max-width: 61.99rem) {
+  .prose > *,
+  .prose > :global(h2),
+  .prose > .cols,
+  .prose > .quote,
+  .prose > :global(.table-wrap),
+  .end > p {
+    grid-column: 1 / -1;
+  }
+  .prose > .by {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    padding-top: 0;
+    margin-bottom: var(--s-4);
+  }
+  .prose > .quote {
+    display: block;
+    max-width: 38rem;
+  }
+  .quote figcaption {
+    margin-top: var(--s-3);
+    padding: 0 0 0 var(--s-5);
+  }
 }
-
-/* ---------- forced colours: system colours, no ink layers ---------- */
-@media (forced-colors: active) {
-  .read-progress,
-  .note__list :global(li)::before,
-  .prose :global(blockquote)::before {
-    display: none;
+@media (max-width: 47.99rem) {
+  .prose > .cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cols > li,
+  .cols > li:first-child,
+  .cols > li:last-child {
+    padding: var(--s-4) 0;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+  .cols > li:last-child {
+    padding-bottom: 0;
+  }
+  /* the comparison restacks: each aspect a ruled row, its two sides as labelled pairs (the head row is kept for a
+     screen reader) */
+  .prose :global(.table),
+  .prose :global(.table) :is(tbody, tr, th, td) {
+    display: block;
+  }
+  .prose :global(.table) thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .prose :global(.table) tbody tr {
+    padding-block: var(--s-4) var(--s-5);
+    border-top: 1px solid var(--line);
+  }
+  .prose :global(.table) tbody :is(th, td),
+  .prose :global(.table) tbody :is(th, td):nth-child(n + 3) {
+    padding: 0;
+    border: 0;
+  }
+  .prose :global(.table) tbody th {
+    color: var(--ink);
+  }
+  .prose :global(.table) tbody td {
+    margin-top: var(--s-3);
+  }
+  .prose :global(.table) tbody td::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: var(--s-1);
+    font: 400 var(--t-label) / 1.5 var(--font-record);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
   }
 }
 
-/* ---------- print: the text only ---------- */
 @media print {
-  .read-progress {
-    display: none !important;
-  }
-  .prose {
-    max-width: none;
-  }
-  .prose :global(blockquote),
-  .prose > :global(.table-wrap) {
-    inline-size: auto;
+  .prose > *,
+  .prose > .by,
+  .prose > .cols,
+  .prose > .quote,
+  .prose > :global(.table-wrap),
+  .end > p {
+    grid-column: 1 / -1;
   }
 }

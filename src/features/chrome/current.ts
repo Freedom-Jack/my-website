@@ -7,8 +7,8 @@ import { normPath } from '@/features/landscape/places';
 /**
  * "You are here" for every link to a page: aria-current="page" on the link to this page, "true" on the link to its
  * section (Work while reading a case, Writing while reading a note), none anywhere on the 404, whatever its URL (it
- * is not part of any section). CSS marks a current link: the nav word in full ink (layout.css), the river line's dot
- * (components/layout/RiverLine) and the scroll map's red square (body.css).
+ * is not part of any section). CSS marks a current link: the nav word in full ink with a stroke under it, and the
+ * scroll map's mark over its place's name (styles/shell.css).
  */
 
 // The 404 says it is showing (<LostMark/>), so the chrome marks nothing while it is.

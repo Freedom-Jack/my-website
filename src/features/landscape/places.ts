@@ -26,23 +26,13 @@ export interface Place {
    */
   distance: Distance;
   presence: number;
-  /** 0..1: the desktop ink horizon's presence between the strip and the closing. */
+  /** 0..1: the ink horizon's presence where the engine paints it (it does not under the stage). */
   horizon: number;
-  /** 'living' (every page on the map): the page's own scene is its ground on wide screens painted by a hardware GPU. */
+  /** 'living' (every page): the page's own scene is painted as the stage, the band's live painting on wide screens
+   *  with a hardware GPU (styles/band.css). */
   ground: 'living' | '';
   /**
-   * The hero's kind: home (the landing page's tall hero) or sub (every other page: the same height, the title at the
-   * same place).
-   */
-  strip: 'home' | 'sub';
-  /**
-   * Every page on the map ends the same way: on its own closing scene, a different view of the same place, then
-   * the footer's scroll map (components/layout/ScrollMap). The 404 lies off the map, so its path just ends in mist
-   * (no closing).
-   */
-  closing: boolean;
-  /**
-   * A deep page (a case, a note) opens inside its place: its hero looks closer (compose.ts HERO.inside) and further
+   * A deep page (a case, a note) opens inside its place: its band looks closer (compose.ts HERO.inside) and further
    * along the place (the scene's Frame.insideU), rather than on the place's postcard. A number names the page's own
    * stretch-local u instead, which <main>'s data-inside carries.
    */
@@ -57,8 +47,6 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
     presence: 1,
     horizon: 0.6,
     ground: 'living',
-    strip: 'home',
-    closing: true,
   },
   work: {
     page: 'work',
@@ -67,8 +55,6 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
     presence: 1,
     horizon: 0.55,
     ground: 'living',
-    strip: 'sub',
-    closing: true,
   },
   case: {
     page: 'case',
@@ -78,8 +64,6 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
     horizon: 0.55,
     // (a case is a living ground too, and opens inside the town, east of the bridge)
     ground: 'living',
-    strip: 'sub',
-    closing: true,
     inside: true,
   },
   writing: {
@@ -89,8 +73,6 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
     presence: 1,
     horizon: 0.5,
     ground: 'living',
-    strip: 'sub',
-    closing: true,
   },
   article: {
     page: 'article',
@@ -100,8 +82,6 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
     horizon: 0.35,
     // (a note opens inside the lake, the pavilion close)
     ground: 'living',
-    strip: 'sub',
-    closing: true,
     inside: true,
   },
   resume: {
@@ -111,8 +91,6 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
     presence: 1,
     horizon: 0.35,
     ground: 'living',
-    strip: 'sub',
-    closing: true,
   },
   contact: {
     page: 'contact',
@@ -121,8 +99,6 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
     presence: 1,
     horizon: 0.5,
     ground: 'living',
-    strip: 'sub',
-    closing: true,
   },
   'not-found': {
     page: 'not-found',
@@ -130,9 +106,7 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
     distance: 'level',
     presence: 1,
     horizon: 0.5,
-    ground: '',
-    strip: 'sub',
-    closing: false,
+    ground: 'living',
   },
 };
 
@@ -159,8 +133,8 @@ export function placeForPath(path: string): Place {
   return PLACES['not-found'];
 }
 
-/** The five places in the painting's order: the links of the footer's scroll map (components/layout/ScrollMap) and the
- *  stops of the scroll, held (features/scroll). `still` is the place's key into scroll.json `places`. */
+/** The five places in the painting's order: the links of the tail's scroll map (components/layout/ScrollMap). `still`
+ *  is the place's key into the band manifest's transit `places` (public/scenes/band/manifest.json). */
 export const SCROLL_MAP = [
   { stretch: 0, label: 'Home', href: '/', still: 'home' },
   { stretch: 1, label: 'Work', href: '/work/', still: 'work' },
@@ -171,20 +145,14 @@ export const SCROLL_MAP = [
 
 /**
  * The way on (components/page/NextPlace): every page but Contact and the 404 ends on the next place downstream. A
- * case ends on the place after the town; a note on the place after the lake. The ending's words come from that
- * page's own content.
- * `inked`: the next place's name is inked into the painting (body.css .inked: behind the place's leaf), where the
- * page's travel has brought the next place under it by the page's end (Home, Writing, a note). Where the travel
- * holds the page's own place beside the words (the engine's hold: Work, a case, the Résumé), that place still
- * stands where the name does, and its roofs or its hill would cover the letters: there the name stands in front.
+ * case ends on the place after the town; a note on the place after the lake. Its name is inscribed in the painting
+ * where that place stands.
  */
-export const NEXT_PLACE: Readonly<
-  Partial<Record<PageId, { page: PageId; href: string; label: string; inked: boolean }>>
-> = {
-  home: { page: 'work', href: '/work/', label: 'Work', inked: true },
-  work: { page: 'writing', href: '/writing/', label: 'Writing', inked: false },
-  case: { page: 'writing', href: '/writing/', label: 'Writing', inked: false },
-  writing: { page: 'resume', href: '/resume/', label: 'Résumé', inked: true },
-  article: { page: 'resume', href: '/resume/', label: 'Résumé', inked: true },
-  resume: { page: 'contact', href: '/contact/', label: 'Contact', inked: false },
+export const NEXT_PLACE: Readonly<Partial<Record<PageId, { page: PageId; href: string; label: string }>>> = {
+  home: { page: 'work', href: '/work/', label: 'Work' },
+  work: { page: 'writing', href: '/writing/', label: 'Writing' },
+  case: { page: 'writing', href: '/writing/', label: 'Writing' },
+  writing: { page: 'resume', href: '/resume/', label: 'Résumé' },
+  article: { page: 'resume', href: '/resume/', label: 'Résumé' },
+  resume: { page: 'contact', href: '/contact/', label: 'Contact' },
 };

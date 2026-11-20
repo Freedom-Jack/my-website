@@ -1,59 +1,70 @@
 /**
  * The link previews: one 1200 × 630 card per page (Open Graph and Twitter images, public/og/<page>.jpg), cut from the
- * real site, so a link shared on LinkedIn, Slack, iMessage or X shows the page's own hero: its place in the painting
- * and its title block, with the name and the title on the inner pages. src/lib/seo.ts reads public/og/manifest.json
- * and gives every page its card (a case or a note without one falls back to its section's).
+ * real site, so a link shared on LinkedIn, Slack, iMessage or X shows the page's own first screen: its place in the
+ * painting, full-bleed, with the page's title inscribed in its sky and the line under it. Nothing else: no header,
+ * no body text. src/lib/seo.ts reads public/og/manifest.json and gives every page its card (a case or a note without
+ * one falls back to its section's).
  *
- *   NEXT_PUBLIC_INK_QA=1 npm run build && npm start -- -p 3100     a QA build (the tool waits on the painting's stats)
+ *   NEXT_PUBLIC_INK_QA=1 npm run build && npm start -- -p 3100     a QA build (it exposes the engine as window.__ink)
  *   npm run build:og                                              cut every card; needs Google Chrome (headless, on
  *                                                                 this machine's GPU: the cards are the real painting)
  *   npm run build:og -- --pages home,work-rag-assistant           some of them (the manifest keeps the rest)
- *   npm run build:og -- --check                                   no browser: exit 1 when a page has no card, or a
- *                                                                 card was cut with other words than the page has now
- *   npm run build:og -- --url http://127.0.0.1:3000
+ *   npm run build:og -- --preview <dir>                           cut into <dir> (outside the repo) and leave
+ *                                                                 public/og alone: for looking before keeping
+ *   npm run build:og -- --check                                   no browser: exit 1 when a page has no card, a card
+ *                                                                 is not the file the manifest names, or a page's
+ *                                                                 title or under-line changed since its card was cut
+ *   npm run build:og -- --base http://127.0.0.1:3000              another server (default http://127.0.0.1:3100)
  *
- * How a card is cut (the same page, reshaped, never a mock-up):
- *   1. The page opens at 1200 × 630 (DPR 2, so the card is 2400 × 1260). The header, the footer and everything but
- *      the hero are hidden; the hero's box is made the card's height, so the engine frames the page's own place by its
- *      one hero rule (compose.ts HERO) in the card. Inner pages: the box is cut 150 px taller and shifted up, so the
- *      waterline lands at 0.55 of the card, not 0.66; the title block is centred, its title at the name's size, with
- *      "Qijin Xu · Lead AI/ML Architect" above it and the intro left out (the card is a cover, not the page); Home's
- *      card: the name with one line under it, its two paragraphs left out for the same reason.
- *   2. The painting settles (the arrival, every figure layer) and the fonts load; then a fixed moment passes, so every
- *      card catches the painting's slow drift at the same point after its settle.
- *   3. A JPEG of the viewport. The manifest records each card's words, so --check can tell a stale card.
+ * How a card is cut (the same page, never a mock-up):
+ *   1. The page opens at 1200 × 630 (DPR 2, so the card is 2400 × 1260) with the band made the card's height
+ *      (--band-h, set before the engine mounts), so the engine frames the page's own place by its one hero rule in a
+ *      box the card's size: the waterline at 0.66 of the card, the sky above it for the title. The header, the mist
+ *      at the band's foot, the page's words and the tail are hidden; what is inscribed in the sky stays, at the site's
+ *      own type, enlarged by INSCRIBE about its top-left corner (a preview is shown small), and inset to SAFE from the
+ *      card's edges.
+ *   2. The engine is forced live and then stilled (no drift, no small life); the tool waits until the stage's plates
+ *      stop being developed and the fonts are in. The under-line is set back to the words the server sent (Contact's
+ *      adds the hour in the browser: a card must not carry a clock).
+ *   3. Two captures a moment apart must be the same picture (nothing is still moving), or it waits and tries again;
+ *      then a JPEG of the viewport. The title's box is measured against SAFE on every side, and the tool refuses a
+ *      card whose inscription leaves the safe area.
+ * The manifest records, per card, the file's hash and a hash of the page's inscription as the server sends it (the
+ * words on the card), so --check can tell a stale card from the served pages alone.
  * Page ids: home, work, writing, resume, contact, work-<slug> (a case), writing-<slug> (a note).
+ * Regenerate after any change to a title or its under-line, the type, the band, the engine or a place.
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { chromium } from '@playwright/test';
-import { parse } from 'yaml';
-import { home } from '../content/pages/home.ts';
+import { chromium, type Page } from '@playwright/test';
 import { site } from '../content/site.ts';
-import { longDate } from '../src/lib/dates.ts';
 import { flag, opt, sha } from './lib.ts';
 
 const ROOT = process.cwd();
-const BASE = opt('--url', 'http://127.0.0.1:3100').replace(/\/$/, '');
+const BASE = opt('--base', opt('--url', 'http://127.0.0.1:3100')).replace(/\/$/, '');
+const PREVIEW = opt('--preview', '');
 const ONLY = opt('--pages', '')
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean);
-const OUT_DIR = path.join(ROOT, 'public', 'og');
-const MANIFEST = path.join(OUT_DIR, 'manifest.json');
+const OUT_DIR = PREVIEW ? path.resolve(PREVIEW) : path.join(ROOT, 'public', 'og');
+const MANIFEST = path.join(ROOT, 'public', 'og', 'manifest.json');
 
 const CARD = { width: 1200, height: 630, dpr: 2 } as const;
-const EXTRA = 150; // the inner pages' hero box: this much taller than the card, shifted up by as much
-const QUALITY = 82; // JPEG
-const AFTER_SETTLE_MS = 3500; // the wait after the settle: where the painting's drift stands on the card
+/** Nothing that matters within this many px of the card's edges (previews crop). */
+const SAFE = 60;
+/** The inscription on the card against the site's own size at 1200 px. */
+const INSCRIBE = 1.3;
+const QUALITY = 84; // JPEG
+const STABLE_MS = 700; // two captures this far apart must match
 const CHROME_ARGS = ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--hide-scrollbars'];
 
 /** What each place's card shows, for the image's alt text. */
 const SCENE: Record<string, string> = {
-  home: 'his mountain in spring: a plum bough and the morning light over the peaks',
-  work: 'a river town at its rainbow bridge',
-  writing: 'a still lake with a pavilion under a willow',
+  home: 'blue peaks above a sea of mist in the morning light',
+  work: 'a river town at its arched bridge',
+  writing: 'a still lake with a small pavilion under a pine',
   resume: 'terraced fields stepping down to the river',
   contact: 'a ferry at the jetty on open water',
 };
@@ -61,150 +72,133 @@ const SCENE: Record<string, string> = {
 interface Card {
   id: string;
   route: string;
-  /** the hero's title as the card shows it (the Résumé's card says "Résumé", its page's h1 is the name) */
-  title: string;
-  eyebrow: string;
-  /** a note's byline on the card (its page's byline starts with the name, which the eyebrow carries) */
-  byline?: string;
-  /** Home's one line under the name (the card is a cover: its two hero paragraphs would be unreadable at preview size) */
-  line?: string;
-  /** Home's card also keeps the first screen's one proof (the name, the role, the proof); its words count towards
-   *  --check's staleness */
-  proof?: string;
-  alt: string;
+  /** the place it stands in (SCENE) */
+  place: keyof typeof SCENE;
 }
 
-/** A content folder's MDX files with their front matter (the pages read them through MDX; this tool reads the YAML). */
-function mdx(dir: string): Array<{ slug: string; data: Record<string, unknown> }> {
-  const root = path.join(ROOT, 'content', dir);
-  return readdirSync(root)
-    .filter((f) => f.endsWith('.mdx'))
-    .sort()
-    .map((f) => {
-      const m = readFileSync(path.join(root, f), 'utf8').match(/^---\n([\s\S]*?)\n---\n/);
-      if (!m) throw new Error(`content/${dir}/${f}: no front matter`);
-      return { slug: f.slice(0, -4), data: parse(m[1]!) as Record<string, unknown> };
-    });
-}
-/** A title's inline markup (CONTENT.md) as plain text. */
-const plain = (s: string) =>
-  s
-    .replace(/\*\*([^*]+)\*\*/g, '$1')
-    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '$1')
-    .replace(/\{([^{}]+)\}/g, '$1');
-const text = (data: Record<string, unknown>, key: string, where: string) => {
-  const v = data[key];
-  if (typeof v === 'string' && v) return v;
-  if (v instanceof Date) return v.toISOString().slice(0, 10);
-  throw new Error(`${where}: no ${key}`);
-};
-
-async function cards(): Promise<Card[]> {
-  const eyebrow = `${site.name} · ${site.jobTitle}`;
-  const label = (href: string) => site.nav.find((n) => n.href === href)?.label ?? href;
-  const list: Card[] = [
-    {
-      id: 'home',
-      route: '/',
-      title: site.name,
-      eyebrow: '',
-      line: `${site.jobTitle} · ${site.seo.employer.name}, ${site.city}`,
-      proof: JSON.stringify(home.first.proof),
-      alt: `${site.name}, ${site.jobTitle}: his name, his role and one counted result beside an ink-wash painting of ${SCENE.home}.`,
-    },
-    ...(['work', 'writing', 'resume', 'contact'] as const).map((id) => ({
-      id,
-      route: `/${id}/`,
-      title: label(`/${id}/`),
-      eyebrow,
-      alt: `${label(`/${id}/`)}: ${eyebrow}, beside an ink-wash painting of ${SCENE[id]}.`,
-    })),
+function cards(): Card[] {
+  const slugs = (dir: string) =>
+    readdirSync(path.join(ROOT, 'content', dir))
+      .filter((f) => f.endsWith('.mdx'))
+      .sort()
+      .map((f) => f.slice(0, -4));
+  return [
+    { id: 'home', route: '/', place: 'home' },
+    ...(['work', 'writing', 'resume', 'contact'] as const).map((id) => ({ id, route: `/${id}/`, place: id })),
+    ...slugs('work').map((s) => ({ id: `work-${s}`, route: `/work/${s}/`, place: 'work' as const })),
+    ...slugs('writing').map((s) => ({ id: `writing-${s}`, route: `/writing/${s}/`, place: 'writing' as const })),
   ];
-  for (const { slug, data } of mdx('work')) {
-    const title = plain(text(data, 'title', `content/work/${slug}.mdx`));
-    list.push({
-      id: `work-${slug}`,
-      route: `/work/${slug}/`,
-      title,
-      eyebrow,
-      alt: `${title}: a project by ${site.name}, beside an ink-wash painting of ${SCENE.work}.`,
-    });
-  }
-  for (const { slug, data } of mdx('writing')) {
-    const where = `content/writing/${slug}.mdx`;
-    const title = text(data, 'title', where);
-    const kind = text(data, 'kind', where);
-    list.push({
-      id: `writing-${slug}`,
-      route: `/writing/${slug}/`,
-      title,
-      eyebrow,
-      byline: `${kind} · ${longDate(text(data, 'published', where))}`,
-      // (a title that ends in ? or ! is quoted, so the alt text does not read "…agent?: a note")
-      alt: `${/[?!]$/.test(title) ? `“${title}”,` : `${title}:`} a ${kind.toLowerCase()} by ${site.name}, beside an ink-wash painting of ${SCENE.writing}.`,
-    });
-  }
-  return list;
+}
+
+// ------------------------------------------------------------------------------------------------ the page's words
+/** Markup as the text a reader sees: tags and React's comment marks out, entities decoded, one space between words. */
+const textOf = (html: string) =>
+  html
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/<svg[\s\S]*?<\/svg>/g, '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;|&#39;/g, "'")
+    .replace(/&nbsp;| /g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+/** A page's inscription as the server sends it (components/page/Inscription): its title and the line under it. */
+async function inscription(route: string): Promise<{ title: string; under: string }> {
+  const res = await fetch(BASE + route);
+  if (!res.ok) throw new Error(`${route}: HTTP ${res.status} (is the build being served at ${BASE}?)`);
+  const html = await res.text();
+  const at = html.match(/<header class="inscription">([\s\S]*?)<\/header>/)?.[1];
+  if (!at) throw new Error(`${route}: no inscription in the page (components/page/Inscription)`);
+  const el = (cls: string) =>
+    at.match(new RegExp(`<(h1|p)\\b[^>]*class="${cls}(?:[ "][^>]*)?>([\\s\\S]*?)</\\1>`))?.[2] ?? '';
+  const title = textOf(el('title'));
+  if (!title) throw new Error(`${route}: the inscription has no title`);
+  return { title, under: textOf(el('title__under')) };
+}
+const wordsOf = (w: { title: string; under: string }) => sha(JSON.stringify([w.title, w.under]));
+/** The card's alt text: whose page it is, then what the card shows. */
+function altOf(c: Card, w: { title: string; under: string }) {
+  const shown = `inscribed in the sky of an ink-wash painting of ${SCENE[c.place]}.`;
+  if (c.id === 'home') return `${w.title}, ${site.jobTitle}: his name ${shown}`;
+  if (c.id.startsWith('work-')) return `${w.title}: a project by ${site.name}, its title ${shown}`;
+  // (a title that ends in ? or ! is quoted, so the alt text does not read "…agent?: a note")
+  if (c.id.startsWith('writing-'))
+    return `${/[?!]$/.test(w.title) ? `“${w.title}”,` : `${w.title}:`} a note by ${site.name}, its title ${shown}`;
+  return `${w.title} · ${site.name}: the page's title ${shown}`;
 }
 
 // ------------------------------------------------------------------------------------------------ in the page
+/** Set before the engine mounts: the band is the card. */
 const CSS = `
-:root { --strip-sub: ${CARD.height + EXTRA}px !important; --strip-home: ${CARD.height}px !important; }
-.site-header, .site-footer, .skip-link { display: none !important; }
-main * { visibility: hidden !important; }
-main .strip, main .strip * { visibility: visible !important; }
-main .strip .actions, main .strip .hero__actions { display: none !important; }
-main .strip--sub { margin-top: -${EXTRA}px !important; }
-main .strip--sub > .strip__text { padding-block: 0 !important; align-self: center !important; margin-top: ${EXTRA}px !important; }
-main .strip--sub .page-title { font-size: 4.5rem !important; line-height: 1 !important; }
-main .strip .lead { display: none !important; }
-main .first__verb, main .first__title, main .first__now, main .first__action, main .first__proof .first__source { display: none !important; }
-main .strip--home > .strip__text { align-self: center !important; padding-block: 0 !important; margin-block: 0 !important; }
-.og-line { margin: 1.25rem 0 0 !important; font-size: 1.75rem !important; font-weight: 560 !important; line-height: 1.25 !important; color: var(--ink-2) !important; }
-.og-eyebrow { margin: 0 0 1.25rem !important; font-size: 1.5rem !important; font-weight: 560 !important; color: var(--ink-2) !important; }
+:root { --band-h: ${CARD.height}px !important; --band-sea: 0px !important; --band-zoom: 1 !important; --edge: ${SAFE + 12}px !important; }
+.site-header, .skip-link, .band__mist, nextjs-portal { display: none !important; }
+body > :not(.band, main), main * { visibility: hidden !important; }
+main .inscription, main .inscription * { visibility: visible !important; }
+main .inscription--next, main .inscription--next *, main .inscription__next, main .inscription__next * { visibility: hidden !important; }
+.inscription__at { top: ${SAFE + 12}px !important; zoom: ${INSCRIBE}; max-width: ${Math.round((CARD.width - 2 * (SAFE + 12)) / INSCRIBE)}px !important; }
 `;
-// The hero's words as the card wants them: the eyebrow above the title, the Résumé's title, a note's byline.
-const PREPARE_JS = `(([title, eyebrow, byline, line]) => {
-  const text = document.querySelector('main .strip__text');
-  if (!text) return 'no hero';
-  const h1 = text.querySelector('h1');
-  if (!h1) return 'no title';
-  if (h1.textContent.trim() !== title) h1.textContent = title;
-  if (eyebrow) {
-    const p = document.createElement('p');
-    p.className = 'og-eyebrow';
-    p.textContent = eyebrow;
-    text.prepend(p);
-  }
-  if (byline) {
-    const b = text.querySelector('p.small');
-    if (b) b.textContent = byline;
-  }
-  if (line) {
-    const p = document.createElement('p');
-    p.className = 'og-line';
-    p.textContent = line;
-    h1.insertAdjacentElement('afterend', p);
-  }
-  window.scrollTo(0, 0);
-  return 'ok';
-})`;
-// Settled: the painting has nothing left to paint (tests/e2e/support/pages.ts settle), and the fonts are in.
-const SETTLE_JS = `(() => {
+const INIT = `window.__inkLive = true;
+try { localStorage.setItem('ink:still', '1'); } catch {}
+document.addEventListener('DOMContentLoaded', () => {
+  const s = document.createElement('style');
+  s.textContent = ${JSON.stringify(CSS)};
+  document.head.appendChild(s);
+});`;
+/** The live stage is up and nothing is pending. */
+const READY_JS = `(() => {
   if (document.readyState !== 'complete') return false;
   if (document.fonts && document.fonts.status !== 'loaded') return false;
-  if (document.documentElement.classList.contains('no-landscape')) return true;
-  const L = window.__ink;
-  if (!L) return performance.now() > 15000;
-  const s = L.stats();
-  if (!s || s.mode === 'static') return true;
-  if (s.arriving || s.pending || s.sweeping) return false;
-  if (Object.values(s.figures || {}).includes('pending')) return false;
-  const w = s.windows || {};
-  const anyVis = (w.strip && w.strip.visible) || (w.closing && w.closing.visible) || s.hzK > 0;
-  if (anyVis && (!(s.fullAt > 0) || s.draftAt > s.fullAt || performance.now() - s.draftAt < 400)) return false;
-  return true;
+  const i = window.__ink;
+  if (!i) return false;
+  const s = i.stats();
+  return !!(s.plates && s.plates.on && s.stage && s.stage.ready && !s.pending);
+})()`;
+const DEVELOPED_JS = `(() => { const s = window.__ink.stats(); return s.plates && s.plates.on ? s.plates.developed : -1; })()`;
+/** The under-line as the server sent it, and the inscription's box on the card (CSS px). */
+const PLACE_JS = `((under) => {
+  window.scrollTo(0, 0);
+  const at = document.querySelector('main .inscription .inscription__at');
+  if (!at) return null;
+  const u = at.querySelector('.title__under');
+  const norm = (t) => t.replace(/\\s+/g, ' ').trim();
+  if (u && under && norm(u.textContent) !== under) u.textContent = under;
+  let box = null;
+  for (const el of at.querySelectorAll('.title, .title__under, .seal')) {
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    for (const r of [...range.getClientRects(), el.getBoundingClientRect()]) {
+      if (!r.width || !r.height) continue;
+      box = box
+        ? { l: Math.min(box.l, r.left), t: Math.min(box.t, r.top), r: Math.max(box.r, r.right), b: Math.max(box.b, r.bottom) }
+        : { l: r.left, t: r.top, r: r.right, b: r.bottom };
+    }
+  }
+  return box;
 })`;
+
+/** A box on the card, in CSS px from its top-left corner. */
+interface Box {
+  l: number;
+  t: number;
+  r: number;
+  b: number;
+}
+
+async function settle(page: Page, route: string) {
+  await page.waitForFunction(READY_JS, undefined, { timeout: 45_000, polling: 250 });
+  let last = -1;
+  for (let i = 0; i < 40; i++) {
+    await page.waitForTimeout(500);
+    const n = (await page.evaluate(DEVELOPED_JS)) as number;
+    if (n >= 0 && n === last) return;
+    last = n;
+  }
+  throw new Error(`${route}: the stage's plates never stopped being developed`);
+}
 
 // ------------------------------------------------------------------------------------------------ the manifest
 interface Entry {
@@ -212,22 +206,20 @@ interface Entry {
   width: number;
   height: number;
   alt: string;
-  /** the words the card was cut with: --check compares them with the page's words now */
+  /** a hash of the page's inscription as served when the card was cut: --check compares it with the page's now */
   words: string;
   sha256: string;
 }
 interface Manifest {
   cards: Record<string, Entry>;
 }
-const wordsOf = (c: Card) =>
-  sha(JSON.stringify([c.title, c.eyebrow, c.byline ?? '', c.line ?? '', ...(c.proof ? [c.proof] : [])]));
 
 function readManifest(): Manifest {
   if (!existsSync(MANIFEST)) return { cards: {} };
   return JSON.parse(readFileSync(MANIFEST, 'utf8')) as Manifest;
 }
 
-function check(list: Card[]) {
+async function check(list: Card[]) {
   const m = readManifest();
   const problems: string[] = [];
   for (const c of list) {
@@ -236,11 +228,13 @@ function check(list: Card[]) {
       problems.push(`${c.id}: no card (its page falls back to its section's); npm run build:og -- --pages ${c.id}`);
       continue;
     }
-    const file = path.join(OUT_DIR, e.file);
+    const file = path.join(ROOT, 'public', 'og', e.file);
     if (!existsSync(file)) problems.push(`${c.id}: ${e.file} is missing`);
     else if (sha(readFileSync(file)) !== e.sha256) problems.push(`${c.id}: ${e.file} differs from the manifest`);
-    if (e.words !== wordsOf(c)) problems.push(`${c.id}: the card was cut with other words than the page has now`);
-    if (e.alt !== c.alt) problems.push(`${c.id}: the card's alt text changed; re-cut it to record the new one`);
+    const w = await inscription(c.route);
+    if (e.words !== wordsOf(w)) problems.push(`${c.id}: the page's title or under-line changed since its card was cut`);
+    else if (e.alt !== altOf(c, w))
+      problems.push(`${c.id}: the card's alt text changed; re-cut it to record the new one`);
   }
   for (const id of Object.keys(m.cards)) if (!list.some((c) => c.id === id)) problems.push(`${id}: a card for no page`);
   if (problems.length) {
@@ -255,41 +249,55 @@ async function cut(list: Card[]) {
   const m = readManifest();
   const browser = await chromium.launch({ channel: 'chrome', args: CHROME_ARGS });
   try {
-    const ctx = await browser.newContext({
-      viewport: { width: CARD.width, height: CARD.height },
-      deviceScaleFactor: CARD.dpr,
-    });
-    // (a QA build mounts the engine at once, without the live probe)
-    await ctx.addInitScript(() => {
-      (window as unknown as { __inkLive?: boolean }).__inkLive = true;
-    });
-    const page = await ctx.newPage();
     for (const c of list) {
+      const w = await inscription(c.route);
+      // (a context per card: the engine mounts fresh on the card's own box, never a page change's arrival)
+      const ctx = await browser.newContext({
+        viewport: { width: CARD.width, height: CARD.height },
+        deviceScaleFactor: CARD.dpr,
+      });
+      const page = await ctx.newPage();
+      await page.addInitScript(INIT);
       const res = await page.goto(BASE + c.route, { waitUntil: 'load' });
       if (!res || !res.ok()) throw new Error(`${c.route}: HTTP ${res?.status()}`);
-      await page.addStyleTag({ content: CSS });
-      // (a string is evaluated as an expression: each one is called in the expression itself)
-      const prepared = await page.evaluate(
-        `${PREPARE_JS}(${JSON.stringify([c.title, c.eyebrow, c.byline ?? '', c.line ?? ''])})`,
-      );
-      if (prepared !== 'ok') throw new Error(`${c.route}: ${prepared}`);
-      await page.waitForFunction(`${SETTLE_JS}()`, undefined, { timeout: 45_000, polling: 250 });
-      await page.waitForTimeout(AFTER_SETTLE_MS);
+      await settle(page, c.route);
+      let bytes: Buffer | null = null;
+      let box: Box | null = null;
+      for (let attempt = 0; attempt < 5 && !bytes; attempt++) {
+        box = (await page.evaluate(`${PLACE_JS}(${JSON.stringify(w.under)})`)) as Box | null;
+        const a = await page.screenshot({ type: 'png', scale: 'device' });
+        await page.waitForTimeout(STABLE_MS);
+        const b = await page.screenshot({ type: 'png', scale: 'device' });
+        if (sha(a) === sha(b)) bytes = await page.screenshot({ type: 'jpeg', quality: QUALITY, scale: 'device' });
+      }
+      if (!bytes) throw new Error(`${c.id}: the card kept changing between captures`);
+      if (!box) throw new Error(`${c.id}: nothing is inscribed on the card`);
+      const out = [box.l, box.t, CARD.width - box.r, CARD.height - box.b].map((v) => Math.round(v));
+      if (Math.min(...out) < SAFE)
+        throw new Error(
+          `${c.id}: the inscription comes within ${Math.min(...out)} px of the card's edge (left ${out[0]}, top ${out[1]}, right ${out[2]}, bottom ${out[3]}; the safe area is ${SAFE} px)`,
+        );
       const file = `${c.id}.jpg`;
-      const bytes = await page.screenshot({ type: 'jpeg', quality: QUALITY, scale: 'device' });
       await writeFile(path.join(OUT_DIR, file), bytes);
       m.cards[c.id] = {
         file,
         width: CARD.width * CARD.dpr,
         height: CARD.height * CARD.dpr,
-        alt: c.alt,
-        words: wordsOf(c),
+        alt: altOf(c, w),
+        words: wordsOf(w),
         sha256: sha(bytes),
       };
-      console.log(`${c.id}: ${file} (${Math.round(bytes.length / 1024)} KB)`);
+      console.log(
+        `${c.id}: ${file} (${Math.round(bytes.length / 1024)} KB) · "${w.title}"${w.under ? ` / "${w.under}"` : ''} · clear of the edges by ${out.join(', ')} px (left, top, right, bottom)`,
+      );
+      await ctx.close();
     }
   } finally {
     await browser.close();
+  }
+  if (PREVIEW) {
+    console.log(`preview only: ${list.length} card(s) in ${OUT_DIR}; public/og and its manifest are as they were`);
+    return;
   }
   const ordered: Manifest = {
     cards: Object.fromEntries(Object.entries(m.cards).sort(([a], [b]) => a.localeCompare(b))),
@@ -299,7 +307,7 @@ async function cut(list: Card[]) {
 }
 
 async function main() {
-  const all = await cards();
+  const all = cards();
   if (flag('--check')) return check(all);
   const list = ONLY.length ? all.filter((c) => ONLY.includes(c.id)) : all;
   const unknown = ONLY.filter((id) => !all.some((c) => c.id === id));

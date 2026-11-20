@@ -17,7 +17,7 @@ const BASE = '/models';
 const FILES = [
   { url: `${BASE}/ort/ort-wasm-simd-threaded.wasm`, size: 14848852 },
   { url: `${BASE}/minilm/model_quantized.onnx`, size: 22972370 },
-  { url: `${BASE}/minilm/vocab.txt`, size: 231508 },
+  { url: `${BASE}/minilm/vocab.txt`, size: 239110 },
 ];
 const TOTAL = FILES.reduce((n, f) => n + f.size, 0);
 

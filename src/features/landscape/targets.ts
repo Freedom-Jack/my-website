@@ -38,11 +38,7 @@ export function targetsOf(main: HTMLElement): LandscapeTargets {
     keepout: main.querySelectorAll('[data-landscape="keepout"]'),
     // (the windows into the painting at the page's section breaks; none when the flag is off)
     glimpse: elementOn('glimpses') ? main.querySelectorAll('[data-landscape="glimpse"], [data-glimpse="end"]') : [],
-    // (the tail's lines too: on a short living page the painting reaches under them)
-    veil: [
-      ...main.querySelectorAll('[data-veil]'),
-      ...document.querySelectorAll('.site-footer .scrollmap, .site-footer .tail__words, .site-footer .tail__side'),
-    ],
+    veil: main.querySelectorAll('[data-veil]'),
     wake: main.querySelectorAll('[data-wake]'),
     horizon: place.horizon,
     ground: place.ground,

@@ -19,8 +19,16 @@ export const contact = {
   response: 'I read everything and answer within a week.',
   copy: { label: 'Copy email', done: 'Copied' },
   ways: { github: 'GitHub', linkedin: 'LinkedIn', resume: 'Résumé' },
-  /** "Based in Toronto, Canada (Eastern Time, 9:41 there).": {time} is the local time, filled in the browser. */
+  /**
+   * The line under the title: "Based in Toronto, Canada (Eastern Time, 9:41 pm there)."; {time} is the local time,
+   * filled in the browser (without JavaScript the line reads without it).
+   */
   where: 'Based in {city}, {country} ({timeZone}{time}).',
   /** ", 9:41 there" */
   time: ', {time} there',
+  /**
+   * NEW WORDS (for Jack): the one label over his third-person line (content/site.ts `bio`) and his portrait, for
+   * someone who has to introduce him (an organiser, an editor).
+   */
+  bio: { label: 'Bio' },
 } satisfies PageWords & Record<string, unknown>;

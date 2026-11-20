@@ -2,7 +2,7 @@ import type { PageWords } from './types';
 
 /**
  * Home (/): Jack's approved "about me" page. Its first screen (`first`): the name, the verb line, the title line, one
- * counted proof with its measure, the dated line and one action. The words of the first screen are the approved ones,
+ * counted proof with its measure and the dated line. The words of the first screen are the approved ones,
  * re-cut; where the cut is new it is marked DRAFT (for Jack). The figures and the years come from the cases' own front
  * matter (content/work/*.mdx), never retyped here.
  * Inline markup in these strings: CONTENT.md ("**bold**", "[link](/path/)", "{kept together}", "{{years}}").
@@ -48,7 +48,6 @@ export const home = {
     now: { case: 'proprietary-language-agent', inProgress: 'in progress', asOf: 'as of' },
     /** The small words of the measure lines ("2023 to 2024"). */
     to: 'to',
-    action: { label: 'See the work', href: '/work/' },
   },
 
   about: {

@@ -5,13 +5,13 @@ import { Seal } from '@/components/ui/Seal';
 import styles from './contact.module.css';
 
 /**
- * "Copy email": copies the address; the seal is pressed beside it (the stamp says the thing is done, as a seal
- * does) and "Copied" is said in mono. The word is also the live region: empty at rest,
- * written on every copy, so screen readers hear it each time; the word and the seal rest 2.4 s and go. If the
- * clipboard is unavailable the address is selected instead, so it can be copied by hand (and nothing claims it was
- * copied). Hidden without JS (contact.module.css): the address stays a mailto link.
+ * "Copy email": a real button that reads as underlined text. It copies the address; its words become "Copied" and
+ * the seal is pressed beside it (a seal says the thing is done); both rest a moment, then the seal lifts and the
+ * words return. A polite live region says "Copied" on every copy. If the clipboard is unavailable the address is
+ * selected instead, so it can be copied by hand (and nothing claims it was copied). Hidden without JavaScript
+ * (contact.module.css): the address is a mailto link either way.
  */
-const REST_MS = 2400;
+const REST_MS = 2600;
 
 async function writeClipboard(text: string): Promise<boolean> {
   try {
@@ -42,9 +42,19 @@ async function writeClipboard(text: string): Promise<boolean> {
 }
 
 export function CopyEmail({ email, label, done }: { email: string; label: string; done: string }) {
-  const [word, setWord] = useState('');
+  // `n`: how many times it has been copied (a new press is a new seal, so its press plays again);
+  // `on`: the seal is resting on the paper
+  const [{ n, on }, setPress] = useState({ n: 0, on: false });
+  const [said, setSaid] = useState('');
   const timer = useRef(0);
-  useEffect(() => () => clearTimeout(timer.current), []);
+  const frame = useRef(0);
+  useEffect(
+    () => () => {
+      clearTimeout(timer.current);
+      cancelAnimationFrame(frame.current);
+    },
+    [],
+  );
 
   const onClick = async () => {
     const ok = await writeClipboard(email);
@@ -54,26 +64,27 @@ export function CopyEmail({ email, label, done }: { email: string; label: string
       return;
     }
     clearTimeout(timer.current);
-    setWord('');
-    // next frame: a fresh text node, so it is announced again
-    requestAnimationFrame(() => {
-      setWord(done);
-      timer.current = window.setTimeout(() => setWord(''), REST_MS);
-    });
+    cancelAnimationFrame(frame.current);
+    setPress((p) => ({ n: p.n + 1, on: true }));
+    setSaid('');
+    // (the next frame: a fresh text node, so it is announced on every copy)
+    frame.current = requestAnimationFrame(() => setSaid(done));
+    timer.current = window.setTimeout(() => {
+      setPress((p) => ({ n: p.n, on: false }));
+      setSaid('');
+    }, REST_MS);
   };
 
   return (
-    <p className={styles.contact__copy}>
-      <button className="action action--button" type="button" onClick={onClick}>
-        {label}
+    <p className={styles.copy}>
+      <button className={styles.copyButton} type="button" onClick={onClick}>
+        {on ? done : label}
       </button>
-      {word ? (
-        <span className={`${styles.contact__seal} stamp`} aria-hidden="true">
-          <Seal id="seal-carve-copy" />
-        </span>
-      ) : null}
-      <span className={`mono ${styles.contact__done}`} role="status">
-        {word}
+      <span className={styles.copySeal} data-pressed={on ? '' : undefined} key={n}>
+        <Seal id="seal-carve-copy" />
+      </span>
+      <span className="visually-hidden" role="status">
+        {said}
       </span>
     </p>
   );

@@ -10,9 +10,11 @@ export const resumePage = {
     description:
       'Résumé of Qijin (Jack) Xu, Lead AI/ML Architect at CGI in Toronto: LLM agents, RAG, data engineering, and cloud. On the web, as a PDF and as JSON.',
   },
-  /** "Goes by Jack": the contact line's first item. */
+  /** The place's name, inscribed in the painting's sky (the nav's own word; the page's h1 is his name). */
+  title: 'Résumé',
+  /** "Goes by Jack": the letterhead's record line opens with it. */
   goesBy: 'Goes by {name}',
-  /** "Updated October 22, 2026": the line under the letterhead, from content/resume.json meta.lastModified. */
+  /** "Updated October 22, 2026": the letterhead's last line, from content/resume.json meta.lastModified. */
   updated: 'Updated',
   pdf: 'View résumé (PDF)',
   json: 'JSON Resume',
@@ -24,9 +26,6 @@ export const resumePage = {
     certifications: 'Awards and certifications',
   },
   present: 'present',
-  /**
-   * DRAFT (for Jack): the one sentence the page before it ends on ("Downstream · Résumé →"). The counts are
-   * content/resume.json's: five roles since the 2019 internship, two CGI Impact Awards, two cloud certifications.
-   */
-  line: 'Five roles since 2019, two CGI Impact Awards and two cloud certifications: on one page, as a PDF and as JSON.',
+  /** "GPA 3.9/4.0": the score beside the degree. */
+  gpa: 'GPA {score}',
 } satisfies PageWords & Record<string, unknown>;

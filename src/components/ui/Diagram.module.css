@@ -1,0 +1,290 @@
+/* A brush diagram (components/ui/Diagram): a drawing in ink on the paper. One spec, two drawings: the wide one from
+   a 52rem container, the tall one below it (the other is display: none, so only one is in the accessibility tree).
+     a group   .diagram__band        a broad pale wash, its name in the record's voice
+     a node    .diagram__wash        a pool of thinned ink, a little off its outline
+               .diagram__node        its outline, brushed round in one stroke that does not quite close (--a: where
+                                     the brush lifts), and --press, heavier, where it came down
+     an edge   .diagram__edge--1..3  one line from thick to thin: three passes, each shorter and heavier (--f: how far
+                                     along the line the pass reaches), and .diagram__head, two flicks
+   The edges draw in once, in the order the data flows (--o), as the drawing enters view. Labels, nodes and washes
+   never move. */
+
+/* has the drawing entered view? A scroll timeline sets it; a transition then draws each edge in its own time */
+@property --diagram-seen {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+.diagram {
+  container-type: inline-size;
+}
+.figure {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+.diagram :global(.diagram__art) {
+  display: block;
+  width: 100%;
+  height: auto; /* the viewBox reserves the box: no layout shift */
+  overflow: visible;
+}
+.diagram :global(.diagram__art--wide) {
+  max-width: 75rem;
+}
+.diagram :global(.diagram__art--tall) {
+  max-width: 25rem;
+}
+@container (min-width: 52rem) {
+  .diagram :global(.diagram__art--tall) {
+    display: none;
+  }
+}
+@container (max-width: 51.99rem) {
+  .diagram :global(.diagram__art--wide) {
+    display: none;
+  }
+}
+
+/* ---------- the ink ---------- */
+.diagram :global(.diagram__band) {
+  fill: rgb(36 74 99 / 0.05);
+  stroke: none;
+}
+.diagram :global(.diagram__wash) {
+  fill: rgb(36 74 99 / 0.085);
+  stroke: none;
+  transform: translate(4px, 3.5px);
+}
+.diagram :global(.diagram__node) {
+  fill: none;
+  stroke: var(--ink-2);
+  stroke-width: 1.1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* from the path's start to where the brush lifts, a gap, then round to the end */
+  stroke-dasharray: var(--a) 0.075 1;
+}
+.diagram :global(.diagram__node--press) {
+  stroke: var(--ink);
+  stroke-width: 2.3;
+  stroke-dasharray: 0.19 1;
+  stroke-dashoffset: calc(-1 * (var(--a) + 0.075));
+}
+.diagram :global(.diagram__edge) {
+  fill: none;
+  stroke: var(--ink);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: var(--f) 3;
+  stroke-dashoffset: 0;
+}
+.diagram :global(.diagram__edge--1) {
+  --f: 1;
+  stroke-width: 1.25;
+}
+.diagram :global(.diagram__edge--2) {
+  --f: 0.6;
+  stroke-width: 2.1;
+}
+.diagram :global(.diagram__edge--3) {
+  --f: 0.28;
+  stroke-width: 3.1;
+}
+.diagram :global(.diagram__head) {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------- the words in the drawing ---------- */
+.diagram :global(.diagram__label) {
+  font: 500 21px var(--font-text);
+  letter-spacing: -0.006em;
+  fill: var(--ink);
+}
+/* (the small words stand on a wash, not on bare paper: the second ink keeps them at 4.5:1 and over) */
+.diagram :global(.diagram__sub) {
+  font: 400 14.5px var(--font-record);
+  fill: var(--ink-2);
+}
+.diagram :global(.diagram__band-label) {
+  font: 400 12.5px var(--font-record);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  fill: var(--ink-2);
+}
+.diagram :global(.diagram__art--tall .diagram__label) {
+  font-size: 19px;
+}
+.diagram :global(.diagram__art--tall .diagram__sub) {
+  font-size: 12px;
+  letter-spacing: -0.02em;
+}
+.diagram :global(.diagram__art--tall .diagram__band-label) {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+}
+
+/* ---------- under the drawing: its caption (the record's voice) and its text equivalent ---------- */
+.diagram :global(.diagram__caption) {
+  grid-area: 2 / 1;
+  justify-self: start;
+  align-self: start;
+  margin-top: var(--s-4);
+  padding-block: 0.75rem;
+  font: 400 var(--t-note) / 1.55 var(--font-record);
+  letter-spacing: 0.01em;
+  color: var(--ink-3);
+}
+.diagram :global(.diagram__steps) {
+  grid-area: 2 / 1;
+  margin-top: var(--s-4);
+}
+.diagram :global(.diagram__steps > summary) {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  min-height: 2.75rem;
+  cursor: pointer;
+  list-style: none;
+  font-size: var(--t-small);
+}
+.diagram :global(.diagram__steps > summary::-webkit-details-marker) {
+  display: none;
+}
+.diagram :global(.diagram__steps > summary > span) {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--line-2);
+  text-underline-offset: 0.24em;
+}
+.diagram :global(.diagram__steps > summary:hover > span),
+.diagram :global(.diagram__steps[open] > summary > span) {
+  text-decoration-color: currentColor;
+}
+.diagram :global(.diagram__steps > ol) {
+  columns: 2;
+  column-gap: clamp(1.5rem, 4vw, 4rem);
+  column-rule: 1px solid var(--line);
+  margin-top: var(--s-3);
+  padding: var(--s-4) 0 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+  counter-reset: step;
+  font-size: var(--t-small);
+  line-height: 1.58;
+  color: var(--ink-2);
+}
+.diagram :global(.diagram__steps li) {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr);
+  break-inside: avoid;
+  padding-bottom: var(--s-3);
+  counter-increment: step;
+}
+.diagram :global(.diagram__steps li::before) {
+  content: counter(step);
+  font: 400 var(--t-note) / 1.9 var(--font-record);
+  color: var(--ink-3);
+}
+/* a tablet: the tall drawing at the left, its caption and its steps beside it */
+@container (min-width: 36rem) and (max-width: 51.99rem) {
+  .figure {
+    grid-template-columns: minmax(0, 25rem) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    column-gap: clamp(1.5rem, 6cqw, 3.5rem);
+    align-items: start;
+  }
+  .diagram :global(.diagram__art--tall) {
+    grid-area: 1 / 1 / span 2 / auto;
+  }
+  .diagram :global(.diagram__caption) {
+    grid-area: 1 / 2;
+    margin-top: 0;
+    padding-block: 2.25rem 0;
+  }
+  .diagram :global(.diagram__steps) {
+    grid-area: 2 / 2;
+    margin-top: var(--s-2);
+  }
+  .diagram :global(.diagram__steps > summary) {
+    justify-content: flex-start;
+  }
+  .diagram :global(.diagram__steps > ol) {
+    columns: 1;
+  }
+}
+/* a phone: the caption, then the steps, under the drawing */
+@container (max-width: 35.99rem) {
+  .diagram :global(.diagram__caption) {
+    grid-area: auto;
+    padding-block: 0;
+  }
+  .diagram :global(.diagram__steps) {
+    grid-area: auto;
+    margin-top: 0;
+  }
+  .diagram :global(.diagram__steps > summary) {
+    justify-content: flex-start;
+  }
+  .diagram :global(.diagram__steps > ol) {
+    columns: 1;
+  }
+}
+
+/* ---------- the draw-in: once, as the drawing enters view ----------
+   The drawing's own view timeline flips --diagram-seen from 0 to 1 when its top has come well into the window; each
+   edge's dash then runs out along its line as a plain transition, one edge after another (--o), and its head
+   follows. Scrolling back does not undo it: while --diagram-seen is 0 again the way back is put off without end. */
+@keyframes seen {
+  from {
+    --diagram-seen: 0;
+  }
+  to {
+    --diagram-seen: 1;
+  }
+}
+@supports (animation-timeline: view()) and (animation-range: 0px 1px) {
+  @media screen and (prefers-reduced-motion: no-preference) {
+    :global(html:not(.is-still)) .diagram :global(.diagram__art) {
+      animation: seen steps(1, jump-end) both;
+      animation-timeline: view(block);
+      animation-range: entry 0% entry 45%;
+    }
+    :global(html:not(.is-still)) .diagram :global(.diagram__edge) {
+      stroke-dashoffset: calc((var(--f) + 0.08) * (1 - var(--diagram-seen)));
+      transition: stroke-dashoffset var(--dur-draw) var(--ease-ink)
+        calc(var(--o) * var(--draw-step) + (1 - var(--diagram-seen)) * 99999s);
+    }
+    :global(html:not(.is-still)) .diagram :global(.diagram__head) {
+      opacity: var(--diagram-seen);
+      transition: opacity 180ms linear
+        calc(var(--o) * var(--draw-step) + var(--dur-draw) * 0.62 + (1 - var(--diagram-seen)) * 99999s);
+    }
+  }
+}
+
+@media print {
+  .diagram :global(.diagram__steps)::details-content {
+    content-visibility: visible;
+  }
+}
+@media (forced-colors: active) {
+  .diagram :global(.diagram__wash),
+  .diagram :global(.diagram__band) {
+    fill: none;
+  }
+  .diagram :global(.diagram__node),
+  .diagram :global(.diagram__edge),
+  .diagram :global(.diagram__head) {
+    stroke: CanvasText;
+  }
+  .diagram :global(.diagram__label),
+  .diagram :global(.diagram__sub),
+  .diagram :global(.diagram__band-label) {
+    fill: CanvasText;
+  }
+}

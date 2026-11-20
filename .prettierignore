@@ -4,3 +4,4 @@ src/features/landscape/engine
 content/work/diagrams
 *.mdx
 .claude
+.next-*

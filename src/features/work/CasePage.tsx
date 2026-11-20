@@ -1,63 +1,90 @@
+import { Children, type ComponentProps, isValidElement, type ReactNode } from 'react';
 import { hood } from '@content/craft/hood';
 import { casePage } from '@content/pages/case';
 import { work } from '@content/pages/work';
-import { workCraft } from '@content/pages/work-craft';
+import { Inscription } from '@/components/page/Inscription';
 import { PageMain } from '@/components/page/PageMain';
-import { Strip } from '@/components/page/Strip';
 import { Diagram } from '@/components/ui/Diagram';
+import { Go } from '@/components/ui/Go';
 import { MarginNote } from '@/components/ui/MarginNote';
-import { TextAction } from '@/components/ui/TextAction';
 import { buildCraft } from '@/features/craft/build';
-import { Piece, type PieceKind } from '@/features/craft/client/Piece';
-import { LazyIsland } from '@/components/ui/LazyIsland';
-import { SearchShell } from '@/features/craft/SearchShell';
-import craftStyles from '@/features/craft/craft.module.css';
+import type { PieceKind } from '@/features/craft/client/Piece';
+import { Hood } from '@/features/craft/Hood';
 import { splitFigure } from '@/lib/figure';
-import { Inline } from '@/lib/inline';
+import { Inline, InlineLink } from '@/lib/inline';
 import { breadcrumbLd } from '@/lib/jsonld';
 import { plain } from '@/lib/markup';
-import type { Case } from './cases';
+import { allCases, type Case } from './cases';
 import { caseLd } from './jsonld';
 import styles from './work.module.css';
 
-/**
- * One Work case, on its own page (/work/<slug>/), opening inside the town. The first screen: the market's strip with
- * the case's title (the long title size) and its meta line in the mist.
- *
- * Below it:
- *   the case's summary set large at the left, with its figure in words, where the figure comes from and the NDA line
- *   where there is no public evidence; and at the right the page's moment: the figure itself as one large numeral,
- *   in full view beside the summary and inked into the painting: as the page scrolls it sinks into the mist at the
- *   town's shore and rises again behind the roofs (its twin stands between the painting's two leaves, body.css
- *   .inked; a projection is an outline, never filled ink: it is not yet real);
- *   its brush diagram across the frame (the flagships; on phones it folds behind "Read as steps");
- *   its labelled body (Problem · My part · Outcome and status · Evidence · Stack; a missing part is left out) with
- *   the glossary notes in the margin rail;
- *   on the three cases a live piece of "Under the hood" is tied to (content/craft/hood.ts `case`), that piece itself,
- *   running: the grammar on the agent's page, the search and its test on the assistant's, the lineage on the data
- *   operations';
- *   then "All six projects →", the ending downstream (Writing) inked into the painting.
- * Words: content/work/<slug>.mdx.
- */
-const LIVE: Record<string, PieceKind[]> = {
-  [hood.mask.case]: ['mask'],
-  [hood.eval.case]: ['eval'],
-  [hood.lineage.case]: ['lineage'],
+/** The live piece of "Under the hood" each case is tied to (content/craft/hood.ts `case`). */
+const LIVE: Record<string, PieceKind> = {
+  [hood.mask.case]: 'mask',
+  [hood.eval.case]: 'eval',
+  [hood.lineage.case]: 'lineage',
 };
+/** The part of a case's body its drawing follows. */
+const DRAWN_AFTER = 'my-part';
 
-export function CasePage({ c }: { c: Case }) {
+/**
+ * One Work case, on its own page (/work/<slug>/), inside the town.
+ *
+ * The title is inscribed in the town's sky with the organisation, the years and his role under it. Under the mist:
+ *   the figure, large, with its lead, its measure and where it comes from (a projection is drawn in outline; an
+ *   internal figure says so), and the summary beside it as the page's opening;
+ *   the case's body from its MDX, part by part (Problem, My part, The hard part, Outcome and status, Evidence,
+ *   Stack; a missing part is left out): each part's name in the left rail, its words in a reading measure, its
+ *   glossary notes in the margin beside the paragraph they explain; the case's drawing, where it has one, across
+ *   the page after "My part"; Evidence and Stack side by side as the small print;
+ *   Under the hood, on the three cases a live piece is tied to: that piece, running in the reader's browser;
+ *   the NDA line where there is no public evidence, the way back to the six, and the cases on either side.
+ * Words: content/work/<slug>.mdx, content/pages/case.ts.
+ */
+export async function CasePage({ c }: { c: Case }) {
   const { meta, Body } = c;
-  const long = meta.org.length > 12; // a long organisation takes its own line on phones
   const fig = splitFigure(meta.figure);
   const projected = meta.figure.basis === 'projected';
-  const basis = meta.figure.basis === 'internal' ? casePage.basis.internal : null;
-  const live = LIVE[meta.slug] ?? [];
-  // (the pieces' sizes, said before they are reached: computed from content/ at build)
-  const craft = live.length ? buildCraft() : null;
+  const live = LIVE[meta.slug];
+  // (the piece's size, said before it is reached, and whether the build could make it: computed from content/)
+  const craft = live ? buildCraft() : null;
+  const all = await allCases();
+  const at = all.findIndex((x) => x.slug === meta.slug);
+  const beside = [all[at - 1], all[at + 1]].filter((x) => x !== undefined);
+
+  const drawing = meta.diagram ? (
+    <Diagram
+      name={meta.diagram.name}
+      caption={meta.diagram.caption}
+      steps={meta.diagram.steps}
+      className={styles.drawing}
+    />
+  ) : null;
+
+  /** A part of the body (section.case__part, made by the MDX transform: its h2, then its content): the name in the
+   *  rail, the words beside it; the drawing follows "My part". */
+  function Part({ children }: ComponentProps<'section'>) {
+    const [head, ...rest] = Children.toArray(children);
+    const id = isValidElement<{ id?: string }>(head) ? head.props.id : undefined;
+    return (
+      <>
+        <section className={styles.part} data-part={id}>
+          <div className={styles.partRail}>{head}</div>
+          <div className={styles.partBody}>{rest}</div>
+        </section>
+        {id === DRAWN_AFTER ? drawing : null}
+      </>
+    );
+  }
+  const Label = ({ children, id }: ComponentProps<'h2'>): ReactNode => (
+    <h2 className="label" id={id}>
+      {children}
+    </h2>
+  );
+
   return (
     <PageMain
       page="case"
-      className={styles.page}
       ld={[
         caseLd(meta),
         breadcrumbLd([
@@ -66,102 +93,60 @@ export function CasePage({ c }: { c: Case }) {
         ]),
       ]}
     >
-      <Strip variant="sub" labelledBy="case-title" still="case">
-        <h1 className="page-title page-title--long" id="case-title">
+      <Inscription y="1.25rem">
+        <h1 className="title title--long" id="case-title">
           <Inline text={meta.title} />
         </h1>
-        <p className={`case__meta small${long ? ` ${styles.metaStack}` : ''}`}>
-          <span className="case__org">{meta.org}</span>
-          <span className="case__sep"> · </span>
-          <span className="nowrap">
-            {meta.years} · {meta.role}
-          </span>
+        <p className="title__under">
+          {meta.org} · {meta.years} · {meta.role}
         </p>
-      </Strip>
+      </Inscription>
 
-      {/* the summary and the figure in words at the left; the figure itself, inked into the painting, at the right */}
-      <section className={`part spread ${styles.lede}`} aria-label={work.title}>
-        <div className={styles.ledeText} data-veil="">
-          <p className={styles.summary}>
-            <Inline text={meta.summary} />
-          </p>
-          <p className={`case__fig ${styles.measure}`}>
-            <span>
-              {meta.figure.lead ? `${meta.figure.lead} ` : null}
-              <b>{meta.figure.value}</b> {meta.figure.note}
+      {/* the figure, large, and the summary beside it */}
+      <section className={`row sec sec--first ${styles.lede}`} aria-labelledby="case-title">
+        <div className={styles.fig}>
+          <p className={projected ? `num num--projected ${styles.figNum}` : `num ${styles.figNum}`}>
+            <span className={meta.figure.lead ? `num__lead ${styles.notation}` : 'num__lead'}>
+              {fig.lead || '\u00a0'}
             </span>
-            {basis ? (
-              // a real space and separator (not CSS content), kept with the mark so it never ends a line
-              <>
-                {' '}
-                <span className={`mono small nowrap ${styles.basis}`}>· {basis}</span>
-              </>
-            ) : null}
+            {fig.value}
           </p>
-          {meta.evidence.length ? null : <p className={`small ${styles.nda}`}>{casePage.nda}</p>}
+          <p className={`soft ${styles.measure}`}>
+            <Inline text={meta.figure.note} />
+          </p>
+          {meta.figure.basis === 'internal' ? <p className="rec">{casePage.basis.internal}</p> : null}
         </div>
-        {/* the numeral in full view, and its twin behind the town (work.module.css .figureBox) */}
-        <div className={styles.figureBox} aria-hidden="true" data-veil-clear="">
-          {(['front', 'inked'] as const).map((leaf) => (
-            <p
-              key={leaf}
-              className={[
-                'num',
-                leaf === 'inked' ? `inked ${styles.figureInk}` : '',
-                styles.figure,
-                projected ? styles.outline : '',
-              ]
-                .filter(Boolean)
-                .join(' ')}
-            >
-              {fig.lead ? <span className="num__lead">{fig.lead}</span> : null}
-              {fig.value}
-            </p>
-          ))}
-        </div>
+        <p className={`lead ${styles.summary}`}>
+          <Inline text={meta.summary} />
+        </p>
       </section>
 
-      {meta.diagram ? (
-        <section className="part" data-veil="">
-          <Diagram name={meta.diagram.name} caption={meta.diagram.caption} steps={meta.diagram.steps} fold />
-        </section>
-      ) : null}
-
-      <article className={`part case has-rail ${styles.case}`} aria-labelledby="case-title" data-veil="">
-        <Body components={{ Note: MarginNote }} />
+      <article className={`row ${styles.body}`} aria-labelledby="case-title">
+        <Body components={{ Note: MarginNote, section: Part, h2: Label }} />
       </article>
 
-      {craft
-        ? live.map((k) => (
-            <section
-              className={`part spread ${styles.live}`}
-              key={k}
-              id={`hood-${k}`}
-              aria-labelledby={`hood-${k}-title`}
-            >
-              {k === 'eval' ? (
-                // the assistant's page: the search itself, then its test (whose words speak of "the search above")
-                <div className={`${craftStyles.piece} ${styles.liveSearch}`} id="hood-search" data-veil="">
-                  <LazyIsland island="search" props={{ size: craft.sizes.corpus }}>
-                    <SearchShell size={craft.sizes.corpus} />
-                  </LazyIsland>
-                </div>
-              ) : null}
-              <div className={`${craftStyles.piece} ${styles.livePiece}`} data-veil="">
-                <h2 className="h-ink h-ink--s" id={`hood-${k}-title`}>
-                  {workCraft.hood[k].title}
-                </h2>
-                <Piece kind={k} size={craft.sizes[k]} here={meta.slug} />
-              </div>
-            </section>
-          ))
-        : null}
+      {live && craft && (live !== 'mask' || craft.mask) ? <Hood kind={live} size={craft.sizes[live]} /> : null}
 
-      <p className={`part ${styles.back}`} data-veil="">
-        <TextAction href={work.back.href} arrow>
-          {work.back.label.replace(/\s*→$/, '')}
-        </TextAction>
-      </p>
+      <footer className={`row sec ${styles.end}`}>
+        <div className={styles.endSay}>
+          {meta.evidence.length ? null : <p className={`rec ${styles.nda}`}>{casePage.nda}</p>}
+          <p>
+            <Go href={work.back.href}>{work.back.label.replace(/\s*→$/, '')}</Go>
+          </p>
+        </div>
+        <ul className={styles.beside} role="list">
+          {beside.map((x) => (
+            <li key={x.slug}>
+              <p className="rec">{x.years}</p>
+              <p className="h-item">
+                <InlineLink href={x.href}>
+                  <Inline text={x.title} />
+                </InlineLink>
+              </p>
+            </li>
+          ))}
+        </ul>
+      </footer>
     </PageMain>
   );
 }

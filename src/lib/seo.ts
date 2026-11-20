@@ -8,7 +8,7 @@ import og from '../../public/og/manifest.json';
 export const absolute = (path: string) => new URL(path, `${site.url}/`).toString();
 
 /**
- * The page's link-preview card (public/og/<page>.jpg, cut from the page's own hero by tools/build-og.ts and
+ * The page's link-preview card (public/og/<page>.jpg, cut from the page's own first screen by tools/build-og.ts and
  * recorded in its manifest): Home, Work, Writing, the Résumé and Contact each have their own; a case or a note has
  * its own once it is cut, and its section's until then.
  */

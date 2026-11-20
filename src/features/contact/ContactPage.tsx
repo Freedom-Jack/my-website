@@ -1,85 +1,112 @@
 import { contact } from '@content/pages/contact';
+import { home } from '@content/pages/home';
 import { resumePage } from '@content/pages/resume';
 import { site } from '@content/site';
+import { Inscription } from '@/components/page/Inscription';
 import { PageMain } from '@/components/page/PageMain';
-import { Strip } from '@/components/page/Strip';
 import { Inline } from '@/lib/inline';
 import { CopyEmail } from './CopyEmail';
 import { LocalTime } from './LocalTime';
 import styles from './contact.module.css';
 
 /**
- * Contact (/contact/). The first screen: the crossing's strip with the title and its one sentence in the mist.
+ * Contact (/contact/): the ferry crossing, the end of the scroll, where the paper is left open for the visitor.
  *
- * Below it: the address, the page's focal point, written large in the name face across the water, with
- * "Copy email" beside it: pressing it presses the seal ("Copied" said once, plainly); the response line; the other
- * ways across the frame, each a mono label over its link; the time zone with the hour where he is. A short page: it
- * ends on the crossing's closing scene and then on the tail (no ending line: Contact is the last place).
- * Words: content/pages/contact.ts.
+ * The title is inscribed in the crossing's sky, with where he is (and the hour there) under it. Under the mist:
+ *   the invitation at the left, and at the right the address, the page's one large line, in the brush, filling its
+ *   six columns; "Copy email" under it presses the seal, beside the one line about answering;
+ *   the other ways, three across a ruled row;
+ *   and, for someone who has to introduce him, his third-person line beside his portrait.
+ * Then open paper and the tail: nothing follows Contact. No form.
+ * Words: content/pages/contact.ts; the address, the profiles, the city and the bio: content/site.ts.
  */
 export function ContactPage() {
-  const [user, domain] = site.email.split('@');
   const [whereA, whereB] = contact.where
     .replace('{city}', site.city)
     .replace('{country}', site.countryName)
     .replace('{timeZone}', site.timeZone)
     .split('{time}');
+  const photo = home.about.photo;
   return (
-    <PageMain page="contact" glimpseEnd>
-      <Strip variant="sub" labelledBy="contact-title" still="contact">
-        <h1 className="page-title" id="contact-title">
+    <PageMain page="contact" className={styles.contact}>
+      <Inscription>
+        <h1 className="title" id="contact-title">
           {contact.title}
         </h1>
-        <p className="lead">
+        <p className={`title__under ${styles.where}`}>
+          {whereA}
+          <LocalTime zone={site.timeZoneId} text={contact.time} />
+          {whereB}
+        </p>
+      </Inscription>
+
+      {/* the invitation, and the address: the page's one large line */}
+      <section className={`row sec sec--first ${styles.first}`} aria-labelledby="contact-title">
+        <p className={`lead ${styles.intro}`}>
           <Inline text={contact.intro} />
         </p>
-      </Strip>
-
-      <section className="part" aria-label={contact.emailLabel}>
-        <div data-veil="">
-          <p className="tag">{contact.emailLabel}</p>
-          <div className={styles.contact__mail}>
-            <p className={styles.contact__email}>
-              <a href={`mailto:${site.email}`}>
-                {user}@<wbr />
-                {domain}
-              </a>
-            </p>
+        <div className={styles.mail}>
+          <p className="label" id="email-label">
+            {contact.emailLabel}
+          </p>
+          <p className={`brush ${styles.address}`}>
+            <a href={`mailto:${site.email}`} id="email-address" aria-labelledby="email-label email-address">
+              {site.email}
+            </a>
+          </p>
+          <div className={styles.under}>
             <CopyEmail email={site.email} label={contact.copy.label} done={contact.copy.done} />
+            <p className={`small soft ${styles.response}`}>{contact.response}</p>
           </div>
-          <p className={styles.contact__response}>{contact.response}</p>
         </div>
-        <dl className={styles.contact__list} data-veil="">
-          <div className={styles.contact__way}>
-            <dt className="mono">{contact.ways.github}</dt>
-            <dd>
-              <a className="brush-link" href={site.links.github.url}>
-                {site.links.github.handle}
-              </a>
+      </section>
+
+      {/* the other ways: three across a ruled row */}
+      <div className={`row sec ${styles.waysRow}`}>
+        <dl className={styles.ways}>
+          <div className={styles.way}>
+            <dt className="label">{contact.ways.github}</dt>
+            <dd className="h-item">
+              <a href={site.links.github.url}>{site.links.github.handle}</a>
             </dd>
           </div>
-          <div className={styles.contact__way}>
-            <dt className="mono">{contact.ways.linkedin}</dt>
-            <dd>
-              <a className="brush-link" href={site.links.linkedin.url}>
-                {site.name}
-              </a>
+          <div className={styles.way}>
+            <dt className="label">{contact.ways.linkedin}</dt>
+            <dd className="h-item">
+              <a href={site.links.linkedin.url}>{site.name}</a>
             </dd>
           </div>
-          <div className={styles.contact__way}>
-            <dt className="mono">{contact.ways.resume}</dt>
-            <dd>
-              <a className="brush-link" href="/resume.pdf" target="_blank" rel="noopener" type="application/pdf">
+          <div className={styles.way}>
+            <dt className="label">{contact.ways.resume}</dt>
+            <dd className="h-item">
+              <a href="/resume.pdf" type="application/pdf">
                 {resumePage.pdf}
-                <span className="visually-hidden">, opens in a new tab</span>
               </a>
             </dd>
           </div>
         </dl>
-        <p className={`small ${styles.contact__where}`} data-veil="">
-          {whereA}
-          <LocalTime zone={site.timeZoneId} text={contact.time} />
-          {whereB}
+      </div>
+
+      {/* for someone who has to introduce him: his third-person line beside his portrait */}
+      <section className={`row sec ${styles.bio}`} aria-labelledby="bio-title">
+        <div className="sec__rail">
+          <h2 className="label" id="bio-title">
+            {contact.bio.label}
+          </h2>
+        </div>
+        <div className={`portrait ${styles.photo}`}>
+          {/* eslint-disable-next-line @next/next/no-img-element -- one static JPEG, below the first screen */}
+          <img
+            src={photo.src}
+            width={photo.width}
+            height={photo.height}
+            alt={photo.alt}
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+        <p className={`say ${styles.bioLine}`}>
+          <Inline text={site.bio} />
         </p>
       </section>
     </PageMain>

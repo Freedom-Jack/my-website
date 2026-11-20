@@ -4,25 +4,21 @@ import { useEffect, useRef } from 'react';
 import { isStill } from '@/features/chrome/still';
 import { warmFigureSource } from './engine/figure-source';
 import type { PlateStage } from './plates/sink';
-import type { Veils } from './plates/veils';
-import { watchGlimpseStills } from './glimpse-stills';
 import { cadence, gpuOK, limitFor as limitForState, quietNow, saveData, setLive, watchFrames } from './probe';
 import { landscape } from './store';
 import { currentMain, placeOf, targetsOf } from './targets';
 import type { EngineModule, LandscapeHandle } from './types';
 
 /**
- * The landscape: one fixed canvas behind everything, persistent across pages (it lives in the root layout).
- * The engine (./engine) paints the page's scene into its windows (the strip, the closing), the living ground
- * on wide screens, and the faint ink horizon between them on desktops. Decorative.
+ * The live painting: the engine's canvas and its plates, inside the band (components/layout/Band), persistent across
+ * pages. Decorative.
  *
- * On every device the page opens on its pre-cut still (components/page/Strip): the first screen is complete before
- * any script. The engine is asked for only after the probe (./probe.ts), so a page that will not paint fetches 0
- * engine bytes. The engine's module is then one task, its mount another (the context and the figure worker; the
- * shaders link off the main thread), and its first scene a frame of its own, so no step holds the main thread long on
- * a phone; its first frame lands finished under the still, which fades out. Once live, two slow frames in a rolling
- * second hand the page back to the still. Without a usable renderer html.no-landscape shows the static ridge hint
- * instead. Strict-Mode safe: mountLandscape() replaces any earlier mount on the canvas.
+ * Every device opens on the band's still (the same stage, cut ahead), so the first screen is complete before any
+ * script. The engine itself is for wide screens with a hardware GPU: it is asked for only at 1200 px and up and only
+ * after the probe (./probe.ts), so a phone, a tablet and a page that will not paint fetch 0 engine bytes and run no
+ * frame; there the still is the painting, moved by the page's own scroll timeline. Once live the stage lands finished
+ * over the still, and its layers (the plates) move with the scroll on the compositor. A window narrowed under 1200 px
+ * rests the engine; widened again, it resumes. Strict-Mode safe: mountLandscape() replaces any earlier mount.
  */
 const afterFirstPaint = () =>
   new Promise<void>((resolve) => {
@@ -38,9 +34,11 @@ const whenIdle = (timeout: number) =>
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 const QA = process.env.NEXT_PUBLIC_INK_QA === '1';
-/** QA builds only: `window.__inkLive = true` (an init script) skips the probe and mounts regardless (the stills and
- *  cards tools run on a software rasteriser; a test that needs the engine under reduced motion sets it too). */
+/** QA builds only: `window.__inkLive = true` (an init script) skips the probe and mounts regardless (the tools that
+ *  cut the stills run it so). */
 const qaForced = () => QA && (window as unknown as { __inkLive?: boolean }).__inkLive === true;
+/** The stage's width class (engine/compose.ts widthClass: 1200 px, as px). */
+const WIDE = '(min-width: 1200px)';
 
 export function Landscape() {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -54,22 +52,13 @@ export function Landscape() {
     let started = false;
     let handle: LandscapeHandle | null = null;
     let stopWatch: (() => void) | null = null;
-    // THE PLATES: on wide screens the stage is the page's own layers, moved by the browser (plates/sink.ts), and the
-    // paper behind the words is the page's own too (plates/veils.ts), scrolling with them. Both modules come with the
-    // engine's request, after the probe (they serve nothing before the painting comes, and every kilobyte of script
-    // before the first screen has settled counts on a phone).
     let plates: PlateStage | null = null;
-    let veils: Veils | null = null;
-    // the windows' stills below the fold get their sources as the reader nears them (the navigation does the same for
-    // every later page)
-    const stopStills = watchGlimpseStills(currentMain());
-    // (the tail's scroll map gets its picture the same way, once: the tail stays across pages)
-    const stopTail = watchGlimpseStills(document.querySelector<HTMLElement>('.site-footer'));
-    // QA builds only: the probe's marks (tests/e2e/probe.spec.ts reads them: why the still stands)
+    const wide = matchMedia(WIDE);
+    // QA builds only: the probe's marks (why the still stands)
     const mark = (name: string) => {
       if (QA) performance.mark(`ink:${name}`);
     };
-    /** No painting will come: the still is the page's painting (and the closing keeps the static ridge hint). */
+    /** No painting will come: the still is the page's painting. */
     const stillHere = (why: string) => {
       mark(`still:${why}`);
       setLive('still');
@@ -81,21 +70,24 @@ export function Landscape() {
       started = true;
       try {
         setLive('probing');
-        // the checks that need no frame: the quiet forms, Save-Data, a hardware GPU (never a byte of the engine without them)
         const forced = qaForced();
+        // the checks that need no frame: the width, the quiet forms, Save-Data (never a byte of the engine without them)
+        if (!wide.matches) {
+          started = false; // (a window widened later asks again, onWide below)
+          return stillHere('narrow');
+        }
         if (!forced && quietNow()) {
-          started = false; // (a quiet form: "Still the landscape" switched off later asks again, onStill below)
+          started = false; // ("Still the landscape" switched off later asks again, onStill below)
           return stillHere('quiet');
         }
         if (!forced && saveData()) return stillHere('save-data');
-        // the engine's module is asked for after the first paint and an idle moment: it is never on the words' critical
-        // path
+        // the engine's module is asked for after the first paint and an idle moment: never on the words' critical path
         await afterFirstPaint();
         await whenIdle(1500);
         if (dead) return;
         if (!forced && !gpuOK()) return stillHere('gpu');
         mark('gpu:ok');
-        // the cadence: 1.5 s of frames with nothing else due (one retry: a one-off hiccup is not a slow phone)
+        // the cadence: 1.5 s of frames with nothing else due (one retry: a one-off hiccup is not a slow machine)
         if (!forced) {
           let ok = await cadence();
           if (!ok && !dead) {
@@ -106,30 +98,26 @@ export function Landscape() {
           if (dead) return;
           if (!ok) return stillHere('cadence');
         }
-        // the figure worker is spawned with the engine's request, so its chunk (the sets) downloads beside the
-        // engine's and the page's figures are drawn by the time the engine mounts (the engine takes the source over)
+        // the figure worker is spawned with the engine's request, so its chunk downloads beside the engine's
         warmFigureSource();
-        // (typed as the contract, so the engine's real signature is checked against it)
-        const [mod, sink, veiling]: [EngineModule, typeof import('./plates/sink'), typeof import('./plates/veils')] =
-          await Promise.all([import('./engine'), import('./plates/sink'), import('./plates/veils')]);
+        const [mod, sink]: [EngineModule, typeof import('./plates/sink')] = await Promise.all([
+          import('./engine'),
+          import('./plates/sink'),
+        ]);
         if (dead) return;
-        // (the plates and the veils are made in a task of their own, at an idle moment: with the engine's evaluation
-        // they would make one task of 230 ms on a throttled phone)
         await whenIdle(500);
         if (dead) return;
         plates ??= platesRef.current ? sink.createPlateStage(platesRef.current) : null;
-        veils ??= plates ? veiling.createVeils() : null;
-        // the module's evaluation is one task; the mount is another, at the next idle moment and after a rendered
-        // frame, so its reads of the page's boxes find the layout clean (a font swap or a style change laid out inside
-        // the mount's task costs it 50-70 ms on a phone)
+        // the mount is a task of its own, at an idle moment and after a rendered frame, so its reads of the page's
+        // boxes find the layout clean
         await whenIdle(500);
         await afterFirstPaint();
         if (dead) return;
         const main = currentMain();
         const place = main ? placeOf(main) : null;
-        // the strip's still (components/page/Strip) is the first screen's painting: the engine's first frame then waits
-        // for the page's figures and lands finished under it (no bloom: the still is already the settled painting)
-        const still = !!main?.querySelector('[data-landscape="strip"] .strip__still');
+        // the band's still is the first screen's painting: the engine's first frame waits for the page's figures and
+        // lands finished over it (no bloom: the still is already the settled painting)
+        const still = !!document.querySelector('.band__still img');
         handle = mod.mountLandscape(canvas, {
           stretch: place?.stretch ?? 0,
           distance: place?.distance ?? 'level',
@@ -143,25 +131,22 @@ export function Landscape() {
         });
         html.classList.toggle('no-landscape', handle.mode === 'static');
         landscape.set(handle);
-        // QA builds only: the probes judge the painting through the handle, and tools/build-heroes.ts remounts
-        // the engine module itself to cut the heroes' stills
         if (QA)
           Object.assign(window as unknown as { __ink?: LandscapeHandle; __inkEngine?: EngineModule }, {
             __ink: handle,
             __inkEngine: mod,
           });
         if (handle.mode !== 'webgl' && !forced) {
-          // no WebGL after all (a context refused at the mount): the still is the painting; Canvas2D would paint a
-          // plainer one over it, so it rests
+          // no WebGL after all (a context refused at the mount): the still is the painting
           setLive('still');
+          html.classList.add('no-landscape');
           if (handle.mode === 'canvas2d') handle.pause();
           return;
         }
         setLive('on');
-        // live: two slow frames inside a rolling second hand the page back to its still (the engine rests), at the
-        // limit probe.ts limitFor sets for the engine's state: it catches a slow place to read, and a slow page change.
-        // The watch starts once the engine's first frame has landed and settled (the boot is sliced and gated by the
-        // task budget, not by this rule: at native speed the first scene costs one 33 ms frame).
+        // live: two slow frames inside a rolling second hand the page back to its still (the engine rests). The watch
+        // starts once the first frame has landed and settled; none while the plates show (the reading state draws
+        // nothing per frame, so a slow frame there is not the painting's).
         if (!forced) {
           const h = handle;
           const limitFor = () => {
@@ -177,12 +162,11 @@ export function Landscape() {
             while (!dead && busy() && performance.now() - t0 < 8000) await wait(200);
             await wait(1000);
             if (dead) return;
-            // (THE PLATES: no watch. The reading state draws nothing per frame, so a slow frame there is not the
-            // painting's, and the watch itself would be a second loop at the display's rate)
             if ((h.stats() as { plates?: { on?: boolean } }).plates?.on) return;
             stopWatch = watchFrames(
               () => {
                 setLive('still');
+                html.classList.add('no-landscape');
                 handle?.pause();
               },
               { limitFor },
@@ -202,17 +186,36 @@ export function Landscape() {
       if (!(e as CustomEvent<{ on: boolean }>).detail?.on && !started) void boot();
     };
     document.addEventListener('ink:still', onStill);
+    // the window crosses 1200 px: under it the engine rests and the still is the painting; over it the engine comes
+    // (or comes back)
+    const onWide = () => {
+      if (dead) return;
+      if (!wide.matches) {
+        if (handle && handle.mode === 'webgl') {
+          handle.pause();
+          html.classList.add('no-landscape');
+          setLive('still');
+          landscape.set(null);
+        }
+        return;
+      }
+      if (handle && handle.mode === 'webgl') {
+        html.classList.remove('no-landscape');
+        landscape.set(handle);
+        handle.resume();
+        handle.refresh();
+        setLive('on');
+      } else if (!started) void boot();
+    };
+    wide.addEventListener('change', onWide);
     return () => {
       dead = true;
       stopWatch?.();
-      stopStills();
-      stopTail();
       document.removeEventListener('ink:still', onStill);
+      wide.removeEventListener('change', onWide);
       handle?.destroy();
       plates?.destroy();
       plates = null;
-      veils?.destroy();
-      veils = null;
       landscape.reset();
       html.classList.remove('no-landscape');
       html.removeAttribute('data-live');
@@ -222,13 +225,10 @@ export function Landscape() {
   return (
     <>
       {/* THE PLATES in two leaves: what lies behind the place (the sky, the light, the far ranges) and the place itself
-          with everything in front of it. Words a page inks into the painting (styles/body.css .inked) stand between
-          the two, so a peak or a roof passes in front of the letters as the scroll slides. The wrapper has no box of
-          its own (display: contents): each leaf is a layer of the page's root. */}
-      <div ref={platesRef} className="plates" aria-hidden="true">
+          with everything in front of it. The wrapper has no box of its own (display: contents). */}
+      <div ref={platesRef} className="plates">
         <div className="plates__back">
           <canvas data-plate="1" />
-          <canvas data-plate="10" />
         </div>
         <div className="plates__fore">
           <div className="plates__front">
@@ -241,7 +241,7 @@ export function Landscape() {
           <canvas data-plate="5" />
         </div>
       </div>
-      <canvas ref={ref} className="landscape" aria-hidden="true" />
+      <canvas ref={ref} className="landscape" />
     </>
   );
 }

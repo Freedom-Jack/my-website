@@ -30,6 +30,7 @@ import { VEILS, TRAIL, LIFE } from './shaders';
 import { paletteName } from './palette';
 import { figureMeta } from './figure-meta';
 import { el } from '../elements';
+import { BAND } from '../band';
 import { createFigureSource, type FigureSource } from './figure-source';
 import { framingAt, pageSpec, layerScaleAt, SCENES } from './compose';
 import type { Distance, Framing, Spec, WindowKind } from './compose';
@@ -49,15 +50,12 @@ export interface EngineHandle extends LandscapeHandle {
 
 const S_SCENE = 2, S_PRESENT = 4, S_MEASURE = 8, S_SCROLL = 16, S_ALL = 31;   // dirty flags
 const ARRIVE_END = 1.7;   // s, the bloom is over (matches the shader's "settled")
-const LONG_CAP = 1920;    // internal buffer: long side cap
+const LONG_CAP = 3072;    // internal buffer: long side cap (the canvas is the band: 1 / BAND.zoom of the window wide)
 const AMBIENT_MS = 70;    // drifting mist: < 15 fps on every GPU
 // THE PLATES: the stage developed into the page's own layers on wide screens (see the controller's section)
 const PLATE_MS = 33;      // their small life: <= 30 fps, and only the part of a plate that holds it is repainted
-const PLATE_IDLE = 300000;   // ...asleep after five minutes without input (a part of a plate costs little)
+const PLATE_IDLE = 60000;    // ...asleep after a minute without input (the band is on every screen of every page)
 const PLATE_TILE = 2048;  // a plate is developed in tiles no larger than this (and never larger than the darkroom)
-/** How far down the far layer's top is held under the header's band (CSS px: the band's foot, the ease below it and
- *  its billows), which is also the scroll over which the page lets that plate go. */
-const PLATE_BAND = 320;
 const POINTER_MS = 33;    // the wake: <= 30 fps
 const IDLE_MS = 45000;    // no pointer / scroll / key / visibility input for this long: the drift...
 const EASE_OUT_MS = 2000; // ...eases to a stop over ~2 s (the loop then sleeps)
@@ -204,8 +202,8 @@ const PART = {
  * from the east (drift, box widths), and the windows into the painting take their east-going, level poses (GLIMPSE).
  */
 const UNROLL = {
-  share: 0.6,        // of the way from this page's hero to the next place's
-  reach: 0.35,       // stretches: Contact's travel (no next place; the crossing's open water runs on)
+  share: BAND.share, // of the way from this page's hero to the next place's (band.ts: the page's styles use it too)
+  reach: BAND.reach, // stretches: Contact's travel (no next place; the crossing's open water runs on)
   maxRate: 0.75,     // CSS px of travel per CSS px of scroll at most (a short page travels less; the pan carries more)
   holdAt: 0.25,      // a place's last named thing (compose.ts Frame.holdU) stops the travel this far into the margin
                      // (of the margin's width, from the reading column's edge): the margin shows a drawn place to the end
@@ -906,7 +904,7 @@ function controller(canvas: HTMLCanvasElement, opts: MountOptions): EngineHandle
   let drawnFigs = false;     // the first full scene is up (a layer ready before it follows the bloom instead of fading)
   const figSource = () => (figSrc ??= createFigureSource());
   const layerScale = (k: number) => {
-    if (cls === 'wide') return Math.round(Math.min(cssW || innerWidth, 1700) / 40) * 40;
+    if (cls === 'wide') return Math.round(Math.min(innerWidth, 1700) / 40) * 40;   // (the window's width: the canvas is the band, wider)
     return layerScaleAt(k, cls, cssW || innerWidth);
   };
   /** The closing's layer scale at stretch k: the strip's when the closing shows it within LAYER_SHARE, else its own
@@ -1193,10 +1191,11 @@ function controller(canvas: HTMLCanvasElement, opts: MountOptions): EngineHandle
   // ---------------------------------------------------------------- sizing
   function resize(force = false) {
     if (!renderer) return false;
-    const r = surface.getBoundingClientRect();
-    const w = Math.round(r.width) || innerWidth;
-    const h = Math.round(r.height) || innerHeight;
-    rect = { left: r.left, top: r.top, width: w, height: h };
+    // (the canvas's layout size, never its rect: it is the band's own box (styles/band.css: 1 / BAND.zoom of the
+    // window's width, the band's height), which a scroll scales; at the page's top its origin is the viewport's)
+    const w = Math.round(surface.clientWidth) || innerWidth;
+    const h = Math.round(surface.clientHeight) || innerHeight;
+    rect = { left: 0, top: 0, width: w, height: h };
     const c = classNow();
     const clsChanged = c !== cls;
     cls = c;
@@ -1929,6 +1928,8 @@ function controller(canvas: HTMLCanvasElement, opts: MountOptions): EngineHandle
     // next place comes in from the east as the painting slides), a pan's combined layer as wide as the slide still is;
     // and with the same ridge columns per CSS px as the viewport-wide painting (the extension rounds up to whole
     // columns), so the rest frame keeps its silhouettes to the pixel.
+    // (THE BAND: the canvas is the band's own box, 1 / BAND.zoom of the window's width, so the settled band is full of
+    // painting; the reach below is the page's travel beyond that)
     const left0 = Math.max(0, -st.slidePx) * (single ? st.slideK : 1);
     // (every layer wider than its furthest travel by 64 px, so no crop's edge can come into view)
     const sBase = Math.min(1536, Math.max(320, Math.round(W / 1.25)));
@@ -2390,12 +2391,9 @@ function controller(canvas: HTMLCanvasElement, opts: MountOptions): EngineHandle
     const wx = cssW + st.ext;                       // the layers' painted width (CSS px)
     const P = (kind: PlateKind, l: number, t: number, w: number, h: number): Plate => ({ kind, css: [l, t, w, h],
       uv: [l / cssW, 1 - (t + h) / vh, w / cssW, h / vh], px: [Math.max(1, Math.round(w * s)), Math.max(1, Math.round(h * s))] });
-    // the far plate travels west with the rest, so it holds the sky whole; its top under the header's paper band (the
-    // sky's way out of the paper: shaders.ts, the band) is a plate of its own over it, the far plate's own rows, pixel
-    // for pixel, so the two meet without a line
+    // the far plate travels west with the rest, so it holds the sky whole (the header stands on the sky itself)
     const far = P(1, 0, 0, wx, cssH);
-    const bp = Math.min(far.px[1], Math.round(PLATE_BAND * s));
-    out.push(far, { ...P(10, 0, 0, far.css[2], (bp / far.px[1]) * cssH), px: [far.px[0], bp], off: far.px[1] - bp });
+    out.push(far);
     if (!st.single) for (let j = 1; j < 3; j++) {
       const c = st.layers[j].crop;
       if (c && st.layers[j].painted && c[2] > c[0] && c[3] > c[1]) out.push(P((j + 1) as PlateKind, c[0], c[1], c[2] - c[0], c[3] - c[1]));
@@ -2461,7 +2459,7 @@ function controller(canvas: HTMLCanvasElement, opts: MountOptions): EngineHandle
     return {
       boxes,
       travel: Math.max(0, Math.round(-st.slidePx * 100) / 100),
-      maxY: Math.max(1, Math.round(pageMaxY)), band: PLATE_BAND,
+      maxY: Math.max(1, Math.round(pageMaxY)),
       still: quantized(),
     };
   }
@@ -2506,10 +2504,9 @@ function controller(canvas: HTMLCanvasElement, opts: MountOptions): EngineHandle
       if (B.kind === 5) continue;
       const e = plateCanvas(B.kind);
       // (the band's plate lies over the far plate's top: what moves on the far plate there moves on it too)
-      const holds = B.kind === lk || (B.kind === 10 && lk === 1);
+      const holds = B.kind === lk;
       if (all || (e && (e.c.width !== B.px[0] || e.c.height !== B.px[1]))) { develop(Uf, B); if (holds && u) plateLast.set(B.kind, platePart(B, u)); continue; }
       if (!holds || !u || !seen) continue;
-      if (B.kind === 10 && (window.scrollY || 0) > PLATE_BAND) continue;   // (let go: nothing of it shows)
       const now = platePart(B, u);
       develop(Uf, B, partUnion(plateLast.get(B.kind), now));
       plateLast.set(B.kind, now);
@@ -2524,7 +2521,7 @@ function controller(canvas: HTMLCanvasElement, opts: MountOptions): EngineHandle
       sink!.developed?.(6);
     }
     // a plate the stage does not hold now is blank
-    for (const k of [2, 3, 4, 5, 10] as PlateKind[]) if (!list.some((B) => B.kind === k)) { const e = plateCtx.get(k); if (e && e.c.width > 1) { e.c.width = 1; e.c.height = 1; } }
+    for (const k of [2, 3, 4, 5] as PlateKind[]) if (!list.some((B) => B.kind === k)) { const e = plateCtx.get(k); if (e && e.c.width > 1) { e.c.width = 1; e.c.height = 1; } }
     if (!platesShown) { platesShown = true; sink!.show(true); }
     // the darkroom is only as large as what still moves (every copy out of it copies the whole of it): after the
     // plates were developed whole it shrinks to the largest moving part; a larger part grows it again (gl.ts plate)

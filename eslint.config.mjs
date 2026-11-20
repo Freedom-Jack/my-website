@@ -6,6 +6,7 @@ const config = [
   {
     ignores: [
       '.next/**',
+      '.next-*/**',
       '.claude/**', // (Claude Code's own worktrees and settings: not the site's code)
       'node_modules/**',
       'public/**',

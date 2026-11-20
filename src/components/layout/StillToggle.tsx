@@ -10,8 +10,8 @@ const subscribe = (fn: () => void) => {
 };
 
 /**
- * The tail's "Still the landscape": a toggle (aria-pressed) whose label never changes; pressed, its underline stays
- * in the burnt ink. Hidden without JS (it does nothing without it).
+ * The tail's "Still the landscape": a toggle (aria-pressed) whose label never changes. Hidden without JS (it does
+ * nothing without it).
  */
 export function StillToggle() {
   const on = useSyncExternalStore(subscribe, isStill, () => false);

@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import { notFoundPage } from '@content/pages/not-found';
+import { Inscription } from '@/components/page/Inscription';
 import { PageMain } from '@/components/page/PageMain';
-import { Strip } from '@/components/page/Strip';
-import { TextAction } from '@/components/ui/TextAction';
+import { Go } from '@/components/ui/Go';
 import { LostMark } from '@/features/chrome/current';
 import { InlineLink } from '@/lib/inline';
+import styles from './not-found.module.css';
 
 export const metadata: Metadata = {
   title: notFoundPage.meta.title,
@@ -12,30 +13,28 @@ export const metadata: Metadata = {
 };
 
 /**
- * The 404: the lone peak's strip with the title, its one line and the way back in its mist (wide), on paper below
- * it on narrower screens. Under it the page's own number stands large in ink, its foot in the peak's mist
- * (decorative: the title says it), and the tail's scroll in miniature is the way back to every place. No closing
- * scene and no ending: the path ends in mist.
+ * The 404: off the map, a lone peak and a path into mist. The title and its one line are inscribed in the peak's
+ * sky; under the mist, the way back and one other way. Nothing else: the paper is empty down to the tail, whose
+ * scroll in miniature leads to every place. No way on (PageMain), and no place is marked "you are here" (LostMark).
  */
 export default function NotFound() {
   const t = notFoundPage;
   return (
     <PageMain page="not-found">
-      <Strip variant="sub" labelledBy="lost-title">
-        <h1 className="page-title" id="lost-title">
+      <Inscription>
+        <h1 className="title title--long" id="lost-title">
           {t.title}
         </h1>
-        <p className="lead">{t.line}</p>
-        <p className="actions">
-          <TextAction href={t.primary.href} arrow>
-            {t.primary.label}
-          </TextAction>
-          <InlineLink href={t.secondary.href}>{t.secondary.label}</InlineLink>
+        <p className="title__under">{t.line}</p>
+      </Inscription>
+      <section className="row sec sec--first" aria-labelledby="lost-title">
+        <p className={styles.ways}>
+          <Go href={t.primary.href}>{t.primary.label}</Go>
+          <InlineLink href={t.secondary.href} className={styles.other}>
+            {t.secondary.label}
+          </InlineLink>
         </p>
-      </Strip>
-      <p className="num lost-num" aria-hidden="true">
-        404
-      </p>
+      </section>
       <LostMark />
     </PageMain>
   );

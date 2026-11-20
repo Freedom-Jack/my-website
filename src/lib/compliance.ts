@@ -1,7 +1,9 @@
 /**
  * The hard rules as patterns (CLAUDE.md), shared by the content checks, the GitHub rules, the PDF gate and
  * tools/compliance.ts. No phone number anywhere; no street address; no PMP; never the old résumé PDF; the only
- * Chinese character on the site is the seal's (and the seal is an outline, so no CJK text at all ships).
+ * Chinese character on the site is the seal's (and the seal is an outline, so no CJK text at all ships); the
+ * visible name never carries "(Jack)"; and no page links to this site's own repository before the launch gate.
+ * (Plain TypeScript with no imports: the tools run it in Node as it is.)
  */
 
 /** A phone number: North American 3-3-4 groups, an international +number, ten digits in a row, or a tel: link. */
@@ -64,4 +66,51 @@ export function findBreaches(text: string, { allowOldPdfRedirect = false, code =
   if (!allowOldPdfRedirect) add('old-pdf', OLD_PDF);
   add('street', STREET);
   return out;
+}
+
+/**
+ * The name's search form, "Qijin (Jack) Xu", belongs to titles and search data only (<title>, meta, JSON-LD): the
+ * name a reader sees is "Qijin Xu" ("Goes by Jack" on the résumé). Tested against a page's visible text.
+ */
+export const NAME_IN_PARENS = /\(\s*Jack\s*\)/i;
+
+const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
+const decode = (text: string) =>
+  text.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (whole, name: string) => {
+    if (name[0] !== '#') return ENTITIES[name.toLowerCase()] ?? whole;
+    const code = name[1] === 'x' || name[1] === 'X' ? parseInt(name.slice(2), 16) : parseInt(name.slice(1), 10);
+    return Number.isFinite(code) && code > 0 && code <= 0x10ffff ? String.fromCodePoint(code) : whole;
+  });
+
+/**
+ * What a reader of a served HTML page sees or hears: the body's text, and the words its elements carry in alt,
+ * aria-label, title and placeholder. Not the <head> (titles and search data), not scripts (JSON-LD, the framework's
+ * payload), not styles. The page as served, before any script runs.
+ */
+export function visibleText(html: string): string {
+  const at = html.search(/<body\b/i);
+  const body = (at < 0 ? html : html.slice(at))
+    .replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(/<(script|style|template)\b[\s\S]*?<\/\1\s*>/gi, ' ');
+  const said: string[] = [];
+  for (const tag of body.matchAll(/<[a-z][^>]*>/gi))
+    for (const a of tag[0].matchAll(/\s(?:alt|aria-label|title|placeholder)="([^"]*)"/gi)) said.push(a[1]!);
+  return decode(`${body.replace(/<[^>]*>/g, ' ')} ${said.join(' ')}`)
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * A pattern for any address inside a repository, from the repository's own URL (https://github.com/owner/name):
+ * with or without the protocol, "www." or ".git", as a path or in git's own owner:name form, in any letter case,
+ * and on GitHub its raw-file and API addresses too; never another repository whose name merely starts the same way.
+ */
+export function repositoryPattern(url: string): RegExp {
+  const { hostname, pathname } = new URL(url);
+  const esc = (t: string) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const [owner, name] = pathname.replace(/^\/|\/$|\.git$/g, '').split('/');
+  if (!owner || !name) throw new Error(`not a repository's URL: ${url}`);
+  const host = hostname.replace(/^www\./, '');
+  const hosts = host === 'github.com' ? 'github(?:usercontent)?\\.com' : esc(host);
+  return new RegExp(`${hosts}[/:](?:repos/)?${esc(owner)}/${esc(name)}(?![\\w-]|\\.(?!git\\b)\\w)`, 'i');
 }

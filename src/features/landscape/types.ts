@@ -38,12 +38,10 @@ export interface LandscapeTargets {
  * canvases and lays them out.
  * A plate's kind: 1 the far layer (the sky, the light and the far ranges; opaque), 2 the middle (the place), 3 the
  * near (the near crags and their figures), 4 the sea of mist over their feet, 5 what is pinned to the frame while
- * the stage travels under it (Writing's willow), 6 the paper itself with its grain (one tile of it: the page's
- * veils, the paper kept behind the words, are cut from it), 10 the far layer's top as it stands under the header's
- * paper band (the pale sky easing out of the paper): it lies over the far plate at the page's top and is let go as
- * the header scrolls away (`band`), so the sky below is whole.
+ * the stage travels under it (Writing's willow), 6 the paper itself with its grain (one tile of it: the page takes it
+ * as an image).
  */
-export type PlateKind = 1 | 2 | 3 | 4 | 5 | 6 | 10;
+export type PlateKind = 1 | 2 | 3 | 4 | 5 | 6;
 /** A box on the screen at the page's top, CSS px: left, top, width, height. */
 export type PlateBox = [left: number, top: number, width: number, height: number];
 export interface PlateGeometry {
@@ -51,9 +49,8 @@ export interface PlateGeometry {
   boxes: Partial<Record<PlateKind, PlateBox>>;
   /** The unroll: how far west the plates travel over the whole page (CSS px), linearly with the page's scroll. */
   travel: number;
-  /** The page's whole scroll (CSS px), and the scroll over which the header's band has gone (plate 10 is let go). */
+  /** The page's whole scroll (CSS px). */
   maxY: number;
-  band: number;
   /** Reduced motion or "Still the landscape": the plates hold the hero pose. */
   still: boolean;
 }

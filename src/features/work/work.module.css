@@ -1,360 +1,555 @@
-/* Work's layout: the index (/work/) and the case pages (/work/<slug>/). The shared files (body.css, components.css)
-   carry type, ink and motion; this places Work's blocks on the frame's twelve columns and tunes their spacing with
-   tokens.
-     index: strip (h1 "Work" + intro) · "Six projects, newest first" (rows, the left nine columns) · How I build (the
-            whole frame: the statement and the drawing) · Under the hood (features/craft) · In the open (the right
-            columns, once the town has gone west) · the ending
-     case:  below */
+/* Work (/work/, the river town) and a case's page (/work/<slug>/, inside the town).
+     index   the thesis and the honesty line · the six projects, one list in two scales · How I build and its
+             drawing · In the open
+     case    the figure and the summary · the body, part by part, its notes in the margin and its drawing after
+             "My part" · Under the hood (features/craft) · the way back
+   Everything sits on the page's twelve columns (shell.css .row); a part that holds its own columns repeats them
+   (the same tracks and the same gap, so its lines are the page's). */
 
-/* ---------- the six projects: rows with the figure as an ink numeral ---------- */
-.projects {
-  display: grid;
-  margin-block-start: var(--space-m);
-}
-.project {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  row-gap: 0.5rem;
-  padding-block: 1.25rem;
-  border-top: 1px solid var(--rule);
-}
-.project:last-child {
-  border-bottom: 1px solid var(--rule);
-}
-/* the row's numeral: smaller than a page's one figure (six of them stand in a column): 56 → 96 */
-.numeral {
-  font-size: clamp(3.5rem, 2.57rem + 3.8vw, 6rem);
-}
-.outline {
-  color: transparent;
-  -webkit-text-stroke: 2px var(--ink-1);
-}
-.outline :global(.num__lead) {
-  -webkit-text-stroke: 0;
-}
-@media (forced-colors: active) {
-  .outline {
-    color: CanvasText;
-    -webkit-text-stroke: 0;
-  }
-}
-.title {
-  font-size: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem); /* 20 → 26 */
-  line-height: 1.2;
-  letter-spacing: -0.01em;
-  text-wrap: balance;
-}
-.title a {
-  text-decoration: none;
-}
-/* the title's link covers the row; the evidence links stay above it */
-.title a::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-}
-.project:is(:hover, :focus-within) .title a {
-  text-decoration: underline;
-  text-decoration-color: var(--ink-1);
-}
-.outcome {
-  margin-block-start: 0.375rem;
-  color: var(--ink-2);
-  max-width: 36em;
-}
-.when {
+/* ============================== the index ============================== */
+
+/* ---------- the title: the town's dark crag stands under it at the far left, so the line that names the list is
+   set beside the title, on its baseline, in the open sky ---------- */
+.work :global(.inscription__at) {
   display: flex;
   flex-wrap: wrap;
-  gap: 0 0.75em;
+  align-items: baseline;
+  column-gap: clamp(1.25rem, 2.4vw, 2.25rem);
 }
-/* A row's public evidence: a quiet line in small print under its outcome, its links above the row's own link. */
-.evidence {
-  display: block;
-  margin-block-start: 0.25rem;
-  font-size: var(--fs-small);
-  line-height: var(--lh-small);
-  color: var(--ink-3);
+.work :global(.title__under) {
+  margin-top: 0;
 }
-.evidence :global(a) {
-  position: relative;
-  z-index: 1;
-}
-.evidence :global(a)::before {
-  content: '';
-  position: absolute;
-  inset: -0.9em -0.25em; /* (0.9em above and below a 14 px line: 45 px) */
-}
-@media (min-width: 48rem) {
-  .project {
-    grid-template-columns: 11.5rem minmax(0, 1fr) auto;
-    column-gap: 2rem;
-    align-items: center;
-    padding-block: 1.5rem;
-  }
-  .when {
-    flex-direction: column;
-    align-items: flex-end;
-    text-align: end;
-    gap: 0.125rem;
-  }
-}
-@media (min-width: 75rem) {
-  .six {
-    max-width: calc((100% - 11 * var(--grid-gap)) / 12 * 9 + 8 * var(--grid-gap)); /* nine of the twelve columns */
-  }
-  .project {
-    grid-template-columns: 15.5rem minmax(0, 1fr) auto;
-  }
+/* (a short window's band is cut by its height, so the crag stands taller against the title: the title follows) */
+.work :global(.title) {
+  font-size: min(var(--t-place), 15svh);
 }
 
-/* ---------- How I build: the statement and the drawing ---------- */
-.statement {
-  font-family: var(--font-name);
-  font-weight: 900;
-  font-size: clamp(1.75rem, 1.3rem + 1.9vw, 3rem); /* 28 → 48 */
-  line-height: 1.02;
-  letter-spacing: 0.004em;
-  color: var(--ink-1);
+/* ---------- the thesis, inscribed, and the honesty line ---------- */
+.first {
+  align-items: start;
+  row-gap: var(--s-6);
+}
+.thesis {
+  grid-column: 1 / span 7;
+  max-width: 13.5ch;
+  font-size: clamp(2.5rem, 5.1vw, 4.75rem);
+  line-height: 1;
+  letter-spacing: -0.028em;
   text-wrap: balance;
-  max-width: 12em;
+  color: var(--ink);
 }
-.buildText > * + * {
-  margin-block-start: var(--space-para);
-}
-.buildText > :global(.h-ink) + * {
-  margin-block-start: 1.25rem;
-}
-.buildArt {
-  margin-block-start: var(--space-m);
-}
-@media (min-width: 75rem) {
-  /* the statement at the left, its line beside it; the drawing under them, the frame's whole width (its wide form) */
-  .build > .buildText {
-    grid-column: 1 / -1;
-    display: grid;
-    grid-template-columns: subgrid;
-    align-items: end;
-  }
-  .buildText > :global(.h-ink) {
-    grid-column: 1 / span 6;
-  }
-  .buildText > .statement {
-    grid-column: 1 / span 6;
-    margin-block-start: 1.25rem;
-  }
-  .buildText > :last-child {
-    grid-column: 8 / -1;
-    margin-block-start: 0;
-  }
-  .build > .buildArt {
-    grid-column: 1 / -1;
-    margin-block-start: 2.5rem;
-  }
+.intro {
+  grid-column: 9 / -1;
+  padding-top: 0.55rem;
 }
 
-/* ---------- In the open ---------- */
-.openBody > * + * {
-  margin-block-start: var(--space-para);
+/* ---------- the six projects: one list, two scales ---------- */
+.work .six {
+  /* (base.css clears a list's padding: the row's gutters are put back) */
+  padding-inline: var(--gutter);
+  row-gap: 0;
+  align-items: start;
 }
-.openBody > :global(.h-ink) + * {
-  margin-block-start: 1.1rem;
-}
-.openBody > :global(.sec__sub) {
-  margin-block-start: var(--space-item);
-}
-.openBody > :global(.fold) {
-  margin-block-start: var(--space-item);
-}
-@media (min-width: 75rem) {
-  /* the town has gone west by now: the public pieces stand at the right, over the open water */
-  .open > .openBody {
-    grid-column: 6 / -1;
-  }
+/* a lead the case wrote itself ("mAP ≥") is a notation: it keeps its own letters */
+.notation {
+  text-transform: none;
+  letter-spacing: 0.04em;
+  font-size: var(--t-note);
 }
 
-/* "In the open": a repository's name is one word; it never breaks inside */
-.open :global(.table) :global(tbody) :global(th) {
-  white-space: nowrap;
+/* the two newest, with room: the figure at one side, the words at the other; the second mirrors the first */
+.large {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gap);
+  align-items: start;
+  padding-block: clamp(2.5rem, 4.6vw, 4.25rem);
+  border-top: 1px solid var(--line);
 }
-
-/* ---------- tap targets (>= 44 px), without moving a pixel ----------
-   In the open's table a row is one target: its repository link covers the row. Stand-alone links (evidence,
-   "All repositories") get an invisible hit area that reaches 44 px; nothing reflows and the underline stays where it
-   is. */
-.open :global(tbody) :global(tr) {
-  position: relative;
-  cursor: pointer;
+.largeFig {
+  grid-column: 1 / span 4;
+  grid-row: 1;
 }
-.open :global(tbody) :global(th) :global(a)::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 1; /* above the restacked cells (positioned on phones), so the whole row is the target */
+.largeWords {
+  grid-column: 6 / -1;
+  grid-row: 1;
 }
-.open :global(.more) :global(a) {
-  position: relative;
-  z-index: 2;
+.large:nth-child(even) .largeFig {
+  grid-column: 9 / -1;
 }
-.open :global(.more) :global(a)::before {
-  content: '';
-  position: absolute;
-  inset: -0.9em -0.25em; /* (0.9em above and below a 14 px line: 45 px) */
+.large:nth-child(even) .largeWords {
+  grid-column: 1 / span 7;
 }
-
-/* ---------- a case page ----------
-     case: strip (h1 the case + its meta) · the summary, the figure in words, the NDA line (left) and the figure
-           inked into the painting (right) · the diagram, the frame's width · the spine (Problem · My part · Outcome
-           and status · Evidence · Stack) with the notes in the rail · the live piece tied to the case (three cases)
-           · "All six projects →" · the ending */
-/* the strip: the case's title, then its meta line (organisation · years · role) in small print */
-.page :global(.strip__text) > :global(.case__meta) {
-  margin-block-start: 0.5rem;
+.largeFig :global(.num) {
+  margin-left: -0.04em;
 }
-/* on phones a long organisation takes a line of its own, so no line starts or ends with a stray "·" */
-@media (max-width: 39.99rem) {
-  .metaStack :global(.case__org) {
-    display: block;
-  }
-  .metaStack :global(.case__sep) {
-    display: none;
-  }
-}
-/* the summary: the case in one sentence, set large */
-.summary {
-  font-size: clamp(1.375rem, 1.15rem + 1vw, 2rem); /* 22 → 32 */
-  line-height: 1.22;
-  font-weight: var(--w-ui);
-  letter-spacing: -0.012em;
-  color: var(--ink-1);
-  text-wrap: balance;
-  max-width: 21em;
-}
-/* the figure in words (the numeral beside it is decorative), then where it comes from in mono small print */
 .measure {
-  margin-block-start: 1.25rem;
-  font-size: var(--fs-lead);
-  line-height: var(--lh-lead);
-  color: var(--ink-1);
-  row-gap: 0.25rem;
+  margin-top: var(--s-3);
+  max-width: 26ch;
 }
-.basis {
-  color: var(--ink-3);
+.largeFig :global(.rec) {
+  margin-top: var(--s-2);
 }
-/* the NDA line: a quiet line under the figure, where the case has no public evidence */
-.nda {
-  margin-block-start: var(--space-2xs);
-  color: var(--ink-3);
+.largeTitle {
+  margin-block: var(--s-3) var(--s-4);
+  max-width: 19ch;
 }
-/* the figure itself: one numeral, the largest thing on the page: 112 @ 390 → 272 @ 1440. It stands in full view
-   beside the summary. Where the plates are the stage it is also inked into the painting: as the page scrolls, the
-   numeral in front goes into the mist at the town's shore (a soft edge that stays on the shore's line: a scroll
-   timeline on the numeral itself, body.css --rise) while its twin, behind the place's leaf (body.css .inked),
-   rises over the roofs. Without scroll timelines, under reduced motion, on a still painting and below 1200 px
-   there is only the one in front, and it never changes. */
-.figureBox {
-  position: relative; /* (no z-index: a stacking context here would keep the twin in front of the place) */
-  margin-block-start: var(--space-m);
+.largeTitle a {
+  text-decoration: none;
 }
-.figure {
-  font-size: clamp(7rem, 3.3rem + 15.2vw, 17rem);
-  line-height: 0.8;
+.largeSay {
+  max-width: 36ch;
 }
-.figure :global(.num__lead) {
-  font-size: 0.875rem;
-  margin-block-end: 0.75rem;
+/* its outcome and its evidence: two columns under one hairline */
+.facts {
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 3fr);
+  column-gap: var(--gap);
+  margin-top: var(--s-6);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--line);
 }
-.figureInk {
+.evidence {
+  padding-top: 0.15rem;
+}
+/* (each evidence link is its own line, far enough from the next to be taken: 24 px and over with a mouse, 44 px
+   on a phone) */
+.evidence a {
+  display: block;
+  width: fit-content;
+  padding-block: 0.25rem;
+}
+@media (max-width: 39.99rem) {
+  .evidence {
+    padding-top: 0;
+    margin-block: -0.5rem;
+  }
+  .evidence a {
+    padding-block: 0.85rem;
+  }
+}
+.more {
+  margin-top: var(--s-4);
+}
+
+/* the other four: a tighter ruled set, two columns of two */
+.small {
+  grid-column: span 6;
+  display: grid;
+  grid-template-columns: clamp(7.5rem, 13vw, 11.5rem) minmax(0, 1fr);
+  column-gap: var(--gap);
+  align-items: start;
+  padding-block: var(--s-5) clamp(2rem, 3.4vw, 3rem);
+  border-top: 1px solid var(--line);
+}
+.smallNum {
+  font-size: clamp(2.75rem, 4.4vw, 4rem);
+  margin-left: -0.04em;
+}
+.smallNum :global(.num__lead) {
+  margin-bottom: 0.2rem;
+}
+.smallWords {
+  display: grid;
+  row-gap: var(--s-2);
+  padding-top: 1.05rem; /* the title's first line stands on the numeral's top, under the numeral's lead */
+}
+.smallWords :global(.h-item) a {
+  text-decoration: none;
+  background: linear-gradient(var(--line-2), var(--line-2)) 0 100% / 100% 1px no-repeat;
+  padding-bottom: 0.12em;
+}
+.smallWords :global(.h-item) a:hover {
+  background-image: linear-gradient(currentColor, currentColor);
+}
+
+/* ---------- How I build ---------- */
+.build {
+  padding-top: clamp(4rem, 8vw, 7.5rem);
+}
+.buildLine {
+  max-width: 34ch;
+  margin-bottom: clamp(2rem, 4vw, 3.5rem);
+}
+
+/* ---------- In the open: a ruled list, compact ---------- */
+.open {
+  align-items: start;
+}
+.openSay {
+  grid-column: 3 / span 3;
+  display: grid;
+  row-gap: var(--s-3);
+  padding-top: 0.1rem;
+}
+.openList {
+  grid-column: 7 / -1;
+}
+.repo {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr);
+  column-gap: var(--s-4);
+  align-items: start;
+  padding-block: var(--s-3) var(--s-4);
+  border-top: 1px solid var(--line);
+}
+.repo > :global(.rec) {
+  grid-row: 1 / span 2;
+  padding-top: 0.3rem; /* (on the name's baseline) */
+}
+.repoName {
+  font-size: var(--t-body);
+}
+.repoName a {
+  /* (a repository's name is one word; it may break anywhere before it runs off a phone) */
+  overflow-wrap: anywhere;
+}
+.repo > :global(.small) {
+  grid-column: 2;
+  margin-top: 0.15rem;
+}
+/* the older ones, behind a plain fold: its name is a line of the list */
+.early {
+  border-top: 1px solid var(--line);
+}
+.early > summary {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  min-height: 2.75rem;
+  padding-left: calc(3.25rem + var(--s-4));
+  list-style: none;
+  cursor: pointer;
+  font-size: var(--t-small);
+  color: var(--ink-2);
+}
+.early > summary::-webkit-details-marker {
   display: none;
 }
-@keyframes sink {
-  from {
-    --rise: 130%;
-  }
-  to {
-    --rise: 0%;
-  }
+.early > summary > span {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--line-2);
+  text-underline-offset: 0.24em;
 }
-@media (min-width: 75rem) {
-  .lede {
-    align-items: start;
-    min-height: 19rem;
-  }
-  .lede > .ledeText {
-    grid-column: 1 / span 6;
-    margin-block-start: 1rem;
-  }
-  .lede > .figureBox {
+.early > summary:hover,
+.early[open] > summary {
+  color: var(--ink);
+}
+.early > summary:hover > span,
+.early[open] > summary > span {
+  text-decoration-color: currentColor;
+}
+
+/* ============================== a case ============================== */
+
+/* ---------- the figure, large, and the summary beside it ---------- */
+.lede {
+  align-items: start;
+  row-gap: var(--s-6);
+}
+.fig {
+  grid-column: 1 / span 6;
+}
+.figNum {
+  font-size: clamp(5.5rem, 12.4vw, 11.5rem);
+  line-height: 0.9;
+  margin-left: -0.05em;
+}
+.figNum :global(.num__lead) {
+  margin-bottom: 0.6rem;
+}
+.fig .measure {
+  margin-top: var(--s-4);
+  font-size: var(--t-body);
+  max-width: 30ch;
+}
+.fig :global(.rec) {
+  margin-top: var(--s-2);
+}
+.summary {
+  grid-column: 8 / -1;
+  max-width: 24ch;
+  padding-top: 1.35rem; /* its first line stands on the numeral's top, under the numeral's lead */
+}
+
+/* ---------- the body: each part's name in the rail, its words in a reading measure, its notes in the margin */
+.body {
+  row-gap: 0;
+  align-items: start;
+  padding-bottom: clamp(1.5rem, 3vw, 3rem);
+}
+.body > :global(.case__body) {
+  display: contents;
+}
+.part {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gap);
+  align-items: start;
+  padding-block: clamp(1.5rem, 2.6vw, 2.25rem) clamp(2.25rem, 4.2vw, 3.75rem);
+  border-top: 1px solid var(--line);
+}
+.partRail {
+  grid-column: 1 / span 2;
+  padding-top: 0.5rem;
+}
+.partBody {
+  grid-column: 3 / -1;
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  column-gap: var(--gap);
+  row-gap: var(--s-4);
+  align-items: start;
+}
+.partBody > * {
+  grid-column: 1 / span 6;
+}
+.partBody > p {
+  max-width: 68ch;
+}
+/* a note stands beside the paragraph it follows: the same row, the margin's columns */
+.partBody > [data-margin-note],
+.partBody > :global(.margin-notes) {
+  grid-column: 8 / -1;
+  padding-top: 0.3rem;
+}
+.partBody b,
+.partBody strong {
+  color: var(--ink);
+}
+.partBody ul {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  row-gap: var(--s-3);
+}
+.partBody :global(.small) {
+  color: var(--ink-2);
+}
+
+/* the outcome is the case's result: set a size up, its figures in full ink */
+.part[data-part='outcome-and-status'] .partBody > p {
+  grid-column: 1 / span 7;
+  max-width: 44ch;
+  font-size: var(--t-say);
+  line-height: 1.5;
+  letter-spacing: -0.006em;
+}
+/* the small print: the evidence, and the stack beside it in the margin's columns */
+.part[data-part='evidence'] {
+  grid-column: 1 / span 8;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+}
+.part[data-part='evidence'] .partBody {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+.part[data-part='evidence'] + .part[data-part='stack'] {
+  grid-column: 10 / -1;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: var(--s-3);
+}
+.part[data-part='evidence'] + .part[data-part='stack'] > * {
+  grid-column: 1;
+}
+.part[data-part='evidence'] + .part[data-part='stack'] .partBody {
+  grid-template-columns: minmax(0, 1fr);
+}
+.part[data-part='evidence'] + .part[data-part='stack'] .partBody > * {
+  grid-column: 1;
+}
+
+/* the case's drawing, across the page after "My part" */
+.drawing {
+  grid-column: 1 / -1;
+  padding-block: 0 clamp(2.5rem, 5vw, 4.5rem);
+}
+
+/* ---------- the way back, and the cases on either side ---------- */
+.end {
+  align-items: start;
+  row-gap: var(--s-6);
+  padding-top: clamp(1.5rem, 3vw, 3rem);
+}
+.endSay {
+  grid-column: 3 / span 5;
+  display: grid;
+  row-gap: var(--s-3);
+}
+.nda {
+  max-width: 44ch;
+}
+.beside {
+  grid-column: 9 / -1;
+  display: grid;
+}
+.beside li {
+  display: grid;
+  row-gap: 0.15rem;
+  padding-block: var(--s-3) var(--s-4);
+  border-top: 1px solid var(--line);
+}
+.beside :global(.h-item) {
+  font-size: var(--t-body);
+}
+.beside a {
+  text-decoration: none;
+}
+
+/* ============================== tablets and phones ============================== */
+@media (max-width: 74.99rem) {
+  /* the margin is a little wider where the columns are narrower */
+  .partBody > [data-margin-note],
+  .partBody > :global(.margin-notes) {
     grid-column: 7 / -1;
-    justify-self: end;
-    text-align: end;
-    margin-block-start: 0;
+  }
+  .part[data-part='evidence'] + .part[data-part='stack'] {
+    grid-column: 9 / -1;
   }
 }
-@supports (animation-timeline: view()) {
-  @media (min-width: 75rem) and (prefers-reduced-motion: no-preference) {
-    :global(html[data-plates='on']) .figureBox > .figureInk {
-      display: block;
-      position: absolute;
-      inset: 0;
-    }
-    /* the shore's line: the foot of the first screen's band. The soft edge is 30 % of the numeral tall (body.css
-       .num), so the range runs 15 % of it either side of the numeral's own crossing and the edge stays on the line */
-    :global(html[data-plates='on']) .figureBox > .figure:not(.figureInk) {
-      animation: sink linear both;
-      animation-timeline: view(block calc(var(--header-h) + var(--strip-sub) + 0.5rem) 0px);
-      animation-range: exit -15% exit 115%;
-    }
+@media (max-width: 61.99rem) {
+  .thesis {
+    grid-column: 1 / span 7;
+    font-size: clamp(2.5rem, 6.1vw, 3.75rem);
   }
-}
+  .intro {
+    grid-column: 8 / -1;
+    padding-top: 0.35rem;
+    font-size: var(--t-body);
+  }
+  .largeFig,
+  .large:nth-child(even) .largeFig {
+    grid-column: 1 / span 4;
+  }
+  .largeWords,
+  .large:nth-child(even) .largeWords {
+    grid-column: 5 / -1;
+  }
+  .small {
+    grid-column: 1 / -1;
+    padding-bottom: var(--s-6);
+  }
+  .openSay {
+    grid-column: 1 / span 4;
+  }
+  .openList {
+    grid-column: 5 / -1;
+  }
 
-/* the spine: each part opens on its label in the name face */
-.case :global(.case__label) {
-  font-family: var(--font-name);
-  font-weight: 900;
-  font-size: clamp(1.625rem, 1.45rem + 0.75vw, 2rem); /* 26 → 32 */
-  line-height: 1.05;
-  letter-spacing: 0.005em;
-}
-.case :global(.case__part) + :global(.case__part) {
-  margin-block-start: var(--space-m);
-}
-.case :global(.case__part) > :global(.case__label) + * {
-  margin-block-start: 0.5rem;
-}
-/* evidence: plain lines in small print, flush with the column (no bullets, no indent); a line's link may wrap, so
-   its hit area is the whole line */
-.case :global(ul.case__evidence) {
-  padding-inline-start: 0;
-}
-.case :global(.case__evidence) :global(li) {
-  position: relative;
-}
-.case :global(.case__evidence) :global(a)::before {
-  content: '';
-  position: absolute;
-  inset: -0.85em -0.25em;
-}
-.case :global(.case__evidence) :global(li) + :global(li) {
-  margin-block-start: 1.5rem;
-} /* hit areas never overlap */
-
-/* the live piece tied to the case, and the search above its test on the assistant's page */
-.live {
-  row-gap: var(--space-l);
-}
-.livePiece > :global(.h-ink) + * {
-  margin-block-start: 1rem;
-}
-@media (min-width: 75rem) {
-  .live > .livePiece {
-    grid-column: 1 / span 8;
+  .fig {
+    grid-column: 1 / span 7;
   }
-  .live > .liveSearch {
+  .summary {
+    grid-column: 8 / -1;
+  }
+  .partRail {
+    grid-column: 1 / -1;
+    padding-top: 0;
+    margin-bottom: var(--s-3);
+  }
+  .partBody {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+  .partBody > *,
+  .part[data-part='outcome-and-status'] .partBody > p {
+    grid-column: 1 / span 10;
+  }
+  /* a note sits under its paragraph, indented, on its hairline */
+  .partBody > [data-margin-note],
+  .partBody > :global(.margin-notes) {
+    grid-column: 2 / span 9;
+    padding-top: 0;
+  }
+  .drawing {
+    padding-top: var(--s-4);
+  }
+  .part[data-part='evidence'] .partBody {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+  }
+  .part[data-part='evidence'] .partBody > * {
+    grid-column: 1 / -1;
+  }
+  .endSay {
     grid-column: 1 / span 6;
   }
+  .beside {
+    grid-column: 8 / -1;
+  }
 }
-/* the way back */
-.back {
-  margin-block-start: var(--space-l);
+@media (max-width: 39.99rem) {
+  .thesis,
+  .intro {
+    grid-column: 1 / -1;
+  }
+  .intro {
+    padding-top: 0;
+    font-size: var(--t-say);
+  }
+  .large {
+    row-gap: var(--s-5);
+  }
+  .largeFig,
+  .large:nth-child(even) .largeFig {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+  .largeWords,
+  .large:nth-child(even) .largeWords {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+  .facts {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--s-2);
+  }
+  .small {
+    grid-template-columns: 6.75rem minmax(0, 1fr);
+  }
+  .smallNum {
+    font-size: 2.5rem;
+  }
+  .smallWords {
+    padding-top: 0.95rem;
+  }
+  .openSay,
+  .openList {
+    grid-column: 1 / -1;
+  }
+  .openSay {
+    margin-bottom: var(--s-5);
+  }
+
+  .fig,
+  .summary {
+    grid-column: 1 / -1;
+  }
+  .summary {
+    padding-top: 0;
+    max-width: 30ch;
+  }
+  .partBody > *,
+  .part[data-part='outcome-and-status'] .partBody > p {
+    grid-column: 1 / -1;
+  }
+  .partBody > [data-margin-note],
+  .partBody > :global(.margin-notes) {
+    grid-column: 2 / -1;
+  }
+  .part[data-part='evidence'],
+  .part[data-part='evidence'] + .part[data-part='stack'] {
+    grid-column: 1 / -1;
+  }
+  .endSay,
+  .beside {
+    grid-column: 1 / -1;
+  }
+}
+
+@media print {
+  .early::details-content {
+    content-visibility: visible;
+  }
 }

@@ -1,63 +1,33 @@
-import { contact } from '@content/pages/contact';
-import { resumePage } from '@content/pages/resume';
-import { work } from '@content/pages/work';
-import { writing } from '@content/pages/writing';
+import type { CSSProperties } from 'react';
 import { site } from '@content/site';
+import { Arrow } from '@/components/ui/Arrow';
+import { bandGeometry } from '@/features/landscape/band-geometry';
 import { NEXT_PLACE, type PageId } from '@/features/landscape/places';
-import { Inline, InlineLink } from '@/lib/inline';
+import { InlineLink } from '@/lib/inline';
 
 /**
- * The ending: every page but Contact and the 404 ends on the next place downstream (the chain Home → Work → Writing
- * → Résumé → Contact has no dead end; a case and a note point past their own place). The place's name
- * stands large at the right, over the painting. Where the page's travel has brought that place into view by the
- * page's end (places.ts NEXT_PLACE `inked`), the name is inked into the painting (body.css .inked: between the
- * painting's two leaves), so its roofs or peaks stand in front of the letters; where the page's own place holds
- * beside the words, the name stands in front of it. The label (content/site.ts `ending`) and the next page's own
- * sentence lie in a breath of mist at the left. A real anchor: the page change is the painting's own pan
- * (features/navigation).
+ * The way on: every page but Contact and the 404 ends on the next place downstream (Home → Work → Writing → Résumé
+ * → Contact; a case and a note point past their own place). Its name is inscribed in the painting exactly where it
+ * will stand as that page's own title (styles/band.css .inscription--next: the way to that place's hero, east of
+ * this one's), so as the page is read and the scroll unrolls, the name comes into the band with its place. A real
+ * anchor: the page change is the painting's own travel (features/navigation).
  */
-const LINES: Partial<Record<PageId, string>> = {
-  work: work.intro,
-  writing: writing.intro,
-  resume: resumePage.line,
-  contact: contact.intro,
-};
-
 export function NextPlace({ page }: { page: PageId }) {
   const next = NEXT_PLACE[page];
   if (!next) return null;
-  const line = LINES[next.page];
+  const g = bandGeometry(page);
   return (
-    <aside className="next spread" aria-label={`${site.ending.label}: ${next.label}`}>
-      <div className="next__text" data-veil="">
-        <p className="tag">{site.ending.label}</p>
-        {line ? (
-          <p className="next__line">
-            <Inline text={line} />
-          </p>
-        ) : null}
-      </div>
-      <p className={next.inked ? 'next__name inked' : 'next__name'}>
-        <InlineLink href={next.href} className="next__link">
+    <aside
+      className="inscription inscription--next"
+      aria-label={`${site.ending.label}: ${next.label}`}
+      style={{ '--next-dl': g.next } as CSSProperties}
+    >
+      <div className="inscription__run">
+        <InlineLink href={next.href} className="inscription__next title">
           {next.label}
-          <span className="action__arrow" aria-hidden="true" />
+          <Arrow />
         </InlineLink>
-      </p>
-      {/* below 1200 px no stage stands behind the page: the next place's own first frame (the hero still build:heroes
-          cuts) lies under its name instead, the screen's width. Its source comes as the ending nears
-          (features/landscape/glimpse-stills: never in the page's first load), and never on wide screens, where it is
-          not laid out. Art only. */}
-      {/* eslint-disable-next-line @next/next/no-img-element -- a static WebP the heroes tool cut */}
-      <img
-        className="next__still"
-        data-near=""
-        data-src={`/scenes/hero/${next.page}-phone@2x.webp`}
-        data-src-wide={`/scenes/hero/${next.page}-tablet@1x.webp`}
-        alt=""
-        width={430}
-        height={169}
-        decoding="async"
-      />
+      </div>
     </aside>
   );
 }

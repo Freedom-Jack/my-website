@@ -89,17 +89,21 @@ export function compile(roles: readonly string[]): Grammar {
   const build = (x: Expr): [number, number] => {
     switch (x.k) {
       case 'lit': {
-        const s = node(field);
+        // a literal naming a field (and the closing brace) stands between fields: inside "the record"; what follows
+        // a naming literal is inside the field it names
+        const text = new TextDecoder().decode(new Uint8Array(x.b));
+        const name = text.match(/"(\w+)": /)?.[1];
+        const named = name && FIELDS.includes(name) ? name : undefined;
+        const here = named || text === '}' ? 'the record' : field;
+        const s = node(here);
         let cur = s;
         for (const b of x.b) {
-          const n = node(field);
+          const n = node(here);
           nodes[cur]!.test = (v) => v === b;
           nodes[cur]!.to = n;
           cur = n;
         }
-        // a literal naming a field: what follows is inside it
-        const name = new TextDecoder().decode(new Uint8Array(x.b)).match(/"(\w+)": /)?.[1];
-        if (name && FIELDS.includes(name)) field = name;
+        if (named) field = named;
         return [s, cur];
       }
       case 'cls': {

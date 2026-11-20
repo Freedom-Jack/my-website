@@ -17,16 +17,17 @@ interface Data {
 /**
  * "How good is the search?": the build scored the search on its twenty questions; once this piece is on screen the
  * reader's own browser runs the same twenty questions against the same index (the search's runtime and
- * /craft/corpus.json, as the search box loads them) and each question's mark is inked as its result comes: a full dot
- * where the right passage came first, a ring with a core where it came second or third, an empty ring for a miss. The
- * line under the marks says the question a mark stands for (the pointer or the keyboard picks one). The line above
- * them gives n and recall@1 and @3 (the reader's own run once it has finished, else the build's); who wrote the
- * questions is said below them; every question with its result stays one fold away. If the run cannot load, the
- * build's own results stand.
+ * /craft/corpus.json, as the site's search loads them) and each question's mark is inked as its result comes: a full
+ * dot where the right passage came first, a ring with a core where it came second or third, an empty ring for a miss
+ * (the three are named under the marks, in the piece's own words). The line under them says the question a mark
+ * stands for (the pointer or the keyboard picks one), or how the run went. The line above the marks gives n and
+ * recall@1 and @3 (the reader's own run once it has finished, else the build's); who wrote the questions is said in
+ * the margin beside them; every question with its result stays one fold away. If the run cannot load, the build's
+ * own results stand.
  */
 export function EvalFold({ data }: { data: Data }) {
   const w = data.words;
-  const [ref, seen] = useSeen<HTMLDivElement>(0.4);
+  const [ref, seen] = useSeen<HTMLDivElement>(0.4, true);
   // each question's rank as run here (undefined: not yet run); the build's, where no run is possible
   const [ranks, setRanks] = useState<(number | undefined)[]>(() => data.rows.map(() => undefined));
   const [ms, setMs] = useState<number | null>(null);
@@ -58,7 +59,9 @@ export function EvalFold({ data }: { data: Data }) {
         });
         const took = performance.now() - t0;
         // the marks are inked one after another (the run itself took a few milliseconds)
-        const quiet = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const quiet =
+          matchMedia('(prefers-reduced-motion: reduce)').matches ||
+          document.documentElement.classList.contains('is-still');
         out.forEach((rank, i) =>
           timers.push(
             setTimeout(
@@ -92,45 +95,60 @@ export function EvalFold({ data }: { data: Data }) {
   const at3 = all ? ranks.filter((r) => (r ?? 0) > 0).length / data.n : data.recall.at3;
   const word = (rank: number | undefined) =>
     rank === undefined ? '…' : rank === 1 ? w.first : rank > 0 ? w.third : w.miss;
+  /** A rank as its mark: not yet run, first, in the top three, missed. */
+  const mark = (rank: number | undefined) => (rank === undefined ? 'wait' : rank === 1 ? '1' : rank > 0 ? '3' : '0');
   const shown = pick !== null ? data.rows[pick] : null;
 
   return (
     <div className={styles.evalView} ref={ref}>
-      <p className={styles.result}>{fill(w.result, { n: data.n, at1: pct(at1), at3: pct(at3) })}</p>
-      <ol className={styles.dots} aria-label={w.dots} onMouseLeave={() => setPick(null)}>
-        {data.rows.map((r, i) => (
-          <li key={r.q}>
-            <button
-              type="button"
-              className={styles.dot}
-              data-rank={ranks[i] === undefined ? 'wait' : ranks[i] === 1 ? '1' : ranks[i]! > 0 ? '3' : '0'}
-              aria-label={`${r.q} ${word(ranks[i])}`}
-              aria-pressed={pick === i}
-              onMouseEnter={() => setPick(i)}
-              onFocus={() => setPick(i)}
-              onClick={() => setPick(i)}
-            />
-          </li>
-        ))}
-      </ol>
-      <p className={styles.dotLine} aria-live="polite">
-        {shown ? (
-          <>
-            <span>{shown.q}</span> <span className="mono">{word(ranks[pick!])}</span>
-          </>
-        ) : (
-          <span className="mono">
-            {state === 'ran' && ms !== null
-              ? fill(w.ran, { n: data.n, ms })
-              : seen && state === 'waiting'
-                ? fill(w.running, { n: data.n })
-                : ' '}
-          </span>
-        )}
-      </p>
-      <p className="small">{w.author}</p>
-      <details className={styles.inner}>
-        <summary>{w.every}</summary>
+      <div className={styles.evalMain}>
+        <p className={styles.result}>{fill(w.result, { n: data.n, at1: pct(at1), at3: pct(at3) })}</p>
+        <ol className={styles.dots} aria-label={w.dots} onMouseLeave={() => setPick(null)}>
+          {data.rows.map((r, i) => (
+            <li key={r.q}>
+              <button
+                type="button"
+                className={styles.dot}
+                data-rank={mark(ranks[i])}
+                aria-label={`${r.q} ${word(ranks[i])}`}
+                aria-pressed={pick === i}
+                onMouseEnter={() => setPick(i)}
+                onFocus={() => setPick(i)}
+                onClick={() => setPick(i)}
+              />
+            </li>
+          ))}
+        </ol>
+        <p className={`rec ${styles.legend}`} aria-hidden="true">
+          {([1, 2, 0] as const).map((rank) => (
+            <span key={rank}>
+              <i data-rank={mark(rank)} />
+              {word(rank)}
+            </span>
+          ))}
+        </p>
+        <p className={styles.dotLine} aria-live="polite">
+          {shown ? (
+            <>
+              <span>{shown.q}</span>
+              <span className="rec">{word(ranks[pick!])}</span>
+            </>
+          ) : (
+            <span className="rec">
+              {state === 'ran' && ms !== null
+                ? fill(w.ran, { n: data.n, ms })
+                : seen && state === 'waiting'
+                  ? fill(w.running, { n: data.n })
+                  : '\u00a0'}
+            </span>
+          )}
+        </p>
+      </div>
+      <p className={styles.author}>{w.author}</p>
+      <details className={`${styles.fold} ${styles.evalFold}`}>
+        <summary>
+          <span>{w.every}</span>
+        </summary>
         <div className={styles.tableWrap}>
           <table className={styles.table}>
             <thead>
@@ -164,7 +182,7 @@ export function EvalFold({ data }: { data: Data }) {
             </tfoot>
           </table>
         </div>
-        <h4 className={styles.subhead}>{w.misses}</h4>
+        <h3 className={styles.subhead}>{w.misses}</h3>
         {data.misses.length ? (
           <ul className={styles.plainList}>
             {data.misses.map((m) => (
@@ -172,7 +190,7 @@ export function EvalFold({ data }: { data: Data }) {
             ))}
           </ul>
         ) : (
-          <p>{w.none}</p>
+          <p className={styles.plainList}>{w.none}</p>
         )}
       </details>
     </div>

@@ -1,151 +1,229 @@
-/* Home's layout below the first screen: where each block stands on the frame's twelve columns. Colours, faces,
-   sizes and motion come from the design system (styles/body.css); this file only places and spaces. */
+/* Home (/): his mountain. The first screen's three columns under the mist, three lines of work across the page, the
+   role he holds, About with the portrait, Writing and Say hello. */
 
-/* ---------- About me and Now ---------- */
-.aboutMain {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  row-gap: var(--space-m);
+/* the name, signed: the seal stands after it, low, as a painter's does */
+.name {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 0.09em;
+}
+.name :global(.seal) {
+  width: 0.2em;
+  margin-bottom: 0.2em;
+}
+
+/* ---------- the first screen's words ---------- */
+.titleNarrow {
+  grid-column: 1 / -1;
+}
+.first {
+  row-gap: var(--s-6);
   align-items: start;
 }
-.photo {
-  width: 62%;
-  max-width: 16rem;
+.verb {
+  grid-column: 1 / span 5;
+  max-width: 27ch;
 }
-.aboutText > * + * {
-  margin-block-start: var(--space-para);
+.proof {
+  grid-column: 7 / span 3;
 }
-.aboutText > :global(.h-ink) + * {
-  margin-block-start: 1.1rem;
+.proofNum {
+  font-size: clamp(4rem, 6.4vw, 6rem);
+  margin-left: -0.04em;
 }
-.now {
-  margin-block-start: var(--space-l);
+.proofLine {
+  margin-top: var(--s-3);
+  max-width: 30ch;
 }
-.nowList {
-  display: grid;
-  gap: 0.625rem;
+.proof :global(.rec) {
+  margin-top: var(--s-2);
 }
-@media (min-width: 40rem) {
-  .aboutMain {
-    grid-template-columns: 13rem minmax(0, 1fr);
-    column-gap: 2.25rem;
-  }
-  .photo {
-    width: 100%;
-    max-width: none;
-  }
-}
-@media (min-width: 75rem) {
-  .about > .aboutMain {
-    grid-column: 1 / span 8;
-    grid-template-columns: 14.5rem minmax(0, 1fr);
-    column-gap: 2.5rem;
-  }
-  .about > .now {
-    grid-column: 10 / -1;
-    margin-block-start: 9.5rem; /* (a step down from About's title: its cloud rides lower, across the peaks) */
-  }
-}
-
-/* ---------- What I work on: three steps ---------- */
-.steps {
-  margin-block-start: var(--space-m);
-  row-gap: var(--space-l);
-}
-.step {
+/* (the record line is the link to the case: its hit area is 44 px tall, without moving a line) */
+.proof :global(.rec) a {
   position: relative;
-  display: grid;
-  row-gap: 0.5rem;
-  align-content: start;
 }
-.stepTitle {
-  margin-block-start: 0.5rem;
-  font-size: var(--fs-item);
-  line-height: var(--lh-item);
-  text-wrap: balance;
-}
-.stepTitle a {
-  text-decoration: none;
-}
-/* the title's link covers the step; a link inside the line stays above it */
-.stepTitle a::after {
+.proof :global(.rec) a::after {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: -0.85rem 0;
 }
-.step:is(:hover, :focus-within) .stepTitle a {
-  text-decoration: underline;
-  text-decoration-color: var(--ink-1);
+.nowLine {
+  grid-column: 10 / -1;
 }
-.stepLine {
-  color: var(--ink-2);
+.nowText {
+  margin-top: var(--s-2);
+  font-size: var(--t-small);
+  line-height: 1.5;
+  color: var(--ink);
 }
-.stepLine a {
-  position: relative;
-  z-index: 1;
+.nowLine > :global(.rec) {
+  margin-top: var(--s-2);
 }
-/* a projection: the numeral's outline, never filled ink */
-.projected {
-  color: transparent;
-  -webkit-text-stroke: 2px var(--ink-1);
+.awards {
+  margin-top: var(--s-4);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--line);
 }
-.projected :global(.num__lead) {
-  -webkit-text-stroke: 0;
+
+/* ---------- What I work on: three lines of work, ruled apart ---------- */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
-@media (forced-colors: active) {
-  .projected {
-    color: CanvasText;
-    -webkit-text-stroke: 0;
-  }
+.step {
+  padding-inline: clamp(1rem, 2.2vw, 2rem);
+  border-left: 1px solid var(--line);
+}
+.step:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+.step :global(.num) {
+  margin-left: -0.04em;
+  margin-bottom: var(--s-4);
+}
+.step :global(.h-item) {
+  margin-bottom: var(--s-2);
+}
+.step :global(.h-item) a {
+  text-decoration: none;
+  background: linear-gradient(var(--line-2), var(--line-2)) 0 100% / 100% 1px no-repeat;
+  padding-bottom: 0.12em;
+}
+.step :global(.h-item) a:hover {
+  background-image: linear-gradient(currentColor, currentColor);
 }
 .all {
-  margin-block-start: var(--space-m);
+  margin-top: var(--s-6);
 }
-@media (min-width: 40rem) and (max-width: 74.99rem) {
-  .steps > .step {
-    grid-column: span 3;
-  }
-  .steps > .step:nth-child(3) {
-    grid-column: 1 / span 3;
-  }
+
+/* ---------- the role he holds now ---------- */
+.roleTitle {
+  max-width: 22ch;
+  margin-bottom: var(--s-6);
 }
-@media (min-width: 75rem) {
-  .steps {
-    margin-block-start: 1.5rem;
-  }
-  .steps > .step {
-    grid-column: span 4;
-  }
-  /* the stairs: each step a little lower than the one before it, as the river falls */
-  .steps > .step:nth-child(2) {
-    margin-block-start: 6.5rem;
-  }
-  .steps > .step:nth-child(3) {
-    margin-block-start: 13rem;
-  }
-  .all {
-    margin-block-start: -1.5rem; /* (it stands in the stairs' open corner, under the first step) */
-  }
+.role {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: clamp(1.5rem, 4vw, 4rem);
+}
+.role li {
+  padding-block: var(--s-4) var(--s-5);
+  border-top: 1px solid var(--line);
+  color: var(--ink-2);
+}
+
+/* ---------- About me ---------- */
+.about {
+  display: grid;
+  grid-template-columns: 5fr 3.2fr 2.3fr;
+  column-gap: clamp(1.5rem, 3vw, 2.75rem);
+  row-gap: var(--s-6);
+  align-items: start;
+}
+.aboutSay {
+  font-size: clamp(1.25rem, 1.62vw, 1.5rem);
+}
+.aboutRest {
+  display: grid;
+  row-gap: var(--s-4);
+}
+.photo {
+  width: 100%;
+  margin-top: -0.75rem;
+}
+.now {
+  grid-column: 1 / span 2;
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr);
+  column-gap: var(--s-5);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--line);
+}
+.now ul {
+  display: grid;
+  row-gap: var(--s-2);
+}
+.now b {
+  color: var(--ink);
+  font-weight: 500;
 }
 
 /* ---------- Writing and Say hello ---------- */
-.last {
-  row-gap: var(--space-body);
-}
 .notes {
-  margin-block-start: 1.1rem;
+  grid-column: 3 / span 5;
+  display: grid;
+  row-gap: var(--s-6);
 }
-.helloLine {
-  font-size: var(--fs-lead);
-  line-height: var(--lh-lead);
-  max-width: 30em;
+.noteTitle {
+  margin-block: var(--s-2) var(--s-2);
 }
-@media (min-width: 75rem) {
-  .last > .writing {
+.noteTitle a {
+  text-decoration: none;
+}
+.hello {
+  grid-column: 9 / -1;
+  display: grid;
+  row-gap: var(--s-3);
+  align-content: start;
+  padding-top: 0.5rem;
+}
+
+/* ---------- tablets and phones ---------- */
+@media (max-width: 61.99rem) {
+  .verb {
+    grid-column: 1 / -1;
+    max-width: 30ch;
+  }
+  .proof {
     grid-column: 1 / span 6;
   }
-  .last > .hello {
-    grid-column: 8 / -1;
-    margin-block-start: 5rem;
+  .nowLine {
+    grid-column: 7 / -1;
+  }
+  .about {
+    grid-template-columns: minmax(0, 1fr) 9.5rem;
+  }
+  .aboutSay {
+    grid-column: 1 / -1;
+  }
+  .now {
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--s-3);
+  }
+  .notes,
+  .hello {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 39.99rem) {
+  .proof,
+  .nowLine {
+    grid-column: 1 / -1;
+  }
+  .steps {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--s-6);
+  }
+  .step {
+    padding-inline: 0;
+    border-left: 0;
+    padding-top: var(--s-5);
+    border-top: 1px solid var(--line);
+  }
+  .step:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+  .role {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .about {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .photo {
+    width: 62%;
+    margin-top: 0;
   }
 }

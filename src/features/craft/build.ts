@@ -4,6 +4,7 @@ import path from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { evalSet } from '@content/craft/eval';
 import { hood } from '@content/craft/hood';
+import { askDoor } from '@content/pages/ask-door';
 import { workCraft } from '@content/pages/work-craft';
 import { type Bigram, scores, trainBigram } from './bigram';
 import { type BPE, encode, trainBPE } from './bpe';
@@ -191,7 +192,7 @@ export function buildCraft(): Craft {
       { id: 'vocab', kind: 'dataset', label: `${bpe.vocab.length} byte-pair tokens` },
       { id: 'scores', kind: 'dataset', label: 'the bigram scores' },
       { id: 'eval', kind: 'dataset', label: `${rows.length} questions` },
-      { id: 'search', kind: 'fold', label: workCraft.search.label },
+      { id: 'search', kind: 'fold', label: askDoor.label },
       { id: 'mask', kind: 'fold', label: workCraft.hood.mask.title },
       { id: 'evalFold', kind: 'fold', label: workCraft.hood.eval.title },
     ],

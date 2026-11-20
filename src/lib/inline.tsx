@@ -9,7 +9,7 @@ function isInternal(href: string): boolean {
   return href.startsWith('/') && !href.startsWith('//');
 }
 
-/** One link, as every link on the site is drawn: a plain resting underline, ink on hover (effects.css). */
+/** One link, as every link on the site is drawn: a plain resting underline, ink on hover (styles/base.css). */
 export function InlineLink({ href, children, className }: { href: string; children: ReactNode; className?: string }) {
   if (isInternal(href) && !/\.[a-z0-9]+$/i.test(href.split(/[?#]/)[0] ?? '')) {
     return (

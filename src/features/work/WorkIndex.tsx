@@ -1,139 +1,179 @@
-import { Fragment } from 'react';
+import { casePage } from '@content/pages/case';
 import { work } from '@content/pages/work';
+import { Inscription } from '@/components/page/Inscription';
 import { PageMain } from '@/components/page/PageMain';
-import { Glimpse } from '@/components/page/Glimpse';
-import { Strip } from '@/components/page/Strip';
 import { Diagram } from '@/components/ui/Diagram';
+import { Go } from '@/components/ui/Go';
 import { InTheOpen } from '@/features/github/InTheOpen';
 import { splitFigure } from '@/lib/figure';
 import { Inline, InlineLink } from '@/lib/inline';
-import { buildCraft } from '@/features/craft/build';
-import { Hood } from '@/features/craft/Hood';
-import { collectionLd } from './jsonld';
+import type { CaseMeta } from './cases';
 import { allCases } from './cases';
-import { OldAnchors } from './OldAnchors';
+import { collectionLd } from './jsonld';
 import styles from './work.module.css';
 
+/** How many of the newest projects are shown with room; the rest stand as the ruled set. */
+const LARGE = 2;
+
 /**
- * Work (/work/): a concise index. The first screen: the market-town strip with the title and intro in its mist.
+ * Work (/work/): the river town.
  *
- * Below it the page follows the river town as it crosses the screen:
- *   "Six projects, newest first" at the left while the town still stands at the right: six rows the width of nine
- *   columns, each with its figure as an ink numeral (a projection as an outline, never filled ink), the project
- *   (leading to its own case page), its outcome and public evidence, its years and his role at the row's end;
- *   How I build across the whole frame: the statement set large, its line, and the brush diagram beside them;
- *   Under the hood, the page's moment (features/craft/Hood): four real things running in the visitor's browser,
- *   laid open: a grammar holding a model's output token by token, the search's own test, the search, the lineage;
- *   In the open at the right, once the town has gone west (Jack's public repositories, read on the server at build
- *   time and daily);
- *   and the ending: Writing, inked into the open water downstream.
+ * The title is inscribed in the town's sky, high (the town's crag stands under it at the far left), with the list's
+ * own name beside it on its baseline. Under the mist:
+ *   the thesis, the page's one inscribed line, with the honesty line beside it;
+ *   the six projects as one list in two scales: the two newest with room (the figure as an ink numeral with its
+ *   measure and its basis, the title in the brush, the summary, the role, the outcome, the evidence, the way to the
+ *   case; the second mirrors the first), then the other four as a ruled set, two columns of two;
+ *   How I build: his line and the brush diagram across the ten columns;
+ *   In the open: his public repositories (features/github, read on the server at build time and daily).
+ * A projection is drawn in outline and led by "Projected"; an internal figure says so beside its measure.
  * Words: content/pages/work.ts and content/work/*.mdx.
  */
 export async function WorkIndex() {
   const cases = await allCases();
   const { index, build, open } = work;
-  // the craft's sizes, said before a piece is reached (computed from content/ at build; features/craft/build.ts)
-  const craft = buildCraft();
   return (
-    <PageMain page="work" className={styles.page} ld={[collectionLd(cases)]}>
-      <Strip variant="sub" labelledBy="page-title" still="work">
-        <h1 className="page-title" id="page-title">
+    <PageMain page="work" className={styles.work} ld={[collectionLd(cases)]}>
+      <Inscription y="1.25rem">
+        <h1 className="title" id="work-title">
           {work.title}
         </h1>
-        <p className="lead">
+        <p className="title__under" id="six-title">
+          {index.title}
+        </p>
+      </Inscription>
+
+      {/* the thesis, inscribed, and the honesty line beside it */}
+      <section className={`row sec sec--first ${styles.first}`} aria-labelledby="work-title">
+        <p className={`brush ${styles.thesis}`}>
+          <Inline text={build.statement} />
+        </p>
+        <p className={`say ${styles.intro}`}>
           <Inline text={work.intro} />
         </p>
-      </Strip>
-
-      <section className={`part ${styles.six}`} aria-labelledby="glance-title">
-        <div data-veil="0.9">
-          <h2 className="h-ink" id="glance-title">
-            {index.title}
-          </h2>
-        </div>
-        <ol className={styles.projects} role="list" data-veil="0.9">
-          {cases.map((c) => {
-            // the figure as an ink numeral (decorative: the outcome carries it in words); a projection is an outline
-            // under its own label, never filled ink
-            const f = splitFigure(c.figure);
-            const projected = c.figure.basis === 'projected';
-            return (
-              // the row keeps the case's anchor (/work/#rag-assistant), so an old link lands on it without JS
-              <li className={`${styles.project} ink-row`} key={c.slug} id={c.slug}>
-                <p
-                  className={projected ? `num ${styles.numeral} ${styles.outline}` : `num ${styles.numeral}`}
-                  aria-hidden="true"
-                >
-                  {f.lead ? <span className="num__lead">{f.lead}</span> : null}
-                  {f.value}
-                </p>
-                <div>
-                  <h3 className={styles.title}>
-                    <InlineLink href={c.href}>
-                      <Inline text={c.title} />
-                    </InlineLink>
-                  </h3>
-                  <p className={styles.outcome}>
-                    <Inline text={c.outcome} />
-                    {c.evidence.length ? (
-                      <span className={styles.evidence}>
-                        {c.evidence.map((e, i) => (
-                          <Fragment key={e.url}>
-                            {i > 0 ? ' · ' : null}
-                            <InlineLink href={e.url}>{e.label}</InlineLink>
-                          </Fragment>
-                        ))}
-                      </span>
-                    ) : (
-                      <span className="visually-hidden"> · {index.noEvidence}</span>
-                    )}
-                  </p>
-                </div>
-                <p className={`mono ${styles.when}`}>
-                  <span>{c.years}</span> <span>{c.role}</span>
-                </p>
-              </li>
-            );
-          })}
-        </ol>
       </section>
 
-      <Glimpse still="work-0" />
-      <section className={`part spread ${styles.build}`} aria-labelledby="build-title">
-        <div className={styles.buildText} data-veil="">
-          <h2 className="h-ink" id="build-title">
+      {/* the six projects: one list, two scales. (Each entry keeps its case's anchor: /work/#rag-assistant.) */}
+      <ol className={`row ${styles.six}`} role="list" aria-labelledby="six-title">
+        {cases.map((c, i) => (i < LARGE ? <Large c={c} key={c.slug} /> : <Small c={c} key={c.slug} />))}
+      </ol>
+
+      <section className={`row sec ${styles.build}`} aria-labelledby="build-title">
+        <div className="sec__rail">
+          <h2 className="label" id="build-title">
             {build.title}
           </h2>
-          <p className={styles.statement}>
-            <Inline text={build.statement} />
-          </p>
-          <p>
+        </div>
+        <div className="sec__body">
+          <p className={`lead ${styles.buildLine}`}>
             <Inline text={build.line} />
           </p>
-        </div>
-        <div className={styles.buildArt} data-veil="">
           <Diagram name={build.diagram.name} caption={build.diagram.caption} steps={build.diagram.steps} />
         </div>
       </section>
 
-      <Hood craft={craft} />
-
-      <Glimpse still="work-1" />
-      <section className={`part spread ${styles.open}`} id="open" aria-labelledby="open-title">
-        <div className={styles.openBody} data-veil="0.9">
-          <h2 className="h-ink" id="open-title">
+      <section className={`row sec ${styles.open}`} id="open" aria-labelledby="open-title">
+        <div className="sec__rail">
+          <h2 className="label" id="open-title">
             {open.title}
           </h2>
-          <p>
+        </div>
+        <div className={styles.openSay}>
+          <p className="say">
             <Inline text={open.intro} />
           </p>
-          <InTheOpen />
-          <p className="more">
-            <InlineLink href={open.all.href}>{open.all.label}</InlineLink>
+          <p>
+            <Go href={open.all.href}>{open.all.label.replace(/\s*→$/, '')}</Go>
           </p>
         </div>
+        <div className={styles.openList}>
+          <InTheOpen />
+        </div>
       </section>
-      <OldAnchors slugs={cases.map((c) => c.slug)} />
     </PageMain>
+  );
+}
+
+/** A figure as an ink numeral under its small lead. A lead the case wrote itself ("mAP ≥") is a notation: it keeps
+ *  its own letters; a projection is drawn in outline. */
+function Numeral({ c, className, hidden }: { c: CaseMeta; className?: string; hidden?: boolean }) {
+  const f = splitFigure(c.figure);
+  const cls = ['num', c.figure.basis === 'projected' ? 'num--projected' : '', className ?? '']
+    .filter(Boolean)
+    .join(' ');
+  return (
+    <p className={cls} aria-hidden={hidden || undefined}>
+      <span className={c.figure.lead ? `num__lead ${styles.notation}` : 'num__lead'}>{f.lead || ' '}</span>
+      {f.value}
+    </p>
+  );
+}
+
+/** One of the two newest: the figure with its measure and its basis at one side, the words at the other. */
+function Large({ c }: { c: CaseMeta }) {
+  const { index } = work;
+  return (
+    <li className={styles.large} id={c.slug}>
+      <div className={styles.largeFig}>
+        <Numeral c={c} />
+        <p className={`small soft ${styles.measure}`}>
+          <Inline text={c.figure.note} />
+        </p>
+        {c.figure.basis === 'internal' ? <p className="rec">{casePage.basis.internal}</p> : null}
+      </div>
+      <div className={styles.largeWords}>
+        <p className="rec">
+          {c.years} · {c.role} · {c.org}
+        </p>
+        <h2 className={`h-brush ${styles.largeTitle}`}>
+          <InlineLink href={c.href}>
+            <Inline text={c.title} />
+          </InlineLink>
+        </h2>
+        <p className={`say ${styles.largeSay}`}>
+          <Inline text={c.summary} />
+        </p>
+        <div className={styles.facts}>
+          <p className="small soft">
+            <Inline text={c.outcome} />
+          </p>
+          <p className={`rec ${styles.evidence}`}>
+            {c.evidence.length
+              ? c.evidence.map((e) => (
+                  <InlineLink key={e.url} href={e.url}>
+                    {e.label}
+                  </InlineLink>
+                ))
+              : index.noEvidence}
+          </p>
+        </div>
+        <p className={styles.more}>
+          <Go href={c.href}>{index.more}</Go>
+        </p>
+      </div>
+    </li>
+  );
+}
+
+/** One of the other four: a smaller numeral (decorative: the outcome beside it carries the figure and its measure
+ *  in words), the title, the outcome in a line, the years and his role. */
+function Small({ c }: { c: CaseMeta }) {
+  return (
+    <li className={styles.small} id={c.slug}>
+      <Numeral c={c} className={styles.smallNum} hidden />
+      <div className={styles.smallWords}>
+        <h2 className="h-item">
+          <InlineLink href={c.href}>
+            <Inline text={c.title} />
+          </InlineLink>
+        </h2>
+        <p className="small soft">
+          <Inline text={c.outcome} />
+        </p>
+        <p className="rec">
+          {c.years} · {c.role}
+        </p>
+      </div>
+    </li>
   );
 }

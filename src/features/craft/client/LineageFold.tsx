@@ -12,8 +12,8 @@ interface Data extends Lineage {
 
 /**
  * "Where the words came from": the lineage drawn top to bottom, narrow enough for a phone (the content files drawn
- * as one node), its lines drawing themselves in from the files down once it is on screen; then the same record as a
- * list, one fold away (each artefact, what it was made from and how).
+ * as one node), its lines drawing themselves in from the files down once it is on screen; beside it the one plain
+ * statement and the same record as a list, one fold away (each artefact, what it was made from and how).
  */
 export function LineageFold({ data }: { data: Data }) {
   const w = data.words;
@@ -34,7 +34,7 @@ export function LineageFold({ data }: { data: Data }) {
   const rows: string[][] = [];
   for (const [id, d] of depth) (rows[d] ??= []).push(id);
   const W = 360;
-  const RH = 64;
+  const RH = 72;
   const pos = new Map<string, [number, number]>();
   // each row ordered by its parents' mean position (fewer crossings), then spread across the width
   rows.forEach((ids, r) => {
@@ -49,69 +49,74 @@ export function LineageFold({ data }: { data: Data }) {
   });
   const name = (id: string) => (id === filesId ? filesLabel : (label.get(id) ?? id));
 
-  const [ref, seen] = useSeen<HTMLDivElement>(0.3);
+  const kind = new Map(data.nodes.map((n) => [n.id, n.kind]));
+
+  const [ref, seen] = useSeen<HTMLElement>(0.3, true);
   return (
-    <div className={styles.lineageView} ref={ref}>
-      <p className={styles.result}>
-        {fill(w.result, { files: data.meta.files, passages: data.meta.passages, commit: data.meta.commit })}
-      </p>
-      <figure className={styles.dag} data-seen={seen ? '' : undefined}>
-        <svg viewBox={`0 0 ${W} ${rows.length * RH}`} role="img" aria-label={w.drawing}>
+    <div className={styles.lineageView}>
+      <figure className={styles.dag} ref={ref} data-seen={seen ? '' : undefined}>
+        <svg viewBox={`0 0 ${W} ${rows.length * RH - 36}`} role="img" aria-label={w.drawing}>
           {uniq.map(([a, b]) => {
             const [x1, y1] = pos.get(a)!;
             const [x2, y2] = pos.get(b)!;
+            const d = `M${x1} ${y1 + 11} C${x1} ${y1 + 40} ${x2} ${y2 - 36} ${x2} ${y2 - 17}`;
+            const delay = { transitionDelay: `${(depth.get(b) ?? 1) * 260 - 200}ms` };
+            // one stroke, heavier where the brush came down: the line, then its first third again, wider
             return (
-              <path
-                key={`${a}>${b}`}
-                d={`M${x1} ${y1 + 10} C${x1} ${y1 + 36} ${x2} ${y2 - 30} ${x2} ${y2 - 14}`}
-                className={styles.edge}
-                pathLength={1}
-                style={{ transitionDelay: `${(depth.get(b) ?? 1) * 260 - 200}ms` }}
-              />
+              <g key={`${a}>${b}`}>
+                <path d={d} className={styles.edge} pathLength={1} style={delay} />
+                <path d={d} className={`${styles.edge} ${styles.edgePress}`} pathLength={1} style={delay} />
+              </g>
             );
           })}
           {[...pos].map(([id, [x, y]]) => (
-            <text key={id} x={x} y={y} textAnchor="middle" className={styles.svgLabel}>
+            <text key={id} x={x} y={y} textAnchor="middle" className={styles.svgLabel} data-kind={kind.get(id)}>
               {name(id)}
             </text>
           ))}
         </svg>
       </figure>
-      <details className={styles.inner}>
-        <summary>{w.listFold}</summary>
-        <ul className={styles.lineage}>
-          {made.map((n) => {
-            const ins = data.edges.filter((e) => e[1] === n.id);
-            if (!ins.length) return null;
-            return (
-              <li key={n.id}>
-                <span className={styles.node}>{n.label}</span>
-                {n.hash ? <span className={styles.hash}> {n.hash}</span> : null}
-                <span className={styles.edgeLine}>
-                  {' '}
-                  {[...new Set(ins.map((e) => e[2]))]
-                    .map((verb) => {
-                      const from = ins.filter((e) => e[2] === verb).map(([a]) => a);
-                      const named = from.filter((a) => !files.some((f) => f.id === a)).map(name);
-                      if (from.some((a) => files.some((f) => f.id === a))) named.push(filesLabel);
-                      return `${w.edges[verb]} ${named.join(', ')}`;
-                    })
-                    .join('; ')}
-                </span>
-                {n.id === 'passages' ? (
-                  <ul className={styles.files}>
-                    {files.map((f) => (
-                      <li key={f.id}>
-                        <code>{f.label}</code> <span className={styles.hash}>{f.hash}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-              </li>
-            );
-          })}
-        </ul>
-      </details>
+      <div className={styles.lineageSay}>
+        <p className={styles.result}>
+          {fill(w.result, { files: data.meta.files, passages: data.meta.passages, commit: data.meta.commit })}
+        </p>
+        <details className={styles.fold}>
+          <summary>
+            <span>{w.listFold}</span>
+          </summary>
+          <ul className={styles.lineage}>
+            {made.map((n) => {
+              const ins = data.edges.filter((e) => e[1] === n.id);
+              if (!ins.length) return null;
+              return (
+                <li key={n.id}>
+                  <span className={styles.node}>{n.label}</span>
+                  {n.hash ? <span className={styles.hash}> {n.hash}</span> : null}
+                  <span className={styles.edgeLine}>
+                    {[...new Set(ins.map((e) => e[2]))]
+                      .map((verb) => {
+                        const from = ins.filter((e) => e[2] === verb).map(([a]) => a);
+                        const named = from.filter((a) => !files.some((f) => f.id === a)).map(name);
+                        if (from.some((a) => files.some((f) => f.id === a))) named.push(filesLabel);
+                        return `${w.edges[verb]} ${named.join(', ')}`;
+                      })
+                      .join('; ')}
+                  </span>
+                  {n.id === 'passages' ? (
+                    <ul className={styles.files}>
+                      {files.map((f) => (
+                        <li key={f.id}>
+                          <code>{f.label}</code> <span className={styles.hash}>{f.hash}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        </details>
+      </div>
     </div>
   );
 }

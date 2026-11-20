@@ -1,35 +1,43 @@
-import { Familjen_Grotesk, Sofia_Sans_Extra_Condensed } from 'next/font/google';
-
-// Two web faces, self-hosted by next/font at build time (no request to Google from the visitor), about 35 KB in all
-// (the budget: at most two files and 45 KB before the LCP):
-//   the name face, Sofia Sans Extra Condensed 900 (~16 KB): the name, the page titles, the figures;
-//   the reading face, Familjen Grotesk, one variable Latin file for every weight 400–700 (~19 KB): everything read or
-//   pressed. Facts (dates, figures, labels) are set in the system mono stack (tokens.css --font-code), 0 KB.
-// Their family names go first in tokens.css's stacks (fontFaces, below), ahead of the hand-measured,
-// metric-matched local fallbacks. The seal's one glyph is an outline in components/ui/Seal: no CJK font is loaded at all.
-
-/** Body, UI and headings: variable (wght 400–700), one static Latin subset. */
-const bodyFace = Familjen_Grotesk({
-  subsets: ['latin'],
-  display: 'swap',
-  adjustFontFallback: false,
-});
-
-/** The name, the page titles and the figures (Sofia Sans Extra Condensed 900). */
-const nameFace = Sofia_Sans_Extra_Condensed({
-  subsets: ['latin'],
-  weight: '900',
-  display: 'swap',
-  adjustFontFallback: false,
-});
+import localFont from 'next/font/local';
 
 /**
- * The faces' own family names only, as --font-*-face on <html>. next/font's own variables also list a generated
- * Arial-based fallback (it adds one even with adjustFontFallback off), which would stand in before the
- * hand-measured fallbacks of tokens.css, and draw glyphs no subset carries (the "→" of "All writing →") in Arial.
+ * Three voices, three files, about 64 KB, served from this site (src/app/fonts, SIL Open Font License 1.1: see
+ * src/app/fonts/NOTICE.md):
+ *   the brush   Newsreader Italic, its display cut (optical size 72, weight 300), one static file: the name, the
+ *               page titles, the figures and the few lines inscribed in the painting;
+ *   the text    Geist, one variable Latin file: everything read or pressed;
+ *   the record  Geist Mono 400: dates, labels, measures, what the machine reports.
+ * The brush and the text are preloaded (the first screen sets both); the record is fetched when a label needs it.
+ * Each face comes with a metric-matched local fallback (next/font), so the swap moves nothing.
  */
-const first = (family: string) => family.split(',')[0]!.trim();
-export const fontFaces = {
-  '--font-body-face': first(bodyFace.style.fontFamily),
-  '--font-name-face': first(nameFace.style.fontFamily),
-} as Record<string, string>;
+const brush = localFont({
+  src: './fonts/newsreader-italic-display-300.woff2',
+  weight: '300',
+  style: 'italic',
+  display: 'swap',
+  variable: '--font-brush-face',
+  adjustFontFallback: 'Times New Roman',
+  fallback: ['Iowan Old Style', 'Palatino', 'Georgia', 'serif'],
+});
+
+const text = localFont({
+  src: './fonts/geist.woff2',
+  weight: '100 900',
+  display: 'swap',
+  variable: '--font-text-face',
+  adjustFontFallback: 'Arial',
+  fallback: ['ui-sans-serif', 'system-ui', 'sans-serif'],
+});
+
+const record = localFont({
+  src: './fonts/geist-mono-400.woff2',
+  weight: '400',
+  display: 'swap',
+  preload: false,
+  variable: '--font-record-face',
+  adjustFontFallback: false,
+  fallback: ['ui-monospace', 'SF Mono', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
+});
+
+/** The three faces' variables, as classes for <html>. */
+export const fontClasses = `${brush.variable} ${text.variable} ${record.variable}`;

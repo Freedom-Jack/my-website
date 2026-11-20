@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-// The landscape engine's pure parts (no DOM, no GPU): where each place stands, how a window frames it, the palette.
+// The landscape engine's pure parts (no DOM, no GPU): where each place stands, how the band frames it, the palette.
 import {
   cameraFor,
   framingAt,
@@ -16,6 +16,10 @@ import {
   spec,
 } from '@/features/landscape/engine/compose';
 import { PALETTES, paletteName, pigmentAt } from '@/features/landscape/engine/palette';
+import { BAND } from '@/features/landscape/band';
+
+/** The band's box on the wide class's stage (features/landscape/band.ts): what every page's hero is framed in. */
+const BOX = { width: BAND.ref[0], height: BAND.ref[0] * BAND.ratio };
 
 describe('the landscape engine, pure parts', () => {
   it('names each stretch of the one handscroll', () => {
@@ -37,20 +41,12 @@ describe('the landscape engine, pure parts', () => {
     expect(widthClass(390, 844)).toBe('phone');
     expect(widthClass(844, 390)).toBe('short');
   });
-  it('frames a strip deterministically (the same inputs, the same framing)', () => {
-    const box = { width: 1440, height: 522, keepoutRight: 700 };
-    const a = framingAt(0, 'wide', box, 'strip');
-    const b = framingAt(0, 'wide', box, 'strip');
+  it('frames the band deterministically (the same inputs, the same framing)', () => {
+    const a = framingAt(0, 'wide', BOX);
+    const b = framingAt(0, 'wide', BOX);
     expect(a).toEqual(b);
     expect(Number.isFinite(a.scale)).toBe(true);
     expect(a.scale).toBeGreaterThan(0);
-  });
-  it('keeps the place right of the text: the focus stands right of the keep-out', () => {
-    for (const k of [0, 1, 2, 3, 4, 5]) {
-      const f = framingAt(k, 'wide', { width: 1440, height: 360, keepoutRight: 700 }, 'strip');
-      expect(Number.isFinite(f.worldLeft), `stretch ${k}`).toBe(true);
-      expect(f.focus[0], `stretch ${k}`).toBeGreaterThanOrEqual(700 + 180);
-    }
   });
   it('frames every inner hero the same way: one horizon, one scale, the focus at one place', () => {
     for (const [cls, width, height] of [
@@ -59,9 +55,7 @@ describe('the landscape engine, pure parts', () => {
       ['tablet', 1024, 220],
       ['phone', 390, 169],
     ] as const) {
-      const fr = [1, 2, 3, 4, 5].map((k) =>
-        framingAt(k, cls, { width, height, keepoutRight: cls === 'wide' ? width * 0.486 : null }, 'strip'),
-      );
+      const fr = [1, 2, 3, 4, 5].map((k) => framingAt(k, cls, { width, height }));
       for (const f of fr) {
         expect(f.worldTop, `${cls} ${width}`).toBeCloseTo(fr[0]!.worldTop, 6);
         expect(f.scale, `${cls} ${width}`).toBe(fr[0]!.scale);
@@ -71,41 +65,32 @@ describe('the landscape engine, pure parts', () => {
     }
   });
   it('opens a deep page inside its place: closer by HERO.inside, on the same horizon, east of the landmark', () => {
-    const box = { width: 1440, height: 360, keepoutRight: 700 };
-    const open = { width: 1440, height: 360, keepoutRight: null }; // (no words over the box: the framing as named)
-    for (const [k, u, keepU] of [
-      [1, 0.72, 0.482],
-      [2, 0.84, 0.84],
+    for (const [k, u] of [
+      [1, 0.72],
+      [2, 0.84],
     ] as const) {
-      const hero = framingAt(k, 'wide', box, 'strip');
-      const inside = framingAt(k, 'wide', { ...box, inside: true }, 'strip');
+      const hero = framingAt(k, 'wide', BOX);
+      const inside = framingAt(k, 'wide', { ...BOX, inside: true });
       expect(inside.scale).toBeCloseTo(hero.scale * HERO.inside, 6);
-      expect(inside.nominal).toBe(hero.nominal); // (its figure layer is the strip's)
+      expect(inside.nominal).toBe(hero.nominal); // (its figure layer is the place's own)
       // the shared horizon at the same height down the box
-      expect(((inside.worldTop - HERO.horizon) * inside.scale) / 1.6 / box.height).toBeCloseTo(HERO.at, 6);
-      // its focus column holds the scene's inner focus, east of the hero's (where no words overlap the box)
-      const named = framingAt(k, 'wide', { ...open, inside: true }, 'strip');
-      expect(named.worldLeft + (HERO.fx.wide * open.width) / named.scale).toBeCloseTo(k + u, 6);
+      expect(((inside.worldTop - HERO.horizon) * inside.scale) / 1.6 / BOX.height).toBeCloseTo(HERO.at, 6);
+      // its focus column holds the scene's inner focus, east of the hero's
+      expect(inside.worldLeft + (HERO.fx.wide * BOX.width) / inside.scale).toBeCloseTo(k + u, 6);
       expect(inside.worldLeft).toBeGreaterThan(hero.worldLeft);
-      // ...and under the words the keep-out rule still holds: the place's leftmost figurative point (Work: the bridge's
-      // west foot) stands at least KEEP_GAP right of the text, so the bridge looms whole at the words' edge
-      expect((k + keepU - inside.worldLeft) * inside.scale).toBeGreaterThanOrEqual(700 + 180 - 1e-6);
       // a page's own sub-anchor instead (insideU)
-      const own = framingAt(k, 'wide', { ...open, inside: true, insideU: 0.5 }, 'strip');
-      expect(own.worldLeft + (HERO.fx.wide * open.width) / own.scale).toBeCloseTo(k + 0.5, 6);
+      const own = framingAt(k, 'wide', { ...BOX, inside: true, insideU: 0.5 });
+      expect(own.worldLeft + (HERO.fx.wide * BOX.width) / own.scale).toBeCloseTo(k + 0.5, 6);
     }
-    // a phone's case strip: the bridge (its east end at u 1.655) out of view to the west, the quay and the boats whole
-    const ph = framingAt(1, 'phone', { width: 390, height: 168.8, inside: true }, 'strip');
+    // a phone's case: the bridge (its east end at u 1.655) out of view to the west, the quay and the boats whole
+    const ph = framingAt(1, 'phone', { width: 390, height: 168.8, inside: true });
     expect(ph.worldLeft).toBeGreaterThan(1.655);
     expect(ph.worldLeft + 390 / ph.scale).toBeGreaterThan(1.93);
-    // the closing and the five heroes are untouched by the flag
-    expect(framingAt(1, 'wide', { ...box, inside: true }, 'closing')).toEqual(framingAt(1, 'wide', box, 'closing'));
-    expect(framingAt(0, 'wide', { width: 1440, height: 522, keepoutRight: 700, inside: true }, 'strip')).toEqual(
-      framingAt(0, 'wide', { width: 1440, height: 522, keepoutRight: 700 }, 'strip'),
-    );
+    // Home keeps its own hero: the flag changes nothing there
+    expect(framingAt(0, 'wide', { ...BOX, inside: true })).toEqual(framingAt(0, 'wide', BOX));
   });
   it('finds the camera position that brings a part of a place to the focus column (the sub-anchors)', () => {
-    const box = { width: 1440, height: 360, keepoutRight: 700 };
+    const box = BOX;
     for (const [k, u] of [
       [1, 0.9],
       [1, 0.3],

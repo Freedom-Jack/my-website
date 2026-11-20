@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" class="diagram__art diagram__art--wide" viewBox="0 0 1200 394" role="img" aria-labelledby="dg-rag-t dg-rag-d" data-draw="">
+<svg xmlns="http://www.w3.org/2000/svg" class="diagram__art diagram__art--wide" viewBox="0 0 1200 394" role="img" aria-labelledby="dg-rag-t dg-rag-d">
 <title id="dg-rag-t">How the RAG assistant works</title>
 <desc id="dg-rag-d">A customer’s question goes to retrieval, which finds passages in the insurer’s own knowledge base. An LLM, orchestrated with LangChain, answers from those passages, and the answer goes back to the customer.</desc>
 <defs><linearGradient id="dg-rag-mg"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="0.11" stop-color="#fff"/><stop offset="0.89" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="dg-rag-m"><rect x="0" y="290" width="1200" height="104" fill="url(#dg-rag-mg)"/></mask></defs>

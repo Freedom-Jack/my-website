@@ -12,12 +12,16 @@ the scroll, and moving between pages scrolls along the painting to that place (`
 Keep that. Everything else is open to redesign from scratch: layout, type, colour, header, footer, components, motion,
 page structure. Earlier rounds' choices are not rules.
 
-Fixed means the painting and the travel along it: each page's `stretch` and the pan between places. How the painting
-meets the page today (the top strip, the closing scenes, the glimpse windows, the text keep-out, the footer scroll
-map, the held scroll) is current layout and open; changing it means changing the engine's targets and framing
-(`types.ts`, `targets.ts` and `engine/compose.ts` in `src/features/landscape/`). Adding or removing a page means
-adding or removing a place on the scroll (`places.ts`, a figure set in `engine/sets/`). Comments in the code describe
-today's build, not rules.
+Fixed means the painting and the travel along it: each page's `stretch` and the pan between places. Adding or
+removing a page means adding or removing a place on the scroll (`places.ts`, a figure set in `engine/sets/`, its
+stills). Comments in the code describe today's build, not rules.
+
+How the painting meets the page today is the band: one fixed band across the top of the window, the page's title
+inscribed in its sky, the words rising under it on plain paper. The engine paints it live at 1200 px and up; below
+that, and before the engine is live, it shows stills cut from the engine (`public/scenes/band/`). Its numbers live in
+`src/features/landscape/band.ts`, the `--band-*` tokens in `src/styles/tokens.css` and `tools/build-band.ts`. This is
+current layout and open; changing it means changing those, `src/styles/band.css` and the engine's framing
+(`engine/compose.ts`), then cutting the stills again.
 
 What Jack has disliked before: a "webinar" look, bold brush bars, washing the painting out white behind the text,
 birds, cherry blossom, colour themes.
@@ -33,8 +37,8 @@ birds, cherry blossom, colour themes.
   `/resume.pdf`.
 - Launch gate: the old résumé PDF is still in this repo's git history. Before qijinxu.com goes public, the history is
   purged (or the repo goes private), and only then is `job-application` made private. Until then no page links to
-  this repository. Nothing enforces that, so check any new link yourself (`showSourceCode` in `content/site.ts` is
-  only a marker).
+  this repository. `check:compliance` and `check:links` fail on such a link while `showSourceCode` in
+  `content/site.ts` is false.
 - Never bypass the corporate web filter. Never change system, security or TLS settings.
 - Every fact, figure and claim about Jack comes from `content/` (the résumé, the pages, the cases). Never invent one.
   New words in his voice go into [NEW-WORDS.md](NEW-WORDS.md) for his approval. Search and AI data say only what the
@@ -46,18 +50,19 @@ Fast and smooth everywhere, with the painting running. On Jack's laptop: no scro
 (390 px, CPU 4× slower, slow 4G): LCP ≤ 2.5 s, CLS ≤ 0.05, no task over 100 ms, INP ≤ 200 ms, under 2 % of scroll
 frames over 20 ms. Lighthouse mobile ≥ 95, desktop ≥ 99. Nothing runs when nothing moves. Design for this from the
 start, and never buy speed by cutting the beauty. Measure with `npm run check:budgets` on a QA build, on the real GPU,
-with the machine quiet (CI doesn't run it). It covers loading, a phone scroll and one tap. Of its gates, the numbers
-above are the bar; the rest (byte sizes, font counts, FCP, Speed Index, TBT, heap, the still's time) are guides, and
-master already misses four of them (the baseline is in PR #36's description). Time the travel between pages, a laptop
-scroll and an idle page yourself, and add new pages to its route list.
+with the machine quiet (CI doesn't run it). It covers loading, a scroll, the Ask door and the travel between pages, on
+a phone and on a laptop, and the idle page. The numbers above are the bar and fail the run; the rest (byte sizes, font
+counts, FCP, Speed Index, TBT, heap, the still's time) are guides, and master already misses four of them (the
+baseline is in PR #36's description). Add new pages to its route list.
 
 ## Tests
 
-Tests serve the site, not the old design: rewrite or delete any test that only guards a layout or feature being
-replaced. Keep the hard-rule checks: `check:compliance`, the résumé PDF gate and the content schemas. Today the
-layout-bound ones are the header, glimpse, scroll-mode and craft e2e specs, parts of the smoke and probe specs, and the
-page-structure unit tests. Layout changes also trip the stills and heroes checks in `npm run ci` (their hash covers
-the strip's CSS): re-cut them once the layout settles.
+Tests serve the site, not a design: rewrite or delete any test that only guards a layout or feature being replaced.
+Keep the hard-rule checks: `check:compliance`, `check:links`, the résumé PDF gate, the content schemas and the smoke
+spec's hard rules on the rendered pages. Today the layout-bound ones are the band tests (e2e and unit), the Ask and
+pieces specs, and parts of the smoke, a11y and navigation specs. Engine, place and band-number changes also trip
+`build:band -- --check` in `npm run ci` (its hash does not cover the CSS), and a changed title trips CI's
+`build:og -- --check`: re-cut them once the change settles.
 
 ## Working with Jack
 
@@ -82,8 +87,8 @@ the strip's CSS): re-cut them once the layout settles.
 Node 24 (`.node-version`; if `npm` is missing, prefix `PATH="$HOME/.local/share/fnm/aliases/default/bin:$PATH"`).
 
 - `npm run dev`, `npm run build`, `npm start`, `npm run preview`
-- `npm run ci`: type-check, lint, format, unit tests, stills and heroes checks
-- `npm run test:e2e`: Playwright against a build on port 3100
+- `npm run ci`: type-check, lint, format, unit tests, the band stills' check (`build:band -- --check`)
+- `npm run test:e2e`: Playwright against a QA build on port 3100
 - `npm run check:compliance`, `npm run check:links`, `npm run check:budgets`
-- `npm run build:stills`, `build:heroes`, `build:og`, `build:pdf`, `build:scroll`: regenerate assets from a QA build
+- `npm run build:band`, `build:og`, `build:pdf`, `build:ask`: regenerate assets from a QA build
   (`NEXT_PUBLIC_INK_QA=1 npm run build && npm start -- -p 3100`)

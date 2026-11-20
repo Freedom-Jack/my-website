@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- The paper where the painting is not: the page's own colour with a fine tooth, opaque, tiled seamlessly.
+       One plain image: no blend mode stands over the scrolling words. -->
+  <filter id="dark" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency=".9 .8" numOctaves="2" seed="7" stitchTiles="stitch"/>
+    <feColorMatrix values="0 0 0 0 .05  0 0 0 0 .09  0 0 0 0 .12  .2 0 0 0 -.078"/>
+  </filter>
+  <filter id="light" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency=".7 .85" numOctaves="2" seed="23" stitchTiles="stitch"/>
+    <feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 .36 0 0 -.14"/>
+  </filter>
+  <rect width="256" height="256" fill="#eff1ee"/>
+  <rect width="256" height="256" filter="url(#light)"/>
+  <rect width="256" height="256" filter="url(#dark)"/>
+</svg>

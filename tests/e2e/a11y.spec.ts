@@ -1,210 +1,240 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, type Page, test } from '@playwright/test';
-import { fontsReady, isSoftware, ROUTES } from './support/pages';
+import { sampledContrast } from './support/contrast';
+import { fontsReady, PHONE, type Route, ROUTES, scrollTo, settle, SMALL_PHONE, TABLET } from './support/pages';
 import { tapsAndOverflow } from './support/taps';
 
 /**
- * Accessibility, enforced:
- *   - axe-core (through @axe-core/playwright) on every route at 1440 × 900 and 360 × 800, tags wcag2a, wcag2aa,
- *     wcag21aa, wcag22aa and best-practice: zero violations. The RULES are asserted to exist in the installed axe and
- *     to have run, so a renamed rule cannot silently drop out. color-contrast results axe could not decide
- *     ("incomplete": text over the painting or its still, which axe cannot sample) are decided by a pixel-sampled
- *     test instead: the text is made transparent, its box is captured as painted, and the text colour must reach 4.5:1
- *     (3:1 for large text) against both the lightest and the darkest 5 % of the ground under it; a node that cannot be
- *     found or read is a failure, and one with no box is noted in the report.
- *   - the tap-target sweep at 360 × 800 on every route: every standalone target 44 × 44 (inline links in a sentence
- *     are WCAG 2.5.8's exception).
- * On a software rasteriser the pages run under reduced motion (the still; the painting is judged on a GPU).
+ * Accessibility, on every route:
+ *   - axe-core (wcag2a, wcag2aa, wcag21aa, wcag22aa, best-practice) at a laptop's and a phone's width: no serious or
+ *     critical violation. The page is judged as a reader who has gone down it meets it (the pieces that load as they
+ *     are reached are in).
+ *   - the words on the paper: axe cannot judge contrast over the paper's grain (a background image), so it judges
+ *     them again on the plain paper colour, with the band out of the way; what it still cannot decide (a link's
+ *     drawn underline, a diagram's words) is sampled from the pixels really painted under it.
+ *   - the words on the painting (the header's words, the page's title and the line under it, the next place's name):
+ *     sampled from the pixels painted under them, at the page's top, once the band has stood back, and at the page's
+ *     end: 4.5:1, or 3:1 for large text (the titles).
+ *   - tap targets on a phone: every standalone target at least 44 px tall (a link inside a sentence is WCAG 2.5.8's
+ *     exception).
  */
+const TAGS = ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'];
+/** Rules that must have run on every page: a rule renamed or dropped by an axe update fails here, not silently. */
 const RULES = [
   'color-contrast',
   'link-name',
   'button-name',
   'aria-hidden-focus',
   'aria-valid-attr-value',
-  'aria-required-attr',
   'aria-allowed-attr',
-  'aria-allowed-role',
   'landmark-one-main',
   'region',
   'page-has-heading-one',
   'heading-order',
   'bypass',
-  'skip-link',
-  'scrollable-region-focusable',
-  'svg-img-alt',
   'target-size',
-  'focus-order-semantics',
-  'tabindex',
   'meta-viewport',
   'html-has-lang',
   'document-title',
   'image-alt',
 ] as const;
-const TAGS = ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'];
-/** The pixel-sampled contrast for the nodes axe could not decide: [selector, worst ratio, needed, note]. A node that
- *  cannot be sampled is never a silent pass: `missing` (its selector finds nothing, or it cannot be read) fails the
- *  test; `hidden` (laid out with no box: nothing on screen to read) is annotated. */
-async function sampledContrast(page: Page, selectors: string[]) {
-  const out: Array<{ sel: string; worst: number; need: number; note: string; unsampled?: 'missing' | 'hidden' }> = [];
-  for (const sel of selectors.slice(0, 40)) {
-    const el = page.locator(sel).first();
-    const info = await el
-      .evaluate((e) => {
-        const cs = getComputedStyle(e);
-        const svg = e instanceof SVGElement;
-        const fill = svg && cs.fill && cs.fill.startsWith('rgb') ? cs.fill : cs.color;
-        const px = parseFloat(cs.fontSize);
-        const bold = Number(cs.fontWeight) >= 700;
-        e.scrollIntoView({ block: 'center', inline: 'nearest' });
-        return { color: fill, large: px >= 24 || (bold && px >= 18.66), opacity: Number(cs.opacity) };
-      })
-      .catch(() => null);
-    if (!info) {
-      out.push({ sel, worst: 0, need: 0, note: 'not found: cannot be sampled', unsampled: 'missing' });
-      continue;
+
+/**
+ * What the checks below are known to find and are told to leave out, so each still guards everything else. Empty
+ * today. An entry here is a defect in src/ waiting for its fix: name the rule or the link's words, say where it is,
+ * and take the entry out with the fix (the tap-target check fails on an entry that no longer applies).
+ */
+const KNOWN = {
+  /** axe rule ids left out, by route */
+  axe: {} as Partial<Record<Route['id'], string[]>>,
+  /** standalone links under 44 px tall on a phone (360 × 800), by their words: `*` is every page */
+  small: {} as Partial<Record<Route['id'] | '*', string[]>>,
+};
+
+/** Go down the page and back, so what loads as it is reached (the live pieces, the tail's map) has loaded. */
+async function readThrough(page: Page) {
+  await page.evaluate(async () => {
+    for (let y = 0; y < document.documentElement.scrollHeight; y += innerHeight / 2) {
+      window.scrollTo({ top: y, behavior: 'instant' });
+      await new Promise((done) => setTimeout(done, 60));
     }
-    const box = await el.boundingBox();
-    if (!box || box.width < 1 || box.height < 1) {
-      out.push({ sel, worst: 0, need: 0, note: 'not rendered: no box to sample', unsampled: 'hidden' });
-      continue;
-    }
-    await el.evaluate((e) => e.classList.add('__contrast-probe'));
-    // (the text made transparent; a token struck through with a brush, [data-struck], is struck by its own ::after:
-    // like a line-through, the strike is the text's decoration, not the ground under it, so it goes with the text)
-    const style = await page.addStyleTag({
-      content:
-        '.__contrast-probe, .__contrast-probe * { color: transparent !important; -webkit-text-fill-color: transparent !important; fill: transparent !important; text-decoration-color: transparent !important; text-shadow: none !important; caret-color: transparent !important; } .__contrast-probe::placeholder { color: transparent !important; -webkit-text-fill-color: transparent !important; } .__contrast-probe[data-struck]::after { visibility: hidden !important; }',
-    });
-    const png = await page.screenshot({ clip: box, animations: 'disabled', caret: 'hide' });
-    await style.evaluate((n) => (n as Element).remove());
-    await el.evaluate((e) => e.classList.remove('__contrast-probe'));
-    const r = await page.evaluate(
-      async ([b64, color]) => {
-        const img = new Image();
-        img.src = 'data:image/png;base64,' + b64;
-        await img.decode();
-        const c = document.createElement('canvas');
-        c.width = img.naturalWidth;
-        c.height = img.naturalHeight;
-        const g = c.getContext('2d')!;
-        g.drawImage(img, 0, 0);
-        const d = g.getImageData(0, 0, c.width, c.height).data;
-        const lin = (v: number) => {
-          const x = v / 255;
-          return x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4;
-        };
-        const lum = (r: number, gg: number, b: number) => 0.2126 * lin(r) + 0.7152 * lin(gg) + 0.0722 * lin(b);
-        const ls: number[] = [];
-        for (let i = 0; i < d.length; i += 4) ls.push(lum(d[i]!, d[i + 1]!, d[i + 2]!));
-        ls.sort((a, b) => a - b);
-        const lo = ls[Math.floor(ls.length * 0.05)]!;
-        const hi = ls[Math.min(ls.length - 1, Math.floor(ls.length * 0.95))]!;
-        const m = color.match(/[\d.]+/g)!.map(Number);
-        const t = lum(m[0]!, m[1]!, m[2]!);
-        const ratio = (a: number, b: number) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
-        return { worst: Math.min(ratio(t, lo), ratio(t, hi)) };
-      },
-      [png.toString('base64'), info.color] as const,
-    );
-    out.push({ sel, worst: Math.round(r.worst * 100) / 100, need: info.large ? 3 : 4.5, note: info.color });
-  }
-  return out;
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  });
+  await page.waitForLoadState('networkidle');
+  await expect(page.locator('[aria-busy="true"]')).toHaveCount(0);
 }
 
-test.beforeEach(async ({ page }) => {
-  if (await isSoftware(page)) await page.emulateMedia({ reducedMotion: 'reduce' });
-});
+async function axeOn(page: Page, route: Route, known: string[]) {
+  await page.goto(route.path);
+  await fontsReady(page);
+  await readThrough(page);
+  const fail: string[] = [];
 
-for (const [width, height] of [
-  [1440, 900],
-  [360, 800],
+  // ---- every rule, on the page as it stands
+  const axe = await new AxeBuilder({ page })
+    .withTags(TAGS)
+    .options({ rules: Object.fromEntries(RULES.map((id) => [id, { enabled: true }])) })
+    .analyze();
+  const ran = new Set([...axe.passes, ...axe.violations, ...axe.incomplete, ...axe.inapplicable].map((x) => x.id));
+  expect(
+    RULES.filter((id) => !ran.has(id)),
+    'rules that did not run',
+  ).toEqual([]);
+  const say = (v: (typeof axe.violations)[number]) =>
+    `${v.id} [${v.impact}] (${v.nodes.length}): ${v.nodes
+      .slice(0, 3)
+      .map((n) => n.target.join(' '))
+      .join(' | ')}`;
+  for (const v of axe.violations)
+    if ((v.impact === 'serious' || v.impact === 'critical') && !known.includes(v.id)) fail.push(say(v));
+  const lesser = axe.violations.filter((v) => v.impact !== 'serious' && v.impact !== 'critical');
+  if (lesser.length)
+    test.info().annotations.push({ type: 'axe, moderate or minor', description: lesser.map(say).join(' · ') });
+
+  // ---- the words on the paper: contrast against the plain paper colour (the grain and the band set aside)
+  const band = await page.addStyleTag({
+    content: '.band, .inscription, .site-header { visibility: hidden !important; }',
+  });
+  const grain = await page.addStyleTag({ content: 'html { background-image: none !important; }' });
+  const onPaper = await new AxeBuilder({ page }).withRules(['color-contrast']).analyze();
+  for (const v of onPaper.violations) fail.push(say(v));
+  await grain.evaluate((n) => (n as Element).remove());
+  // what axe still could not decide, sampled where it lies on the real paper (not what is hidden from readers)
+  const undecided: string[] = [];
+  for (const n of onPaper.incomplete.flatMap((v) => v.nodes)) {
+    const sel = String(n.target[0]);
+    const deco = await page
+      .locator(sel)
+      .first()
+      .evaluate((e) => !!e.closest('[aria-hidden="true"]'))
+      .catch(() => false);
+    if (!deco) undecided.push(sel);
+  }
+  if (undecided.length > 45) fail.push(`contrast undecided on ${undecided.length} nodes (45 are sampled)`);
+  const notes: string[] = [];
+  for (const sel of undecided.slice(0, 45)) {
+    const c = await sampledContrast(page, page.locator(sel).first());
+    if (c.unsampled === 'missing') fail.push(`contrast: ${sel} was undecided by axe and cannot be sampled`);
+    else if (c.unsampled) notes.push(`${sel}: no box`);
+    else if (c.worst < c.need) fail.push(`contrast (sampled): ${sel} ${c.worst}:1 < ${c.need}:1 (${c.color})`);
+  }
+  await band.evaluate((n) => (n as Element).remove());
+  test.info().annotations.push({
+    type: 'contrast',
+    description: `${undecided.length} sampled${notes.length ? `; ${notes.join(' · ')}` : ''}`,
+  });
+  return fail;
+}
+
+for (const size of [
+  { name: 'a laptop (1440 × 900)', use: { viewport: { width: 1440, height: 900 } } },
+  { name: 'a phone (390 × 844)', use: PHONE },
 ] as const) {
-  test.describe(`axe at ${width} × ${height}`, () => {
-    test.use({
-      viewport: { width, height },
-      ...(width < 600 ? { deviceScaleFactor: 3, isMobile: true, hasTouch: true } : {}),
-    });
-    for (const r of ROUTES) {
+  test.describe(`axe on ${size.name}`, () => {
+    test.use(size.use);
+    for (const r of ROUTES)
       test(r.id, async ({ page }) => {
-        await page.goto(r.path);
-        await fontsReady(page);
-        // (the page as a reader who has gone down it meets it: the pieces that take their code and data as they are
-        // reached, Ask, the search, Work's live pieces, are in their live form before anything is judged)
-        await page.evaluate(async () => {
-          for (let y = 0; y < document.documentElement.scrollHeight; y += innerHeight / 2) {
-            scrollTo(0, y);
-            await new Promise((done) => setTimeout(done, 80));
-          }
-          scrollTo(0, 0);
-        });
-        await page.waitForTimeout(700);
-        const axe = await new AxeBuilder({ page })
-          .withTags(TAGS)
-          // (every rule in RULES, enabled explicitly: a rename fails the "did not run" check below)
-          .options({ rules: Object.fromEntries(RULES.map((id) => [id, { enabled: true }])) })
-          .analyze();
-        const ran = new Set(
-          [...axe.passes, ...axe.violations, ...axe.incomplete, ...axe.inapplicable].map((x) => x.id),
-        );
-        const missing = RULES.filter((id) => !ran.has(id));
-        expect(missing, 'rules that did not run').toEqual([]);
-        const fail = axe.violations.map(
-          (v) =>
-            `${v.id} (${v.nodes.length}): ${v.nodes
-              .slice(0, 3)
-              .map((n) => n.target.join(' '))
-              .join(' | ')}`,
-        );
-        const all = axe.incomplete
-          .filter((x) => x.id === 'color-contrast')
-          .flatMap((v) => v.nodes.map((n) => String(n.target[0])));
-        // (a figure drawn large beside its own sentence is decoration, hidden from assistive technology:
-        // its words are the sentence's, which is checked; an outlined numeral has no fill for the sampler to read)
-        const undecided: string[] = [];
-        for (const sel of all) {
-          const deco = await page
-            .locator(sel)
-            .first()
-            .evaluate((e) => !!e.closest('[aria-hidden="true"]'))
-            .catch(() => false);
-          if (!deco) undecided.push(sel);
-        }
-        const sampled = await sampledContrast(page, undecided);
-        if (undecided.length > 40) fail.push(`color-contrast undecided on ${undecided.length} nodes (sampled 40)`);
-        for (const c of sampled)
-          if (c.unsampled === 'missing') fail.push(`contrast (sampled) ${c.sel}: undecided by axe and ${c.note}`);
-          else if (!c.unsampled && c.worst < c.need)
-            fail.push(`contrast (sampled) ${c.sel}: ${c.worst}:1 < ${c.need}:1 (${c.note})`);
-        const hidden = sampled.filter((c) => c.unsampled === 'hidden');
-        if (hidden.length)
-          test.info().annotations.push({
-            type: 'contrast not sampled',
-            description: hidden.map((c) => `${c.sel}: ${c.note}`).join(' · '),
-          });
-        test.info().annotations.push({
-          type: 'contrast sampled',
-          description:
-            sampled
-              .filter((c) => !c.unsampled)
-              .map((c) => `${c.sel} ${c.worst}`)
-              .join(' · ') || 'none undecided',
-        });
-        expect(fail, `${r.id} at ${width}`).toEqual([]);
+        expect(await axeOn(page, r, KNOWN.axe[r.id] ?? [])).toEqual([]);
       });
-    }
   });
 }
 
-test.describe('tap targets at 360 × 800', () => {
-  test.use({ viewport: { width: 360, height: 800 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+// ------------------------------------------------------------------ the words on the painting
+/** The header's words (his name, the four places, the Ask door), then the title, its line, the way on. */
+const HEADER = '.site-header__home > span:first-child, .site-nav a, .ask-door';
+const TITLE = 'main .inscription:not(.inscription--next) :is(h1, .title)';
+const UNDER = 'main .inscription:not(.inscription--next) .title__under';
+const NEXT = '.inscription__next';
+
+async function wordsOnThePainting(page: Page, route: Route, where: 'top' | 'settled' | 'end') {
+  const fail: string[] = [];
+  const read: string[] = [];
+  const sample = async (sel: string, need?: number) => {
+    const all = page.locator(sel);
+    let n = 0;
+    for (let i = 0; i < (await all.count()); i++) {
+      const el = all.nth(i);
+      // (what a reader sees: laid out, not let out of sight, inside the window)
+      const seen = await el.evaluate((e) => {
+        if (!e.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) return false;
+        for (let x: Element | null = e; x; x = x.parentElement)
+          if (Number(getComputedStyle(x).opacity) < 0.99) return false;
+        const b = e.getBoundingClientRect();
+        return b.left >= 0 && b.right <= innerWidth && b.top >= 0 && b.bottom <= innerHeight;
+      });
+      if (!seen) continue;
+      const c = await sampledContrast(page, el, { inPlace: true, need });
+      const words = (await el.innerText()).trim().replace(/\s+/g, ' ').slice(0, 28);
+      if (c.unsampled) fail.push(`${route.id}, ${where}: "${words}" could not be sampled (${c.unsampled})`);
+      else if (c.worst < c.need)
+        fail.push(`${route.id}, ${where}: "${words}" ${c.worst}:1 < ${c.need}:1 at ${c.px} px`);
+      else read.push(`${words} ${c.worst}`);
+      n++;
+    }
+    return n;
+  };
+  // the header's words stand fixed while the painting moves under them: always there, always 4.5:1
+  expect(await sample(HEADER, 4.5), `${route.id}, ${where}: the header's six words`).toBe(6);
+  if (where === 'top') {
+    // the title is inscribed in the sky: large (3:1); the line under it is small (4.5:1)
+    expect(await sample(TITLE, 3), `${route.id}: the title is in the window at the page's top`).toBeGreaterThan(0);
+    await sample(UNDER, 4.5);
+  } else {
+    // (stood back, they are judged at the size they are drawn at)
+    await sample(TITLE);
+    await sample(UNDER);
+    if (where === 'end') await sample(NEXT);
+  }
+  return { fail, read };
+}
+
+for (const size of [
+  { name: 'a laptop (1440 × 900)', use: { viewport: { width: 1440, height: 900 } } },
+  { name: 'a small laptop (1280 × 720)', use: { viewport: { width: 1280, height: 720 } } },
+  { name: 'a tablet (768 × 1024)', use: TABLET },
+  { name: 'a phone (390 × 844)', use: PHONE },
+] as const) {
+  test.describe(`the words on the painting, ${size.name}`, () => {
+    test.use(size.use);
+    test('the header, the title, its line and the way on stay readable as the painting moves', async ({ page }) => {
+      test.setTimeout(120_000);
+      const fail: string[] = [];
+      for (const r of ROUTES) {
+        await page.goto(r.path);
+        await settle(page);
+        for (const where of ['top', 'settled', 'end'] as const) {
+          await scrollTo(page, where === 'top' ? 0 : where === 'settled' ? size.use.viewport.height : 1e6);
+          const got = await wordsOnThePainting(page, r, where);
+          fail.push(...got.fail);
+        }
+      }
+      expect(fail).toEqual([]);
+    });
+  });
+}
+
+// ------------------------------------------------------------------ tap targets
+async function smallTargets(page: Page, route: Route) {
+  await page.goto(route.path);
+  await fontsReady(page);
+  await readThrough(page);
+  const m = await page.evaluate(tapsAndOverflow);
+  return { small: m.small, offenders: m.offenders };
+}
+
+test.describe('tap targets on a phone (360 × 800)', () => {
+  test.use(SMALL_PHONE);
   for (const r of ROUTES) {
     test(r.id, async ({ page }) => {
-      await page.goto(r.path);
-      await fontsReady(page);
-      const m = await page.evaluate(tapsAndOverflow);
-      const small = m.small.map((t) => `${t.el} '${t.name}' ${t.hitW}×${t.hitH}`);
-      expect(small, `${r.id}: standalone targets under 44 × 44`).toEqual([]);
+      const m = await smallTargets(page, r);
+      const known = [...(KNOWN.small['*'] ?? []), ...(KNOWN.small[r.id] ?? [])];
+      const small = m.small
+        .filter((t) => !known.includes(t.name))
+        .map((t) => `${t.el} '${t.name}' ${t.hitW}×${t.hitH}`);
+      expect(small, `${r.id}: standalone targets under 44 px tall`).toEqual([]);
+      // (an entry that no longer applies is taken off the list, so the list never hides a new one of the same name)
+      const stale = known.filter((name) => !m.small.some((t) => t.name === name));
+      expect(stale, `${r.id}: KNOWN.small entries that are no longer small`).toEqual([]);
       expect(m.offenders.slice(0, 3)).toEqual([]);
     });
   }

@@ -1,6 +1,5 @@
 /* ==========================================================================
-   base.css — reset, paper, typography defaults, links, focus, skip link,
-   print and forced colours. Shared file: do not edit from a page.
+   base.css — reset, the paper, the text's defaults, links, focus, the skip link, print and forced colours.
    ========================================================================== */
 
 /* ---------- reset ---------- */
@@ -15,29 +14,30 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  background: var(--paper); /* the paper itself; the landscape canvas paints over it */
+  /* the paper where the painting is not: one opaque tile (the engine's own grain once it has developed it) */
+  background: var(--paper) var(--paper-tile, url('./svg/paper.svg')) 0 0 / var(--paper-tile-size, 256px)
+    var(--paper-tile-size, 256px);
   color-scheme: only light; /* cool paper by design: never auto-darkened by a browser */
-  scrollbar-color: var(--ink-5) transparent;
-  overflow-x: clip; /* the viewport never scrolls sideways: full-bleed art and blooms are clipped */
-  /* the returning header (the returning-header effect) can sit over the top of the viewport: anchors and focused elements
-     always land below it (WCAG 2.4.11) */
-  scroll-padding-top: calc(var(--header-h) + 0.75rem);
+  scrollbar-color: var(--ink-4) transparent;
+  overflow-x: clip;
+  /* the band stands over the top of the window: anchors and focused things land under its foot (WCAG 2.4.11) */
+  scroll-padding-top: calc(var(--band-rest) + 2.5rem);
 }
 a,
 button,
 summary {
-  -webkit-tap-highlight-color: transparent; /* a tap is answered in ink (effects.css :active), not by the system's box */
+  -webkit-tap-highlight-color: transparent;
 }
 body {
   min-height: 100svh;
-  background: transparent; /* the fixed landscape canvas and the paper show through */
-  color: var(--text);
-  font-family: var(--font-body);
-  font-size: var(--fs-body);
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-text);
+  font-size: var(--t-body);
   line-height: var(--lh-body);
-  font-weight: var(--w-body);
-  font-optical-sizing: auto;
+  font-weight: 400;
   font-kerning: normal;
+  font-feature-settings: 'ss01' 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -78,166 +78,150 @@ h3,
 h4 {
   text-wrap: balance;
   overflow-wrap: break-word;
-  font-weight: var(--w-strong);
-  line-height: var(--lh-item);
+  font-weight: 500;
+  line-height: 1.25;
 }
 ul[role='list'],
 ol[role='list'] {
   list-style: none;
   padding: 0;
 }
-main:focus {
+/* focus moved by script to something that is not a control (the skip link's <main>, a route change's h1, a section a
+   link's #fragment names): it is announced, and it wears no ring */
+main:focus,
+[tabindex='-1']:focus {
   outline: none;
-} /* the skip link moves focus here; no ring on a whole landmark */
-h1[tabindex='-1']:focus {
-  outline: none;
-} /* a route change moves focus to the new page's h1 (announced, not a control) */
+  box-shadow: none;
+}
 [hidden] {
   display: none !important;
 }
-
-/* ---------- paper grain: only when the landscape is not painting ----------
-   The landscape paints the paper's fine tooth and long fibres itself. Without JS, or without any
-   working landscape, this CSS layer stands in for it. */
-html:not(.js) body::before,
-html.no-landscape body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: var(--z-paper);
-  pointer-events: none;
-  background:
-    url('./svg/paper-fibres.svg') 0 0 / 760px 760px,
-    url('./svg/paper-grain.svg') 0 0 / 256px 256px;
-  mix-blend-mode: soft-light; /* neutral grain: textures the paper without greying it */
-  opacity: 0.42;
+/* (what only a script can run is not offered without one) */
+html:not(.js) [data-js-only] {
+  display: none !important;
 }
 
-/* ---------- the landscape canvas (decorative; mountLandscape() paints into the page's windows) ---------- */
-.landscape {
-  position: fixed;
-  inset: 0;
-  z-index: var(--z-landscape);
-  width: 100%;
-  height: 100lvh;
-  pointer-events: none;
-}
-/* No working landscape (the mount failed, or the engine has no renderer): the canvas never covers the paper,
-   whatever it holds; the strip and closing boxes show the static ridge hint instead (layout.css). */
-html.no-landscape .landscape {
-  display: none;
+/* (a control brought into view by the keyboard clears the band: html's scroll-padding-top is the settled band, and
+   near the page's top the band still stands this much taller) */
+main :is(a, button, summary, input, [tabindex]) {
+  scroll-margin-top: calc(var(--band-flow, var(--band-rest)) - var(--band-rest));
 }
 
-/* ---------- typography defaults ---------- */
+/* ---------- the text's defaults ---------- */
 a {
   color: inherit;
+  text-decoration-line: underline;
   text-decoration-thickness: 1px;
-  text-underline-offset: 0.26em;
+  text-decoration-color: var(--line-2);
+  text-underline-offset: 0.24em;
+  transition:
+    color var(--dur-hover) var(--ease-out),
+    text-decoration-color var(--dur-hover) var(--ease-out);
+}
+a:hover {
+  color: var(--indigo);
+  text-decoration-color: currentColor;
 }
 strong,
 b {
-  font-weight: var(--w-strong);
-}
-small {
-  font-size: var(--fs-small);
-}
-abbr[title] {
-  text-decoration: none;
-}
-time {
-  font-variant-numeric: lining-nums tabular-nums;
+  font-weight: 600;
 }
 ::selection {
-  background: color-mix(in oklab, var(--wash) 26%, var(--paper));
-  color: var(--ink-1);
+  background: rgb(46 121 176 / 0.2);
+  color: var(--ink);
 }
-
-/* ---------- focus: a crisp ink ring, never removed (its jade second line: effects.css, elements.ts focus) ---------- */
 :focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
   border-radius: 2px;
+  box-shadow: 0 0 0 5px var(--paper);
+}
+.nowrap {
+  white-space: nowrap;
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
-/* ---------- skip link ---------- */
+/* ---------- the skip link ---------- */
 .skip-link {
   position: fixed;
   left: var(--gutter);
   top: 0.75rem;
   z-index: var(--z-skip);
-  padding: 0.6rem 1rem;
-  background: var(--ink-1);
+  padding: 0.6rem 0.9rem;
+  background: var(--ink);
   color: var(--paper);
-  font-weight: var(--w-ui);
+  font-size: var(--t-small);
+  font-weight: 500;
   text-decoration: none;
-  border-radius: 2px;
-  translate: 0 -200%;
+  transform: translateY(-300%);
 }
-.skip-link:focus-visible {
-  translate: 0 0;
-  outline-color: var(--ink-1);
-}
-
-/* ---------- utilities ---------- */
-.visually-hidden:not(:focus):not(:active) {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-.nowrap {
-  white-space: nowrap;
-}
-/* ...except under 240 CSS px (a 390 px phone at 200 % page zoom, iOS Safari's aA: a 195 px viewport), where a kept
-   phrase ("2020 – 2021 · Research assistant", the Note's dateline) is wider than the column and, since the page never
-   scrolls sideways (html overflow-x: clip), its end would be lost: there it wraps. */
-@media (max-width: 14.99rem) {
-  .nowrap {
-    white-space: normal;
-  }
-}
-/* the facts' voice: dates, labels, measures and the build stamp in the system mono at the small size, in ink-3, with
-   tabular figures; never a paragraph. A link inside carries its underline on the link's own words only. */
-.mono {
-  font-family: var(--font-code);
-  font-size: var(--fs-small);
-  font-weight: 400;
-  line-height: var(--lh-small);
-  letter-spacing: 0;
-  font-variant-numeric: tabular-nums lining-nums;
-  color: var(--ink-3);
-}
-.ink-defs {
-  position: absolute;
-  width: 0;
-  height: 0;
-  overflow: hidden;
+.skip-link:focus {
+  transform: none;
+  color: var(--paper);
 }
 
-/* ---------- print: ink on paper only (pages add their own print rules) ---------- */
+/* ---------- printed only ---------- */
+.print-name {
+  display: none;
+}
+
 @media print {
-  .landscape,
-  .skip-link {
+  html {
+    background: #fff;
+    scroll-padding-top: 0;
+  }
+  body {
+    color: #000;
+  }
+  .skip-link,
+  .site-header,
+  .band,
+  .tail,
+  .ask-door {
     display: none !important;
   }
-}
-
-/* ---------- forced colours (Windows High Contrast): system colours, no ink layers ---------- */
-@media (forced-colors: active) {
-  .landscape,
-  body::before {
-    display: none;
+  /* (no band on paper: the page opens at the sheet's top) */
+  main {
+    padding-top: 0 !important;
+    min-height: 0 !important;
   }
-  :focus-visible {
-    outline-color: Highlight;
+  .print-name {
+    margin-inline: var(--gutter);
+  }
+  .print-name {
+    display: block;
+    font: 500 10pt/1.3 var(--font-text);
+    margin-bottom: 14pt;
   }
   a {
-    text-decoration: underline;
+    text-decoration: none;
   }
 }
 
-/* ---------- reduced motion ----------
-   Each effect in effects.css declares its own reduced-motion form (a calm static landscape and
-   simple fades: nothing slides, blooms, blurs or pans). Page CSS must do the same for anything it animates. */
+@media (forced-colors: active) {
+  /* the painting is not shown: the header goes with the page, and the page opens under it (what was inscribed in the
+     band stands in the flow: styles/band.css) */
+  .band {
+    display: none;
+  }
+  .site-header {
+    position: absolute;
+  }
+  main {
+    padding-top: var(--header-h);
+  }
+  :focus-visible {
+    outline: 2px solid Highlight;
+    box-shadow: none;
+  }
+}

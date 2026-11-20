@@ -1,0 +1,14 @@
+/* The 404: the way back and one other way, side by side under the mist. Nothing else on the paper. */
+.ways {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--s-7);
+}
+.other {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  color: var(--ink-2);
+}

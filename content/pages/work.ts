@@ -1,9 +1,10 @@
 import type { PageWords } from './types';
 
 /**
- * Work (/work/): a concise index; the detail lives on each project's own page. The six projects come from
- * content/work/*.mdx (one file per case, each its own page); this file holds the index's own words. The How I build
- * drawing is content/work/diagrams/how-i-build.{wide,tall}.svg.
+ * Work (/work/): the thesis and the honesty line, the six projects as one list in two scales (the two newest with
+ * room, the other four as a ruled set), How I build with its drawing, and the public repositories. The six projects
+ * come from content/work/*.mdx (one file per case, each its own page); this file holds the index's own words. The How
+ * I build drawing is content/work/diagrams/how-i-build.{wide,tall}.svg.
  */
 export const work = {
   meta: {
@@ -16,9 +17,12 @@ export const work = {
     'Most of what I build runs inside client systems, so the code is private. Each project has its own page: what it was, what I did, and what changed. Where a public page exists, it’s linked.',
 
   index: {
+    /** The line under the page's title, in the painting's sky; it names the list of projects. */
     title: 'Six projects, newest first',
-    /** A row with no public evidence (its links sit under the outcome): screen readers hear this. */
+    /** An entry with no public evidence, where its links would stand. */
     noEvidence: 'Client work, no public page',
+    /** The way from one of the two large entries to its page. */
+    more: 'The case',
   },
 
   build: {
@@ -41,17 +45,15 @@ export const work = {
     },
   },
 
+  /** Under every brush diagram (Work and the two cases that have one): its text equivalent, behind this fold. */
+  diagram: { steps: 'Read as steps' },
+
   open: {
     title: 'In the open',
     intro: 'These are the public pieces.',
-    featured: 'Featured',
-    recent: 'Recent',
-    /** "{first}–{last}" are the rows' years; after 2020 the heading becomes "Earlier work, …". */
+    /** "{first}–{last}" are the rows' years; after 2020 the fold becomes "Earlier work, …". */
     early: 'Early work',
     earlier: 'Earlier work',
-    earlyCaption: 'Early public repositories',
-    columns: { year: 'Year', repository: 'Repository', what: 'What it is' },
-    updated: 'Updated',
     demo: 'Live demo',
     all: { label: 'All repositories on GitHub →', href: 'https://github.com/Freedom-Jack' },
   },

@@ -1,539 +1,633 @@
-/* The Résumé's layout: the type, ink and weights come from the shared tokens and components;
-   this places them.
-     hero        the terraced fields with the name (the page title) and the title, as every subpage's hero.
-     letterhead  the contact line, three actions (the PDF, the JSON, the email) and "Updated" (and, for print only,
-                 the name and title).
-     document    one dense column: headings, roles and points share one edge, at the reading measure.
-     timeline    each role one line, "years · title · organisation", its points under it.
-   On screen the document then spreads over the page's twelve columns (screen only, below).
-   Print: this page is the source of the résumé PDF (tools/build-pdf.ts). Ink only, no landscape or chrome, two
-   pages on Letter or A4 (the end of the file). Every print rule is scoped to this page (.page on its <main>): the
-   App Router keeps a visited page's CSS loaded. */
+/* The Résumé (/resume/): the terraced fields. A plain document, ruled row on row. Three edges hold every row: the
+   rail (column one: the dates), column three (what he did) and column eight (where, and the second column of a
+   role's highlights). On paper the same document prints black on white, in at most two pages. */
 
-.cv {
-  --cv-entry-gap: var(--space-m); /* between two roles: dense */
-}
-
-/* ---------- the letterhead ---------- */
-.cv-head {
-  padding-top: var(--space-strip-text);
-}
-/* the name and the title are the hero's on screen; these copies exist for the PDF's letterhead (print, below) */
-.cv-head__name,
-.cv-head__role {
+/* what only paper needs (the addresses in the letterhead, the closing line) */
+.inPrint {
   display: none;
 }
 
-/* The contact line: one line where it fits, wrapping by item. Each item carries its separator before it;
-   the line is pulled left by one separator and that strip is clipped, so a dot that lands at the start of
-   a line is never seen and no line ends on one. The dots are read as nothing. Every link is a 44 px row
-   target with its underline just under the word (as in the footer). */
-.cv-head__contact {
-  --sep: 1.4em;
+/* ---------- the letterhead: the first row under the mist ---------- */
+.head {
+  row-gap: var(--s-4);
+  align-items: end;
+  padding-bottom: clamp(1.25rem, 2.2vw, 2rem);
+}
+.who {
+  grid-column: 1 / span 8;
+}
+.name {
+  max-width: none;
+  margin-left: -0.03em;
+}
+.jobTitle {
+  margin-top: var(--s-2);
+}
+.cv .facts {
+  grid-column: 1 / span 8;
+  color: var(--ink-2);
+}
+/* a run of short items with a middle dot between them. Each item carries its dot in its own left padding, pulled
+   back by as much, so an item that starts a line (the first, or one after a wrap) puts its dot just outside the
+   run's left edge, where the run clips it: no line ever begins or ends on a dot, at any width. In the flow and
+   unpositioned (see "Paper", below). Its padding is room inside the clip for a focus ring and a link's reach. */
+.cv .dots {
+  --dot: 1.9em;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  margin-inline-start: calc(var(--sep) * -1); /* no top margin: the 44 px rows carry their own air */
-  clip-path: inset(-0.75rem -1rem -0.75rem calc(var(--sep) - 5px)); /* keeps a focus ring whole */
+  column-gap: var(--dot);
+  margin: -0.875rem -6px;
+  padding: 0.875rem 6px;
+  overflow: clip;
 }
-.cv-head__contact > span {
-  /* every item a 44 px row, so wrapped lines keep one even rhythm */
-  display: inline-flex;
-  align-items: center;
-  min-block-size: 44px;
-  white-space: nowrap;
+.dots > li {
+  margin-left: calc(var(--dot) * -1);
+  padding-left: var(--dot);
 }
-.cv-head__contact > span::before {
-  content: '·' / '';
-  flex: none;
-  inline-size: var(--sep);
+.dots > li::before {
+  content: '·';
+  display: inline-block;
+  width: var(--dot);
+  margin-left: calc(var(--dot) * -1);
   text-align: center;
+  color: var(--ink-4);
 }
-/* Under 240 CSS px (a 390 px phone at 200 % page zoom: a 195 px viewport) the LinkedIn and site addresses are wider
-   than the line, and the line's clip would cut their ends off: there an item may wrap, mid-address if it must */
-@media (max-width: 14.99rem) {
-  .cv-head__contact > span {
-    white-space: normal;
-    overflow-wrap: anywhere;
-    min-inline-size: 0;
-  }
+/* (a profile's link is a line of small type: its reach is 44 px tall all the same, without moving a line) */
+.facts a {
+  padding-block: 0.875rem;
 }
-.cv-head__contact > .cv-head__site {
-  display: none;
-} /* the site's own address: the PDF's letterhead only (print, below) */
-.cv-head__contact :global(a) {
+/* at the right: the PDF, the JSON and the email, and the date */
+.side {
+  grid-column: 10 / -1;
+  grid-row: 1 / span 2;
+  display: grid;
+  justify-items: start;
+}
+.also {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--s-5);
+}
+.also a {
   display: inline-flex;
   align-items: center;
-  min-block-size: 44px;
+  min-height: 2.75rem;
+}
+
+/* ---------- a section: its name, then its ruled rows ---------- */
+.sec {
+  padding-block: clamp(1.5rem, 2.9vw, 2.625rem);
+}
+.sec:last-of-type {
+  padding-bottom: clamp(3rem, 6.4vw, 6rem);
+}
+.cv .secLabel {
+  grid-column: 1 / -1;
+  padding-bottom: var(--s-3);
+  color: var(--ink-2);
+}
+.rows {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--line-2);
+}
+.line {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gap);
+  align-items: baseline;
+  padding-block: var(--s-5) var(--s-6);
+}
+.line + .line {
+  border-top: 1px solid var(--line);
+}
+/* the rail: when */
+.cv .when {
+  grid-column: 1 / span 2;
+  grid-row: 1;
+  color: var(--ink-2);
+}
+.position,
+.what {
+  grid-column: 3 / span 5;
+  grid-row: 1;
+}
+.org,
+.note {
+  grid-column: 8 / -1;
+  grid-row: 1;
+}
+.cv .org {
   color: var(--ink-2);
 }
 
-/* "Updated", from the content's own date: quiet, under the three actions */
-.cv-head__updated {
-  margin-block-start: 0.25rem;
+/* ---------- Summary: the opening ---------- */
+.summary {
+  align-items: baseline;
+}
+.cv .railLabel {
+  grid-column: 1 / span 2;
+  color: var(--ink-2);
+}
+.cv .opening {
+  grid-column: 3 / span 8;
+}
+
+/* ---------- Experience: the position, the organisation under it, the highlights in two columns ---------- */
+.role .position {
+  grid-column: 3 / -1;
+}
+.cv .role .org {
+  grid-column: 3 / -1;
+  grid-row: 2;
+  margin-top: var(--s-1);
+}
+/* (where the rail is narrow the dates take two lines: they stand down the role's rows, so the organisation stays
+   close under the position) */
+@media screen and (min-width: 62rem) {
+  .cv .role .when {
+    grid-row: 1 / span 3;
+  }
+}
+.points {
+  grid-column: 3 / -1;
+  grid-row: 3;
+  margin-top: var(--s-4);
+  padding: 0;
+  list-style: none;
+  font-size: var(--t-small);
+  line-height: 1.58;
+  color: var(--ink-2);
+}
+.pointsTwo {
+  columns: 2;
+  column-gap: var(--gap);
+}
+/* a highlight's marker: one short stroke hung in the indent, quiet. A border, so paper prints it; in the flow and
+   unpositioned, so the PDF's text keeps the document's order (see "Paper", below) */
+.points li {
+  padding-left: 1.5rem;
+  text-indent: -1.5rem;
+  max-width: 68ch;
+  break-inside: avoid;
+}
+.points li + li {
+  margin-top: var(--s-3);
+}
+.points li::before {
+  content: '';
+  display: inline-block;
+  width: 0.75rem;
+  margin-right: 0.75rem;
+  vertical-align: 0.3em;
+  border-top: 1px solid var(--line-2);
+}
+
+/* ---------- Awards and certifications ---------- */
+.record {
+  padding-block: var(--s-4);
+}
+.what {
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: -0.006em;
+}
+
+/* ---------- Skills: four ruled columns, on the page's own columns (one, four, seven, ten); the hairline between
+   two groups runs down the middle of the gap ---------- */
+.skills {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: var(--gap);
+  padding-top: var(--s-5);
+  border-top: 1px solid var(--line-2);
+}
+.skill {
+  margin-left: calc(var(--gap) / -2);
+  padding-left: calc(var(--gap) / 2);
+  padding-right: var(--s-2);
+  border-left: 1px solid var(--line);
+}
+.skill:first-child {
+  margin-left: 0;
+  padding-left: 0;
+  border-left: 0;
+}
+.skill dt {
+  margin-bottom: var(--s-2);
   color: var(--ink-3);
 }
-.cv-head__actions {
-  margin-block-start: 0.5rem;
-  column-gap: 0.75rem; /* phones: still one row at 360 */
-}
-@media (min-width: 40rem) {
-  .cv-head__actions {
-    column-gap: 1.75rem;
-  }
-}
-.cv-head__actions :global(a:not(.action)) {
-  /* "JSON Resume": a 44 px target */
-  display: inline-flex;
-  align-items: center;
-  min-block-size: 44px;
+.skill dd {
+  color: var(--ink);
 }
 
-/* ---------- experience: one line per role ---------- */
-.timeline {
-  display: grid;
-  row-gap: var(--cv-entry-gap);
-  max-width: var(--measure-read);
+/* ---------- Education ---------- */
+.school {
+  row-gap: var(--s-1);
 }
-.timeline__years {
-  font-variant-numeric: lining-nums tabular-nums;
+.cv .school .note {
+  --dot: 1.4em;
 }
-.timeline__org {
-  font-weight: var(--w-body);
+.school .org {
+  grid-column: 3 / span 5;
+  grid-row: 2;
 }
-.timeline__role {
-  margin: 0;
-}
-/* on screen the one line fills its measure before it wraps (balance breaks it early); print keeps the PDF as cut */
-@media screen {
-  .timeline__role {
-    text-wrap: pretty;
-  }
-}
-.timeline__points {
-  display: grid;
-  gap: 0.5rem;
-  margin-block-start: 0.75rem;
-}
-/* bullets: a hanging en dash. The dash is an inline box in a hanging indent, never absolutely positioned:
-   positioned boxes paint (and so print into the PDF's text) after everything else, which would read every
-   bullet out of order to a résumé parser. */
-.timeline__points > li {
-  padding-inline-start: 1.15em;
-  text-indent: -1.15em;
-}
-.timeline__points > li::before {
-  content: '–' / '';
-  display: inline-block;
-  inline-size: 1.15em;
-  text-indent: 0;
-  color: var(--ink-4);
+.school .note {
+  grid-row: 1 / span 2;
 }
 
-/* ---------- skills: the group above its tools on phones; beside them from 640 ---------- */
-.cv-skills {
-  display: grid;
-  gap: 0.75rem;
-}
-.cv-skills :global(dt) {
-  font-weight: var(--w-strong);
-}
-@media (min-width: 40rem) {
-  .cv-skills {
-    gap: 0.5rem;
-  }
-  .cv-skills > div {
-    display: grid;
-    grid-template-columns: 11rem minmax(0, 1fr);
-    column-gap: 1rem;
-    align-items: baseline;
-  }
-}
-
-/* ---------- education ---------- */
-.cv-sec > .cv-edu__detail {
-  margin-block-start: 0.25rem;
-}
-
-.cv-print-foot {
+.foot {
   display: none;
 }
 
-/* ==========================================================================
-   Screen only (the print rules below are the PDF's): the document on the page's twelve columns.
-     letterhead, summary   the left seven columns, while the terraces stand at the right;
-     experience            a timeline the reading draws: an ink hairline down the roles, as long as the reader has
-                           read (a view timeline on a line 68 % down the screen), a mark per role, the years in their
-                           own column in mono, the title and the organisation beside them, the points under those;
-     skills                four columns across the frame;
-     education, awards     side by side.
-   ========================================================================== */
-@media screen {
-  .cv :global(.sec) {
-    margin-block-start: var(--space-body);
+/* ---------- tablets: the rail takes three columns, a role's highlights run in one ---------- */
+@media screen and (max-width: 61.99rem) {
+  .who,
+  .cv .facts {
+    grid-column: 1 / -1;
   }
-  .cv :global(.sec) > :global(.h-ink) + * {
-    margin-block-start: 1.1rem;
+  .side {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: var(--s-6);
   }
-  .summary > p {
-    font-size: var(--fs-lead);
-    line-height: var(--lh-lead);
+  .facts a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding-block: 0;
   }
-  /* the timeline */
-  .cv .exp > .timeline__wrap {
-    position: relative;
-    max-width: none;
-    margin-block-start: 1.75rem;
+  .cv .railLabel,
+  .cv .opening {
+    grid-column: 1 / -1;
   }
-  .timeline__wrap > .timeline {
-    max-width: none;
-    row-gap: var(--space-l);
-    padding-inline-start: 1.75rem;
+  .cv .railLabel {
+    padding-bottom: var(--s-3);
   }
-  /* the line: a hairline of ink; it runs as far down the roles as the reader has read */
-  .timeline__line {
-    position: absolute;
-    inset-block: 0.55rem 0;
-    inset-inline-start: calc(0.3rem + 1px);
-    inline-size: 1px;
-    background: var(--ink-3);
-    transform-origin: 50% 0;
+  .cv .when {
+    grid-column: 1 / span 3;
   }
-  .timeline__entry {
-    position: relative;
+  .position,
+  .what {
+    grid-column: 4 / -1;
   }
-  /* a role's mark on the line: an ink dot; the role he holds now, jade */
-  .timeline__mark {
-    position: absolute;
-    inset-inline-start: calc(-1.75rem + 0.3rem + 1.5px - 0.4375rem);
-    inset-block-start: 0.55rem;
-    inline-size: 0.5625rem;
-    block-size: 0.5625rem;
-    margin-inline-start: 0.15625rem;
-    border-radius: 50%;
-    background: var(--ink-1);
+  .role .position,
+  .cv .role .org {
+    grid-column: 4 / -1;
   }
-  .timeline__entry:first-child > .timeline__mark {
-    background: var(--jade);
+  .org,
+  .note,
+  .school .org {
+    grid-column: 4 / -1;
+    grid-row: 2;
   }
-  .timeline__role {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    row-gap: 0.125rem;
-    font-size: clamp(1.1875rem, 1.1rem + 0.45vw, 1.4375rem); /* 19 → 23 */
-    line-height: 1.25;
-    letter-spacing: -0.008em;
+  .school .note {
+    grid-row: 3;
   }
-  .timeline__years {
-    font-family: var(--font-code);
-    font-size: var(--fs-small);
-    font-weight: 400;
-    letter-spacing: 0;
-    color: var(--ink-3);
+  .record,
+  .school {
+    row-gap: var(--s-1);
   }
-  .timeline__dot {
-    display: none;
+  .points {
+    grid-column: 4 / -1;
   }
-  .timeline__points {
-    margin-block-start: 0.875rem;
-    max-width: var(--measure-read);
+  .pointsTwo {
+    columns: auto;
   }
-  /* skills: each group under its own name */
-  .cv .skills > .cv-skills {
-    max-width: none;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 1.5rem var(--grid-gap);
-    margin-block-start: 1.5rem;
-  }
-  .cv-skills > div {
-    display: block;
-    padding-block-start: 0.75rem;
-    border-top: 1px solid var(--rule);
-  }
-  .cv-skills :global(dt) {
-    font-family: var(--font-name);
-    font-weight: 900;
-    font-size: 1.625rem;
-    line-height: 1.05;
-    letter-spacing: 0.005em;
-    margin-block-end: 0.4rem;
-  }
-  .cv-skills :global(dd) {
-    color: var(--ink-2);
-  }
-  .pair {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    column-gap: var(--grid-gap);
-  }
-}
-@media screen and (min-width: 40rem) {
-  .cv .skills > .cv-skills {
+  /* two by two: a hairline between the two rows as between the two columns */
+  .skills {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: var(--s-5);
+  }
+  .skill {
+    padding-bottom: var(--s-2);
+  }
+  .skill:nth-child(odd) {
+    margin-left: 0;
+    margin-right: calc(var(--gap) / -2);
+    padding-left: 0;
+    padding-right: calc(var(--gap) / 2 + var(--s-2));
+    border-left: 0;
+  }
+  .skill:nth-child(n + 3) {
+    padding-top: var(--s-5);
+    border-top: 1px solid var(--line);
   }
 }
-@media screen and (min-width: 75rem) {
-  .cv-head,
-  .summary {
-    max-width: calc((100% - 11 * var(--grid-gap)) / 12 * 7 + 6 * var(--grid-gap)); /* seven of the twelve columns */
+
+/* ---------- phones: one column; the date stands over its row ---------- */
+@media screen and (max-width: 39.99rem) {
+  /* the letterhead's record line breaks where it means to: who and where, then the two profiles (an empty item
+     as wide as the line, ordered between them) */
+  .facts::after {
+    content: '';
+    flex-basis: 100%;
+    order: 1;
   }
-  .cv .summary > * {
-    max-width: none;
+  .facts .profile {
+    order: 2;
   }
-  /* the years in their own column, the title and the organisation beside them, the points under those */
-  .cv .exp > .timeline__wrap {
-    max-width: calc((100% - 11 * var(--grid-gap)) / 12 * 10 + 9 * var(--grid-gap));
+  .line {
+    grid-template-columns: minmax(0, 1fr);
   }
-  .timeline__wrap > .timeline {
-    padding-inline-start: 2.25rem;
+  .cv .when,
+  .position,
+  .role .position,
+  .what,
+  .org,
+  .cv .role .org,
+  .note,
+  .school .org,
+  .school .note,
+  .points {
+    grid-column: 1;
+    grid-row: auto;
   }
-  .timeline__mark {
-    inset-inline-start: calc(-2.25rem + 0.3rem + 1.5px - 0.4375rem);
+  .cv .when {
+    order: -1;
+    margin-bottom: var(--s-1);
   }
-  .timeline__role {
-    grid-template-columns: 11.5rem minmax(0, 1fr);
-    column-gap: 1.5rem;
-    align-items: baseline;
+  .skills {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 0;
+    padding-top: 0;
   }
-  .timeline__points {
-    margin-inline-start: 13rem;
+  .skill:nth-child(n) {
+    margin-inline: 0;
+    padding: var(--s-4) 0;
+    border-left: 0;
   }
-  .cv .skills > .cv-skills {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+  .skill:nth-child(-n + 2) {
+    border-top: 0;
   }
-  .pair {
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-  }
-  .pair > :first-child {
-    grid-column: 1 / span 5;
-  }
-  .pair > :last-child {
-    grid-column: 7 / -1;
-  }
-  .pair :global(.sec) > * {
-    max-width: none;
-  }
-}
-@keyframes line-run {
-  from {
-    transform: scaleY(0);
-  }
-  to {
-    transform: scaleY(1);
-  }
-}
-@supports (animation-timeline: view()) {
-  @media screen and (prefers-reduced-motion: no-preference) {
-    :global(html.js:not(.is-still)) .timeline__line {
-      animation: line-run linear both;
-      animation-timeline: view(block 68% 32%);
-      animation-range: cover 0% cover 100%;
-    }
+  .skill + .skill {
+    border-top: 1px solid var(--line);
   }
 }
 
 /* ==========================================================================
-   Print: the source of the résumé PDF. Ink only. No landscape, no chrome, no strip or closing, nothing
-   animated. One column, in millimetres, with the letterhead's contact details stacked on the right. Two pages on
-   Letter or A4. Every link on the résumé already shows its address, so none needs it appended.
+   Paper: this stylesheet is the PDF (tools/build-pdf.ts prints the page). Letter and A4, at most two pages, black
+   on white: no painting, no header, no tail, no way on, nothing only a screen can use. Everything stays in the
+   normal flow, unpositioned (a positioned box paints after the rest, and a résumé parser reads the paint order),
+   so the PDF's text runs in the document's own order. Lengths are the paper's (mm, pt).
    ========================================================================== */
 @media print {
   @page {
-    margin: 13mm 14mm;
-  } /* the default orientation: upright */
+    margin: 12mm 15mm;
+  }
 
   :global(html):has(.page) {
-    background: none;
+    background: #fff;
   }
   :global(html):has(.page) :global(body) {
     min-height: 0;
     color: #000;
-    font-size: 10pt;
-    line-height: 1.42;
-    word-spacing: 0.02em; /* helps PDF text extraction (ATS) find every space */
-    print-color-adjust: economy;
-    -webkit-print-color-adjust: economy;
-  }
-  :global(html):has(.page) :global(body)::before {
-    content: none !important;
-  }
-  .page :global(.strip),
-  .page :global(.closing),
-  .cv-head__actions,
-  .cv-head__updated,
-  .timeline__line,
-  .timeline__mark {
-    display: none !important;
-  }
-  .page *,
-  .page *::before,
-  .page *::after {
-    animation: none !important;
-    transition: none !important;
+    font-size: 9.3pt;
+    line-height: 1.4;
+    word-spacing: 0.02em; /* helps a PDF's text extraction find every space */
   }
   .page {
-    width: auto !important;
-    margin-inline: 0 !important;
+    --rail: 35mm;
+    --hair: 0.35pt solid #777;
+    min-height: 0;
+    padding-top: 0;
+  }
+  .page :global(.inscription),
+  .page :global(.band-anchor),
+  .side,
+  .onScreen {
+    display: none !important;
+  }
+  .inPrint {
+    display: inline;
+  }
+  .page :global(.row) {
+    max-width: none;
+    padding-inline: 0;
+    column-gap: 0;
   }
   .page :global(a) {
-    color: inherit !important;
-    text-decoration: none !important;
-    background: none !important;
+    color: inherit;
+    text-decoration: none;
   }
-
-  .cv {
-    --cv-entry-gap: 3mm;
-  }
-
-  /* letterhead: the name and the title on the left, the contact details stacked on the right */
-  .cv-head {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    column-gap: 8mm;
-    align-items: end;
-    padding: 0;
-    break-after: avoid;
-  }
-  .cv-head__name,
-  .cv-head__role {
-    display: block;
-  }
-  .cv-head :global(.page-title) {
-    grid-column: 1;
-    font-size: 30pt;
-    line-height: 1;
-  }
-  .cv-head__role {
-    grid-column: 1;
-    font-weight: var(--w-ui);
-    max-width: none;
-    margin-block-start: 1.6mm;
-    font-size: 12pt;
-    line-height: 1.25;
+  .page :global(:is(.rec, .label, .lead, .small, .soft, .h-item)) {
     color: #000;
   }
-  .cv-head__contact {
-    grid-column: 2;
-    grid-row: 1 / span 2;
-    display: grid;
-    justify-items: end;
-    gap: 0.3mm;
-    margin: 0;
-    clip-path: none;
-    font-size: 8.6pt;
-    line-height: 1.35;
-    text-align: right;
-    color: var(--ink-2);
-  }
-  .cv-head__contact > span {
-    min-block-size: 0;
-  }
-  .cv-head__contact > .cv-head__site {
-    display: inline-flex;
-  }
-  .cv-head__contact > span::before {
-    content: none;
-  }
-  .cv-head__contact :global(a) {
-    display: inline;
-    min-block-size: 0;
-    padding: 0;
-    color: #000 !important;
-  }
-
-  /* Reading order of the PDF's text (a résumé parser reads the paint order): positioned boxes paint after
-     everything that is not, so a positioned row (the certifications' .rows > li) would come out last. Positioning
-     every block of the document makes them all paint in tree order. */
-  .cv-head,
-  .cv-sec,
-  .cv-print-foot {
-    position: relative;
-  }
-
-  /* sections: the heading, then its text */
-  .page :global(.sec) {
-    margin-block-start: 5mm;
-  }
-  .page :global(.sec) > * {
-    max-width: none;
-  }
-  .page :global(.sec) > * + * {
-    margin-block-start: 1.4mm;
-  }
-  .page :global(.sec) > :global(.sec__title) + * {
-    margin-block-start: 1.8mm;
-  }
-  .page :global(.sec__title) {
-    font-family: var(--font-body);
-    font-weight: var(--w-strong);
-    font-size: 12.5pt;
-    line-height: 1.2;
-    letter-spacing: 0;
-    color: #000;
-    break-after: avoid;
-  }
-  .cv-sec > .timeline__wrap,
-  .cv-sec > .timeline__wrap > .timeline {
-    max-width: none;
-  }
-
-  /* Experience prints as plain block flow, so a role never splits across pages (Chrome does not honour
-     break-inside: avoid inside a fragmented grid row). */
-  .timeline {
-    display: block;
-  }
-  .timeline__entry {
-    break-inside: avoid;
-  }
-  .timeline__entry + .timeline__entry {
-    margin-block-start: var(--cv-entry-gap);
-  }
-  .timeline__role {
-    font-size: 11pt;
-    line-height: 1.25;
-    color: #000;
-  }
-  .timeline__points {
-    gap: 0.8mm;
-    margin-block-start: 1.2mm;
-  }
-  .timeline__points > li {
-    font-size: 10pt;
-    line-height: 1.42;
-  }
-
-  .cv-skills {
-    gap: 0.9mm;
-  }
-  .cv-skills > div {
-    display: grid;
-    grid-template-columns: 34mm minmax(0, 1fr);
-    column-gap: 3mm;
-    align-items: baseline;
-  }
-  .cv-sec > .cv-edu__detail {
-    margin-block-start: 0.4mm;
-  }
-  .cv-certs {
-    gap: 0.6mm;
-  }
-
-  .page :global(h2),
-  .page :global(h3) {
-    break-after: avoid;
-  }
-  .page :global(li),
-  .page :global(p) {
+  .page :global(:is(p, li, dd)) {
     orphans: 2;
     widows: 2;
   }
 
-  .cv-print-foot {
+  /* the letterhead: the name and the title at the left, the addresses stacked at the right */
+  .cv .head {
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 8mm;
+    align-items: end;
+    padding: 0 0 4.4mm;
+    border-bottom: var(--hair);
+  }
+  .cv .who {
+    grid-column: 1;
+  }
+  .cv .name {
+    margin-left: -0.02em;
+    font-size: 31pt;
+    line-height: 1;
+    color: #000;
+  }
+  .cv .jobTitle {
+    margin-top: 1.6mm;
+    font-size: 12pt;
+    line-height: 1.25;
+    letter-spacing: -0.008em;
+  }
+  .cv .facts {
+    grid-column: 2;
+    display: grid;
+    justify-items: end;
+    row-gap: 0.2mm;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    font-size: 7.6pt;
+    line-height: 1.4;
+    color: #000;
+  }
+  .cv .facts > li {
+    margin-left: 0;
+    padding-left: 0;
+  }
+  .cv .facts > li::before {
+    content: none;
+  }
+  .dots > li::before {
+    color: #555;
+  }
+
+  /* a section: its name, a hairline, its rows */
+  .sec,
+  .sec:last-of-type {
+    padding-block: 4.2mm 0;
+  }
+  .cv .secLabel,
+  .cv .railLabel {
+    padding-bottom: 1.5mm;
+    font-size: 6.9pt;
+    letter-spacing: 0.06em; /* (wider, and a PDF's text comes out as "S U M M A R Y": a résumé parser misses the heading) */
+    color: #000;
+    break-after: avoid;
+  }
+  .rows,
+  .skills {
+    border-top: var(--hair);
+  }
+  .line {
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+    column-gap: 0;
+    padding-block: 2.1mm 2.4mm;
+  }
+  .line + .line {
+    border-top: var(--hair);
+  }
+  .cv .when {
+    grid-column: 1;
+    grid-row: 1;
+    font-size: 7.6pt;
+    line-height: 1.5;
+    color: #000;
+  }
+  .position,
+  .what {
+    grid-column: 2;
+    grid-row: 1;
+    font-size: 10.6pt;
+    line-height: 1.3;
+  }
+  .cv .org {
+    grid-column: 2;
+    grid-row: 2;
+    font-size: 7.6pt;
+    color: #000;
+  }
+
+  /* Summary: its name in the rail, the paragraph beside it */
+  .cv .summary {
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+  }
+  .cv .railLabel {
+    grid-column: 1;
+    padding-bottom: 0;
+  }
+  .cv .opening {
+    grid-column: 2;
+    font-size: 9.6pt;
+    line-height: 1.44;
+    letter-spacing: 0;
+  }
+
+  /* Experience: a role is never cut in two (its head, its highlights: one piece on one page) */
+  .role {
+    break-inside: avoid;
+  }
+  .role .position {
+    grid-column: 2;
+  }
+  .cv .role .org {
+    grid-column: 2;
+    margin-top: 0.3mm;
+  }
+  .position,
+  .org,
+  .when {
+    break-after: avoid;
+    break-inside: avoid;
+  }
+  .points,
+  .pointsTwo {
+    grid-column: 2;
+    grid-row: 3;
+    columns: auto;
+    margin-top: 1.3mm;
+    font-size: 9.3pt;
+    line-height: 1.4;
+    color: #000;
+  }
+  .points li {
+    max-width: none;
+    padding-left: 4mm;
+    text-indent: -4mm;
+  }
+  .points li + li {
+    margin-top: 0.8mm;
+  }
+  .points li::before {
+    width: 2mm;
+    margin-right: 2mm;
+    border-top: 0.5pt solid #555;
+  }
+
+  /* Awards and certifications; Education: the year, the name, the note, in one line */
+  .record,
+  .school {
+    grid-template-columns: calc(var(--rail) - 4mm) minmax(0, 1.7fr) minmax(0, 1fr);
+    column-gap: 4mm;
+    row-gap: 0.3mm;
+    padding-block: 1.25mm 1.35mm;
+    break-inside: avoid;
+  }
+  .what {
+    font-size: 9.6pt;
+  }
+  .note {
+    grid-column: 3;
+    grid-row: 1;
+    font-size: 9pt;
+  }
+  .cv .school .org {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .school .note {
+    grid-row: 1 / span 2;
+  }
+
+  /* Skills: a row a group, its name in the rail */
+  .skills {
     display: block;
-    margin-block-start: 6mm;
-    font-size: 8pt;
-    color: var(--ink-3);
+    padding-top: 1.2mm;
+  }
+  .skill,
+  .skill:first-child {
+    display: grid;
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+    align-items: baseline;
+    margin: 0;
+    padding: 0.9mm 0;
+    border: 0;
+    break-inside: avoid;
+  }
+  .skill dt {
+    margin: 0;
+    font-size: 7.6pt;
+    color: #000;
+  }
+  .skill dd {
+    font-size: 9.3pt;
+    line-height: 1.4;
+    color: #000;
+  }
+
+  .cv .foot {
+    display: block;
+    margin-top: 5mm;
+    padding-top: 2mm;
+    border-top: var(--hair);
+    font-size: 7pt;
+    color: #333;
     break-inside: avoid;
   }
 }

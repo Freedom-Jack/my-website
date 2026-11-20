@@ -2095,35 +2095,6 @@ void main() {
   // 40 px and more off every line, and the paper margins round it stay)
   veil = min(veil, 1.0 - glCut);
   clearK = min(clearK, 1.0 - glCut);   // (...nor under the clearing round the words: its paper margins are its own)
-  // the header sits on paper, never on the painted sky: a paper band under it, anchored to the page (it scrolls
-  // away with the header), solid to the header's foot and melting out over ~64 px (desktops; ~26 px on phones), its
-  // edge torn by the drift so it is mist, not a ruled line. The painting rises out of the paper below it.
-  if (plate == 0 || (plate == 1 && uPlateK.w > 0.5)) {
-    // (THE PLATES: the band itself is the page's own layer, scrolling away with the header. The sky's own way out of
-    // the paper below it is a plate of its own, the far plate's top with this ease (uPlateK.w): it lies over the far
-    // plate at the page's top and the page lets it go as the header scrolls away, so the sky is whole below, as the
-    // screen pass has it)
-    float cssPx = 1.0 / max(uLive2.w, 1e-6);
-    float pageY = ((1.0 - uv.y) + (plate == 0 ? uLive2.x : 0.0)) * cssPx;
-    float wCss = aspect * cssPx;
-    float wk2 = smoothstep(520.0, 1000.0, wCss);
-    float H0 = mix(56.0, 76.0, wk2), HF = mix(26.0, 64.0, wk2);
-    float hv = 1.0 - smoothstep(H0, H0 + HF, pageY + (m1 - 0.5) * HF * 0.7);
-    if (plate == 0) veil = max(veil, hv);
-    // under the paper band the ice-blue sky comes out of the paper through cloud, not along a ruled box edge: the
-    // pale sky only (the ink keeps its value) eases back to paper over ~90-220 CSS px, its line billowing in broad,
-    // world-anchored lobes
-    float nH = (textureLod(uNoise, p * vec2(0.35, 0.9) + vec2(0.17, 0.41), 2.0).r - 0.5) / 0.13;
-    float lumH = dot(col, vec3(0.299, 0.587, 0.114));
-    float skyH = smoothstep(0.03, 0.12, col.b - col.r) * smoothstep(0.7, 0.85, lumH) * inWin;
-    // (its line only breathes, on a very low-frequency noise, over a long vertical feather (>= 80 CSS px), so the blue
-    // below keeps its strength and the top of the window never reads as a box, nor as white cut-out cloud lobes)
-    float nH2 = (textureLod(uNoise, p * vec2(1.1, 2.0) + vec2(0.71, 0.29), 1.0).g - 0.5) / 0.13;
-    float lob = nH * mix(8.0, 16.0, wk2) + nH2 * 3.0;
-    float hv2 = 1.0 - smoothstep(H0 + HF * 0.2, H0 + HF * 0.2 + mix(80.0, 130.0, wk2), pageY - lob);
-    col = mix(col, mix(PAPER, SKY, 0.45), clamp(hv2 * skyH * 0.92, 0.0, 1.0));
-  }
-
   // the pointer's wake: a soft, local opening around the pointer and along its recent path (capsules that close as
   // they age). Every term is a smooth sum over the whole trail, never one segment's pick (a per-pixel choice of the
   // strongest segment's drag leaves a straight seam through the newest trail point): the opening is the strongest

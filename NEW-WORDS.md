@@ -1,114 +1,227 @@
 # New words waiting for your approval
 
-Everything below is on the pages now. Only the held scroll's words (section 3) still print "DRAFT · ". Each line was written for you, in your voice, and
-is yours to keep, change or delete. Say which, and the line in its file changes; nothing else does.
+Everything in sections 1 to 8 is on the site now, written for you, in your voice. Each line is yours to keep, change
+or delete. Say which, and the line in its file changes; nothing else does.
 
-## 1. Words in the body of the pages
+**new** marks words written or changed in the redesign. Lines without it were on this list before and still wait.
+In the files, the words are marked `NEW WORDS (for Jack)` or `DRAFT`.
 
-### Ask the painting, re-cut (`content/pages/ask.ts`)
+## 1. Every page: Ask the painting (`content/pages/ask-door.ts`, `content/pages/ask.ts`)
 
-It moved from Home's first screen into the body and lost its other half (a scene that repainted the painting by hour
-and weather), so its words changed. The answers themselves are never written by me or by the model: an answer is a
-line of your own approved words.
+It is no longer a section on Home. It is a door in the header ("Ask") and a line in the tail, and it opens a sheet
+under the painting. It answers in three steps and says which one answered: a filed question gets your line at once,
+with no model; anything else is searched by word and shown as places, not as your answer; a model reads the
+question only when the visitor asks for that. An answer is never written by me or by a model: it is a line of your
+own words.
 
-- `label`: Ask the painting
-- `tag`: A language model, in your browser
+The door and the tail:
+
+- `label` (`ask-door.ts`): Ask the painting
+- **new** `door` (`ask-door.ts`): Ask
+- **new** `invite`: Ask the painting about my work, for example:
+- `tailTry` (the tail's example, one of the three below): What are you working on right now?
+
+The sheet:
+
 - `placeholder`: What did you build for insurers?
 - `go`: Ask
-- `hint`: Ask about my work. A small language model runs in your own browser: about 38 MB from this site, the first time. It answers only with my own lines, and nothing you type is sent anywhere.
+- **new** `close`: Close
+- **new** `hint`: Ask about my work. An answer is always one of my own lines from these pages, and nothing you type
+  is sent anywhere.
 - `tryLabel`: Try
-- `tries` (the three examples): "What did you build for insurers?" · "What are you working on right now?" · "Where did you study?"
-- `trace.title`: What the model did
-- `trace.loading`: Fetching the model from this site: {got} of {total} MB
-- `trace.loaded`: The model: {total} MB, now in your browser
-- `trace.read`: Your words: {n} tokens
-- `trace.embed`: Turned into {dim} numbers in {ms} ms
-- `trace.guard`: A private matter: nothing searched
-- `trace.search`: Measured against {n} lines of this site
-- `trace.travel`: The painting travels to {place}
-- `result.answerNote`: My own words, found by the model, not written by it.
-- `result.from`: From
-- `result.back`: Bring the painting back
-- `result.private`: I keep that off this site. Ask me about the work instead.
-- `result.unknown`: Nothing in my words is close enough ({score}, under {floor}), and I would rather not guess.
-- `result.unknownMore`: The work pages hold the detail; or write to me.
-- `result.error`: The model could not run in this browser. The search on the Work page needs no model.
+- `tries` (the three examples): **new** "Have you built a chatbot?" · "What are you working on right now?" · "Where
+  did you study?"
 
-Gone with the scene half: the placeholder "snow at dusk, the lanterns lit", the two scene examples, "Read as a scene",
-"Read as a question", "In it:", "Nothing in it that I can paint yet", "Repainted:", "Back to your own hour" and the
-line about what it can paint.
+The trace (`trace`), where {braces} are the run's real numbers:
 
-### Work's live pieces (`content/pages/work-craft.ts`, `content/craft/hood.ts`)
+- **new** `title`: How it was found
+- **new** `words`: These pages: {n} lines, {kb} KB
+- **new** `filed`: A filed question: no model needed
+- **new** `lexical`: Searched by word, no model: {n} passages in {ms} ms
+- **new** `loading`: Fetching a sentence-embedding model from this site: {got} of {total} MB
+- **new** `loaded`: A sentence-embedding model: {total} MB, now in your browser
+- `read`: Your words: {n} tokens
+- `embed`: Turned into {dim} numbers in {ms} ms
+- `guard`: A private matter: nothing searched
+- `search`: Measured against {n} lines of this site
+- **new** `closest`: The closest scored {score}; the floor is {floor}
+- `travel`: The painting travels to {place}
 
-"Under the hood" is no longer three folds: its four pieces lie open on Work, and three of them also stand on the
-project page they belong to. That needed a few small words.
+The answers (`result`):
 
-- `hood.open`: about {kb} KB of data, fetched as you reach it _(was: "…, loaded when opened")_
-- `hood.failed`: It did not load. Reload the page to try again. _(was: "Close and open it again.")_
-- `lineage.listFold`: Read the record as a list
-- `mask.pause`: Pause
-- `mask.resume`: Go on
-- `eval.every`: Every question and its result
-- `eval.running`: Running the {n} questions in your browser…
-- `eval.ran`: Run just now, in your browser: {n} questions in {ms} ms.
-- `eval.dots`: The questions, one mark each _(read by screen readers only)_
-- `eval.first`: right passage first
-- `eval.third`: in the top three
-- `eval.miss`: missed
+- `answerNote`: My own words, found by the model, not written by it.
+- **new** `filedNote`: My own words. This question was filed under them ahead of time.
+- `from`: From
+- `private`: I keep that off this site. Ask me about the work instead.
+- `unknown`: Nothing in my words is close enough ({score}, under {floor}), and I would rather not guess.
+- `unknownMore`: The work pages hold the detail; or write to me. _(the words are the same; "The work pages" and
+  "write to me" are now links)_
+- **new** `nearest`: The nearest places
+- **new** `places`: Where your words appear
+- **new** `closer`: Read closer
+- **new** `closerCost`: These are places, not an answer. For one, a small model reads your question in your own
+  browser: about 38 MB from this site, the first time.
+- **new** `error`: The model could not run in this browser. The places above need no model.
+- **new** `failed`: These pages did not load. Try again.
 
-### Writing (`content/pages/writing.ts`)
+Moved here from Work's search box, unchanged: `trace.count` "{n} close matches", `trace.one` "1 close match",
+`trace.none` "No close match", `result.none` "No close match in these pages."
+
+## 2. Home (`content/pages/home.ts`)
+
+- `first.title` (the line under your name, in the painting): Lead AI/ML Architect, CGI AI Center of Excellence,
+  Toronto.
+
+Nothing else on Home is new: its words are the ones on the live site, set in a new layout. The section about your
+current role prints the résumé's own lines.
+
+## 3. Work and the project pages (`content/pages/work.ts`, `content/pages/case.ts`)
+
+- **new** `work.ts` `index.more` (the way from each of the two large entries to its page): The case
+- **new** `work.ts` `diagram.steps` (the fold under every drawing; the words were in the code before): Read as steps
+- `case.ts` `basis.internal`: internal figure
+- `case.ts` `nda`: Under NDA: the figures here come from my own record of the work.
+
+## 4. Under the hood (`content/pages/work-craft.ts`, `content/craft/hood.ts`)
+
+The three live pieces now stand on their project pages, not on Work: "Constrain the output" on the agent's, "How
+good is the search?" on the insurance assistant's, "Where the words came from" on the data operations'. Writing
+lists the three with their first lines.
+
+- `work-craft.ts` `hood.open`: about {kb} KB of data, fetched as you reach it
+- `work-craft.ts` `hood.failed`: It did not load. Reload the page to try again.
+
+Where the words came from (`hood.ts` `lineage`):
+
+- `tie`: At CGI I built a lineage tool that documents where data came from; this is that record for the words of
+  this site.
+- `result`: {files} content files fed {passages} passages; the search, the vocabulary and the eval were all built
+  from them at {commit}.
+- `listFold`: Read the record as a list
+
+Constrain the output (`hood.ts` `mask`):
+
+- `tie`: The agent for a proprietary language keeps every output inside an EBNF grammar; this is that constraint on
+  a case record, one token at a time.
+- `result`: At this step the highest-scored token, {top}, is blocked; of {v} tokens {n} are legal, and {a} and {b}
+  lead.
+- `what`: The vocabulary is real (byte-pair tokens learned from these pages at build); the scores are counts of
+  which token follows which in these pages, not a neural model. **new** Left to those counts the record would come
+  out valid and untrue, so each step takes this case’s own next token and shows what the grammar would have allowed.
+  _(the new sentence ends here)_ The mask is the part that carries over: it lets through only what keeps the record
+  valid.
+- **new** `strip`: The five highest-scored tokens at this step, the five best legal ones, and the record’s own next
+  token _(the last clause is new)_
+- **new** `next`: Take the next token _(it was "Take the best legal token")_
+- **new** `own`: the record’s next token _(read by screen readers only)_
+- `pause`: Pause
+- `resume`: Go on
+
+How good is the search? (`hood.ts` `eval`):
+
+- **new** `tie`: The insurance assistant answered from retrieved passages, so retrieval had to be measured; this is
+  the same measure for this site’s own search. _(it ended "for the search above")_
+- `result`: On {n} questions the search returns the right passage first {at1} and in the top three {at3}.
+- `author`: The questions were written by the site’s author, not Jack; Jack’s own held-out set replaces them.
+  Nothing in the search was tuned on them: BM25’s defaults, a stop list and a score floor fixed beforehand.
+- `every`: Every question and its result
+- `running`: Running the {n} questions in your browser…
+- `ran`: Run just now, in your browser: {n} questions in {ms} ms.
+- `dots`: The questions, one mark each _(read by screen readers only)_
+- `first`: right passage first
+- `third`: in the top three
+- `miss`: missed
+
+The pieces' other small labels in `hood.ts` ("The record so far", "Inside", "legal", "blocked", "Start again", "The
+grammar", the table's column names and the like) are the live site's, unchanged, and were never on this list.
+
+## 5. Writing (`content/pages/writing.ts`)
 
 - `read`: Read the note
 - `from`: From the note
 
-### Put back, not new
+## 6. Résumé (`content/pages/resume.ts`)
 
-- Home's About me has its second paragraph again ("I’m optimistic about AI because it isn’t floating on hype…"). You
-  approved it on 2026-10-16; an earlier round had held it off the page for a 400-word budget that no longer exists.
+- **new** `title` (the place's name in the painting; the nav's own word): Résumé
+- **new** `gpa` (the words were in the code before): GPA {score}
 
-### Not shown to anyone, but written by me and yours to read
+## 7. Contact (`content/pages/contact.ts`)
 
-`src/features/ask/questions.ts` files each line of the site under the questions it answers (about 300 questions over
-80 lines, such as "Where did you study?" for the "York University" line; and "Do you know X?" for each thing your
-skills lines name). A visitor's question is measured against these, and the answer shown is always your own line. A
-question about pay, age, family, faith, politics, health, a phone number or a home address is not searched at all
-(the `private` line above). This round added the questions for the paragraph put back ("Are you optimistic about
-AI?", "Is AI overhyped?" and three more).
+- **new** `bio.label` (over your portrait and the third-person line): Bio
+- `response`: I read everything and answer within a week.
 
-How well it answers (measured in the browser on 2026-11-15, on questions I wrote after filing, in other words): of 39
-fair questions 33 were answered with the right line, 1 arguably, 5 were turned away; of 50 it cannot answer, 49 were
-turned away and 1 ("are you looking for a job") was shown your contact line. Those 89 questions were mine. A list of
-the questions you would expect visitors to ask replaces them.
+## 8. The tail of every page (`content/site.ts`)
 
-## 2. Lines the live site printed with "DRAFT" (the label is off; the words are unchanged)
+- **new** `tail.colophon`: Words on paper and one painting, drawn by code. No analytics, nothing fetched from a
+  third party, and nothing you type is sent anywhere. _(it said "drawn by code in your browser"; on phones and
+  tablets the painting is now a picture cut ahead)_
 
-- `content/site.ts`: Words on paper and one painting, drawn by code in your browser. No analytics, nothing fetched from a third party, and nothing you type is sent anywhere.
-- `content/craft/hood.ts`: At CGI I built a lineage tool that documents where data came from; this is that record for the words of this site.
-- `content/craft/hood.ts`: {files} content files fed {passages} passages; the search, the vocabulary and the eval were all built from them at {commit}.
-- `content/craft/hood.ts`: The agent for a proprietary language keeps every output inside an EBNF grammar; this is that constraint on a case record, one token at a time.
-- `content/craft/hood.ts`: At this step the highest-scored token, {top}, is blocked; of {v} tokens {n} are legal, and {a} and {b} lead.
-- `content/craft/hood.ts`: The vocabulary is real (byte-pair tokens learned from these pages at build); the scores are counts of which token follows which in these pages, not a neural model. The mask is the part that carries over: it lets through only what keeps the record valid.
-- `content/craft/hood.ts`: The insurance assistant answered from retrieved passages, so retrieval had to be measured; this is the same measure for the search above.
-- `content/craft/hood.ts`: On {n} questions the search returns the right passage first {at1} and in the top three {at3}.
-- `content/craft/hood.ts`: The questions were written by the site’s author, not Jack; Jack’s own held-out set replaces them. Nothing in the search was tuned on them: BM25’s defaults, a stop list and a score floor fixed beforehand.
-- `content/pages/contact.ts`: I read everything and answer within a week.
-- `content/pages/case.ts`: internal figure
-- `content/pages/case.ts`: Under NDA: the figures here come from my own record of the work.
-- `content/pages/home.ts`: Lead AI/ML Architect, CGI AI Center of Excellence, Toronto.
-- `content/pages/resume.ts`: Five roles since 2019, two CGI Impact Awards and two cloud certifications: on one page, as a PDF and as JSON.
+## 9. Not shown to anyone, but written by me and yours to read
 
-## 3. Still printed with "DRAFT · " (`content/site.ts`, `scroll`: the held scroll)
+`src/features/ask/questions.ts` files each line of the site under the questions it answers: 207 questions over 77
+lines, such as "Where did you study?" for the "York University" line. The build adds "Do you know X?" and "Have you
+used X?" for each thing your skills and stack lines name. A visitor's question is measured against these, and the
+answer shown is always your own line. A question about pay, age, family, faith, politics, health, a phone number or
+a home address is not searched at all (the `private` line above). This file did not change in the redesign.
 
-- `open`: Open the scroll
-- `close`: Close
-- `name`: The scroll
-- `hint`: Hold the painting: drag it, use the arrow keys, or choose a place. Esc closes it.
-- `level`: level
-- `high`: high
-- `deep`: deep
+The link-preview cards (what a shared link shows) each carry a sentence for people who cannot see them, put
+together in `tools/build-og.ts`: "Work · Qijin Xu: the page's title inscribed in the sky of an ink-wash painting of
+a river town at its arched bridge." The five scenes are named: Home "blue peaks above a sea of mist in the morning
+light", Work "a river town at its arched bridge", Writing "a still lake with a small pavilion under a pine", Résumé
+"terraced fields stepping down to the river", Contact "a ferry at the jetty on open water". A project's card says
+"a project by Qijin Xu", a note's "a note by Qijin Xu".
 
-## 4. Still yours to supply
+How well the model step answers was measured in the browser on 2026-11-15, on questions I wrote after filing, in
+other words, and has not been measured again since: of 39 fair questions 33 were answered with the right line, 1
+arguably, 5 were turned away; of 50 it cannot answer, 49 were turned away and 1 ("are you looking for a job") was
+shown your contact line.
 
-- The 20 evaluation questions behind "How good is the search?" on Work (`content/craft/eval.ts`) were written by the
-  site's author, not by you. Your own held-out set replaces them. Today the search finds the right passage first on
-  half of them and in the top three on 85 %: the page says so, and runs the 20 again in the reader's browser.
+## 10. Gone, with the things they belonged to
+
+- **The held scroll** is removed, and its seven words with it (`content/site.ts` `scroll`): "Open the scroll",
+  "Close", "The scroll", "Hold the painting: drag it, use the arrow keys, or choose a place. Esc closes it.",
+  "level", "high", "deep". Nothing prints "DRAFT · " any more.
+- **Home's Ask section** is removed. Gone with it: `tag` "A language model, in your browser", `result.back` "Bring
+  the painting back", the earlier `hint` (the one that named the 38 MB model), the earlier `trace.title` "What the
+  model did", the earlier `trace.loading` and `trace.loaded` ("the model"), and the earlier `result.error`, which
+  pointed at the Work page's search.
+- **Work's search box** is removed, and its words are deleted from `content/pages/work-craft.ts`: the label "Search
+  these pages", the placeholder "lineage, 99.9%, EBNF, hockey", "Search", the status lines about the index, the
+  keyboard hint, "show the place", "hide the place", "matched". Four of its lines moved into Ask (section 1).
+- **Work's "Under the hood" block** is removed (the pieces are on the project pages). Its link words `hood.caseLink`
+  "the case" became Work's `index.more` "The case".
+- **The table in "In the open"** is now a plain list. Its labels are deleted (`content/pages/work.ts` `open`):
+  "Featured", "Recent", "Early public repositories", "Year", "Repository", "What it is", "Updated".
+- **The Résumé's one-sentence summary for the page before it** (`line`: "Five roles since 2019, two CGI Impact
+  Awards and two cloud certifications: on one page, as a PDF and as JSON.") is deleted; nothing printed it.
+- **Home's first-screen action** "See the work" is no longer shown: the way on is the next place's name, inscribed
+  in the painting. The words are gone from `content/pages/home.ts`.
+
+## 11. Still yours to supply
+
+- The 20 evaluation questions behind "How good is the search?" (`content/craft/eval.ts`; the piece is on the
+  insurance assistant's page) were written by the site's author, not by you. Your own held-out set replaces them.
+  Today the search finds the right passage first on half of them and in the top three on 85 %: the page says so,
+  and runs the 20 again in the reader's browser.
+
+## 12. Facts and decisions that need your word
+
+- Home's new section about your current role prints the résumé's lines, so "TD Bank’s compliance SBU" is now on
+  Home as well as on the Résumé and in `/llms.txt`. RBC is named on the Résumé, on the data-operations project page
+  and in `/llms.txt`, as before.
+- Contact now shows the third-person line about you (`content/site.ts` `bio`) under "Bio". No page printed it
+  before; the search and Ask read it.
+- "Constrain the output", on the agent's project page, used to pick its own tokens, and stepped to the end it wrote
+  `"status": "shipped"` and a nonsense figure on a project that is in progress. It now writes that project's own
+  record (`"status": "in progress"`, "Projected 50%") and shows what the grammar would have allowed at each step.
+  The words that say so are in section 4.
+- Two first lines were written for the project page and are now also read on Writing: the mask's "on a case record"
+  and the eval's "this site’s own search".
+- "Where the words came from" names the search's node "Ask the painting" (it was "Search these pages").
+- In Ask, once the 38 MB model is in the browser, a typed question is read by it straight away, without "Read
+  closer" being pressed again.
+- The painting: the terraces (Résumé) carry two trees in pink blossom, and the ferry scene (Contact) has two far
+  birds. Both are on your list of dislikes.
+- The painting: the framing willow boughs over Work and Writing are switched off (`boughs` in
+  `src/features/landscape/elements.ts`), because a bough that framed one first screen would hang in the middle of
+  the band's sky.

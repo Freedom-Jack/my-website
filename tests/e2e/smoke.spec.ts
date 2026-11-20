@@ -1,69 +1,97 @@
 import { expect, test } from '@playwright/test';
-import { isSoftware, ROUTES, settle } from './support/pages';
+import { PHONE, ROUTES, settle, TABLET, watch } from './support/pages';
+import { tapsAndOverflow } from './support/taps';
 
-// A smoke test per route: it answers, says what it is, holds one <main> and one h1, is marked as the page it is,
-// paints (or falls back), and logs no errors. Plus the hard rules on the rendered page (CLAUDE.md).
-// (the checks here are DOM-only: on a software rasteriser the painting runs still, under reduced motion, so the page
-// answers at once)
-test.beforeEach(async ({ page }) => {
-  if (await isSoftware(page)) await page.emulateMedia({ reducedMotion: 'reduce' });
-});
-const PHONE =
+/**
+ * Smoke: every route, at a phone's, a tablet's and a laptop's width, answers, says what it is, holds one <main> and
+ * one h1, marks where the reader is, and logs no error and no failed request; nothing leaves the window's sides.
+ * Plus the hard rules on the rendered page (CLAUDE.md): no phone number, no street address, no PMP, no old résumé
+ * file, the one public email, no CJK text (the seal is a path) and the visible name's form.
+ */
+const PHONE_NUMBER =
   /(?<![\w.#/-])(?:\+?1[\s.-]?)?\(?\d{3}\)?[\s.-]{0,2}\d{3}[\s.-]\d{4}(?![\w-])|(?<![\d\w])\+\d{1,3}[\s.-]?\(?\d{1,4}\)?(?:[\s.-]?\d{2,4}){2,4}(?!\d)|\btel:/i;
-const CJK = /[⺀-⿟　-〿぀-ヿ㐀-䶿一-鿿가-힯豈-﫿＀-￯]/u;
+const CJK = /[⺀-⿟　-〿぀-ヿ㐀-䶿一-鿿가-힯豈-﫿＀-￯]/u;
+const STREET =
+  /\b\d{1,5}\s+(?:[A-Z][a-z]+\s){1,3}(?:Street|St\.|Avenue|Ave\.?|Road|Rd\.|Boulevard|Blvd\.?|Drive|Dr\.|Crescent|Cres\.?|Court|Ct\.|Lane|Way|Place)\b/;
+const EMAIL = 'qxjack@gmail.com';
 
-for (const r of ROUTES) {
-  test(`${r.id} (${r.path})`, async ({ page }) => {
-    const errors: string[] = [];
-    page.on('console', (m) => {
-      if (m.type() !== 'error' || /GPU stall due to ReadPixels/.test(m.text())) return;
-      // (the 404 page's own document answers 404, which the browser logs)
-      if (r.page === 'not-found' && /status of 404/.test(m.text())) return;
-      errors.push(m.text());
-    });
-    page.on('pageerror', (e) => errors.push(String(e)));
-    const res = await page.goto(r.path);
-    expect(res?.status()).toBe(r.page === 'not-found' ? 404 : 200);
-    await expect(page).toHaveTitle(r.title);
-    await expect(page.locator('main')).toHaveCount(1);
-    await expect(page.locator('main h1')).toHaveCount(1);
-    await expect(page.locator('main')).toHaveAttribute('data-page', r.page);
-    await settle(page);
-    // the landscape mounted (or gave the page its static fallback), or the live probe kept the page on its still
-    // (features/landscape/probe.ts: reduced motion, Still, Save-Data, no hardware WebGL, a failed cadence)
-    const mode = await page.evaluate(() => (window as unknown as { __ink?: { mode: string } }).__ink?.mode ?? 'none');
-    const live = await page.evaluate(() => document.documentElement.getAttribute('data-live'));
-    if (mode === 'none') expect(live, 'no painting: the probe said so').toBe('still');
-    else expect(['webgl', 'canvas2d', 'static']).toContain(mode);
-    // hard rules on what the visitor gets
-    const html = await page.content();
-    expect(html).not.toMatch(PHONE);
-    expect(html).not.toMatch(/QijinXu_Resume\.pdf/i);
-    expect(html).not.toMatch(/\bPMP\b/);
-    expect(await page.evaluate(() => document.body.innerText)).not.toMatch(CJK);
-    // the 404 marks nothing as "you are here"; every other page marks itself or its section, in the tail's scroll in
-    // miniature and on the river line under the header (its mark stands under the current stop)
-    const current = await page.locator('.scrollmap a[aria-current]').count();
-    const mark = await page.locator('.site-header .river').getAttribute('data-here');
-    if (r.page === 'not-found') {
-      expect(current).toBe(0);
-      expect(mark).toBe('');
-    } else {
-      expect(current).toBe(1);
-      expect(mark).toMatch(/^[0-4]$/);
+const SIZES = [
+  { name: 'a phone (390)', use: PHONE },
+  { name: 'a tablet (768)', use: TABLET },
+  { name: 'a laptop (1440)', use: { viewport: { width: 1440, height: 900 } } },
+] as const;
+
+for (const size of SIZES) {
+  test.describe(size.name, () => {
+    test.use(size.use);
+    for (const r of ROUTES) {
+      test(`${r.id} (${r.path})`, async ({ page }) => {
+        const lost = r.page === 'not-found';
+        const errors = watch(page, { allow404: lost });
+        const res = await page.goto(r.path);
+        expect(res?.status()).toBe(lost ? 404 : 200);
+        await expect(page).toHaveTitle(r.title);
+        await expect(page.locator('main')).toHaveCount(1);
+        await expect(page.locator('h1')).toHaveCount(1);
+        await expect(page.locator('main h1')).toBeVisible();
+        await expect(page.locator('main')).toHaveAttribute('data-page', r.page);
+        await settle(page);
+
+        // the hard rules on what the visitor gets
+        const html = await page.content();
+        expect(html).not.toMatch(PHONE_NUMBER);
+        expect(html).not.toMatch(STREET);
+        expect(html).not.toMatch(/QijinXu_Resume\.pdf/i);
+        expect(html).not.toMatch(/\bPMP\b|Project Management Professional/);
+        const text = await page.evaluate(() => document.body.innerText);
+        expect(text).not.toMatch(CJK);
+        // (the one Chinese character is the seal, and the seal is a drawing: no <text>, no font)
+        expect(await page.locator('.seal text, .seal tspan').count()).toBe(0);
+        // the visible name is "Qijin Xu"; "(Jack)" is for titles and search data only
+        expect(text).toContain('Qijin Xu');
+        expect(text).not.toMatch(/\(Jack\)/);
+        // every address written or linked is the public one
+        const mails = await page
+          .locator('a[href^="mailto:"]')
+          .evaluateAll((as) => as.map((a) => a.getAttribute('href')));
+        expect(mails.length).toBeGreaterThan(0);
+        for (const m of mails) expect(m).toBe(`mailto:${EMAIL}`);
+        expect((text.match(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g) ?? []).filter((m) => m !== EMAIL)).toEqual([]);
+        // no page links to this site's own repository (the launch gate)
+        expect(await page.locator('a[href*="github.com"][href*="my-website" i]').count()).toBe(0);
+
+        // you are here: the header's word and the tail's map mark this page (or its section) once each; the 404,
+        // which lies off the map, marks nothing
+        const current = await page
+          .locator('[aria-current]')
+          .evaluateAll((els) => els.map((e) => `${e.closest('nav, header')?.className}:${e.getAttribute('href')}`));
+        if (r.current === null) expect(current).toEqual([]);
+        else
+          expect(current.sort()).toEqual(
+            [`${r.current === '/' ? 'site-header' : 'site-nav'}:${r.current}`, `scrollmap:${r.current}`].sort(),
+          );
+        // the tail signs every page with the one seal; the header carries none
+        await expect(page.locator('.tail .seal')).toHaveCount(1);
+        await expect(page.locator('.site-header .seal')).toHaveCount(0);
+
+        // nothing scrolls sideways, and the title stands inside the window
+        const side = await page.evaluate(() => ({
+          doc: document.documentElement.scrollWidth,
+          win: document.documentElement.clientWidth,
+          h1: (({ left, right }) => ({ left, right }))(document.querySelector('main h1')!.getBoundingClientRect()),
+        }));
+        expect(side.doc, 'the page is wider than the window').toBeLessThanOrEqual(side.win);
+        expect(side.h1.left).toBeGreaterThanOrEqual(0);
+        expect(side.h1.right).toBeLessThanOrEqual(side.win + 0.5);
+        expect((await page.evaluate(tapsAndOverflow)).offenders.slice(0, 3)).toEqual([]);
+
+        expect(errors).toEqual([]);
+      });
     }
-    // the tail signs every page once (the seal is pressed elsewhere only when something is done: an answer found,
-    // an address copied); none in the header or the first screen
-    expect(await page.locator('.seal').count()).toBe(1);
-    expect(await page.locator('.site-header .seal, .strip .seal').count()).toBe(0);
-    expect(await page.locator('.site-footer .seal').count()).toBe(1);
-    expect(errors).toEqual([]);
   });
 }
 
-test('old addresses go to their new homes (301; old links without a slash take one 308 to it first)', async ({
-  request,
-}) => {
+test('old addresses go to their new homes (301)', async ({ request }) => {
   const cases: Array<[string, string]> = [
     ['/about/', '/'],
     ['/projects/', '/work/'],
@@ -80,48 +108,31 @@ test('old addresses go to their new homes (301; old links without a slash take o
   }
 });
 
-test('the machine-readable files', async ({ request }) => {
+test('the machine-readable files say what the pages say, and nothing to an AI agent', async ({ request }) => {
   const resume = await (await request.get('/resume.json')).json();
   expect(resume.basics.name).toBe('Qijin Xu');
-  expect(JSON.stringify(resume)).not.toMatch(PHONE);
+  expect(resume.basics.email).toBe(EMAIL);
+  expect(JSON.stringify(resume)).not.toMatch(PHONE_NUMBER);
   expect(resume.basics).not.toHaveProperty('phone');
   const llms = await (await request.get('/llms.txt')).text();
   expect(llms).toMatch(/^# Qijin Xu/);
+  expect(llms).not.toMatch(PHONE_NUMBER);
   expect(llms).not.toMatch(/ignore|instruction|you (must|should)/i); // facts only, never instructions to AI agents
   const sitemap = await (await request.get('/sitemap.xml')).text();
   expect(sitemap).toContain('/work/rag-assistant/');
   expect(sitemap).not.toMatch(/about|404|building-modular/);
   expect((await request.get('/robots.txt')).status()).toBe(200);
   expect((await request.get('/writing/feed.xml')).status()).toBe(200);
+});
+
+test('the résumé’s PDF link opens the one generated PDF, under his name', async ({ page, request }) => {
+  await page.goto('/resume/');
+  const link = page.locator('main a[href$=".pdf"]');
+  await expect(link).toHaveCount(1);
+  await expect(link).toHaveAttribute('href', '/resume.pdf');
   const pdf = await request.get('/resume.pdf');
   expect(pdf.status()).toBe(200);
   expect(pdf.headers()['content-type']).toContain('application/pdf');
-});
-
-test('moving between pages: the painting travels, focus lands on the new title, the title is announced', async ({
-  page,
-}) => {
-  await page.goto('/');
-  await settle(page);
-  await page.locator(".site-nav a[href='/work/']").click();
-  await expect(page).toHaveURL(/\/work\/$/);
-  await expect(page.locator('main')).toHaveAttribute('data-page', 'work');
-  await expect(page.locator('#route-announcer')).toHaveText('Qijin (Jack) Xu · Work');
-  expect(await page.evaluate(() => document.activeElement?.tagName)).toBe('H1');
-  // (where the painting is live it has travelled to Work's place; on a software rasteriser the live probe kept the page
-  // on its still, and there is no painting to ask)
-  await expect
-    .poll(() =>
-      page.evaluate(() =>
-        (window as any).__ink
-          ? String((window as any).__ink.stats().stretch)
-          : document.documentElement.getAttribute('data-live'),
-      ),
-    )
-    .toMatch(/^(1|still)$/);
-  await page.locator(".scrollmap a[href='/resume/']").click();
-  await expect(page.locator('main')).toHaveAttribute('data-page', 'resume');
-  await page.goBack();
-  await expect(page.locator('main')).toHaveAttribute('data-page', 'work');
-  await expect(page.locator('main')).toHaveCount(1);
+  expect(pdf.headers()['content-disposition']).toContain('Qijin-Xu-Resume.pdf');
+  expect((await pdf.body()).subarray(0, 5).toString()).toBe('%PDF-');
 });

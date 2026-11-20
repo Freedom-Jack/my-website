@@ -13,6 +13,9 @@ const withMDX = createMDX({
 });
 
 const config: NextConfig = {
+  // A second build beside the usual one (a tool or a test run that must not disturb a served build) names its own
+  // folder: NEXT_DIST_DIR=.next-tools. Unset: Next's own .next.
+  ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
   // This project's own folder is the root (never a parent folder that happens to hold another lockfile).
   turbopack: {
     root: process.cwd(),

@@ -12,21 +12,21 @@ export const writing = {
   title: 'Writing',
   intro: 'Notes on building AI systems that work outside the demo.',
 
-  /** Writing's index opens a note out: the action under its description, and the label over the note's own
+  /** Writing opens its newest note out: the way in under its description, and the label over the note's own
    *  comparison, which the reader can turn aspect by aspect. New words, for Jack's approval (NEW-WORDS.md). */
   read: 'Read the note',
   from: 'From the note',
 
-  /** At the end of every note: the link back to Home. */
+  /** At the end of every note: the link back to Home (drawn as a way on: the arrow is the component's). */
   note: {
-    more: { label: 'More about Qijin →', href: '/' },
+    more: { label: 'More about Qijin', href: '/' },
   },
 
   /** The RSS feed (/writing/feed.xml). */
   feed: {
     title: 'Qijin Xu · Writing',
     description: 'Notes on building AI systems that work outside the demo.',
-    /** The quiet link under the list. */
+    /** The quiet link at the page's end, in the record's voice. */
     link: 'RSS feed',
   },
 } satisfies PageWords & Record<string, unknown>;

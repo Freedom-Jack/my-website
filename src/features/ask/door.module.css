@@ -1,0 +1,94 @@
+/* "Ask the painting": the two places it is reached from on every page. The door in the header (a word and the small
+   jade mark of what is live) and the tail's one line. Both need the door's script (AskHost), so neither is shown
+   without JavaScript. The sheet's own styles come with the sheet (sheet.module.css). */
+
+:global(html:not(.js)) :is(.door, .invite) {
+  display: none;
+}
+
+/* ---------- the door: set like the header's other words ---------- */
+.door.door {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  min-height: 2.75rem;
+  color: var(--ink-2);
+  white-space: nowrap;
+  transition: color var(--dur-hover) var(--ease-out);
+}
+.door::before {
+  content: '';
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--jade);
+}
+.word {
+  position: relative;
+}
+/* in use (the sheet is open) or under the pointer: full ink and the header's short stroke under the word */
+.word::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.08em; /* (where the header's own stroke stands under a nav word) */
+  height: 1.5px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+@media (prefers-reduced-motion: no-preference) {
+  :global(html:not(.is-still)) .word::after {
+    transition: transform 320ms var(--ease-ink);
+  }
+}
+.door:hover,
+.door[aria-expanded='true'] {
+  color: var(--ink);
+}
+.door:hover .word::after,
+.door[aria-expanded='true'] .word::after {
+  transform: scaleX(1);
+}
+
+/* ---------- the tail's line: one sentence and one question to ask, over the scroll in miniature ---------- */
+.invite {
+  margin-bottom: clamp(0.75rem, 2vw, 1.5rem);
+}
+.line {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 0.9em;
+  font-size: var(--t-small);
+  color: var(--ink-3);
+}
+.lead {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+}
+.lead::before {
+  content: '';
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--jade);
+}
+.ask {
+  text-align: left;
+}
+
+/* ---------- the narrowest phones (360 px): the header's one row holds the door too (its type steps down in
+   styles/shell.css) ---------- */
+@media (max-width: 23.4375rem) {
+  .door.door {
+    gap: 0.3em;
+    margin-left: -0.25rem;
+  }
+}

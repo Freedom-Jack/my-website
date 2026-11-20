@@ -1,6 +1,7 @@
 /**
- * The long words of Work's "Under the hood" pieces. They never sit in Work's HTML, which stays under 30 KB gzipped:
- * the build puts each piece's words into that piece's JSON (src/app/craft/*), fetched as the reader reaches it. Each
+ * The long words of the "Under the hood" pieces, each on the page of the case it is tied to. They never sit in a
+ * page's HTML: the build puts each piece's words into that piece's JSON (src/app/craft/*), fetched as the reader
+ * reaches it. Each
  * piece opens with its tie and its case. Every sentence in Jack's voice is DRAFT until he rewords it. Tokens in
  * {braces} are filled by the page with measured or computed values.
  */
@@ -31,13 +32,16 @@ export const hood = {
     case: 'proprietary-language-agent',
     result:
       'At this step the highest-scored token, {top}, is blocked; of {v} tokens {n} are legal, and {a} and {b} lead.',
-    what: 'The vocabulary is real (byte-pair tokens learned from these pages at build); the scores are counts of which token follows which in these pages, not a neural model. The mask is the part that carries over: it lets through only what keeps the record valid.',
+    /** NEW WORDS (for Jack): the second sentence, and with it `strip`'s last clause, `next` and `own`. */
+    what: 'The vocabulary is real (byte-pair tokens learned from these pages at build); the scores are counts of which token follows which in these pages, not a neural model. Left to those counts the record would come out valid and untrue, so each step takes this case’s own next token and shows what the grammar would have allowed. The mask is the part that carries over: it lets through only what keeps the record valid.',
     record: 'The record so far',
     state: 'Inside',
-    strip: 'The five highest-scored tokens at this step, and the five best legal ones',
+    strip: 'The five highest-scored tokens at this step, the five best legal ones, and the record’s own next token',
     legal: 'legal',
     blocked: 'blocked',
-    next: 'Take the best legal token',
+    next: 'Take the next token',
+    /** the record's own next token, said to screen readers beside its row in the strip */
+    own: 'the record’s next token',
     again: 'Start again',
     /** the record writes itself, one token at a time, once it is on screen; these stop and resume it */
     pause: 'Pause',
@@ -48,7 +52,7 @@ export const hood = {
   },
   eval: {
     /** the piece's first line: its tie to a production claim, then the link to that case (content/work/rag-assistant.mdx) */
-    tie: 'The insurance assistant answered from retrieved passages, so retrieval had to be measured; this is the same measure for the search above.',
+    tie: 'The insurance assistant answered from retrieved passages, so retrieval had to be measured; this is the same measure for this site’s own search.',
     case: 'rag-assistant',
     result: 'On {n} questions the search returns the right passage first {at1} and in the top three {at3}.',
     author:

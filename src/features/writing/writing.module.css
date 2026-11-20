@@ -1,127 +1,455 @@
-/* Writing's layout: each note opened out on the lake. The title in the name face, the note's own comparison turned
-   aspect by aspect. Type and ink come from the design system. */
+/* Writing (/writing/): the lake pavilion. The newest note open under the mist; its own comparison, turned aspect by
+   aspect; the three worked pieces as a ruled set; the feed. */
 
-.leaf__main {
-  position: relative;
+/* ---------- the newest note, open ---------- */
+.first {
+  row-gap: var(--s-5);
+  align-items: start;
 }
-/* the note's title: 44 @ 390 → 88 @ 1440, the row's link */
-.leaf__title {
-  margin-block-start: 0.5rem;
-  font-family: var(--font-name);
-  font-weight: 900;
-  font-size: clamp(2.75rem, 1.73rem + 4.2vw, 5.5rem);
-  line-height: 0.95;
-  letter-spacing: 0.004em;
-  text-wrap: balance;
+.noteHead {
+  grid-column: 1 / span 8;
 }
-.leaf__title a {
+/* its title: the page's second brush line, well under the place's own (44 px on a phone, 80 px wide) */
+.noteTitle {
+  margin-top: var(--s-2);
+  margin-left: -0.03em;
+  font-size: clamp(2.75rem, 5.6vw, 5rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+.noteTitle a {
   text-decoration: none;
 }
-.leaf__title a::after {
-  content: '';
-  position: absolute;
-  inset: 0;
+/* the opening beside it: its first line stands level with the title's */
+.noteOpen {
+  grid-column: 9 / -1;
+  padding-top: calc(var(--t-note) * 1.55 + var(--s-2) + 0.35rem);
 }
-.leaf__line {
-  margin-block-start: 0.875rem;
-  font-size: var(--fs-lead);
-  line-height: var(--lh-lead);
-  color: var(--ink-2);
-  max-width: 30em;
+.noteOpen :global(.lead) {
+  max-width: 24ch;
 }
-.leaf__read {
-  position: relative;
-  z-index: 1;
-  margin-block-start: 0.75rem;
+.noteOpen :global(.go) {
+  margin-top: var(--s-3);
 }
 
-/* ---------- the comparison: aspects at the left, the two sides beside them ---------- */
-.compare {
-  margin-block-start: var(--space-l);
-}
-.compare__body {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 1.25rem var(--grid-gap);
-  margin-block-start: 0.75rem;
-}
-.aspects {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0 1.25rem;
-}
-.aspects button {
+/* ---------- the comparison ----------
+   One markup, two ways to read it. As written here: every aspect, a plain ruled table (JavaScript off, paper).
+   Under html.js, on a screen: the turner (below). Wide, both stand on the page's twelve columns: the aspects'
+   names in the rail (1-2), the two sides in 3-7 and 8-12, one hairline between them. */
+.turn {
   position: relative;
-  min-block-size: 44px;
-  min-inline-size: 44px;
-  border: 0;
-  padding: 0;
-  font-family: var(--font-code);
-  font-size: var(--fs-small);
-  letter-spacing: 0.04em;
-  color: var(--ink-3);
-  cursor: pointer;
-  text-align: start;
-  /* the picked aspect: an ink line under its word */
-  background: linear-gradient(currentColor, currentColor) left calc(50% + 0.8em) / 0% 1.5px no-repeat;
-  transition: background-size 380ms var(--ease-wash);
+  row-gap: 0;
 }
-.aspects button[aria-pressed='true'] {
-  color: var(--ink-1);
-  background-size: 100% 1.5px;
-}
-.sides {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 1.5rem var(--grid-gap);
-}
-.cell {
-  font-size: var(--fs-lead);
-  line-height: var(--lh-lead);
-  color: var(--ink-1);
-  max-width: 24em;
-}
-@media (prefers-reduced-motion: no-preference) {
-  .turned {
-    animation: cell-in 420ms var(--ease-out) both;
-  }
-}
-@keyframes cell-in {
-  from {
-    opacity: 0;
-    translate: 0 0.35rem;
-  }
-}
-.feed {
-  margin-block-start: var(--space-l);
-}
-:global(html:not(.js)) .aspects {
+.turnPick {
   display: none;
 }
-@media (min-width: 40rem) {
-  .sides {
+.turnName {
+  font: 400 0.875rem/1.4 var(--font-record);
+  letter-spacing: 0.01em;
+  color: var(--ink-2);
+}
+.turnSide dd {
+  color: var(--ink);
+}
+.turnSide dd b {
+  font-weight: 600;
+}
+
+@media (min-width: 62rem) {
+  .turn {
+    align-items: baseline;
+  }
+  .turnRow,
+  .turnPair,
+  .turnSide {
+    display: contents;
+  }
+  .turnLabel {
+    grid-column: 1 / 3;
+    grid-row: 1;
+  }
+  .turnName {
+    grid-column: 1 / 3;
+    grid-row: calc(var(--i) + 2);
+    padding-block: var(--s-4);
+  }
+  /* the two sides' heads, in the brush: the first row's stand for all of them */
+  .turnSide dt {
+    grid-row: 1;
+    padding-bottom: var(--s-4);
+    font: italic 300 var(--t-h2) / 1.06 var(--font-brush);
+    letter-spacing: -0.02em;
+    font-synthesis: none;
+  }
+  .turnRow:not(:first-of-type) .turnSide dt {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .turnSide dd {
+    grid-row: calc(var(--i) + 2);
+    padding-block: var(--s-4);
+  }
+  .turnSide:first-child :is(dt, dd) {
+    grid-column: 3 / 8;
+    padding-right: var(--gap);
+  }
+  .turnSide:last-child :is(dt, dd) {
+    grid-column: 8 / -1;
+  }
+  /* the hairline under the head row, and the one between the two sides */
+  .turn::before {
+    content: '';
+    grid-column: 1 / -1;
+    grid-row: 1;
+    align-self: end;
+    height: 1px;
+    background: var(--line-2);
+  }
+  .turn::after {
+    content: '';
+    grid-column: 8;
+    grid-row: 1 / calc(var(--n) + 2);
+    align-self: stretch;
+    justify-self: start;
+    width: 1px;
+    margin-left: calc(var(--gap) * -1);
+    background: var(--line);
+  }
+}
+
+/* narrow, every aspect shown: each aspect a ruled row, its two sides as labelled pairs */
+@media (max-width: 61.99rem) {
+  .turnLabel {
+    grid-column: 1 / -1;
+    margin-bottom: var(--s-4);
+  }
+  .turnRow {
+    grid-column: 1 / -1;
+    padding-block: var(--s-4) var(--s-5);
+    border-top: 1px solid var(--line);
+  }
+  .turnName {
+    display: block;
+    color: var(--ink);
+  }
+  .turnPair {
+    display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--s-6);
+    row-gap: var(--s-3);
+    margin-top: var(--s-3);
+  }
+  .turnSide dt {
+    margin-bottom: var(--s-1);
+    font: 400 var(--t-label) / 1.5 var(--font-record);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .turnSide dd {
+    font-size: var(--t-small);
+    line-height: 1.55;
   }
 }
-@media (min-width: 75rem) {
-  .leaf__main {
-    max-width: calc((100% - 11 * var(--grid-gap)) / 12 * 8 + 7 * var(--grid-gap)); /* eight of the twelve columns */
-  }
-  .compare__body {
-    grid-template-columns: 9.5rem minmax(0, 1fr);
-    column-gap: 3rem;
-    align-items: start;
-  }
-  .aspects {
-    flex-direction: column;
-    gap: 0;
-  }
-  .sides {
-    min-block-size: 11rem;
+@media (max-width: 39.99rem) {
+  .turnPair {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  .aspects button {
-    transition: none;
+
+/* ---------- the turner (JavaScript on, a screen): one aspect at a time ---------- */
+@media screen {
+  :global(html.js) .turnPick {
+    display: block;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+  :global(html.js) .turnName {
+    display: flex;
+    align-items: center;
+    justify-self: start;
+    min-height: 2.75rem;
+    padding-block: 0;
+    color: var(--ink-3);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: color var(--dur-hover) var(--ease-out);
+  }
+  /* the aspect being read: full ink, a short stroke under its name (the header's "you are here") */
+  :global(html.js) .turnName span {
+    position: relative;
+    padding-block: 0.3em;
+  }
+  :global(html.js) .turnName span::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1.5px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+  }
+  :global(html.js) .turnName:hover,
+  :global(html.js) .turnPick:checked + .turnName {
+    color: var(--ink);
+  }
+  :global(html.js) .turnPick:checked + .turnName span::after {
+    transform: scaleX(1);
+  }
+  :global(html.js) .turnPick:focus-visible + .turnName span {
+    outline: 2px solid var(--ink);
+    outline-offset: 4px;
+    border-radius: 2px;
+  }
+  /* every aspect's two sides stand in the same place; only the picked one's are seen (so nothing moves when the
+     reader turns one, and the piece is as tall as its longest answer) */
+  :global(html.js) .turnPick:not(:checked) ~ .turnPair {
+    visibility: hidden;
+  }
+  :global(html.js) .turnPick:not(:checked) ~ .turnPair dd {
+    opacity: 0;
+  }
+  :global(html.js) .turnSide dd {
+    font-size: var(--t-say);
+    line-height: 1.5;
+    letter-spacing: -0.006em;
+  }
+}
+@media screen and (prefers-reduced-motion: no-preference) {
+  :global(html.js:not(.is-still)) .turnName span::after {
+    transition: transform 320ms var(--ease-ink);
+  }
+  /* the picked answer comes up into place; the one it replaces is simply gone */
+  :global(html.js:not(.is-still)) .turnPick:checked ~ .turnPair dd {
+    transition:
+      opacity 360ms var(--ease-ink),
+      transform 360ms var(--ease-ink);
+  }
+  :global(html.js:not(.is-still)) .turnPick:not(:checked) ~ .turnPair dd {
+    transform: translateY(0.35rem);
+  }
+}
+
+@media screen and (min-width: 62rem) {
+  /* the label, then the names, down the rail; the sides beside them, top to top. The last row takes whatever a
+     long answer needs, so the names stay together */
+  :global(html.js) .turn {
+    grid-template-rows: auto repeat(var(--n), min-content) minmax(0, 1fr);
+  }
+  :global(html.js) .turn::before {
+    content: none;
+  }
+  :global(html.js) .turn::after {
+    grid-row: 1 / calc(var(--n) + 3);
+  }
+  :global(html.js) .turnRow .turnSide dt {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+    padding-bottom: var(--s-3);
+  }
+  :global(html.js) .turnSide dd {
+    grid-row: 2 / calc(var(--n) + 3);
+    padding-block: 0;
+  }
+  :global(html.js) .turnPick:not(:checked) ~ .turnPair dt {
+    visibility: hidden;
+  }
+}
+
+@media screen and (max-width: 61.99rem) {
+  /* the names keep their rail at the left; the two sides stand beside them (one over the other on a phone) */
+  :global(html.js) .turn {
+    grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
+    grid-template-rows: auto repeat(var(--n), min-content) minmax(0, 1fr);
+    column-gap: var(--s-6);
+  }
+  :global(html.js) .turnLabel {
+    margin-bottom: var(--s-3);
+  }
+  :global(html.js) .turnRow {
+    display: contents;
+  }
+  :global(html.js) .turnName {
+    grid-column: 1;
+    grid-row: calc(var(--i) + 2);
+    max-width: 8rem;
+  }
+  :global(html.js) .turnPair {
+    grid-column: 2;
+    grid-row: 2 / calc(var(--n) + 3);
+    align-content: start;
+    column-gap: 0;
+    row-gap: 0;
+    margin-top: 0;
+  }
+  :global(html.js) .turnSide dt {
+    display: flex;
+    align-items: center;
+    min-height: 2.75rem;
+    margin-bottom: var(--s-1);
+    font: italic 300 clamp(1.75rem, 4.4vw, 2.125rem) / 1.06 var(--font-brush);
+    letter-spacing: -0.02em;
+    text-transform: none;
+    font-synthesis: none;
+    color: var(--ink);
+  }
+  :global(html.js) .turnSide:first-child {
+    padding-right: var(--s-5);
+  }
+  :global(html.js) .turnSide:last-child {
+    padding-left: var(--s-5);
+    border-left: 1px solid var(--line);
+  }
+}
+@media screen and (max-width: 39.99rem) {
+  :global(html.js) .turn {
+    column-gap: var(--s-4);
+  }
+  :global(html.js) .turnName {
+    font-size: 0.8125rem;
+  }
+  :global(html.js) .turnSide dd {
+    font-size: var(--t-body);
+    line-height: 1.5;
+  }
+  :global(html.js) .turnSide:first-child {
+    padding-right: 0;
+    padding-bottom: var(--s-4);
+  }
+  :global(html.js) .turnSide:last-child {
+    padding-left: 0;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+}
+
+/* ---------- a ruled set: the worked pieces (and, once there are any, the notes before the newest) ---------- */
+.piecesRail {
+  padding-top: calc(var(--s-5) + 0.85rem);
+}
+.pieces {
+  border-bottom: 1px solid var(--line);
+}
+.piece {
+  display: grid;
+  grid-template-columns: 4fr 4fr 2fr;
+  column-gap: var(--gap);
+  align-items: baseline;
+  padding-block: var(--s-5) var(--s-6);
+  border-top: 1px solid var(--line);
+}
+.pieceTitle {
+  padding-right: var(--s-4);
+  font-size: clamp(1.75rem, 2.5vw, 2.25rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.pieceTitle a {
+  text-decoration: none;
+}
+.pieceTitle :global(.arrow) {
+  display: inline-block;
+  width: 0.5em;
+  height: 0.5em;
+  margin-left: 0.3em;
+  color: var(--ink-3);
+  transition: transform 360ms var(--ease-ink);
+}
+.pieceTitle a:hover :global(.arrow) {
+  color: inherit;
+  transform: translateX(0.2em);
+}
+.piece > :global(.small) {
+  max-width: 44ch;
+  padding-right: var(--s-4);
+}
+.feed {
+  margin-top: var(--s-4);
+}
+.feed a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+}
+
+@supports (grid-template-columns: subgrid) {
+  @media (min-width: 62rem) {
+    /* on the page's own columns: the title in 3-6, its tie in 7-10, its case in 11-12 */
+    .pieces {
+      display: grid;
+      grid-template-columns: repeat(10, minmax(0, 1fr));
+      column-gap: var(--gap);
+    }
+    .piece {
+      grid-column: 1 / -1;
+      grid-template-columns: subgrid;
+    }
+    .piece > :nth-child(1) {
+      grid-column: span 4;
+    }
+    .piece > :nth-child(2) {
+      grid-column: span 4;
+    }
+    .piece > :nth-child(3) {
+      grid-column: span 2;
+    }
+  }
+}
+
+@media (max-width: 61.99rem) {
+  .noteHead,
+  .noteOpen {
+    grid-column: 1 / -1;
+  }
+  .noteOpen {
+    padding-top: 0;
+  }
+  .noteOpen :global(.lead) {
+    max-width: 30ch;
+  }
+  .piecesRail {
+    padding-top: 0;
+  }
+  .piece {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    row-gap: var(--s-2);
+  }
+  .piece > :nth-child(3) {
+    grid-column: 2;
+  }
+}
+@media (max-width: 39.99rem) {
+  .piece {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--s-3);
+  }
+  .piece > :nth-child(3) {
+    grid-column: 1;
+  }
+  .pieceTitle,
+  .piece > :global(.small) {
+    padding-right: 0;
+  }
+}
+
+@media print {
+  .turn::after {
+    display: none;
   }
 }

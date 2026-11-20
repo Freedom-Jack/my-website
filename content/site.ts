@@ -21,7 +21,7 @@ export const site = {
   goesBy: 'Jack',
   /** Search engines and AI agents only (titles, meta, JSON-LD), never visible text. */
   searchName: 'Qijin (Jack) Xu',
-  /** A third-person line about him: the search and Ask read it under Home's "About me" (Home does not print it). */
+  /** A third-person line about him: Contact prints it ("Bio", for someone who has to introduce him); the Ask reads it. */
   bio: '[Qijin Xu](/) is a Lead AI/ML Architect at CGI’s AI Center of Excellence in Toronto. He designs and ships production AI for banks and insurers: LLM agents, RAG systems, and data platforms.',
   alternateNames: ['Jack Xu', 'Qijin (Jack) Xu'],
   jobTitle: resume.basics.label,
@@ -61,8 +61,8 @@ export const site = {
   stillHint: 'Stops the painting’s motion; remembered on this device.',
 
   /**
-   * The way on: every page but Contact and the 404 ends on one line pointing downstream, to the next place in the
-   * painting's order, with that page's own sentence (components/page/NextPlace).
+   * The way on: every page but Contact and the 404 ends on the next place downstream, by its name
+   * (components/page/NextPlace). This word names that link for screen readers.
    */
   ending: { label: 'Downstream' },
 
@@ -74,7 +74,7 @@ export const site = {
    */
   tail: {
     colophon:
-      'Words on paper and one painting, drawn by code in your browser. No analytics, nothing fetched from a third party, and nothing you type is sent anywhere.',
+      'Words on paper and one painting, drawn by code. No analytics, nothing fetched from a third party, and nothing you type is sent anywhere.',
     build: 'Build',
     lastChanged: 'Last changed',
     /** the measured number's words: "LCP 1.1 s, Lighthouse mobile, simulated" */
@@ -82,27 +82,14 @@ export const site = {
     names: 'All pages',
   },
 
-  /**
-   * The scroll, held (src/features/scroll): the tail's opener, the sheet's name and hint, the close, the three
-   * distances. Interface words, marked DRAFT until Jack writes his (never invent words in his voice).
-   */
-  scroll: {
-    open: 'DRAFT · Open the scroll',
-    close: 'DRAFT · Close',
-    name: 'DRAFT · The scroll',
-    hint: 'DRAFT · Hold the painting: drag it, use the arrow keys, or choose a place. Esc closes it.',
-    level: 'DRAFT · level',
-    high: 'DRAFT · high',
-    deep: 'DRAFT · deep',
-  },
-
   /** "Last changed October 2026" in the tail: the month of the last content change. Change it with the words. */
   updated: '2026-10',
 
   /**
    * The launch gate (CLAUDE.md, hard rules): no "Source code" link and no Work entry for this repository while the
-   * public repo still holds the old résumé file. Set to true only after Jack confirms. No code reads it: the tail has
-   * no such link, and github/rules.ts DENY keeps the repository off Work.
+   * public repo still holds the old résumé file. Set to true only after Jack confirms. While it is false,
+   * `npm run check:compliance` and `npm run check:links` fail on any link to the repository; the tail has no such
+   * link, and github/rules.ts DENY keeps the repository off Work.
    */
   showSourceCode: false,
   sourceCodeUrl: 'https://github.com/Freedom-Jack/my-website',

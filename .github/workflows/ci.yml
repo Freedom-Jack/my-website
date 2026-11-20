@@ -1,8 +1,10 @@
 # CI on every pull request and every push to master: the site must type-check, lint, keep its format, pass its unit
-# tests, keep its stills and heroes current, pass the audit of its runtime dependencies, build, keep the hard rules
-# (no phone, address, project-management credential, old résumé PDF or CJK), keep its links, keep the PDF in step with
-# the résumé and pass its browser tests. Nothing here deploys (Vercel does, from master). The byte and Lighthouse
-# budgets are measured locally (`npm run check:budgets`), not here.
+# tests, keep the band's stills in step with the engine they were cut from, pass the audit of its runtime
+# dependencies, build, keep the hard rules (no phone, address, project-management credential, old résumé PDF or CJK;
+# no "(Jack)" in visible text; no link to this repository before the launch gate), keep its links, keep the PDF in
+# step with the résumé and the link-preview cards in step with the pages' titles, and pass its browser tests.
+# Nothing here deploys (Vercel does, from master). Nothing here needs a GPU: the stills, the cards and the speed check
+# (`npm run build:band`, `build:og`, `check:budgets`) are cut and measured locally, on the real painting.
 name: CI
 
 on:
@@ -35,7 +37,7 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      - name: Checks (types, lint, format, unit tests; the stills and the heroes are cut from this engine)
+      - name: Checks (types, lint, format, unit tests; the band's stills are cut from this engine)
         run: npm run ci
       - name: Audit (runtime dependencies)
         run: npm audit --omit=dev --audit-level=high
@@ -49,11 +51,13 @@ jobs:
           for i in $(seq 1 60); do curl -sf -o /dev/null http://127.0.0.1:3100/ && exit 0; sleep 1; done; exit 1
       - name: The résumé PDF matches the résumé, with no phone number
         run: npm run build:pdf -- --check
-      - name: Hard rules
+      - name: Hard rules (the sources, the built pages and route outputs, the PDF)
         run: npm run check:compliance
       - name: Links
         run: npm run check:links
-      - name: Browser tests (a smoke test per route, navigation, axe, the probe, the craft)
+      - name: The link-preview cards match the pages' titles
+        run: npm run build:og -- --check
+      - name: Browser tests (tests/e2e)
         run: npm run test:e2e
       - if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
