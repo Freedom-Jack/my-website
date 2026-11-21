@@ -84,6 +84,7 @@ function cards(): Card[] {
       .map((f) => f.slice(0, -4));
   return [
     { id: 'home', route: '/', place: 'home' },
+    { id: 'about', route: '/about/', place: 'home' },
     ...(['work', 'writing', 'resume', 'contact'] as const).map((id) => ({ id, route: `/${id}/`, place: id })),
     ...slugs('work').map((s) => ({ id: `work-${s}`, route: `/work/${s}/`, place: 'work' as const })),
     ...slugs('writing').map((s) => ({ id: `writing-${s}`, route: `/writing/${s}/`, place: 'writing' as const })),
@@ -106,29 +107,29 @@ const textOf = (html: string) =>
     .replace(/\s+/g, ' ')
     .trim();
 
-/** A page's inscription as the server sends it (components/page/Inscription): its title and the line under it. */
+/** A page's own words as the server sends it: its title (the page's <h1>) and the line under it, if it has one. */
 async function inscription(route: string): Promise<{ title: string; under: string }> {
   const res = await fetch(BASE + route);
   if (!res.ok) throw new Error(`${route}: HTTP ${res.status} (is the build being served at ${BASE}?)`);
   const html = await res.text();
-  const at = html.match(/<header class="inscription">([\s\S]*?)<\/header>/)?.[1];
-  if (!at) throw new Error(`${route}: no inscription in the page (components/page/Inscription)`);
-  const el = (cls: string) =>
-    at.match(new RegExp(`<(h1|p)\\b[^>]*class="${cls}(?:[ "][^>]*)?>([\\s\\S]*?)</\\1>`))?.[2] ?? '';
-  const title = textOf(el('title'));
-  if (!title) throw new Error(`${route}: the inscription has no title`);
-  return { title, under: textOf(el('title__under')) };
+  const main = html.match(/<main\b[\s\S]*?<\/main>/)?.[0] ?? '';
+  const title = textOf(main.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/)?.[1] ?? '');
+  if (!title) throw new Error(`${route}: the page has no <h1>`);
+  const under = main.match(/<p\b[^>]*class="title__under(?:[ "][^>]*)?>([\s\S]*?)<\/p>/)?.[1] ?? '';
+  return { title, under: textOf(under) };
 }
 const wordsOf = (w: { title: string; under: string }) => sha(JSON.stringify([w.title, w.under]));
 /** The card's alt text: whose page it is, then what the card shows. */
 function altOf(c: Card, w: { title: string; under: string }) {
-  const shown = `inscribed in the sky of an ink-wash painting of ${SCENE[c.place]}.`;
-  if (c.id === 'home') return `${w.title}, ${site.jobTitle}: his name ${shown}`;
-  if (c.id.startsWith('work-')) return `${w.title}: a project by ${site.name}, its title ${shown}`;
+  const scene = `an ink-wash painting of ${SCENE[c.place]}`;
+  // (Home alone carries the inscription; every other card carries its page's title)
+  if (c.id === 'home')
+    return `${w.title}, ${site.jobTitle}: ${scene}, a few columns of Chinese calligraphy and a red seal in its sky.`;
+  if (c.id.startsWith('work-')) return `${w.title}: a project by ${site.name}, its title in the sky of ${scene}.`;
   // (a title that ends in ? or ! is quoted, so the alt text does not read "…agent?: a note")
   if (c.id.startsWith('writing-'))
-    return `${/[?!]$/.test(w.title) ? `“${w.title}”,` : `${w.title}:`} a note by ${site.name}, its title ${shown}`;
-  return `${w.title} · ${site.name}: the page's title ${shown}`;
+    return `${/[?!]$/.test(w.title) ? `“${w.title}”,` : `${w.title}:`} a note by ${site.name}, its title in the sky of ${scene}.`;
+  return `${w.title} · ${site.name}: the page's title in the sky of ${scene}.`;
 }
 
 // ------------------------------------------------------------------------------------------------ in the page
@@ -138,8 +139,11 @@ const CSS = `
 .site-header, .skip-link, .band__mist, nextjs-portal { display: none !important; }
 body > :not(.band, main), main * { visibility: hidden !important; }
 main .inscription, main .inscription * { visibility: visible !important; }
-main .inscription--next, main .inscription--next *, main .inscription__next, main .inscription__next * { visibility: hidden !important; }
-.inscription__at { top: ${SAFE + 12}px !important; zoom: ${INSCRIBE}; max-width: ${Math.round((CARD.width - 2 * (SAFE + 12)) / INSCRIBE)}px !important; }
+main .inscription { animation: none !important; opacity: 1 !important; }
+.inscription__at { left: ${SAFE + 12}px !important; top: ${SAFE + 12}px !important; zoom: ${INSCRIBE}; max-width: ${Math.round((CARD.width - 2 * (SAFE + 12)) / INSCRIBE)}px !important; }
+/* (only Home carries an inscription: every other page's own title stands in the sky of its card) */
+main:not(:has(.inscription)) .page-head, main:not(:has(.inscription)) .page-head * { visibility: visible !important; }
+main:not(:has(.inscription)) .page-head { position: absolute !important; z-index: 7 !important; left: 0; top: ${SAFE + 12}px; display: block !important; padding: 0 ${SAFE + 12}px !important; max-width: ${CARD.width}px !important; zoom: ${INSCRIBE}; }
 `;
 const INIT = `window.__inkLive = true;
 try { localStorage.setItem('ink:still', '1'); } catch {}
@@ -161,13 +165,13 @@ const DEVELOPED_JS = `(() => { const s = window.__ink.stats(); return s.plates &
 /** The under-line as the server sent it, and the inscription's box on the card (CSS px). */
 const PLACE_JS = `((under) => {
   window.scrollTo(0, 0);
-  const at = document.querySelector('main .inscription .inscription__at');
+  const at = document.querySelector('main .inscription .inscription__at') || document.querySelector('main .page-head');
   if (!at) return null;
   const u = at.querySelector('.title__under');
   const norm = (t) => t.replace(/\\s+/g, ' ').trim();
   if (u && under && norm(u.textContent) !== under) u.textContent = under;
   let box = null;
-  for (const el of at.querySelectorAll('.title, .title__under, .seal')) {
+  for (const el of at.querySelectorAll('.inscription__art, .inscription__en, .title, .title__under')) {
     const range = document.createRange();
     range.selectNodeContents(el);
     for (const r of [...range.getClientRects(), el.getBoundingClientRect()]) {

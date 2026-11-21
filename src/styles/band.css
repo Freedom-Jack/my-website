@@ -1,12 +1,13 @@
 /* ==========================================================================
    band.css — THE BAND: how the painting meets the page (features/landscape/band.ts).
 
-   The painting is one fixed band across the top of the window, in front of the words. At a page's top it stands at
-   full size with the page's title inscribed in its sky; as the page is read it stands back (it settles to
-   --band-zoom of its size over the first --band-run of the scroll) and unrolls west with the rest of the scroll.
-   The words rise under it and dissolve in the mist at its foot. Nothing is ever painted behind the words.
+   The painting is the page's background: one band fixed across the top of the window, behind everything. At a
+   page's top it is the whole first screen, the header on its sky. As the page is read, the body's sheets of paper
+   (styles/shell.css) pass over it, and it shows at their sides and between them, unrolling west with the page's
+   scroll. At the page's end it stands whole again, as the scroll's end (the tail). It never stands over the words,
+   and nothing is washed out behind them: the words are on their own paper.
 
-     .band                 fixed, scaled about the window's top-left corner (the settling)
+     .band                 fixed, behind the page
        .band__clip         the painting's box: a plain rectangular clip
          .band__still      the page's still: the wide stage cut ahead (tools/build-band.ts), on every device
          .plates           the live stage's layers, 1200 px and up (features/landscape/plates/sink.ts)
@@ -22,10 +23,8 @@
   left: 0;
   top: 0;
   z-index: var(--z-band);
-  width: calc(100vw / var(--band-zoom));
+  width: calc(100vw / var(--band-zoom)); /* the stage is painted this wide (features/landscape/band.ts) */
   height: var(--band-clip);
-  transform-origin: 0 0;
-  transform: scale(var(--band-zoom)); /* the settled band: where nothing moves, it stays so */
   pointer-events: none;
 }
 .band__clip {
@@ -181,247 +180,85 @@ html:not([data-live='on']) .landscape {
   );
 }
 
-/* ---------- what is inscribed in its sky: a page's title (components/page/Inscription) ----------
-   It belongs to the painting: it stands back with it and travels west with it. */
+/* ---------- what is inscribed in its sky (components/page/Inscription) ----------
+   Home's alone: a few small columns of brush script with the seal, as a painting carries one, and the line in
+   English beside it. It stands in the sky at the page's top and leaves with it. */
 .inscription {
-  position: fixed;
+  position: absolute;
   left: 0;
   top: 0;
   z-index: var(--z-title);
-  width: calc(100vw / var(--band-zoom));
-  height: var(--band-clip);
-  transform-origin: 0 0;
-  transform: scale(var(--band-zoom));
+  width: 100%;
+  height: var(--band-h);
   pointer-events: none;
 }
-.inscription__run {
-  --travel-px: calc(var(--band-scale) * var(--band-inside, 1) * var(--travel, 0.5));
-  position: absolute;
-  inset: 0;
-  will-change: transform;
-}
-/* (where nothing moves the band, it stands settled: what is inscribed is placed so that it lands on the page's own
-   left edge after the band's scale) */
 .inscription__at {
   position: absolute;
-  left: calc(var(--edge) / var(--band-zoom));
-  top: calc(var(--header-h) + var(--title-y, 2.25rem));
-  max-width: calc((100vw - 2 * var(--gutter)) / var(--band-zoom));
-  pointer-events: auto;
+  left: var(--edge);
+  top: calc(var(--header-h) + clamp(0.75rem, 2.2vw, 1.75rem));
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(0.875rem, 1.6vw, 1.5rem);
+  max-width: calc(100vw - 2 * var(--gutter));
 }
-@media (max-width: 39.99rem) {
-  /* (a phone's settled band is short: the title starts low enough to stay under the header's row when it stands
-     back) */
-  .inscription__at {
-    top: calc(var(--header-h) + var(--title-y, 2.625rem));
-  }
-}
-/* the way on (components/page/NextPlace): the next place's name.
-   Where the band moves with the page it is inscribed in the painting, where it will stand as that page's own title
-   (the way to that place's hero, east of this one's), and comes into the band with its place: those rules are with
-   the motion, below. Where nothing moves the band (reduced motion, Still, a browser without scroll timelines) it is
-   the page's last line, on the paper, at the page's own left edge. */
-.inscription--next {
-  position: static;
+.inscription__art {
+  --em: clamp(1.25rem, 2.05vw, 1.875rem); /* one character */
+  flex: none;
   width: auto;
-  height: auto;
-  transform: none;
-  padding: clamp(4rem, 9vw, 8rem) var(--edge) 0;
-  pointer-events: auto;
+  max-width: none;
+  height: calc(var(--em) * var(--h));
 }
-.inscription--next .inscription__run {
-  position: static;
-  will-change: auto;
-}
-.inscription__next {
-  position: relative;
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.22em;
-  padding-block: 0.1em;
-  white-space: nowrap;
-  text-decoration: none;
+.inscription__en {
+  padding-top: 0.25rem;
+  max-width: 30rem;
+  font: 500 clamp(0.9375rem, 1.25vw, 1.125rem) / 1.45 var(--font-ink);
   color: var(--ink);
-  pointer-events: auto;
 }
-.inscription--next .inscription__next {
-  font-size: var(--t-title);
+.inscription__en > span {
+  display: block;
 }
-/* (the line under a title is read at the band's settled size here, where the band never stands larger: it keeps
-   13 px on screen) */
-.inscription .title__under {
-  font-size: calc(0.8125rem / var(--band-zoom));
+.inscription__en > cite {
+  display: block;
+  margin-top: 0.5rem;
+  font: 400 0.8125rem/1.4 var(--font-text);
+  color: var(--ink-2);
 }
-/* (its hit area stays 44 px tall and more once the band has stood back and the name with it) */
-.inscription__next::after {
-  content: '';
-  position: absolute;
-  inset: -0.3em 0;
-}
-.inscription__next .arrow {
-  width: 0.5em;
-  height: 0.5em;
-  transition: transform 420ms var(--ease-ink);
-}
-.inscription__next:hover {
-  color: var(--indigo);
-}
-.inscription__next:hover .arrow {
-  transform: translateX(0.16em);
-}
-
-/* ---------- the motion: the page's own scroll timeline, on the compositor ---------- */
-@keyframes band-settle {
-  from {
-    transform: scale(1);
-  }
-  to {
-    transform: scale(var(--band-zoom));
-  }
-}
+/* ---------- the motion: the page's own scroll timeline, on the compositor ----------
+   The painting unrolls west over the whole page (the live stage's plates do the same: plates/sink.ts). What is
+   inscribed leaves with the page's top, thinning before it would pass under the header's words. One transform and
+   one opacity. Where the browser has no scroll timelines, under reduced motion and "Still the landscape", the
+   painting stands still behind the page. */
 @keyframes band-travel {
   to {
     transform: translate3d(calc(var(--travel-px) * -1), 0, 0);
   }
 }
-@keyframes under-out {
+@keyframes inscription-out {
   to {
     opacity: 0;
     visibility: hidden;
-  }
-}
-/* (until its place comes, the next place's name is not only unseen: it takes no click, no tap and no focus) */
-@keyframes next-in {
-  from {
-    opacity: 0;
-    visibility: hidden;
-  }
-  to {
-    opacity: 1;
   }
 }
 @supports (animation-timeline: scroll()) and (animation-range: 0px 1px) {
   @media (prefers-reduced-motion: no-preference) {
-    html:not(.is-still) {
-      --band-flow: var(--band-clip); /* the page opens under the whole band */
-    }
-    /* (the band opens at full size: what is inscribed starts on the page's own left edge) */
-    html:not(.is-still) .inscription__at {
-      left: var(--edge);
-      max-width: calc(100vw - 2 * var(--gutter));
-    }
-    /* the way on is inscribed in the band, where the next place's own title will stand */
-    html:not(.is-still) .inscription--next {
-      position: fixed;
-      width: calc(100vw / var(--band-zoom));
-      height: var(--band-clip);
-      padding: 0;
-      pointer-events: none;
-    }
-    html:not(.is-still) .inscription--next .inscription__run {
-      position: absolute;
-      will-change: transform;
-    }
-    html:not(.is-still) .inscription--next .inscription__next {
-      position: absolute;
-      left: calc(var(--edge) + var(--band-scale) * var(--band-inside, 1) * var(--next-dl, 1));
-      top: calc(var(--header-h) + var(--title-y, 2.25rem));
-      font-size: var(--t-place);
-    }
-    @media (max-width: 39.99rem) {
-      /* (a phone's titles start lower: see .inscription__at) */
-      html:not(.is-still) .inscription--next .inscription__next {
-        top: calc(var(--header-h) + var(--title-y, 2.625rem));
-      }
-    }
-    /* (what is inscribed leaves with the painting through the window's left edge: it thins out over the page's
-       own margin there, never cut mid-letter. The mask is on the words' layer alone, not on the painting) */
-    html:not(.is-still) .inscription {
-      -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--edge));
-      mask-image: linear-gradient(to right, transparent 0, #000 var(--edge));
-    }
-    html:not(.is-still) :is(.band, .inscription) {
-      animation: band-settle cubic-bezier(0.3, 0.5, 0.3, 1) both;
-      animation-timeline: scroll(root block);
-      animation-range: 0px var(--band-run);
-    }
-    html:not(.is-still) :is(.band__still, .inscription__run) {
+    /* (the unroll, over the whole page; on a page shorter than its travel it goes at most 0.75 px a px of scroll, as
+       the live stage does: engine UNROLL.maxRate) */
+    html:not(.is-still) .band__still {
       animation: band-travel linear both;
       animation-timeline: scroll(root block);
+      animation-range: 0px max(100%, calc(var(--travel-px) / 0.75));
     }
-    /* (the line under the title is read at the page's top, at its own size; it goes as the band stands back,
-       before it would be too small to read) */
-    html:not(.is-still) .inscription .title__under {
-      font-size: clamp(0.75rem, 0.95vw, 0.875rem);
-      animation: under-out linear both;
+    html:not(.is-still) .inscription {
+      animation: inscription-out linear both;
       animation-timeline: scroll(root block);
-      animation-range: 0px calc(var(--band-run) * 0.7);
-    }
-    /* the next place's name is let in as its place comes: over the last stretch of the page */
-    html:not(.is-still) .inscription__next {
-      animation: next-in linear both;
-      animation-timeline: scroll(root block);
-      animation-range: calc(100% - 130vh) calc(100% - 45vh);
+      animation-range: 0px calc(var(--band-run) * 0.4);
     }
   }
 }
 
-/* On paper, and in forced colours (where the painting is not shown: styles/base.css), what was inscribed in the band
-   stands in the page's own flow: the title opens the page, at the words' own left edge. */
+/* On paper, and in forced colours (where the painting is not shown: styles/base.css), nothing is inscribed. */
 @media print, (forced-colors: active) {
   .inscription {
-    position: static;
-    width: auto;
-    height: auto;
-    transform: none !important;
-    animation: none !important;
-    -webkit-mask-image: none !important;
-    mask-image: none !important;
-  }
-  .inscription__run {
-    position: static;
-    transform: none !important;
-    animation: none !important;
-  }
-  .inscription__at {
-    position: static;
-    max-width: none;
-    margin-inline: var(--gutter);
-  }
-  .inscription .title__under {
-    font-size: 0.8125rem !important;
-    animation: none !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-  }
-}
-@media print {
-  .inscription--next {
     display: none;
-  }
-}
-@media (forced-colors: active) {
-  .inscription__at {
-    margin-inline: var(--edge);
-  }
-  /* the way on: the page's last line, as where nothing moves the band */
-  html .inscription--next {
-    position: static !important;
-    width: auto !important;
-    height: auto !important;
-    padding: clamp(4rem, 9vw, 8rem) var(--edge) 0 !important;
-    pointer-events: auto !important;
-  }
-  html .inscription--next .inscription__run {
-    position: static !important;
-  }
-  html .inscription--next .inscription__next {
-    position: relative !important;
-    left: auto !important;
-    top: auto !important;
-    font-size: var(--t-title) !important;
-    animation: none !important;
-    opacity: 1 !important;
-    visibility: visible !important;
   }
 }

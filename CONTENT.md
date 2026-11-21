@@ -4,26 +4,26 @@ Every word on the site lives in `content/`. Code never holds copy, so changing w
 a component. Run `npm run dev`, edit, and the page updates. Before you push, run `npm run ci`; it checks every content
 file (the schemas, the hard rules, the counts below).
 
-| To change                                                                                         | Edit                                                    |
-| ------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| Name, title, email, city, profiles, jobs, education, skills, awards, certificates                 | `content/resume.json`                                   |
-| A page's own words (Home, Work, Writing, Résumé, Contact, 404)                                    | `content/pages/<page>.ts`                               |
-| A project (its page `/work/<slug>/` and its entry on Work)                                        | `content/work/<slug>.mdx`                               |
-| A note (`/writing/<slug>/`)                                                                       | `content/writing/<slug>.mdx`                            |
-| The nav, the tail's words, the bio line, the way on's label, the site's address, search data      | `content/site.ts`                                       |
-| The tail's measured number (written by `npm run check:budgets -- --write`, never by hand)         | `content/measured.json`                                 |
-| The "In the open" repositories on Work                                                            | `content/github/overrides.json`                         |
-| A project's brush diagram                                                                         | `content/work/diagrams/<name>.wide.svg` and `.tall.svg` |
-| "Under the hood": its label, the three pieces' titles, the size and loading lines                 | `content/pages/work-craft.ts` (`hood`)                  |
-| The three pieces' ties and cases, their long words, the eval set                                  | `content/craft/hood.ts`, `content/craft/eval.ts`        |
-| "Ask the painting": the door's two words in the header                                            | `content/pages/ask-door.ts`                             |
-| "Ask the painting": the tail's line, the sheet, the examples, the trace, what it says when unsure | `content/pages/ask.ts`                                  |
-| A case page's shared words: "internal figure", the NDA line                                       | `content/pages/case.ts`                                 |
-| Where a project's figure comes from (`public-source`, `internal`, `projected`)                    | `content/work/<slug>.mdx` (`figure.basis`)              |
-| What `/llms.txt` tells AI agents                                                                  | `content/pages/llms.ts`                                 |
+| To change                                                                                                 | Edit                                                    |
+| --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| Name, title, email, city, profiles, jobs, education, skills, awards, certificates                         | `content/resume.json`                                   |
+| A page's own words (Home, Work, Writing, Résumé, Contact, 404)                                            | `content/pages/<page>.ts`                               |
+| A project (its page `/work/<slug>/` and its entry on Work)                                                | `content/work/<slug>.mdx`                               |
+| A note (`/writing/<slug>/`)                                                                               | `content/writing/<slug>.mdx`                            |
+| The nav, the tail's words, the bio line, the site's address, search data                                  | `content/site.ts`                                       |
+| The tail's measured number (written by `npm run check:budgets -- --write`, never by hand)                 | `content/measured.json`                                 |
+| The "In the open" repositories on Work                                                                    | `content/github/overrides.json`                         |
+| A project's brush diagram                                                                                 | `content/work/diagrams/<name>.wide.svg` and `.tall.svg` |
+| "Under the hood": its label, the three pieces' titles, the size and loading lines                         | `content/pages/work-craft.ts` (`hood`)                  |
+| The three pieces' ties and cases, their long words, the eval set                                          | `content/craft/hood.ts`, `content/craft/eval.ts`        |
+| "Ask the painting": the door's two words in the header                                                    | `content/pages/ask-door.ts`                             |
+| "Ask the painting": the field in the header, the panel, the examples, the trace, what it says when unsure | `content/pages/ask.ts`                                  |
+| A case page's shared words: "internal figure", the NDA line                                               | `content/pages/case.ts`                                 |
+| Where a project's figure comes from (`public-source`, `internal`, `projected`)                            | `content/work/<slug>.mdx` (`figure.basis`)              |
+| What `/llms.txt` tells AI agents                                                                          | `content/pages/llms.ts`                                 |
 
-The places' names (under the tail's map, and inscribed at a page's end as the way on) are the one exception: they
-stand with the places, in `src/features/landscape/places.ts`.
+A page stands alone: nothing at its end links on to another page. The header's nav (`content/site.ts` `nav`) is the
+way to every page.
 
 ## What stands where
 
@@ -67,7 +67,7 @@ Each page's title is inscribed in the painting's band, most with one line under 
 
 Its facts follow Jack's own résumé, `resume_ats.tex` in [Freedom-Jack/career-kit](https://github.com/Freedom-Jack/career-kit):
 when that changes, bring the facts across here (titles, dates, figures, awards). Where the tex only condenses a role
-to fit one page, this file keeps its fuller wording. Never copy its phone number, and never link its PDF (CLAUDE.md, hard rules).
+to fit one page, this file keeps its fuller wording. Never copy its phone number, and never link its PDF (AGENTS.md, hard rules).
 
 After changing it, regenerate the PDF:
 
@@ -179,7 +179,9 @@ These are checked on every push (`npm run check:compliance`, and the unit tests)
 - No street address. The city only: Toronto, ON, Canada.
 - No project-management certification.
 - The public email is qxjack@gmail.com.
-- The only Chinese character on the site is the seal's, and it is drawn as a path, never typed as text.
+- Chinese appears only as drawings: the seal's character and Home's inscription (`content/inscriptions.ts`: the
+  pinyin, the English and the drawing's size; the drawing is `public/inscriptions/home.svg`). Never typed as text. A
+  new or changed line is shown to Jack first, then drawn.
 - Visible text says "Qijin Xu". "Jack" appears only in the Résumé's "Goes by Jack". The search phrase
   "Qijin (Jack) Xu" lives in page titles and search data only.
 - Any new Chinese text is shown to Jack before it is used.

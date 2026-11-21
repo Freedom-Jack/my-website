@@ -19,18 +19,20 @@
   --cinnabar: #b1362b; /* the seal, and nothing else */
   --wash: rgb(46 121 176 / 0.07); /* a pale azurite wash under what the pointer rests on */
 
-  /* ---- The three voices (src/app/fonts.ts) ---- */
-  --font-brush: var(--font-brush-face), 'Iowan Old Style', Palatino, Georgia, serif;
+  /* ---- The two voices (src/app/fonts.ts). --font-brush and --font-record are the names the pieces were written
+          with: the ink, and the text set small ---- */
+  --font-ink: var(--font-ink-face), 'Iowan Old Style', Palatino, Georgia, serif;
   --font-text: var(--font-text-face), ui-sans-serif, system-ui, sans-serif;
-  --font-record: var(--font-record-face), ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+  --font-brush: var(--font-ink);
+  --font-record: var(--font-text);
 
-  /* ---- Sizes. The brush is large and light; the text is ordinary; the record is small. ---- */
-  --t-name: clamp(3.75rem, 12.2vw, 11rem); /* the name on Home */
-  --t-place: clamp(3.75rem, 9.6vw, 8.5rem); /* a place's title: Work, Writing, Contact */
-  --t-title: clamp(2.125rem, 4.1vw, 3.75rem); /* a long title: a case, a note */
-  --t-h2: clamp(1.875rem, 3vw, 2.75rem);
+  /* ---- Sizes. The ink is large; the text is ordinary; a label is small. ---- */
+  --t-name: clamp(2.75rem, 6.2vw, 5.25rem); /* his name, at the head of Home and the Résumé */
+  --t-place: clamp(2.75rem, 6.2vw, 5.25rem); /* a place's title: Work, Writing, Contact */
+  --t-title: clamp(2rem, 3.7vw, 3.25rem); /* a long title: a case, a note */
+  --t-h2: clamp(1.625rem, 2.5vw, 2.25rem);
   --t-h3: clamp(1.1875rem, 1.45vw, 1.3125rem);
-  --t-num: clamp(4.5rem, 8.4vw, 7.75rem); /* a figure */
+  --t-num: clamp(3.25rem, 5.6vw, 5rem); /* a figure */
   --t-lead: clamp(1.25rem, 1.72vw, 1.5625rem); /* a page's opening sentence */
   --t-say: clamp(1.125rem, 1.35vw, 1.25rem); /* a section's first paragraph */
   --t-body: 1.0625rem;
@@ -53,12 +55,17 @@
   --s-10: 8rem;
 
   /* ---- The page: twelve columns between two gutters ---- */
-  --gutter: clamp(1.25rem, 5vw, 4.5rem);
+  /* The body lies on the painting as sheets of paper (styles/shell.css): the painting keeps a margin at each side of
+     a sheet (--sheet-out) and shows between two sheets (--sheet-gap); --gutter is a sheet's own inner margin. */
+  --sheet-out: clamp(0.5rem, 5vw, 6rem);
+  --sheet-w: min(100vw - 2 * var(--sheet-out), 72rem);
+  --sheet-gap: clamp(1.25rem, 4.5vw, 4rem);
+  --gutter: clamp(1rem, 3vw, 2.75rem);
   --gap: clamp(1rem, 1.7vw, 1.5rem);
-  --max: 90rem;
-  --header-h: 4rem;
-  /* where the page's words begin from the window's left edge (the columns are centred past --max) */
-  --edge: max(var(--gutter), calc((100vw - var(--max)) / 2 + var(--gutter)));
+  --max: var(--sheet-w);
+  --header-h: 3.5rem;
+  /* where the page's words begin from the window's left edge: a sheet's inner margin */
+  --edge: calc((100vw - var(--sheet-w)) / 2 + var(--gutter));
 
   /* ---- THE BAND (styles/band.css, features/landscape/band.ts). The root layout sets --band-zoom and
           --band-zoom-narrow from band.ts; the rest follows from the window. ---- */
@@ -70,9 +77,11 @@
   --band-water: 0.66; /* the waterline's place down that box (engine/compose.ts HERO.at) */
   --band-sea: calc(var(--band-h) * 0.13); /* the sea of mist under the box, still inside the band */
   --band-clip: calc(var(--band-h) + var(--band-sea)); /* the band's whole height at the page's top */
-  --band-rest: calc(var(--band-clip) * var(--band-zoom)); /* ...and settled */
-  --band-run: 78vh; /* the scroll over which it settles */
-  --band-flow: var(--band-rest); /* the room the page keeps for it (band.css: the whole band where it moves) */
+  /* the page under it: the first sheet starts in the mist at the band's foot, and reaches the header after
+     --band-run of scroll (the header takes its paper then) */
+  --band-flow: calc(var(--band-h) + var(--band-sea) * 0.35);
+  --band-rest: var(--header-h); /* what stays over the page while it is read: the header */
+  --band-run: calc(var(--band-flow) - var(--header-h));
 
   /* ---- Motion ---- */
   --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
@@ -87,9 +96,9 @@
   --dur-route-back-pan: 400ms;
 
   /* ---- Layers ---- */
-  --z-ask: 4; /* the Ask's sheet: over the page, under the painting */
-  --z-band: 5; /* the painting, in front of the words that rise under it */
-  --z-title: 6; /* what is inscribed in its sky */
+  --z-ask: 9; /* the Ask's panel: over the page and the band, under the header's bar */
+  --z-band: 0; /* the painting: the page's background, behind every sheet */
+  --z-title: 2; /* what is inscribed in its sky (inside <main>) */
   --z-header: 10;
   --z-skip: 50;
 }
@@ -101,7 +110,6 @@
     --band-scale: 115vw;
     --band-h: min(56vw, 58svh);
     --band-water: 0.64;
-    --band-run: 70vh;
   }
 }
 /* Phones: the place fills the width, low in a tall band (the sky above it holds the title); the band settles to a
@@ -113,7 +121,6 @@
     --band-h: min(50svh, 118vw); /* (never taller than the still has sky for: tools/build-band.ts TALL) */
     --band-water: 0.72;
     --band-sea: calc(var(--band-h) * 0.14);
-    --band-run: 60vh;
     --header-h: 3.25rem;
   }
 }

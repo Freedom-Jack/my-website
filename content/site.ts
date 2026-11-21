@@ -5,7 +5,7 @@ import resume from './resume.json' with { type: 'json' };
  * agents are told about him. The facts themselves (name, title, email, city, profiles) come from content/resume.json,
  * the single source: change them there. How to edit anything: CONTENT.md.
  *
- * Hard rules (CLAUDE.md): no phone number anywhere, no street address (the city only), no project-management
+ * Hard rules (AGENTS.md): no phone number anywhere, no street address (the city only), no project-management
  * credential, the public email is qxjack@gmail.com, and the only Chinese character on the site is the seal's.
  */
 
@@ -13,7 +13,7 @@ const github = resume.basics.profiles.find((p) => p.network === 'GitHub')!;
 const linkedin = resume.basics.profiles.find((p) => p.network === 'LinkedIn')!;
 
 export const site = {
-  /** The name shown everywhere: "Qijin Xu", never with "(Jack)" in it (CLAUDE.md, hard rules). */
+  /** The name shown everywhere: "Qijin Xu", never with "(Jack)" in it (AGENTS.md, hard rules). */
   name: resume.basics.name,
   givenName: 'Qijin',
   familyName: 'Xu',
@@ -46,11 +46,12 @@ export const site = {
   },
 
   /**
-   * The header's nav, in the painting's order: the nav, the handscroll and the tail's scroll map
-   * (components/layout/ScrollMap) all run Work → Writing → Résumé → Contact, so moving along the nav moves along the
+   * The header's nav, in the painting's order: the nav and the handscroll both run About → Work → Writing → Résumé →
+   * Contact, so moving along the nav moves along the
    * painting.
    */
   nav: [
+    { label: 'About', href: '/about/' },
     { label: 'Work', href: '/work/' },
     { label: 'Writing', href: '/writing/' },
     { label: 'Résumé', href: '/resume/' },
@@ -59,12 +60,6 @@ export const site = {
 
   /** The tail's "Still the landscape": what the control does, for a tooltip and screen readers. */
   stillHint: 'Stops the painting’s motion; remembered on this device.',
-
-  /**
-   * The way on: every page but Contact and the 404 ends on the next place downstream, by its name
-   * (components/page/NextPlace). This word names that link for screen readers.
-   */
-  ending: { label: 'Downstream' },
 
   /**
    * The tail of the scroll (the footer on every page; components/layout/Tail): the colophon line (DRAFT, for Jack:
@@ -79,14 +74,13 @@ export const site = {
     lastChanged: 'Last changed',
     /** the measured number's words: "LCP 1.1 s, Lighthouse mobile, simulated" */
     lcp: 'LCP',
-    names: 'All pages',
   },
 
   /** "Last changed October 2026" in the tail: the month of the last content change. Change it with the words. */
   updated: '2026-10',
 
   /**
-   * The launch gate (CLAUDE.md, hard rules): no "Source code" link and no Work entry for this repository while the
+   * The launch gate (AGENTS.md, hard rules): no "Source code" link and no Work entry for this repository while the
    * public repo still holds the old résumé file. Set to true only after Jack confirms. While it is false,
    * `npm run check:compliance` and `npm run check:links` fail on any link to the repository; the tail has no such
    * link, and github/rules.ts DENY keeps the repository off Work.

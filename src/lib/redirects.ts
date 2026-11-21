@@ -10,7 +10,6 @@ interface Redirect {
 }
 
 export const redirects: readonly Redirect[] = [
-  { from: '/about', to: '/' },
   { from: '/projects', to: '/work/' },
   { from: '/blog', to: '/writing/' },
   { from: '/blog/Building-Autonomous-AI-Agents', to: '/writing/what-is-an-ai-agent/' },

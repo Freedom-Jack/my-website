@@ -15,9 +15,10 @@ import { fontClasses } from './fonts';
 // The design system, in order (each feature's CSS Module adds its own layout after these).
 import '@/styles/tokens.css';
 import '@/styles/base.css';
-import '@/styles/band.css'; // the painting: one band across the top of every page, in front of the words
-import '@/styles/shell.css'; // the header, the page's frame, the way on, the tail
-import '@/styles/prose.css'; // the three voices and the pieces set in them
+import '@/styles/band.css'; // the painting: the band at every page's top, a ribbon under the header as it is read
+import '@/styles/shell.css'; // the header's bar, the page's frame and head, the tail
+import '@/styles/prose.css'; // the two voices and the pieces set in them
+import '@/styles/leaves.css'; // the body's shared language: leaves, covers, figures, buttons
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),

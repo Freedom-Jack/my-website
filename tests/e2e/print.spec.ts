@@ -9,7 +9,7 @@ test('the résumé prints on two pages at most, without the painting, the header
   await page.goto('/resume/');
   await fontsReady(page);
   await page.emulateMedia({ media: 'print' });
-  for (const sel of ['.band', '.site-header', '.tail', '.inscription--next', '.ask-door'])
+  for (const sel of ['.band', '.site-header', '.tail', '.ask-door'])
     expect(
       await page.locator(sel).evaluateAll((els) => els.every((el) => getComputedStyle(el).display === 'none')),
       sel,

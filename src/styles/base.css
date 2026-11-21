@@ -20,8 +20,8 @@ html {
   color-scheme: only light; /* cool paper by design: never auto-darkened by a browser */
   scrollbar-color: var(--ink-4) transparent;
   overflow-x: clip;
-  /* the band stands over the top of the window: anchors and focused things land under its foot (WCAG 2.4.11) */
-  scroll-padding-top: calc(var(--band-rest) + 2.5rem);
+  /* the header stands over the top of the window: anchors and focused things land under it (WCAG 2.4.11) */
+  scroll-padding-top: calc(var(--band-rest) + 1.5rem);
 }
 a,
 button,
@@ -99,12 +99,6 @@ main:focus,
 /* (what only a script can run is not offered without one) */
 html:not(.js) [data-js-only] {
   display: none !important;
-}
-
-/* (a control brought into view by the keyboard clears the band: html's scroll-padding-top is the settled band, and
-   near the page's top the band still stands this much taller) */
-main :is(a, button, summary, input, [tabindex]) {
-  scroll-margin-top: calc(var(--band-flow, var(--band-rest)) - var(--band-rest));
 }
 
 /* ---------- the text's defaults ---------- */

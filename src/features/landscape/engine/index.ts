@@ -534,6 +534,10 @@ interface Stage {
   wvis: number;
   wvisX: number;
   ext: number;
+  /** ...and the reach the far (combined) layer on show was painted with: `ext` is the reach being painted for, and
+   *  the far layer is repainted last (stage(): single to three layers, one a frame), so until it is, what is shown
+   *  is still as wide as this. */
+  extFar: number;
   ok: boolean;
   single: boolean;
   alloc: boolean;
@@ -831,7 +835,7 @@ function controller(canvas: HTMLCanvasElement, opts: MountOptions): EngineHandle
   // full size, into the far layer's view.
   const st: Stage = {
     layers: STAGE_IDS.map((id) => ({ id, key: '', painted: false, pending: false, draft: false, crop: [0, 0, 1, 1] })),
-    buf: null, samples: 0, view: new Float32Array(4), fr: null, left: 0, wvis: 1, wvisX: 1, ext: 0, ok: false, single: true, alloc: false,
+    buf: null, samples: 0, view: new Float32Array(4), fr: null, left: 0, wvis: 1, wvisX: 1, ext: 0, extFar: 0, ok: false, single: true, alloc: false,
     topDoc: 0, bottomDoc: 0, stripVis: false, slidePx: 0, slideK: 0, slideT: 0,
     glide: false, sepK: 1,   // the pose glides to its targets (after a pan); the far layer's own depth (0 while combined)
     offsets: new Float32Array(12), k: new Float32Array(4), sea: new Float32Array(4), rects: new Float32Array(12),
@@ -2012,6 +2016,8 @@ function controller(canvas: HTMLCanvasElement, opts: MountOptions): EngineHandle
       L.pending = !ok;
       L.key = ok ? job.key : '';
       L.painted = L.painted || ok;
+      // (the far layer is painted: it is as wide as the reach now, and so is its plate)
+      if (ok && job.j === 0) { st.extFar = st.ext; st.rects.set([0, 0, cssWX / (cssW || 1), 1], 0); }
       L.draft = !!U.draft;
       done = done && ok;
       if (ok) { if (U.draft) { counts.drafts++; counts.draftAt = Math.round(performance.now()); } else counts.fullAt = Math.round(performance.now()); }
@@ -2054,7 +2060,9 @@ function controller(canvas: HTMLCanvasElement, opts: MountOptions): EngineHandle
       const R = st.rects;
       R.set([x0 / cssW, 1 - y1 / vh, cssWX / cssW, 1 - y0 / vh], (i + 1) * 4);
     });
-    st.rects.set([0, 0, cssWX / (cssW || 1), 1], 0);   // (the far layer's width, viewports: the unroll paints it as wide as the reach)
+    // (the far layer's own width, viewports, is set when it is painted: stage(). Until then the one on show keeps the
+    // width it was painted with, or a wider reach would stretch it for the frames before its turn)
+    if (!st.layers[0].painted) { st.rects.set([0, 0, cssWX / (cssW || 1), 1], 0); st.extFar = st.ext; }
   }
   /** The stage's present uniforms: each layer's slide, alpha and crop, the sea, and the inner places' soft crops, footer
    *  and grade. */
@@ -2363,7 +2371,7 @@ function controller(canvas: HTMLCanvasElement, opts: MountOptions): EngineHandle
 
   // ---------------------------------------------------------------- THE PLATES: the stage, developed
   /** How far right the stage's life may lie (canvas uv x): the screen, or on the plates the layers' whole painted width. */
-  const lifeXMax = () => (platesOn() ? (cssW + st.ext) / (cssW || 1) : 1);
+  const lifeXMax = () => (platesOn() ? (cssW + st.extFar) / (cssW || 1) : 1);
   let pageMaxY = 0;
   /** Is any of the plates' life on screen now? What rides the stage has gone west with the page's scroll (off the
    *  screen's edge); what is pinned to the frame is always there. */
@@ -2388,7 +2396,9 @@ function controller(canvas: HTMLCanvasElement, opts: MountOptions): EngineHandle
   function plateList(pin: PlateBox | null): Plate[] {
     const out: Plate[] = [];
     const vh = cssH || 1, s = W / (cssW || 1);
-    const wx = cssW + st.ext;                       // the layers' painted width (CSS px)
+    // the layers' painted width (CSS px). While the stage is still one combined layer (just after a pan), that is the
+    // width the far layer on show was painted with, not the reach the three layers are being painted for
+    const wx = cssW + (st.single ? st.extFar : st.ext);
     const P = (kind: PlateKind, l: number, t: number, w: number, h: number): Plate => ({ kind, css: [l, t, w, h],
       uv: [l / cssW, 1 - (t + h) / vh, w / cssW, h / vh], px: [Math.max(1, Math.round(w * s)), Math.max(1, Math.round(h * s))] });
     // the far plate travels west with the rest, so it holds the sky whole (the header stands on the sky itself)
@@ -2764,7 +2774,7 @@ function controller(canvas: HTMLCanvasElement, opts: MountOptions): EngineHandle
       const rx = 78 / (cssW || 1), ry = 78 / 3.4 / vh + 8 / vh;
       U[0] = Math.min(U[0], p[0] - rx); U[1] = Math.min(U[1], p[1] - ry); U[2] = Math.max(U[2], p[0] + rx); U[3] = Math.max(U[3], p[1] + ry);
     });
-    stirKU.set([stirs.length ? 1 : 0, 0, stage ? cssW / ((cssW + st.ext) || 1) : 1, 0]);
+    stirKU.set([stirs.length ? 1 : 0, 0, stage ? cssW / ((cssW + st.extFar) || 1) : 1, 0]);
     // where each kind's run starts (shimmer, smoke, willow, sprite), the count, the view
     const from = (k: number) => { let i = 0; while (i < lifeN && lifeA[i * 4] < k) i++; return i; };
     lifeTs.set([from(1), from(2), from(3), from(4), lifeN, lv.t, 0, 0]);

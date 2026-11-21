@@ -13,9 +13,9 @@ export const metadata: Metadata = {
 };
 
 /**
- * The 404: off the map, a lone peak and a path into mist. The title and its one line are inscribed in the peak's
- * sky; under the mist, the way back and one other way. Nothing else: the paper is empty down to the tail, whose
- * scroll in miniature leads to every place. No way on (PageMain), and no place is marked "you are here" (LostMark).
+ * The 404: off the map, a lone peak and a path into mist. Its title and one line on the paper, then the way back and
+ * one other way (a lost page's whole purpose is the way out). Nothing else, and no place is marked "you are here"
+ * (LostMark).
  */
 export default function NotFound() {
   const t = notFoundPage;

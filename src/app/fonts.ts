@@ -1,43 +1,33 @@
 import localFont from 'next/font/local';
 
 /**
- * Three voices, three files, about 64 KB, served from this site (src/app/fonts, SIL Open Font License 1.1: see
- * src/app/fonts/NOTICE.md):
- *   the brush   Newsreader Italic, its display cut (optical size 72, weight 300), one static file: the name, the
- *               page titles, the figures and the few lines inscribed in the painting;
- *   the text    Geist, one variable Latin file: everything read or pressed;
- *   the record  Geist Mono 400: dates, labels, measures, what the machine reports.
- * The brush and the text are preloaded (the first screen sets both); the record is fetched when a label needs it.
- * Each face comes with a metric-matched local fallback (next/font), so the swap moves nothing.
+ * Two voices, two files, about 52 KB, served from this site (src/app/fonts, SIL Open Font License 1.1: see
+ * src/app/fonts/NOTICE.md), each trimmed to the characters the site sets:
+ *   the ink     Shippori Mincho B1, weight 500: the Latin of a Ming-style book face, its corners softened as ink
+ *               bleeds into paper. Headings, a page's opening sentence, figures;
+ *   the text    Hanken Grotesk, one variable file (400 to 700): everything read or pressed, and the small labels.
+ * Both are preloaded (the first screen sets both). Each comes with a metric-matched local fallback (next/font), so
+ * the swap moves nothing. What is inscribed in the painting is not type at all: it is drawn
+ * (components/page/Inscription).
  */
-const brush = localFont({
-  src: './fonts/newsreader-italic-display-300.woff2',
-  weight: '300',
-  style: 'italic',
+const ink = localFont({
+  src: './fonts/shippori-mincho-b1-500.woff2',
+  weight: '500',
+  style: 'normal',
   display: 'swap',
-  variable: '--font-brush-face',
+  variable: '--font-ink-face',
   adjustFontFallback: 'Times New Roman',
   fallback: ['Iowan Old Style', 'Palatino', 'Georgia', 'serif'],
 });
 
 const text = localFont({
-  src: './fonts/geist.woff2',
-  weight: '100 900',
+  src: './fonts/hanken-grotesk.woff2',
+  weight: '400 700',
   display: 'swap',
   variable: '--font-text-face',
   adjustFontFallback: 'Arial',
   fallback: ['ui-sans-serif', 'system-ui', 'sans-serif'],
 });
 
-const record = localFont({
-  src: './fonts/geist-mono-400.woff2',
-  weight: '400',
-  display: 'swap',
-  preload: false,
-  variable: '--font-record-face',
-  adjustFontFallback: false,
-  fallback: ['ui-monospace', 'SF Mono', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
-});
-
-/** The three faces' variables, as classes for <html>. */
-export const fontClasses = `${brush.variable} ${text.variable} ${record.variable}`;
+/** The two faces' variables, as classes for <html>. */
+export const fontClasses = `${ink.variable} ${text.variable}`;

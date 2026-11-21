@@ -2,7 +2,7 @@ import { resumePage } from '@content/pages/resume';
 import { site } from '@content/site';
 import { Inscription } from '@/components/page/Inscription';
 import { PageMain } from '@/components/page/PageMain';
-import { Go } from '@/components/ui/Go';
+import { Arrow } from '@/components/ui/Arrow';
 import { longDate, monthYear, shortMonthYear } from '@/lib/dates';
 import { Inline } from '@/lib/inline';
 import { bareUrl, resume } from './resume';
@@ -72,7 +72,7 @@ export function ResumePage() {
             </h1>
             <p className={`lead ${styles.jobTitle}`}>{r.basics.label}</p>
           </div>
-          {/* No phone number: never on the public résumé or its PDF (CLAUDE.md, hard rules). */}
+          {/* No phone number: never on the public résumé or its PDF (AGENTS.md, hard rules). */}
           <ul className={`rec ${styles.dots} ${styles.facts}`} role="list">
             <li>{t.goesBy.replace('{name}', site.goesBy)}</li>
             <li>
@@ -95,7 +95,10 @@ export function ResumePage() {
             ))}
           </ul>
           <div className={styles.side}>
-            <Go href="/resume.pdf">{t.pdf}</Go>
+            <a className="btn" href="/resume.pdf">
+              {t.pdf}
+              <Arrow />
+            </a>
             <p className={`small ${styles.also}`}>
               <a href="/resume.json" type="application/json">
                 {t.json}

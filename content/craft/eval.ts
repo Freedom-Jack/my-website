@@ -8,7 +8,7 @@
 export const evalSet: ReadonlyArray<{ q: string; gold: string | readonly string[] }> = [
   {
     q: 'How many users did the insurance assistant serve?',
-    gold: 'for 50,000+ users of an insurance support assistant',
+    gold: 'for a 50,000+ user base',
   },
   { q: 'What was the return on investment of the RAG assistant?', gold: '525% ROI within 12 months' },
   {

@@ -146,44 +146,50 @@ for (const size of [
     });
 
     for (const quiet of ['reduced motion', 'Still the landscape'] as const) {
-      test(`${quiet}: the band stands settled and does not move`, async ({ page }) => {
+      test(`${quiet}: the band is the page's opening picture, nothing on it moves, and it leaves with the page's top`, async ({
+        page,
+      }) => {
         if (quiet === 'reduced motion') await page.emulateMedia({ reducedMotion: 'reduce' });
         else await page.addInitScript(() => localStorage.setItem('ink:still', '1'));
+        const band = () =>
+          page.evaluate(() => {
+            const b = document.querySelector('.band')!;
+            const box = b.getBoundingClientRect();
+            return {
+              position: getComputedStyle(b).position,
+              top: Math.round(box.top),
+              width: Math.round(box.width),
+              // (the animations that would move it: none runs)
+              moving: b.getAnimations({ subtree: true }).filter((a) => a.playState === 'running').length,
+              win: innerWidth,
+            };
+          });
         for (const r of ROUTES.filter((x) => ['home', 'case'].includes(x.id))) {
           await page.goto(r.path);
           await settle(page);
-          const top = await bandNow(page);
-          expect(top.scale, r.id).toBeLessThan(0.7);
-          expect(top.width, r.id).toBeCloseTo(top.window[0], 0);
-          expect(top.loaded, r.id).toBe(true);
+          const top = await band();
+          expect(top.position, r.id).toBe('absolute');
+          expect(top.top, r.id).toBe(0);
+          expect(top.width, r.id).toBe(top.win);
           expect(top.moving, `${r.id}: animations on the band`).toBe(0);
-          const title = () =>
-            page.evaluate(() => JSON.stringify(document.querySelector('main h1')!.getBoundingClientRect()));
-          const at = await title();
-          await scrollTo(page, top.window[1]);
-          // (the same box, the same still at the same place, the title where it was)
-          expect(await bandNow(page), r.id).toEqual(top);
-          expect(await title(), r.id).toBe(at);
-          await scrollTo(page, 1e6);
-          expect(await bandNow(page), r.id).toEqual(top);
+          await scrollTo(page, 400);
+          const read = await band();
+          expect(read.top, `${r.id}: the band left with the page`).toBe(-400);
+          expect(read.moving, `${r.id}: animations on the band`).toBe(0);
         }
       });
     }
   });
 }
 
-test('where nothing moves the band, the way on (the next place’s name) stands inside the window', async ({ page }) => {
-  // (styles/band.css .inscription--next: it is inscribed in the band only where the band moves with the page; here it
-  // is the page's last line, on the paper)
-  await page.emulateMedia({ reducedMotion: 'reduce' });
+test('a page stands alone: nothing to press in the painting, and no way on at its end', async ({ page }) => {
   for (const use of [PHONE.viewport, { width: 1440, height: 900 }]) {
     await page.setViewportSize(use);
-    await page.goto('/work/');
-    await settle(page);
-    await scrollTo(page, 1e6);
-    const box = await page.locator('.inscription__next').boundingBox();
-    expect(box!.x).toBeGreaterThanOrEqual(0);
-    expect(box!.x + box!.width).toBeLessThanOrEqual(use.width);
+    for (const path of ['/', '/work/', '/work/rag-assistant/']) {
+      await page.goto(path);
+      await settle(page);
+      expect(await page.locator('.band a, .inscription a, .way-on, .scrollmap').count(), path).toBe(0);
+    }
   }
 });
 

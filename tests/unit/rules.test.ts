@@ -109,7 +109,6 @@ describe('redirects', () => {
   it('covers every old address', () => {
     const from = redirects.map((r) => r.from);
     for (const p of [
-      '/about',
       '/projects',
       '/blog',
       '/blog/Building-Autonomous-AI-Agents',
@@ -151,6 +150,7 @@ describe('places (features/landscape/places)', () => {
     // (the way on, inscribed in the band: a case and a note point past their own place)
     expect(Object.fromEntries(Object.entries(NEXT_PLACE).map(([from, to]) => [from, to.page]))).toEqual({
       home: 'work',
+      about: 'work',
       work: 'writing',
       case: 'writing',
       writing: 'resume',

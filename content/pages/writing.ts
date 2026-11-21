@@ -17,11 +17,6 @@ export const writing = {
   read: 'Read the note',
   from: 'From the note',
 
-  /** At the end of every note: the link back to Home (drawn as a way on: the arrow is the component's). */
-  note: {
-    more: { label: 'More about Qijin', href: '/' },
-  },
-
   /** The RSS feed (/writing/feed.xml). */
   feed: {
     title: 'Qijin Xu · Writing',

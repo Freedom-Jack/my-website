@@ -3,6 +3,8 @@ import { work } from '@content/pages/work';
 import { Inscription } from '@/components/page/Inscription';
 import { PageMain } from '@/components/page/PageMain';
 import { Diagram } from '@/components/ui/Diagram';
+import { Arrow } from '@/components/ui/Arrow';
+import { Cover } from '@/components/ui/Cover';
 import { Go } from '@/components/ui/Go';
 import { InTheOpen } from '@/features/github/InTheOpen';
 import { splitFigure } from '@/lib/figure';
@@ -12,20 +14,23 @@ import { allCases } from './cases';
 import { collectionLd } from './jsonld';
 import styles from './work.module.css';
 
-/** How many of the newest projects are shown with room; the rest stand as the ruled set. */
+/** How many of the newest projects are shown with room; the rest are the smaller leaves. */
 const LARGE = 2;
+/** Where along the river town each project's leaf looks (0 west to 100 east): six different corners of one scene. */
+const LOOK = [58, 86, 30, 72, 44, 96];
 
 /**
- * Work (/work/): the river town.
+ * Work (/work/): the river town. What he has built, told as projects (the Résumé is the record by date; this page
+ * is the stories).
  *
- * The title is inscribed in the town's sky, high (the town's crag stands under it at the far left), with the list's
- * own name beside it on its baseline. Under the mist:
- *   the thesis, the page's one inscribed line, with the honesty line beside it;
- *   the six projects as one list in two scales: the two newest with room (the figure as an ink numeral with its
- *   measure and its basis, the title in the brush, the summary, the role, the outcome, the evidence, the way to the
- *   case; the second mirrors the first), then the other four as a ruled set, two columns of two;
- *   How I build: his line and the brush diagram across the ten columns;
- *   In the open: his public repositories (features/github, read on the server at build time and daily).
+ * The town's inscription stands in its sky. On the paper:
+ *   the page's head: the title, and the honesty line beside it;
+ *   the thesis, the page's one large line, with his own account of it;
+ *   01, the six projects, each on a leaf that opens on a corner of the town: the two newest with room (the figure
+ *       in ink with its measure and its basis, the title, the summary, the outcome, the evidence), then the other
+ *       four, smaller. A leaf is its case's link;
+ *   02, How I build: the brush diagram on a leaf;
+ *   03, In the open: his public repositories (features/github, read on the server at build time and daily).
  * A projection is drawn in outline and led by "Projected"; an internal figure says so beside its measure.
  * Words: content/pages/work.ts and content/work/*.mdx.
  */
@@ -34,50 +39,65 @@ export async function WorkIndex() {
   const { index, build, open } = work;
   return (
     <PageMain page="work" className={styles.work} ld={[collectionLd(cases)]}>
-      <Inscription y="1.25rem">
+      <Inscription>
         <h1 className="title" id="work-title">
           {work.title}
         </h1>
-        <p className="title__under" id="six-title">
-          {index.title}
+        <p className="title__under">
+          <Inline text={work.intro} />
         </p>
       </Inscription>
 
-      {/* the thesis, inscribed, and the honesty line beside it */}
-      <section className={`row sec sec--first ${styles.first}`} aria-labelledby="work-title">
+      {/* the thesis, and his own account of it */}
+      <section className={`row sec ${styles.first}`} aria-labelledby="work-title">
         <p className={`brush ${styles.thesis}`}>
           <Inline text={build.statement} />
         </p>
         <p className={`say ${styles.intro}`}>
-          <Inline text={work.intro} />
+          <Inline text={build.line} />
         </p>
       </section>
 
-      {/* the six projects: one list, two scales. (Each entry keeps its case's anchor: /work/#rag-assistant.) */}
-      <ol className={`row ${styles.six}`} role="list" aria-labelledby="six-title">
-        {cases.map((c, i) => (i < LARGE ? <Large c={c} key={c.slug} /> : <Small c={c} key={c.slug} />))}
-      </ol>
+      {/* 01: the six projects. (Each leaf keeps its case's anchor: /work/#rag-assistant.) */}
+      <section className={`row ${styles.projects}`} aria-labelledby="six-title">
+        <header className="sec-head">
+          <span className="sec-head__n">01</span>
+          <h2 className="sec-head__title" id="six-title">
+            {index.title}
+          </h2>
+        </header>
+        <ol className={styles.six} role="list">
+          {cases.map((c, i) =>
+            i < LARGE ? (
+              <Large c={c} look={LOOK[i % LOOK.length]!} key={c.slug} />
+            ) : (
+              <Small c={c} look={LOOK[i % LOOK.length]!} key={c.slug} />
+            ),
+          )}
+        </ol>
+      </section>
 
       <section className={`row sec ${styles.build}`} aria-labelledby="build-title">
-        <div className="sec__rail">
-          <h2 className="label" id="build-title">
+        <header className="sec-head">
+          <span className="sec-head__n">02</span>
+          <h2 className="sec-head__title" id="build-title">
             {build.title}
           </h2>
-        </div>
-        <div className="sec__body">
-          <p className={`lead ${styles.buildLine}`}>
-            <Inline text={build.line} />
-          </p>
-          <Diagram name={build.diagram.name} caption={build.diagram.caption} steps={build.diagram.steps} />
+        </header>
+        <div className={`leaf reveal ${styles.buildLeaf}`}>
+          <div className="leaf__body">
+            <Diagram name={build.diagram.name} caption={build.diagram.caption} steps={build.diagram.steps} />
+          </div>
         </div>
       </section>
 
       <section className={`row sec ${styles.open}`} id="open" aria-labelledby="open-title">
-        <div className="sec__rail">
-          <h2 className="label" id="open-title">
+        <header className="sec-head">
+          <span className="sec-head__n">03</span>
+          <h2 className="sec-head__title" id="open-title">
             {open.title}
           </h2>
-        </div>
+        </header>
         <div className={styles.openSay}>
           <p className="say">
             <Inline text={open.intro} />
@@ -103,41 +123,47 @@ function Numeral({ c, className, hidden }: { c: CaseMeta; className?: string; hi
     .join(' ');
   return (
     <p className={cls} aria-hidden={hidden || undefined}>
-      <span className={c.figure.lead ? `num__lead ${styles.notation}` : 'num__lead'}>{f.lead || ' '}</span>
+      <span className={c.figure.lead ? `num__lead ${styles.notation}` : 'num__lead'}>{f.lead || ' '}</span>
       {f.value}
     </p>
   );
 }
 
-/** One of the two newest: the figure with its measure and its basis at one side, the words at the other. */
-function Large({ c }: { c: CaseMeta }) {
+/** One of the two newest: a wide leaf. The scene, then the words at one side and the figure with its measure and
+ *  its basis at the other. */
+function Large({ c, look }: { c: CaseMeta; look: number }) {
   const { index } = work;
   return (
-    <li className={styles.large} id={c.slug}>
-      <div className={styles.largeFig}>
-        <Numeral c={c} />
-        <p className={`small soft ${styles.measure}`}>
-          <Inline text={c.figure.note} />
-        </p>
-        {c.figure.basis === 'internal' ? <p className="rec">{casePage.basis.internal}</p> : null}
-      </div>
-      <div className={styles.largeWords}>
-        <p className="rec">
-          {c.years} · {c.role} · {c.org}
-        </p>
-        <h2 className={`h-brush ${styles.largeTitle}`}>
-          <InlineLink href={c.href}>
-            <Inline text={c.title} />
-          </InlineLink>
-        </h2>
-        <p className={`say ${styles.largeSay}`}>
-          <Inline text={c.summary} />
-        </p>
-        <div className={styles.facts}>
+    <li className={`leaf leaf--link reveal ${styles.large}`} id={c.slug}>
+      <Cover scene="work" x={look} zoom={210} ratio="3 / 1" />
+      <div className={`leaf__body ${styles.largeBody}`}>
+        <div className={styles.largeWords}>
+          <ul className="chips" role="list">
+            <li className="chip">{c.years}</li>
+            <li className="chip">{c.role}</li>
+            <li className="chip">{c.org}</li>
+          </ul>
+          <h3 className="leaf__title">
+            <InlineLink href={c.href} className="leaf__to">
+              <Inline text={c.title} />
+            </InlineLink>
+          </h3>
+          <p className="soft">
+            <Inline text={c.summary} />
+          </p>
           <p className="small soft">
             <Inline text={c.outcome} />
           </p>
-          <p className={`rec ${styles.evidence}`}>
+        </div>
+        <div className={styles.largeFig}>
+          <Numeral c={c} />
+          <p className={`small soft ${styles.measure}`}>
+            <Inline text={c.figure.note} />
+          </p>
+          {c.figure.basis === 'internal' ? <p className="rec">{casePage.basis.internal}</p> : null}
+        </div>
+        <div className={`leaf__foot ${styles.largeFoot}`}>
+          <p className={styles.evidence}>
             {c.evidence.length
               ? c.evidence.map((e) => (
                   <InlineLink key={e.url} href={e.url}>
@@ -146,33 +172,36 @@ function Large({ c }: { c: CaseMeta }) {
                 ))
               : index.noEvidence}
           </p>
+          <span className="leaf__go" aria-hidden="true">
+            {index.more}
+            <Arrow />
+          </span>
         </div>
-        <p className={styles.more}>
-          <Go href={c.href}>{index.more}</Go>
-        </p>
       </div>
     </li>
   );
 }
 
-/** One of the other four: a smaller numeral (decorative: the outcome beside it carries the figure and its measure
- *  in words), the title, the outcome in a line, the years and his role. */
-function Small({ c }: { c: CaseMeta }) {
+/** One of the other four: a smaller leaf. The scene, the numeral (decorative: the outcome under it carries the
+ *  figure and its measure in words), the title, the outcome, the years and his role. */
+function Small({ c, look }: { c: CaseMeta; look: number }) {
   return (
-    <li className={styles.small} id={c.slug}>
-      <Numeral c={c} className={styles.smallNum} hidden />
-      <div className={styles.smallWords}>
-        <h2 className="h-item">
-          <InlineLink href={c.href}>
+    <li className={`leaf leaf--link reveal ${styles.small}`} id={c.slug}>
+      <Cover scene="work" x={look} zoom={300} ratio="7 / 2" />
+      <div className="leaf__body">
+        <Numeral c={c} className={styles.smallNum} hidden />
+        <h3 className={`leaf__title ${styles.smallTitle}`}>
+          <InlineLink href={c.href} className="leaf__to">
             <Inline text={c.title} />
           </InlineLink>
-        </h2>
+        </h3>
         <p className="small soft">
           <Inline text={c.outcome} />
         </p>
-        <p className="rec">
-          {c.years} · {c.role}
-        </p>
+        <ul className={`chips ${styles.smallChips}`} role="list">
+          <li className="chip">{c.years}</li>
+          <li className="chip">{c.role}</li>
+        </ul>
       </div>
     </li>
   );

@@ -1,30 +1,32 @@
 import { quiet } from '@/features/chrome/still';
 
 /**
- * The band and a page change. While a page is read the band's size follows the page's scroll (styles/band.css: it
- * settles as the page leaves its top). A page change starts wherever the old page was read to and lands at the new
- * page's top, where the band stands at full size: so for the length of the change the band is taken off the scroll's
- * clock and eased from where it stands to full size, held there, and handed back once the new page is in at its top
- * (where the scroll's clock says full size too). One transform on one layer: the compositor's.
+ * The header's paper and a page change. While a page is read the header takes its paper as the first sheet reaches
+ * it (styles/shell.css, on the page's scroll timeline). A page change starts wherever the old page was read to and
+ * lands at the new page's top, where the header stands on the open sky: so for the length of the change the paper is
+ * taken off the scroll's clock and eased away, held so, and handed back once the new page is in at its top (where the
+ * scroll's clock says the same). One opacity on its own layer. The painting itself needs no such care: it is fixed
+ * behind the page and only its travel follows the scroll (the engine's pan and the flight take that over).
  */
 export function liftBand(ms = 380): { release(): void; cancel(): void } {
   const none = { release() {}, cancel() {} };
-  const band = document.querySelector<HTMLElement>('.band');
-  if (!band || quiet() || typeof band.animate !== 'function') return none;
-  let z = 1;
+  const header = document.querySelector<HTMLElement>('.site-header');
+  if (!header || quiet() || typeof header.animate !== 'function') return none;
+  let a: Animation;
   try {
-    z = new DOMMatrixReadOnly(getComputedStyle(band).transform).a || 1;
+    const paper = Number(getComputedStyle(header, '::before').opacity);
+    if (!(paper > 0.01)) return none;
+    a = header.animate([{ opacity: paper }, { opacity: 0 }], {
+      id: 'band-lift',
+      duration: ms,
+      easing: 'cubic-bezier(.3, .6, .2, 1)',
+      fill: 'forwards',
+      pseudoElement: '::before',
+    });
   } catch {
     return none;
   }
-  if (Math.abs(z - 1) < 0.004) return none;
-  const a = band.animate([{ transform: `scale(${z})` }, { transform: 'scale(1)' }], {
-    id: 'band-lift',
-    duration: ms,
-    easing: 'cubic-bezier(.3, .6, .2, 1)',
-    fill: 'forwards',
-  });
-  // it holds full size until the new page is in (release) and it has got there (finished), whichever comes last
+  // it holds until the new page is in (release) and it has got there (finished), whichever comes last
   let released = false;
   let finished = false;
   const drop = () => {

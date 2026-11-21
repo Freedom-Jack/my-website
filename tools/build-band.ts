@@ -27,8 +27,7 @@
  * Then the whole scroll as one strip (transit.webp): the five places' stages (Home, Work, Writing, the Résumé,
  * Contact), each drawn from its own picture and faded into the next where two overlap (the same world, each under
  * its own place's air), from Home's left edge to the crossing's open water. It is what flies by when a page changes
- * where the engine does not run (features/navigation/flight.ts), and the tail's map of the whole scroll
- * (components/layout/ScrollMap); the manifest records the stretch of the world it shows, its waterline, where each
+ * where the engine does not run (features/navigation/flight.ts); the manifest records the stretch of the world it shows, its waterline, where each
  * place stands along it and each page's seat on the scroll. Cut only when all five places are cut in one run.
  * The manifest also records a hash of what the stills are cut from (every file under the engine, the switch table,
  * the places, the band's numbers and this tool): `--check` compares it, so a change to any of them without a new
@@ -56,6 +55,7 @@ const TALL = 960;
 /** Each page kind's route. */
 const ROUTES: Record<PageId, string> = {
   home: '/',
+  about: '/about/',
   work: '/work/',
   case: '/work/rag-assistant/',
   writing: '/writing/',
@@ -68,6 +68,7 @@ const ROUTES: Record<PageId, string> = {
  *  0.446 where the page stands inside its place). */
 const PHONE_AT: Record<PageId, number> = {
   home: 0.53,
+  about: 0.53,
   work: 1.33,
   case: 1.57,
   writing: 2.6,
@@ -93,8 +94,8 @@ const SEAMS: [number, number][] = [
   [4.1, 4.35],
 ];
 const TRANSIT = { density: 0.5, to: 5.9 };
-/** Each place's focus (world x: stretch + engine/compose.ts SCENES[stretch].frame.focus[0]): where its name stands
- *  under the tail's map. */
+/** Each place's focus (world x: stretch + engine/compose.ts SCENES[stretch].frame.focus[0]): where it stands along
+ *  the whole scroll's strip. */
 const FOCUS: Record<string, number> = { home: 0.79, work: 1.565, writing: 2.8, resume: 3.65, contact: 4.68 };
 const CHROME_ARGS = ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--hide-scrollbars'];
 const OUT_DIR = path.join(ROOT, 'public', 'scenes', 'band');

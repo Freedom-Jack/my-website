@@ -57,7 +57,4 @@ export const work = {
     demo: 'Live demo',
     all: { label: 'All repositories on GitHub →', href: 'https://github.com/Freedom-Jack' },
   },
-
-  /** On a case page: the way back to the index. */
-  back: { label: 'All six projects →', href: '/work/' },
 } satisfies PageWords & Record<string, unknown>;

@@ -8,238 +8,165 @@
 
 /* ============================== the index ============================== */
 
-/* ---------- the title: the town's dark crag stands under it at the far left, so the line that names the list is
-   set beside the title, on its baseline, in the open sky ---------- */
-.work :global(.inscription__at) {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  column-gap: clamp(1.25rem, 2.4vw, 2.25rem);
-}
-.work :global(.title__under) {
-  margin-top: 0;
-}
-/* (a short window's band is cut by its height, so the crag stands taller against the title: the title follows) */
-.work :global(.title) {
-  font-size: min(var(--t-place), 15svh);
-}
-
-/* ---------- the thesis, inscribed, and the honesty line ---------- */
+/* ---------- the thesis, the page's one large line, and his account of it ---------- */
 .first {
-  align-items: start;
-  row-gap: var(--s-6);
+  align-items: end;
+  row-gap: var(--s-5);
+  padding-block: clamp(2rem, 4.5vw, 4rem) clamp(2.5rem, 5vw, 4.5rem);
 }
 .thesis {
   grid-column: 1 / span 7;
-  max-width: 13.5ch;
-  font-size: clamp(2.5rem, 5.1vw, 4.75rem);
-  line-height: 1;
-  letter-spacing: -0.028em;
+  font-size: clamp(1.875rem, 3.6vw, 3.25rem);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
   text-wrap: balance;
-  color: var(--ink);
 }
 .intro {
   grid-column: 9 / -1;
-  padding-top: 0.55rem;
+  color: var(--ink-2);
 }
 
-/* ---------- the six projects: one list, two scales ---------- */
-.work .six {
-  /* (base.css clears a list's padding: the row's gutters are put back) */
-  padding-inline: var(--gutter);
-  row-gap: 0;
-  align-items: start;
+/* ---------- 01: the six projects, each on a leaf ---------- */
+.projects {
+  padding-bottom: clamp(1rem, 3vw, 2.5rem);
 }
-/* a lead the case wrote itself ("mAP ≥") is a notation: it keeps its own letters */
-.notation {
-  text-transform: none;
-  letter-spacing: 0.04em;
-  font-size: var(--t-note);
-}
-
-/* the two newest, with room: the figure at one side, the words at the other; the second mirrors the first */
-.large {
+.six {
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  column-gap: var(--gap);
-  align-items: start;
-  padding-block: clamp(2.5rem, 4.6vw, 4.25rem);
-  border-top: 1px solid var(--line);
+  gap: clamp(1rem, 1.8vw, 1.75rem);
 }
-.largeFig {
-  grid-column: 1 / span 4;
-  grid-row: 1;
+.large {
+  grid-column: span 6;
+}
+.small {
+  grid-column: span 3;
+}
+.largeBody {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: clamp(1.25rem, 2.4vw, 2.5rem);
+  row-gap: var(--s-4);
+  align-items: start;
 }
 .largeWords {
-  grid-column: 6 / -1;
-  grid-row: 1;
+  display: grid;
+  row-gap: var(--s-3);
 }
-.large:nth-child(even) .largeFig {
-  grid-column: 9 / -1;
-}
-.large:nth-child(even) .largeWords {
-  grid-column: 1 / span 7;
-}
-.largeFig :global(.num) {
-  margin-left: -0.04em;
+.largeFig {
+  max-width: 13rem;
+  padding-top: 0.25rem;
 }
 .measure {
-  margin-top: var(--s-3);
-  max-width: 26ch;
-}
-.largeFig :global(.rec) {
   margin-top: var(--s-2);
 }
-.largeTitle {
-  margin-block: var(--s-3) var(--s-4);
-  max-width: 19ch;
+.largeFig :global(.rec) {
+  margin-top: var(--s-1);
 }
-.largeTitle a {
-  text-decoration: none;
-}
-.largeSay {
-  max-width: 36ch;
-}
-/* its outcome and its evidence: two columns under one hairline */
-.facts {
-  display: grid;
-  grid-template-columns: minmax(0, 4fr) minmax(0, 3fr);
-  column-gap: var(--gap);
-  margin-top: var(--s-6);
+.largeFoot {
+  grid-column: 1 / -1;
   padding-top: var(--s-4);
   border-top: 1px solid var(--line);
 }
 .evidence {
-  padding-top: 0.15rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1) var(--s-4);
 }
-/* (each evidence link is its own line, far enough from the next to be taken: 24 px and over with a mouse, 44 px
-   on a phone) */
-.evidence a {
-  display: block;
-  width: fit-content;
-  padding-block: 0.25rem;
-}
-@media (max-width: 39.99rem) {
-  .evidence {
-    padding-top: 0;
-    margin-block: -0.5rem;
-  }
-  .evidence a {
-    padding-block: 0.85rem;
-  }
-}
-.more {
-  margin-top: var(--s-4);
-}
-
-/* the other four: a tighter ruled set, two columns of two */
-.small {
-  grid-column: span 6;
-  display: grid;
-  grid-template-columns: clamp(7.5rem, 13vw, 11.5rem) minmax(0, 1fr);
-  column-gap: var(--gap);
-  align-items: start;
-  padding-block: var(--s-5) clamp(2rem, 3.4vw, 3rem);
-  border-top: 1px solid var(--line);
+.notation {
+  text-transform: none;
+  letter-spacing: 0.04em;
 }
 .smallNum {
-  font-size: clamp(2.75rem, 4.4vw, 4rem);
-  margin-left: -0.04em;
+  font-size: clamp(2.25rem, 3.4vw, 3rem);
 }
-.smallNum :global(.num__lead) {
-  margin-bottom: 0.2rem;
+.smallTitle {
+  font-size: clamp(1.125rem, 1.4vw, 1.3125rem);
 }
-.smallWords {
-  display: grid;
-  row-gap: var(--s-2);
-  padding-top: 1.05rem; /* the title's first line stands on the numeral's top, under the numeral's lead */
-}
-.smallWords :global(.h-item) a {
-  text-decoration: none;
-  background: linear-gradient(var(--line-2), var(--line-2)) 0 100% / 100% 1px no-repeat;
-  padding-bottom: 0.12em;
-}
-.smallWords :global(.h-item) a:hover {
-  background-image: linear-gradient(currentColor, currentColor);
+.smallChips {
+  margin-top: auto;
+  padding-top: var(--s-2);
 }
 
-/* ---------- How I build ---------- */
-.build {
-  padding-top: clamp(4rem, 8vw, 7.5rem);
-}
-.buildLine {
-  max-width: 34ch;
-  margin-bottom: clamp(2rem, 4vw, 3.5rem);
+/* ---------- 02: How I build ---------- */
+.buildLeaf {
+  grid-column: 1 / -1;
 }
 
-/* ---------- In the open: a ruled list, compact ---------- */
-.open {
-  align-items: start;
-}
+/* ---------- 03: In the open: his public repositories, each on a leaf ---------- */
 .openSay {
-  grid-column: 3 / span 3;
+  grid-column: 1 / span 3;
   display: grid;
-  row-gap: var(--s-3);
-  padding-top: 0.1rem;
+  row-gap: var(--s-4);
+  align-content: start;
 }
 .openList {
-  grid-column: 7 / -1;
+  grid-column: 4 / -1;
+}
+.openList ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(0.75rem, 1.4vw, 1.25rem);
 }
 .repo {
   display: grid;
-  grid-template-columns: 3.25rem minmax(0, 1fr);
-  column-gap: var(--s-4);
-  align-items: start;
-  padding-block: var(--s-3) var(--s-4);
-  border-top: 1px solid var(--line);
-}
-.repo > :global(.rec) {
-  grid-row: 1 / span 2;
-  padding-top: 0.3rem; /* (on the name's baseline) */
+  row-gap: var(--s-1);
+  align-content: start;
+  padding: clamp(1rem, 1.6vw, 1.375rem);
+  background: var(--leaf);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-leaf);
 }
 .repoName {
-  font-size: var(--t-body);
+  word-break: break-word;
 }
-.repoName a {
-  /* (a repository's name is one word; it may break anywhere before it runs off a phone) */
-  overflow-wrap: anywhere;
-}
-.repo > :global(.small) {
-  grid-column: 2;
-  margin-top: 0.15rem;
-}
-/* the older ones, behind a plain fold: its name is a line of the list */
 .early {
-  border-top: 1px solid var(--line);
+  margin-top: var(--s-5);
 }
 .early > summary {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.6em;
   min-height: 2.75rem;
-  padding-left: calc(3.25rem + var(--s-4));
-  list-style: none;
   cursor: pointer;
   font-size: var(--t-small);
   color: var(--ink-2);
 }
-.early > summary::-webkit-details-marker {
-  display: none;
-}
-.early > summary > span {
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-decoration-color: var(--line-2);
-  text-underline-offset: 0.24em;
-}
-.early > summary:hover,
 .early[open] > summary {
-  color: var(--ink);
+  margin-bottom: var(--s-3);
 }
-.early > summary:hover > span,
-.early[open] > summary > span {
-  text-decoration-color: currentColor;
+@media (max-width: 74.99rem) {
+  .small {
+    grid-column: span 6;
+  }
+}
+@media (max-width: 61.99rem) {
+  .thesis,
+  .intro {
+    grid-column: 1 / -1;
+  }
+  .large {
+    grid-column: 1 / -1;
+  }
+  .openSay,
+  .openList {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 39.99rem) {
+  .small {
+    grid-column: 1 / -1;
+  }
+  .largeBody {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .largeFig {
+    order: -1;
+    max-width: none;
+  }
+  .openList ul {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 /* ============================== a case ============================== */
@@ -373,29 +300,8 @@
   row-gap: var(--s-6);
   padding-top: clamp(1.5rem, 3vw, 3rem);
 }
-.endSay {
-  grid-column: 3 / span 5;
-  display: grid;
-  row-gap: var(--s-3);
-}
 .nda {
   max-width: 44ch;
-}
-.beside {
-  grid-column: 9 / -1;
-  display: grid;
-}
-.beside li {
-  display: grid;
-  row-gap: 0.15rem;
-  padding-block: var(--s-3) var(--s-4);
-  border-top: 1px solid var(--line);
-}
-.beside :global(.h-item) {
-  font-size: var(--t-body);
-}
-.beside a {
-  text-decoration: none;
 }
 
 /* ============================== tablets and phones ============================== */
@@ -410,34 +316,6 @@
   }
 }
 @media (max-width: 61.99rem) {
-  .thesis {
-    grid-column: 1 / span 7;
-    font-size: clamp(2.5rem, 6.1vw, 3.75rem);
-  }
-  .intro {
-    grid-column: 8 / -1;
-    padding-top: 0.35rem;
-    font-size: var(--t-body);
-  }
-  .largeFig,
-  .large:nth-child(even) .largeFig {
-    grid-column: 1 / span 4;
-  }
-  .largeWords,
-  .large:nth-child(even) .largeWords {
-    grid-column: 5 / -1;
-  }
-  .small {
-    grid-column: 1 / -1;
-    padding-bottom: var(--s-6);
-  }
-  .openSay {
-    grid-column: 1 / span 4;
-  }
-  .openList {
-    grid-column: 5 / -1;
-  }
-
   .fig {
     grid-column: 1 / span 7;
   }
@@ -472,56 +350,8 @@
   .part[data-part='evidence'] .partBody > * {
     grid-column: 1 / -1;
   }
-  .endSay {
-    grid-column: 1 / span 6;
-  }
-  .beside {
-    grid-column: 8 / -1;
-  }
 }
 @media (max-width: 39.99rem) {
-  .thesis,
-  .intro {
-    grid-column: 1 / -1;
-  }
-  .intro {
-    padding-top: 0;
-    font-size: var(--t-say);
-  }
-  .large {
-    row-gap: var(--s-5);
-  }
-  .largeFig,
-  .large:nth-child(even) .largeFig {
-    grid-column: 1 / -1;
-    grid-row: auto;
-  }
-  .largeWords,
-  .large:nth-child(even) .largeWords {
-    grid-column: 1 / -1;
-    grid-row: auto;
-  }
-  .facts {
-    grid-template-columns: minmax(0, 1fr);
-    row-gap: var(--s-2);
-  }
-  .small {
-    grid-template-columns: 6.75rem minmax(0, 1fr);
-  }
-  .smallNum {
-    font-size: 2.5rem;
-  }
-  .smallWords {
-    padding-top: 0.95rem;
-  }
-  .openSay,
-  .openList {
-    grid-column: 1 / -1;
-  }
-  .openSay {
-    margin-bottom: var(--s-5);
-  }
-
   .fig,
   .summary {
     grid-column: 1 / -1;
@@ -540,10 +370,6 @@
   }
   .part[data-part='evidence'],
   .part[data-part='evidence'] + .part[data-part='stack'] {
-    grid-column: 1 / -1;
-  }
-  .endSay,
-  .beside {
     grid-column: 1 / -1;
   }
 }

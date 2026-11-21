@@ -1,0 +1,282 @@
+/* ==========================================================================
+   leaves.css — the body's shared language, on every page.
+
+   The painting is the page's opening; under it the paper carries leaves, as an album does: a leaf is a sheet of
+   lighter paper lying on the page, and what belongs together lies on one leaf. A leaf that leads somewhere opens
+   on a scene cut from the painting itself. The eye is led by three things only: a section's head (its number, its
+   name, a rule running out to the margin), a figure set in ink over a dab of azurite wash, and the one dark button
+   a page offers. Things settle onto the page as they come into view.
+
+     .sec-head      a section's head
+     .leaf          a leaf; .leaf--link lifts under the pointer; .leaf__body its words
+     .cover         a scene cut from the painting (components/ui/Cover)
+     .chips .chip   small facts kept together
+     .btn           the page's action; .btn--ghost the second one
+     .reveal        settles in as it enters the window
+   ========================================================================== */
+
+:root {
+  --leaf: #f9faf8;
+  --r: 0.875rem;
+  --shadow-leaf:
+    0 1px 0 rgb(255 255 255 / 0.9) inset, 0 1px 2px rgb(12 21 28 / 0.05), 0 22px 44px -30px rgb(12 21 28 / 0.38);
+  --shadow-lift:
+    0 1px 0 rgb(255 255 255 / 0.9) inset, 0 2px 4px rgb(12 21 28 / 0.06), 0 34px 60px -30px rgb(12 21 28 / 0.5);
+}
+
+/* ---------- a section's head: its number, its name, a rule out to the margin ---------- */
+.sec-head {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-4);
+  margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+}
+.sec-head__n {
+  flex: none;
+  font: 500 0.8125rem/1 var(--font-text);
+  letter-spacing: 0.14em;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.sec-head__title {
+  font: 500 var(--t-h2) / 1.12 var(--font-ink);
+  letter-spacing: -0.012em;
+  color: var(--ink);
+}
+.sec-head::after {
+  content: '';
+  flex: 1;
+  min-width: 2rem;
+  height: 1px;
+  align-self: center;
+  background: linear-gradient(to right, var(--line-2), var(--line) 60%, rgb(12 21 28 / 0));
+}
+.sec-head__note {
+  order: 3;
+  flex: none;
+  font-size: var(--t-small);
+  color: var(--ink-3);
+}
+
+/* ---------- a leaf ---------- */
+.leaf {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--leaf);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-leaf);
+  overflow: clip;
+}
+.leaf__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: clamp(1.125rem, 1.9vw, 1.75rem);
+}
+.leaf--link {
+  transition:
+    transform 420ms var(--ease-ink),
+    box-shadow 420ms var(--ease-ink),
+    border-color var(--dur-hover) var(--ease-out);
+}
+.leaf--link:hover,
+.leaf--link:focus-within {
+  transform: translateY(-3px);
+  border-color: var(--line-2);
+  box-shadow: var(--shadow-lift);
+}
+/* (the leaf's own link covers the whole leaf; any other link on it stands above that) */
+.leaf__to {
+  text-decoration: none;
+}
+.leaf__to::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+.leaf :is(a, button):not(.leaf__to) {
+  position: relative;
+  z-index: 2;
+}
+.leaf__title {
+  font: 500 clamp(1.3125rem, 1.75vw, 1.625rem) / 1.2 var(--font-ink);
+  letter-spacing: -0.008em;
+  color: var(--ink);
+}
+.leaf--link:hover .leaf__title {
+  color: var(--indigo);
+}
+.leaf__foot {
+  margin-top: auto;
+  padding-top: var(--s-3);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2) var(--s-4);
+  font-size: var(--t-small);
+  color: var(--ink-3);
+}
+.leaf__go {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  font-weight: 600;
+  color: var(--ink);
+}
+.leaf__go .arrow {
+  width: 1em;
+  height: 1em;
+  transition: transform 360ms var(--ease-ink);
+}
+.leaf--link:hover .leaf__go .arrow {
+  transform: translateX(0.3em);
+}
+
+/* ---------- a scene cut from the painting (components/ui/Cover) ----------
+   The place's own still, shown close: the same file the band has already fetched on that place's page. Its foot
+   thins into the leaf, as the band's does into the page; under the pointer the scroll unrolls a little. */
+.cover {
+  position: relative;
+  flex: none;
+  aspect-ratio: var(--cover-ratio, 5 / 2);
+  background-color: #dbe8f0;
+  background-image: image-set(var(--cover-1x) 1x, var(--cover-2x) 2x);
+  background-repeat: no-repeat;
+  background-size: var(--cover-zoom, 240%) auto;
+  background-position: var(--cover-x, 50%) var(--cover-y, 58%);
+  transition: background-position 1100ms var(--ease-ink);
+}
+.cover::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 42%;
+  background: linear-gradient(to bottom, rgb(249 250 248 / 0), var(--leaf));
+}
+.leaf--link:hover .cover {
+  background-position: calc(var(--cover-x, 50%) + 5%) var(--cover-y, 58%);
+}
+@media (max-width: 39.99rem) {
+  .cover {
+    background-image: var(--cover-phone);
+    background-size: var(--cover-zoom-phone, 150%) auto;
+    background-position: var(--cover-x, 50%) var(--cover-y-phone, 62%);
+  }
+  .leaf--link:hover .cover {
+    background-position: var(--cover-x, 50%) var(--cover-y-phone, 62%);
+  }
+}
+
+/* ---------- small facts, kept together ---------- */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.625rem;
+  padding: 0 0.625rem;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.55);
+  font: 500 0.75rem/1.2 var(--font-text);
+  letter-spacing: 0.01em;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+/* ---------- the page's action ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  min-height: 2.75rem;
+  padding: 0 1.25rem;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font-weight: 600;
+  font-size: var(--t-small);
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-hover) var(--ease-out),
+    border-color var(--dur-hover) var(--ease-out),
+    color var(--dur-hover) var(--ease-out);
+}
+.btn:hover {
+  background: var(--indigo);
+  border-color: var(--indigo);
+  color: #fff;
+}
+.btn--ghost {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--line-2);
+}
+.btn--ghost:hover {
+  background: rgb(255 255 255 / 0.7);
+  border-color: var(--ink);
+  color: var(--ink);
+}
+.btn .arrow {
+  width: 1em;
+  height: 1em;
+}
+
+/* ---------- a figure: ink over a dab of azurite wash ---------- */
+.num {
+  position: relative;
+  isolation: isolate;
+}
+.num::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: -0.16em;
+  bottom: 0.02em;
+  width: 1.3em;
+  height: 0.92em;
+  border-radius: 46% 54% 58% 42% / 52% 44% 56% 48%;
+  background: radial-gradient(closest-side, rgb(46 121 176 / 0.2), rgb(46 121 176 / 0.09) 68%, rgb(46 121 176 / 0));
+}
+.num--projected::before {
+  background: radial-gradient(closest-side, rgb(46 121 176 / 0.1), rgb(46 121 176 / 0));
+}
+
+/* ---------- things settle onto the page as they come into view ---------- */
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem);
+  }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    html:not(.is-still) .reveal {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 34%;
+    }
+  }
+}
+@media print {
+  .leaf {
+    box-shadow: none;
+    background: none;
+  }
+  .cover {
+    display: none;
+  }
+}

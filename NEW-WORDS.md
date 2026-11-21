@@ -197,6 +197,20 @@ shown your contact line.
 - **Home's first-screen action** "See the work" is no longer shown: the way on is the next place's name, inscribed
   in the painting. The words are gone from `content/pages/home.ts`.
 
+Retired on 2026-11-20 (Home is now only who you are and Now; these were yours and approved, and are kept here in
+case you want them back):
+
+- the first screen's counted proof: "About 90% of questions resolved without a person, for **50,000+** users of an
+  insurance support assistant." with "2023 to 2024 · the case"
+- "What I work on": Assistants that answer from your own knowledge · Agents for code nobody documented ("An agent
+  that documents legacy code in a proprietary language and pulls out its business rules, projected to cut manual work
+  by **50%**.") · Data platforms AI can stand on ("**99.9%** uptime on Canada’s largest auto-insurance policy-history
+  database, 2 TB on SQL Server.") · "All six projects →"
+- "Say hello": "For collaborations on production AI, or an invitation to speak or write about agents and retrieval,
+  email me at qxjack@gmail.com. I’m also on LinkedIn and GitHub."
+- every way on at a page's end: "Downstream", "All six projects →" on a case, "More about Qijin" on a note; the
+  footer's "Ask the painting about my work, for example:" and its map's "All pages"
+
 ## 11. Still yours to supply
 
 - The 20 evaluation questions behind "How good is the search?" (`content/craft/eval.ts`; the piece is on the
@@ -225,3 +239,31 @@ shown your contact line.
 - The painting: the framing willow boughs over Work and Writing are switched off (`boughs` in
   `src/features/landscape/elements.ts`), because a bough that framed one first screen would hang in the middle of
   the band's sky.
+
+## 13. Second round (2026-11-20): the inscriptions, About, and what moved
+
+**The painting's inscription** (`content/inscriptions.ts`; the calligraphy is drawn as artwork in
+`public/inscriptions/home.svg`, never typed as text). One line, on Home only: the opening of Su Shi's "Ding Feng Bo"
+(Calming the Waves), 1082, your choice. The English beside it is my own translation and waits for your yes.
+
+- read aloud (pinyin): mò tīng chuān lín dǎ yè shēng, hé fáng yín xiào qiě xú xíng
+- **new** English on the page: Never mind the rain beating through the leaves. Why not sing out, and walk on slowly?
+- **new** the credit under it: Su Shi, 1082
+- **new** the artwork's text alternative: Chinese calligraphy, with a red seal (followed by the pinyin)
+
+**About** (`content/pages/about.ts`; your own paragraphs are still `home.ts` `about`, unchanged):
+
+- **new** the nav's word: About
+- **new** search title: Qijin (Jack) Xu · About
+- **new** search description: About Qijin (Jack) Xu, Lead AI/ML Architect at CGI in Toronto: what he builds, why he is
+  optimistic about AI, and what he does away from the keyboard.
+- **new** the facts' heading and labels: In brief · Goes by · Based in · Studied · Awards · Certified
+- Preview only, never on the site: "Waiting for your words" and its three lines, where your own facts will stand.
+
+**Home** now shows only: your name, the title line, "I design and ship production AI…", and Now (its lead is your sentence "Right now I’m leading an agent…"; then Building, Exploring and Off-hours, the line
+that was held back before). Nothing new was written.
+
+**No longer shown anywhere**: see section 10, "Retired on 2026-11-20".
+
+**Still yours to supply**: the 5 to 10 things about yourself you are happy to publish (places you have been,
+interests, a line or two). They go on About and can replace or join Home's "Now".

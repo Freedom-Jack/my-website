@@ -11,6 +11,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const changed = resume.meta.lastModified;
   return [
     { url: absolute('/'), lastModified: home.meta.modified },
+    { url: absolute('/about/'), lastModified: home.meta.modified },
     { url: absolute('/work/'), lastModified: changed },
     ...cases.map((c) => ({ url: absolute(c.href), lastModified: changed })),
     { url: absolute('/writing/'), lastModified: notes[0]?.modified ?? notes[0]?.published ?? changed },

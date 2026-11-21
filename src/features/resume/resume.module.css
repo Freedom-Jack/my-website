@@ -371,7 +371,7 @@
 
 /* ==========================================================================
    Paper: this stylesheet is the PDF (tools/build-pdf.ts prints the page). Letter and A4, at most two pages, black
-   on white: no painting, no header, no tail, no way on, nothing only a screen can use. Everything stays in the
+   on white: no painting, no header, no tail, nothing only a screen can use. Everything stays in the
    normal flow, unpositioned (a positioned box paints after the rest, and a résumé parser reads the paint order),
    so the PDF's text runs in the document's own order. Lengths are the paper's (mm, pt).
    ========================================================================== */
@@ -397,6 +397,7 @@
     padding-top: 0;
   }
   .page :global(.inscription),
+  .page :global(.page-head),
   .page :global(.band-anchor),
   .side,
   .onScreen {

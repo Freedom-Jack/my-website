@@ -1,100 +1,108 @@
 {
   "cards": {
+    "about": {
+      "file": "about.jpg",
+      "width": 2400,
+      "height": 1260,
+      "alt": "About me · Qijin Xu: the page's title in the sky of an ink-wash painting of blue peaks above a sea of mist in the morning light.",
+      "words": "979f2187511789ec917d282d9b9f1a8a2bf83e91ee9dcebaeea0854c3966915e",
+      "sha256": "624c9d1ef531ad239f2793b4656d7fa2f66245326508c2f4203369a3686af624"
+    },
     "contact": {
       "file": "contact.jpg",
       "width": 2400,
       "height": 1260,
-      "alt": "Contact · Qijin Xu: the page's title inscribed in the sky of an ink-wash painting of a ferry at the jetty on open water.",
+      "alt": "Contact · Qijin Xu: the page's title in the sky of an ink-wash painting of a ferry at the jetty on open water.",
       "words": "584da47225768b85adb21a098b610ff8078162e0af441aa455672f2996baf3c6",
-      "sha256": "0818efc8bd9314d5d2df8e1f4dda672e30e51276fd65e9f824cfaca01079bcc8"
+      "sha256": "33a6ab607a38ca240759503e6a8e299b5460d83783ef7fd981d265f884a1805a"
     },
     "home": {
       "file": "home.jpg",
       "width": 2400,
       "height": 1260,
-      "alt": "Qijin Xu, Lead AI/ML Architect: his name inscribed in the sky of an ink-wash painting of blue peaks above a sea of mist in the morning light.",
-      "words": "8b00af496ea55ae794ae7a23b11c7b22f15c1789e4cabce035b8910261ebf9a4",
-      "sha256": "1950b53a83f3059bf68097a7d3693aa59a18da85dfa405a84e4c91055a8a4489"
+      "alt": "Qijin Xu, Lead AI/ML Architect: an ink-wash painting of blue peaks above a sea of mist in the morning light, a few columns of Chinese calligraphy and a red seal in its sky.",
+      "words": "b8d50741bd7ddbdd5413b402d284735bffd2fc8ebcf87fcd38757b6d0d9911be",
+      "sha256": "55f95372cd8e924d28be1e42373b52913c226ab23cf725bcd85337f0ab07ab02"
     },
     "resume": {
       "file": "resume.jpg",
       "width": 2400,
       "height": 1260,
-      "alt": "Résumé · Qijin Xu: the page's title inscribed in the sky of an ink-wash painting of terraced fields stepping down to the river.",
-      "words": "214ae3c0900699cda0461f5d427c31dbb987e91aa27f25b77d70c39540696478",
-      "sha256": "11e43cbd094491a47ce91eb6c2874a7b856add3517353fb7f3890066857130d3"
+      "alt": "Qijin Xu · Qijin Xu: the page's title in the sky of an ink-wash painting of terraced fields stepping down to the river.",
+      "words": "b8d50741bd7ddbdd5413b402d284735bffd2fc8ebcf87fcd38757b6d0d9911be",
+      "sha256": "271c36b2c552c4508a2dc133f815f9418ec2297167206c0d3bab5f1a2f44b4c8"
     },
     "work": {
       "file": "work.jpg",
       "width": 2400,
       "height": 1260,
-      "alt": "Work · Qijin Xu: the page's title inscribed in the sky of an ink-wash painting of a river town at its arched bridge.",
-      "words": "e513326cfe7b4dbf841d4033c5b96b7a7446d560e0701b628c8e68f5b0c61cf9",
-      "sha256": "c1f3b13fc1fa8bad0d2eabf6991dd4b9d5188e163b212689b03b4028d7633a9b"
+      "alt": "Work · Qijin Xu: the page's title in the sky of an ink-wash painting of a river town at its arched bridge.",
+      "words": "c9d85700d193d4f4b2ffcb31c7656dac9ebca8ba4b648aa088e83229d5d0717e",
+      "sha256": "756e87b9b8bb5adbafc26544d1f5ca4ee50be542582f4a5b13911018e6d1cb46"
     },
     "work-data-operations": {
       "file": "work-data-operations.jpg",
       "width": 2400,
       "height": 1260,
-      "alt": "Lineage and rule automation with LLMs: a project by Qijin Xu, its title inscribed in the sky of an ink-wash painting of a river town at its arched bridge.",
+      "alt": "Lineage and rule automation with LLMs: a project by Qijin Xu, its title in the sky of an ink-wash painting of a river town at its arched bridge.",
       "words": "ba9e57bfc1df2b5c3ace8c964b50947d3d675219cd42900196fd43ab9830a0f8",
-      "sha256": "6fd840ba7ccb4e947f60947b56f87fab55144e4445b586396d11e97b8798d370"
+      "sha256": "1530d6281a095b2ad7ca160ea47e926a21eda598a51100c1e6f57216a1b939b8"
     },
     "work-fraud-model": {
       "file": "work-fraud-model.jpg",
       "width": 2400,
       "height": 1260,
-      "alt": "Fraud loss-ratio model: a project by Qijin Xu, its title inscribed in the sky of an ink-wash painting of a river town at its arched bridge.",
+      "alt": "Fraud loss-ratio model: a project by Qijin Xu, its title in the sky of an ink-wash painting of a river town at its arched bridge.",
       "words": "d2ea3db5e053b259737722ce754bcf3f2109bee42adf7cb0b1cb064e951542f0",
-      "sha256": "01cf214e061f32978dead9addf6d994c5ee2025672cccec8e0d300549ea24c73"
+      "sha256": "338409874acc7c00a5f2783d078c305bfb311708e1d7b94fa7caa98a90a56469"
     },
     "work-hockey-vision": {
       "file": "work-hockey-vision.jpg",
       "width": 2400,
       "height": 1260,
-      "alt": "Computer vision for hockey broadcast video: a project by Qijin Xu, its title inscribed in the sky of an ink-wash painting of a river town at its arched bridge.",
+      "alt": "Computer vision for hockey broadcast video: a project by Qijin Xu, its title in the sky of an ink-wash painting of a river town at its arched bridge.",
       "words": "c5be0487dcd454e5b5cb027b56985c311e460ea8f6bf5dda73cdd10f1e40c0bf",
-      "sha256": "8c8d6c692ca79c98598f338131f029ab7a1a9cb73098e8142d9a23f1a6a4d5e1"
+      "sha256": "7cfde880d5d2f1203a9e823f1219e1aa4c957215f997b88426229d61c7d9b397"
     },
     "work-insurance-data-platform": {
       "file": "work-insurance-data-platform.jpg",
       "width": 2400,
       "height": 1260,
-      "alt": "Insurance policy-history data platform: a project by Qijin Xu, its title inscribed in the sky of an ink-wash painting of a river town at its arched bridge.",
+      "alt": "Insurance policy-history data platform: a project by Qijin Xu, its title in the sky of an ink-wash painting of a river town at its arched bridge.",
       "words": "7560b63482c8604e4f9f7956f980b433f119e8b5c39e826170527ae4611573c3",
-      "sha256": "969fa35f169c2dec32f97901f561c23f049ac50b180b13fd9f40951f694b762a"
+      "sha256": "7e709dd6d9fdb0f9f451187f26d1dde3079b29df33ffaa04426d495de95cbe0a"
     },
     "work-proprietary-language-agent": {
       "file": "work-proprietary-language-agent.jpg",
       "width": 2400,
       "height": 1260,
-      "alt": "Agent for a proprietary programming language: a project by Qijin Xu, its title inscribed in the sky of an ink-wash painting of a river town at its arched bridge.",
+      "alt": "Agent for a proprietary programming language: a project by Qijin Xu, its title in the sky of an ink-wash painting of a river town at its arched bridge.",
       "words": "eb789b3bcb7db1a19f02f84c283438858b29e88848146471d48926f99901a5b5",
-      "sha256": "1d4dbd6a0f180e5fb5dfc4c695367dd1447ed7373bec7abe4faf82ba84834a24"
+      "sha256": "dc89dae1145b458b02a4886656ccc65a6f93091af7770ae643f327bc893d7afe"
     },
     "work-rag-assistant": {
       "file": "work-rag-assistant.jpg",
       "width": 2400,
       "height": 1260,
-      "alt": "Enterprise RAG assistant for insurance support: a project by Qijin Xu, its title inscribed in the sky of an ink-wash painting of a river town at its arched bridge.",
+      "alt": "Enterprise RAG assistant for insurance support: a project by Qijin Xu, its title in the sky of an ink-wash painting of a river town at its arched bridge.",
       "words": "67ea6ce3f3925c5dc62d1d53bb4ee5a7010c4883e9987f5eb732059f0ab6ecc9",
-      "sha256": "bbe63f5bf2366cb632b279338c0973a156f1de899db36a6c47f18416832e895f"
+      "sha256": "5bf3a01de0088e9ce7288a077e28b234c2a2638aed7b5d13884945436d06591e"
     },
     "writing": {
       "file": "writing.jpg",
       "width": 2400,
       "height": 1260,
-      "alt": "Writing · Qijin Xu: the page's title inscribed in the sky of an ink-wash painting of a still lake with a small pavilion under a pine.",
+      "alt": "Writing · Qijin Xu: the page's title in the sky of an ink-wash painting of a still lake with a small pavilion under a pine.",
       "words": "09a058607ca78d566539ab6af1e0510974e6e66fd9c83ed1cbbf9c3df0ba1690",
-      "sha256": "687fd4c90ac8eb303714d59d0bfd10b9f095e653435f72a16c3bde4385b911f0"
+      "sha256": "3f40fd21cc5c9daafbac42fa13f4450ef64c5ece234eb119a9d60008603ca66f"
     },
     "writing-what-is-an-ai-agent": {
       "file": "writing-what-is-an-ai-agent.jpg",
       "width": 2400,
       "height": 1260,
-      "alt": "“What is an AI agent?”, a note by Qijin Xu, its title inscribed in the sky of an ink-wash painting of a still lake with a small pavilion under a pine.",
+      "alt": "“What is an AI agent?”, a note by Qijin Xu, its title in the sky of an ink-wash painting of a still lake with a small pavilion under a pine.",
       "words": "4a3f6b63d54b9946258581cba1c5aca428c968e0aaa76267f3ad53da421d9087",
-      "sha256": "fd9bf45a4c7c78e75436cae45496ba6640a79cd1231822f99b59a81749e027cd"
+      "sha256": "4497d821dbf2bde347ca9fe6db66a0f13726fb6d50abd7a3de4fe1273094c010"
     }
   }
 }

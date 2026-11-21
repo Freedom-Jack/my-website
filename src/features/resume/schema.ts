@@ -5,7 +5,7 @@ import { z } from 'zod';
  * (/resume.pdf), the machine-readable copy (/resume.json) and the Person JSON-LD.
  *
  * Strict on purpose: an unknown key fails the build, so a phone number or a street address can never slip in
- * through the schema's optional fields (CLAUDE.md, hard rules: no phone anywhere, the city only). The few extensions the
+ * through the schema's optional fields (AGENTS.md, hard rules: no phone anywhere, the city only). The few extensions the
  * page needs (marked "page only") are dropped from the public /resume.json.
  * Strings may use the inline markup of CONTENT.md ([link](url), **bold**, {{years+}}).
  */

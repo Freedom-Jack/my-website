@@ -6,8 +6,8 @@ the map and the traps.
 
 ## Map
 
-- `places.ts`: where each page stands on the scroll (stretch 0 Home … 5 the 404), the way on (`NEXT_PLACE`) and the
-  tail's map (`SCROLL_MAP`). `PageMain` and the navigation both read it.
+- `places.ts`: where each page stands on the scroll (stretch 0 Home … 5 the 404), the place downstream of each (`NEXT_PLACE`: how far a
+  page's painting unrolls) and the five places in order (`SCROLL_MAP`: the flight's strip). `PageMain` and the navigation both read it.
 - `band.ts`: the band's numbers (`BAND`). `band-geometry.ts`: each page's seat and travel on the scroll, from the
   engine's own framing; the server and the tools run it, never the browser.
 - `elements.ts`: one on/off flag per painted element. Off skips its code and its `el-<name>` class.

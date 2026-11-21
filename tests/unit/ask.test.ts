@@ -21,10 +21,9 @@ const words: Words = { chunks, lines, bytes: 0 };
 const everyLine = new Set(lines.map((l) => l.text));
 
 describe('step 0: the examples are filed questions', () => {
-  const examples = [...new Set([...ask.tries, ask.tailTry])];
-  it('offers three examples, the tail’s among them', () => {
+  const examples = [...new Set(ask.tries)];
+  it('offers three examples', () => {
     expect(ask.tries.length).toBe(3);
-    expect(ask.tries).toContain(ask.tailTry);
   });
   for (const q of examples) {
     it(`"${q}" is answered at once, with his own line and where it stands`, () => {
@@ -47,7 +46,7 @@ describe('step 0: the examples are filed questions', () => {
     });
   }
   it('reads a filed question whatever its case, spacing or final punctuation', () => {
-    const q = ask.tailTry;
+    const q = ask.tries[1]!;
     for (const typed of [q.toUpperCase(), `  ${q.replace(/\s+/g, '   ')}  `, q.replace(/\?$/, ''), `${q}!!`])
       expect(first(typed, words).kind, typed).toBe('filed');
     expect(filedKey('  What’s  NEW?! ')).toBe("what's new");

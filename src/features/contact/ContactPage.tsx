@@ -1,5 +1,4 @@
 import { contact } from '@content/pages/contact';
-import { home } from '@content/pages/home';
 import { resumePage } from '@content/pages/resume';
 import { site } from '@content/site';
 import { Inscription } from '@/components/page/Inscription';
@@ -26,7 +25,6 @@ export function ContactPage() {
     .replace('{country}', site.countryName)
     .replace('{timeZone}', site.timeZone)
     .split('{time}');
-  const photo = home.about.photo;
   return (
     <PageMain page="contact" className={styles.contact}>
       <Inscription>
@@ -45,7 +43,7 @@ export function ContactPage() {
         <p className={`lead ${styles.intro}`}>
           <Inline text={contact.intro} />
         </p>
-        <div className={styles.mail}>
+        <div className={`leaf ${styles.mail}`}>
           <p className="label" id="email-label">
             {contact.emailLabel}
           </p>
@@ -64,22 +62,26 @@ export function ContactPage() {
       {/* the other ways: three across a ruled row */}
       <div className={`row sec ${styles.waysRow}`}>
         <dl className={styles.ways}>
-          <div className={styles.way}>
+          <div className={`leaf leaf--link reveal ${styles.way}`}>
             <dt className="label">{contact.ways.github}</dt>
             <dd className="h-item">
-              <a href={site.links.github.url}>{site.links.github.handle}</a>
+              <a href={site.links.github.url} className="leaf__to">
+                {site.links.github.handle}
+              </a>
             </dd>
           </div>
-          <div className={styles.way}>
+          <div className={`leaf leaf--link reveal ${styles.way}`}>
             <dt className="label">{contact.ways.linkedin}</dt>
             <dd className="h-item">
-              <a href={site.links.linkedin.url}>{site.name}</a>
+              <a href={site.links.linkedin.url} className="leaf__to">
+                {site.name}
+              </a>
             </dd>
           </div>
-          <div className={styles.way}>
+          <div className={`leaf leaf--link reveal ${styles.way}`}>
             <dt className="label">{contact.ways.resume}</dt>
             <dd className="h-item">
-              <a href="/resume.pdf" type="application/pdf">
+              <a href="/resume.pdf" type="application/pdf" className="leaf__to">
                 {resumePage.pdf}
               </a>
             </dd>
@@ -87,27 +89,18 @@ export function ContactPage() {
         </dl>
       </div>
 
-      {/* for someone who has to introduce him: his third-person line beside his portrait */}
+      {/* for someone who has to introduce him: his third-person line */}
       <section className={`row sec ${styles.bio}`} aria-labelledby="bio-title">
         <div className="sec__rail">
           <h2 className="label" id="bio-title">
             {contact.bio.label}
           </h2>
         </div>
-        <div className={`portrait ${styles.photo}`}>
-          {/* eslint-disable-next-line @next/next/no-img-element -- one static JPEG, below the first screen */}
-          <img
-            src={photo.src}
-            width={photo.width}
-            height={photo.height}
-            alt={photo.alt}
-            loading="lazy"
-            decoding="async"
-          />
+        <div className={`leaf ${styles.bioLeaf}`}>
+          <p className={`say ${styles.bioLine}`}>
+            <Inline text={site.bio} />
+          </p>
         </div>
-        <p className={`say ${styles.bioLine}`}>
-          <Inline text={site.bio} />
-        </p>
       </section>
     </PageMain>
   );

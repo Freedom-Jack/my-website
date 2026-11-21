@@ -5,7 +5,7 @@ import { tapsAndOverflow } from './support/taps';
 /**
  * Smoke: every route, at a phone's, a tablet's and a laptop's width, answers, says what it is, holds one <main> and
  * one h1, marks where the reader is, and logs no error and no failed request; nothing leaves the window's sides.
- * Plus the hard rules on the rendered page (CLAUDE.md): no phone number, no street address, no PMP, no old résumé
+ * Plus the hard rules on the rendered page (AGENTS.md): no phone number, no street address, no PMP, no old résumé
  * file, the one public email, no CJK text (the seal is a path) and the visible name's form.
  */
 const PHONE_NUMBER =
@@ -66,13 +66,10 @@ for (const size of SIZES) {
           .locator('[aria-current]')
           .evaluateAll((els) => els.map((e) => `${e.closest('nav, header')?.className}:${e.getAttribute('href')}`));
         if (r.current === null) expect(current).toEqual([]);
-        else
-          expect(current.sort()).toEqual(
-            [`${r.current === '/' ? 'site-header' : 'site-nav'}:${r.current}`, `scrollmap:${r.current}`].sort(),
-          );
-        // the tail signs every page with the one seal; the header carries none
+        else expect(current.sort()).toEqual([`${r.current === '/' ? 'site-header' : 'site-nav'}:${r.current}`]);
+        // the tail signs every page with one seal; the header's way home is the seal and his name
         await expect(page.locator('.tail .seal')).toHaveCount(1);
-        await expect(page.locator('.site-header .seal')).toHaveCount(0);
+        await expect(page.locator('.site-header .seal')).toHaveCount(1);
 
         // nothing scrolls sideways, and the title stands inside the window
         const side = await page.evaluate(() => ({
@@ -93,7 +90,6 @@ for (const size of SIZES) {
 
 test('old addresses go to their new homes (301)', async ({ request }) => {
   const cases: Array<[string, string]> = [
-    ['/about/', '/'],
     ['/projects/', '/work/'],
     ['/blog/', '/writing/'],
     ['/blog/Building-Autonomous-AI-Agents/', '/writing/what-is-an-ai-agent/'],
@@ -120,7 +116,8 @@ test('the machine-readable files say what the pages say, and nothing to an AI ag
   expect(llms).not.toMatch(/ignore|instruction|you (must|should)/i); // facts only, never instructions to AI agents
   const sitemap = await (await request.get('/sitemap.xml')).text();
   expect(sitemap).toContain('/work/rag-assistant/');
-  expect(sitemap).not.toMatch(/about|404|building-modular/);
+  expect(sitemap).toContain('/about/');
+  expect(sitemap).not.toMatch(/404|building-modular/);
   expect((await request.get('/robots.txt')).status()).toBe(200);
   expect((await request.get('/writing/feed.xml')).status()).toBe(200);
 });

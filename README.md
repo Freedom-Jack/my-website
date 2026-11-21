@@ -1,8 +1,8 @@
 # Qijin Xu: personal site
 
 The personal site of Qijin Xu, Lead AI/ML Architect in Toronto. The whole site is one long ink-wash handscroll: each
-page is a place along it, the painting stands in a band across the top of the window with the page's title inscribed
-in it, and moving between pages travels along the painting.
+page is a place along it, the painting opens every page with a small inscription in its sky, rolls up into a ribbon
+under the header as the page is read, and moving between pages travels along the painting.
 
 Next.js 16 · React 19 · TypeScript (strict) · MDX · zod · a hand-written WebGL2 engine · Vitest · Playwright ·
 Vercel. Versions are pinned exactly in `package.json`.
@@ -46,13 +46,13 @@ its own folder: `NEXT_DIST_DIR=.next-tools` (`next.config.ts`).
 ## Where things are
 
 - Words: `content/`, explained in [CONTENT.md](CONTENT.md). Words waiting for approval: [NEW-WORDS.md](NEW-WORDS.md).
-- Pages: `src/app/` (thin routes) and `src/features/<feature>/` (Home, Work, Writing, Résumé, Contact, Ask).
+- Pages: `src/app/` (thin routes) and `src/features/<feature>/` (Home, About, Work, Writing, Résumé, Contact, Ask).
 - The painting: `src/features/landscape/`, explained in [ENGINE.md](src/features/landscape/ENGINE.md). How it meets
   the page: `src/components/layout/Band.tsx`, `src/styles/band.css`.
-- Shared styles: `src/styles/` (tokens, base, band, shell, prose).
+- Shared styles: `src/styles/` (tokens, base, band, shell, prose, leaves).
 - Tests: `tests/unit/` and `tests/e2e/`. Tools: `tools/`.
 - CI: `.github/workflows/ci.yml` runs on every pull request and every push to `master`.
-- Rules for anyone changing the site, person or model: [CLAUDE.md](CLAUDE.md).
+- Rules for anyone changing the site, person or model: [AGENTS.md](AGENTS.md) (Claude Code reads it through CLAUDE.md).
 
 ## Deploying
 

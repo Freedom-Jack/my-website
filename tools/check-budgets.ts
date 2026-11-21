@@ -1,7 +1,7 @@
 /**
  * The speed check, measured on the QA build, on this machine's real GPU, with the machine quiet. Not run in CI.
  *
- * It knows the bar from the guides. THE BAR is CLAUDE.md's performance section; a miss fails the run (exit 1):
+ * It knows the bar from the guides. THE BAR is AGENTS.md's performance section; a miss fails the run (exit 1):
  *   on a phone (390 px, CPU 4× slower, slow 4G): LCP at most 2.5 s, CLS at most 0.05, no task over 100 ms, INP at
  *   most 200 ms, under 2 % of scroll frames over 20 ms; Lighthouse mobile at least 95, desktop at least 99; nothing
  *   runs when nothing moves; on the laptop no scroll lag and never a frozen tab.
@@ -66,7 +66,7 @@ const RUNS = Number(opt('--runs', '5'));
 const OUT = path.resolve(ROOT, opt('--out', 'budgets-report'));
 /** Every kind of page: Home, Work, a case (one with a live piece), Writing, the note, the Résumé, Contact, the 404. */
 const ALL_ROUTES =
-  '/,/work/,/work/rag-assistant/,/writing/,/writing/what-is-an-ai-agent/,/resume/,/contact/,/no-such-page/';
+  '/,/about/,/work/,/work/rag-assistant/,/writing/,/writing/what-is-an-ai-agent/,/resume/,/contact/,/no-such-page/';
 const ROUTES = opt('--routes', ALL_ROUTES).split(',');
 const PARTS = ['html', 'lighthouse', 'phone', 'laptop', 'idle'] as const;
 type Part = (typeof PARTS)[number];
@@ -85,7 +85,7 @@ const OUTLIER_TBT = 1000;
 const KB = 1024;
 
 // ------------------------------------------------------------------------------------------------ the bar, the guides
-/** THE BAR (CLAUDE.md, "Performance"): a miss fails the run. */
+/** THE BAR (AGENTS.md, "Performance"): a miss fails the run. */
 const BAR = {
   /** on a phone: the phone profile, and Lighthouse's mobile preset where it measures the same thing */
   lcp: 2500,
@@ -111,7 +111,7 @@ const GUIDE = {
   requests: 15,
   heapMB: 20,
   stillMs: 1500,
-  /** a page change: no number in CLAUDE.md; the frame watch's own allowance in motion is 33 ms (probe.ts) */
+  /** a page change: no number in AGENTS.md; the frame watch's own allowance in motion is 33 ms (probe.ts) */
   travelOver33: 0.02,
   laptopLcp: 1200,
 } as const;
@@ -905,7 +905,7 @@ async function main() {
     '',
     `Verdict: ${misses.length ? `THE BAR IS MISSED (${misses.length})` : 'the bar holds'}${whole ? '' : ` (a partial run: ${ONLY.join(', ')}${RUNS < 5 ? `, ${RUNS} Lighthouse run(s)` : ''})`} · guides over their mark: ${over.length} · ${Math.round((Date.now() - t0) / 1000)} s`,
     '',
-    '## The bar (CLAUDE.md; a miss fails the run): the worst route for each',
+    '## The bar (AGENTS.md; a miss fails the run): the worst route for each',
     '',
     '| Measured | Bar | Worst | Where | |',
     '| --- | --- | --- | --- | --- |',

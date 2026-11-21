@@ -54,8 +54,8 @@ const config: NextConfig = {
         headers: [{ key: 'Content-Disposition', value: 'inline; filename="Qijin-Xu-Resume.pdf"' }],
       },
       {
-        // the stills, the photo and the link-preview cards: a day in the browser, refreshed behind the scenes
-        source: '/:dir(scenes|images|og)/:path*',
+        // the stills, the inscriptions and the link-preview cards: a day in the browser, refreshed behind the scenes
+        source: '/:dir(scenes|images|og|inscriptions)/:path*',
         headers: [{ key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' }],
       },
       {

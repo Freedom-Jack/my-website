@@ -1,9 +1,9 @@
 /* ==========================================================================
-   shell.css — what every page shares: the header over the painting's sky, the page's frame and its twelve
-   columns, the way on, and the tail of the scroll.
+   shell.css — what every page shares: the header's bar, the page as sheets of paper lying on the painting, a
+   page's head, and the tail: the scroll's end.
    ========================================================================== */
 
-/* ---------- the header: a name and five words, set on the sky ---------- */
+/* ---------- the header: one bar. On the sky at a page's top; on its own paper as the page is read ---------- */
 .site-header {
   position: fixed;
   left: 0;
@@ -19,24 +19,64 @@
   font-size: 0.9375rem;
   font-weight: 500;
   letter-spacing: 0.005em;
-  pointer-events: none; /* the sky between its words is the painting's */
+}
+/* its paper: a tab as wide as a sheet, so the painting runs on past it at both sides. It comes as the page's first
+   sheet reaches the header and goes again at the scroll's end, where the header stands on the open sky as it does
+   at a page's top (below: the motion). Where nothing moves it is always there. */
+.site-header::before {
+  content: '';
+  position: absolute;
+  inset: 0 calc((100vw - var(--sheet-w)) / 2);
+  z-index: -1;
+  border: 1px solid var(--line);
+  border-top: 0;
+  border-radius: 0 0 var(--r) var(--r);
+  background: var(--paper) var(--paper-tile, url('./svg/paper.svg')) 0 0 / var(--paper-tile-size, 256px)
+    var(--paper-tile-size, 256px);
+  box-shadow: 0 16px 30px -24px rgb(12 21 28 / 0.55);
+  pointer-events: none;
 }
 .site-header a,
 .site-header button {
-  pointer-events: auto;
   text-decoration: none;
   color: var(--ink);
 }
+/* the way home: the seal and his name, one button */
 .site-header__home {
   display: inline-flex;
   align-items: center;
+  gap: 0.55rem;
   min-height: 2.75rem;
+  margin-left: -0.5rem;
+  padding: 0 0.8rem 0 0.5rem;
+  border-radius: 999px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   white-space: nowrap;
+  transition: background-color var(--dur-hover) var(--ease-out);
+}
+.site-header__home .seal {
+  width: 1.625rem;
+  transition: transform 320ms var(--ease-ink);
+}
+.site-header__home:hover {
+  background: rgb(255 255 255 / 0.6);
+}
+.site-header__home:hover .seal {
+  transform: rotate(-6deg) scale(1.06);
+}
+.site-header__name {
+  background: linear-gradient(currentColor, currentColor) 0 100% / 0 1.5px no-repeat;
+  padding-block: 0.15em;
+  transition: background-size 320ms var(--ease-ink);
+}
+.site-header__home:hover .site-header__name {
+  background-size: 100% 1.5px;
 }
 .site-nav__list {
   display: flex;
   align-items: center;
-  gap: clamp(0.75rem, 2.4vw, 2.125rem);
+  gap: clamp(0.75rem, 2.2vw, 2rem);
 }
 .site-nav__list a {
   position: relative;
@@ -75,40 +115,74 @@
 }
 .site-header__side {
   display: flex;
-  flex-wrap: wrap;
   justify-content: flex-end;
   align-items: center;
-  gap: clamp(0.75rem, 2.4vw, 2.125rem);
+  gap: clamp(0.75rem, 2.2vw, 2rem);
+  min-width: 0;
 }
 @media (max-width: 39.99rem) {
   .site-header {
     font-size: 0.875rem;
+    gap: var(--s-2);
+  }
+  .site-header__home {
+    padding-right: 0.4rem;
+  }
+  .site-header__side,
+  .site-nav__list {
+    gap: 0.7rem;
   }
 }
-/* (the narrowest phones, 360 px: the one row still holds the name, the four words and the Ask's door) */
-@media (max-width: 23.4375rem) {
+/* (a narrow phone: the seal alone is the way home, and the row holds every place and the Ask) */
+@media (max-width: 26.25rem) {
+  .site-header__name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
   .site-header {
     font-size: 0.8125rem;
   }
+  .site-header__side,
+  .site-nav__list {
+    gap: 0.55rem;
+  }
 }
-/* (a 320 px window, or a laptop at 400 %: the row's margins and gaps close up so the door stays in) */
 @media (max-width: 21.25rem) {
   .site-header {
     padding-inline: 0.75rem;
-    gap: 0.5rem;
-  }
-  .site-nav__list,
-  .site-header__side {
-    gap: 0.5rem;
   }
 }
 
-/* ---------- the page ---------- */
+/* ---------- the page: sheets of paper lying on the painting ---------- */
 main {
   position: relative;
+  z-index: 1; /* over the painting */
   display: block;
-  padding-top: var(--band-flow); /* the room the band takes at the page's top */
-  min-height: 100svh;
+  padding-top: var(--band-flow); /* the painting's own first screen: the first sheet starts in the mist at its foot */
+}
+/* Each block of a page is a sheet: the page's own paper, as wide as the reading column, the painting showing at its
+   sides and between it and the next. Opaque, so the words are never on the painting and the painting is never
+   washed out for them. (What a page inscribes in the sky, the engine's anchor and the print-only line are not.) */
+main > :not(.inscription, .band-anchor, .print-name, script, style, template, [hidden]) {
+  width: var(--sheet-w);
+  max-width: none;
+  margin-inline: auto;
+  margin-bottom: var(--sheet-gap);
+  padding-block: clamp(1.5rem, 3.4vw, 3rem);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--paper) var(--paper-tile, url('./svg/paper.svg')) 0 0 / var(--paper-tile-size, 256px)
+    var(--paper-tile-size, 256px);
+  /* (its shadow falls below it only: two sheets set edge to edge leave no line between them) */
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.85) inset,
+    0 26px 50px -32px rgb(12 21 28 / 0.5);
+}
+main > :last-child {
+  margin-bottom: 0;
 }
 /* the engine's anchor: the strip's box at the page's top, out of the flow (features/landscape/band.ts) */
 .band-anchor {
@@ -131,11 +205,9 @@ main {
   margin-inline: auto;
   padding-inline: var(--gutter);
 }
+/* (a section inside a sheet: room above and below it) */
 .sec {
-  padding-block: clamp(3rem, 6.4vw, 6rem);
-}
-.sec--first {
-  padding-top: calc(var(--band-sea) * 0.5);
+  padding-block: clamp(1.5rem, 3.4vw, 3rem);
 }
 /* a section's name stands in the left rail; what it holds takes the other ten columns */
 .sec__rail {
@@ -156,34 +228,75 @@ main {
   }
 }
 
-/* ---------- the tail of the scroll (components/layout/Tail) ---------- */
-/* It fills the page's last screen under the settled band: the map just under the mist, the colophon at the foot. */
+/* ---------- a page's head (components/page/Inscription): its title and the line under it, at the top of the
+   page's first sheet. It and the block after it are one sheet: set edge to edge, the corners between them square ---------- */
+.page-head {
+  row-gap: var(--s-4);
+  align-items: end;
+}
+main > .page-head {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: 0;
+  border-radius: var(--r) var(--r) 0 0;
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.85) inset;
+}
+main > .page-head + * {
+  padding-top: clamp(1.25rem, 2.6vw, 2.25rem);
+  border-top: 0;
+  border-radius: 0 0 var(--r) var(--r);
+  box-shadow: 0 26px 50px -32px rgb(12 21 28 / 0.5);
+}
+.page-head > * {
+  grid-column: 1 / -1;
+}
+@media (min-width: 62rem) {
+  .page-head > .title {
+    grid-column: 1 / span 7;
+  }
+  .page-head > .title__under {
+    grid-column: 8 / -1;
+    padding-bottom: 0.6em;
+  }
+  .page-head > .title--long {
+    grid-column: 1 / span 9;
+  }
+  .page-head > .title--long + .title__under {
+    grid-column: 1 / span 9;
+    padding-bottom: 0;
+  }
+}
+
+/* ---------- the tail (components/layout/Tail): the scroll's end ----------
+   The page's last screen is the painting whole again, as at its top: no sheet lies on it. At the window's right
+   edge the scroll ends as a handscroll does, on its mounting paper and its roller (.scroll-end); the colophon
+   stands at the foot, on the paper below the painting, where a handscroll carries its colophon. */
 .tail {
   position: relative;
+  z-index: 0; /* over the painting, under the sheets */
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  min-height: calc(100svh - var(--band-rest));
-  padding-top: clamp(1.5rem, 4vw, 3.5rem);
-  padding-bottom: clamp(1.25rem, 2.6vw, 2.25rem);
+  justify-content: flex-end;
+  min-height: 100svh;
+  padding-bottom: max(clamp(1rem, 2.2vw, 1.75rem), env(safe-area-inset-bottom));
+  view-timeline: --tail block;
 }
-.tail__map {
-  position: relative;
+body {
+  timeline-scope: --tail; /* (the header and the scroll's end both follow the tail's coming) */
 }
 .tail__base {
-  padding-top: var(--s-6);
-  row-gap: var(--s-5);
-  align-items: start;
+  row-gap: var(--s-4);
+  align-items: end;
 }
 .tail__words {
-  grid-column: 1 / span 6;
+  grid-column: 1 / span 7;
   color: var(--ink-3);
   font-size: var(--t-note);
   line-height: 1.6;
-  max-width: 46ch;
+  max-width: 52ch;
 }
 .tail__stamp {
-  margin-top: var(--s-2);
+  margin-top: var(--s-1);
 }
 .tail__side {
   grid-column: 8 / -1;
@@ -191,7 +304,7 @@ main {
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--s-4) var(--s-5);
+  gap: var(--s-3) var(--s-5);
   font-size: var(--t-small);
 }
 .tail__side .seal {
@@ -220,119 +333,91 @@ main {
   }
 }
 
-/* the whole scroll in miniature: one strip of the painting, each place's name under it */
-.scrollmap {
-  position: relative;
-}
-.scrollmap__pan {
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: none;
-}
-.scrollmap__pan::-webkit-scrollbar {
-  display: none;
-}
-.scrollmap__strip {
-  position: relative;
-  width: max(100%, 56rem);
-  aspect-ratio: var(--strip-ratio);
-  margin-bottom: 2.75rem;
-}
-/* the strip's window: the rows of the whole scroll the map shows, thinning into the paper above and below */
-.scrollmap__window {
+/* the scroll's end: the mounting paper the painting runs out on, and the roller it is wound on */
+.scroll-end {
   position: absolute;
-  inset: 0;
-  overflow: hidden;
-}
-.scrollmap__window::before,
-.scrollmap__window::after {
-  content: '';
-  position: absolute;
-  left: 0;
   right: 0;
-  z-index: 1;
-  height: 26%;
+  top: 0;
+  width: clamp(2.25rem, 5.6vw, 5rem);
+  height: calc(var(--band-h) + var(--band-sea) * 0.45);
+  background: linear-gradient(to right, rgb(239 241 238 / 0) 0%, rgb(239 241 238 / 0.92) 34%, var(--paper) 52%);
   pointer-events: none;
 }
-.scrollmap__window::before {
-  top: 0;
-  background: linear-gradient(to bottom, var(--paper), rgb(239 241 238 / 0));
-}
-.scrollmap__window::after {
-  bottom: 0;
-  background: linear-gradient(to top, var(--paper), rgb(239 241 238 / 0));
-}
-.scrollmap__art {
-  position: absolute;
-  left: 0;
-  max-width: none;
-}
-.scrollmap ol {
-  position: absolute;
-  inset: 0 0 -2.75rem 0;
-}
-.scrollmap li {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-}
-.scrollmap li > a,
-.scrollmap li > button {
-  position: absolute;
-  inset: 0;
-  text-decoration: none;
-  color: var(--ink-3);
-  font-size: var(--t-small);
-  font-weight: 500;
-}
-/* (a place's link is its whole reach of the strip, clipped by the pan: the focus ring stands round its name) */
-.scrollmap li > a:focus-visible {
-  outline: none;
-  box-shadow: none;
-}
-.scrollmap li > a:focus-visible .scrollmap__name {
-  outline: 2px solid var(--ink);
-  outline-offset: 3px;
-  border-radius: 2px;
-  box-shadow: 0 0 0 5px var(--paper);
-}
-.scrollmap__name {
-  position: absolute;
-  bottom: 0.5rem;
-  transform: translateX(-50%);
-  white-space: nowrap;
-  padding: 0.25rem 0.4rem;
-  transition: color var(--dur-hover) var(--ease-out);
-}
-/* a place under the pointer: a pale wash over its reach of the strip */
-.scrollmap li > a::before,
-.scrollmap li > button::before {
+/* (the roller: a dark rod, lit along one side, running on past the window's top) */
+.scroll-end::before {
   content: '';
   position: absolute;
-  inset: 0 0 2.75rem 0;
-  background: linear-gradient(to bottom, rgb(46 121 176 / 0), var(--wash) 60%, rgb(46 121 176 / 0));
-  opacity: 0;
-  transition: opacity 260ms var(--ease-out);
+  right: 22%;
+  top: -1rem;
+  bottom: 0.9rem;
+  width: clamp(0.4375rem, 0.8vw, 0.6875rem);
+  border-radius: 999px;
+  background: linear-gradient(to right, #0c151c 0%, #5d6f78 34%, #2b3941 62%, #0c151c 100%);
+  box-shadow: -7px 0 12px -5px rgb(12 21 28 / 0.4);
 }
-.scrollmap li > a:hover::before,
-.scrollmap li > button:hover::before {
-  opacity: 1;
-}
-.scrollmap li > a:hover,
-.scrollmap li > button:hover,
-.scrollmap li > [aria-current] {
-  color: var(--ink);
-}
-/* you are here: a small ink mark over the name */
-.scrollmap li > [aria-current] .scrollmap__name::before {
+/* (its knob, at the foot) */
+.scroll-end::after {
   content: '';
   position: absolute;
-  left: 50%;
-  top: -0.35rem;
-  width: 5px;
-  height: 5px;
-  margin-left: -2.5px;
-  background: var(--ink);
+  right: calc(22% - clamp(0.125rem, 0.22vw, 0.1875rem));
+  bottom: 0;
+  width: calc(clamp(0.4375rem, 0.8vw, 0.6875rem) + 2 * clamp(0.125rem, 0.22vw, 0.1875rem));
+  height: 1.25rem;
+  border-radius: 0.25rem;
+  background: linear-gradient(to right, #0c151c 0%, #44545d 40%, #1b262d 70%, #0c151c 100%);
+}
+
+/* ---------- the motion: the header's paper and the scroll's end, on the compositor ---------- */
+@keyframes header-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes header-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes scroll-end-in {
+  from {
+    transform: translate3d(110%, 0, 0);
+  }
+}
+@supports (animation-timeline: scroll()) and (animation-range: 0px 1px) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* the header takes its paper as the first sheet reaches it, and gives it up as the scroll's end comes */
+    html:not(.is-still) .site-header::before {
+      opacity: 0;
+      animation:
+        header-in linear both,
+        header-out linear forwards;
+      animation-timeline: scroll(root block), --tail;
+      animation-range:
+        calc(var(--band-run) - 3rem) var(--band-run),
+        entry 55% entry 100%;
+    }
+    /* the scroll's end stands at the window's edge and comes in from the east as the tail does */
+    html:not(.is-still) .scroll-end {
+      position: fixed;
+      animation: scroll-end-in linear both;
+      animation-timeline: --tail;
+      animation-range: entry 10% entry 90%;
+    }
+  }
+}
+@media print {
+  main > :not(.inscription, .band-anchor, .print-name, script, style, template, [hidden]) {
+    width: auto;
+    margin: 0;
+    padding-block: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
 }
 
 /* "Still the landscape" (components/layout/StillToggle): shown only where it can do something */

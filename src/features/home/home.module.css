@@ -1,229 +1,59 @@
-/* Home (/): his mountain. The first screen's three columns under the mist, three lines of work across the page, the
-   role he holds, About with the portrait, Writing and Say hello. */
+/* Home (/): his mountain. Two things on the paper: who he is, and Now. */
 
+/* ---------- 1: who he is ---------- */
+.who {
+  align-items: end;
+  row-gap: var(--s-4);
+  padding-block: clamp(0.5rem, 2vw, 1.75rem) clamp(2.5rem, 5vw, 4.5rem);
+}
 /* the name, signed: the seal stands after it, low, as a painter's does */
 .name {
+  grid-column: 1 / span 6;
   display: inline-flex;
   align-items: flex-end;
-  gap: 0.09em;
+  gap: 0.14em;
 }
 .name :global(.seal) {
-  width: 0.2em;
+  width: 0.3em;
   margin-bottom: 0.2em;
 }
-
-/* ---------- the first screen's words ---------- */
-.titleNarrow {
-  grid-column: 1 / -1;
-}
-.first {
-  row-gap: var(--s-6);
-  align-items: start;
+.role {
+  grid-column: 1 / span 6;
+  grid-row: 2;
 }
 .verb {
-  grid-column: 1 / span 5;
-  max-width: 27ch;
+  grid-column: 7 / -1;
+  grid-row: 1 / span 2;
+  font-size: clamp(1.375rem, 2.2vw, 2rem);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  text-wrap: pretty;
 }
-.proof {
-  grid-column: 7 / span 3;
-}
-.proofNum {
-  font-size: clamp(4rem, 6.4vw, 6rem);
-  margin-left: -0.04em;
-}
-.proofLine {
-  margin-top: var(--s-3);
-  max-width: 30ch;
-}
-.proof :global(.rec) {
-  margin-top: var(--s-2);
-}
-/* (the record line is the link to the case: its hit area is 44 px tall, without moving a line) */
-.proof :global(.rec) a {
-  position: relative;
-}
-.proof :global(.rec) a::after {
-  content: '';
-  position: absolute;
-  inset: -0.85rem 0;
+/* ---------- 2: Now ---------- */
+.now {
+  padding-top: 0;
 }
 .nowLine {
-  grid-column: 10 / -1;
-}
-.nowText {
-  margin-top: var(--s-2);
-  font-size: var(--t-small);
-  line-height: 1.5;
-  color: var(--ink);
-}
-.nowLine > :global(.rec) {
-  margin-top: var(--s-2);
-}
-.awards {
-  margin-top: var(--s-4);
-  padding-top: var(--s-3);
-  border-top: 1px solid var(--line);
-}
-
-/* ---------- What I work on: three lines of work, ruled apart ---------- */
-.steps {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-.step {
-  padding-inline: clamp(1rem, 2.2vw, 2rem);
-  border-left: 1px solid var(--line);
-}
-.step:first-child {
-  padding-left: 0;
-  border-left: 0;
-}
-.step :global(.num) {
-  margin-left: -0.04em;
-  margin-bottom: var(--s-4);
-}
-.step :global(.h-item) {
-  margin-bottom: var(--s-2);
-}
-.step :global(.h-item) a {
-  text-decoration: none;
-  background: linear-gradient(var(--line-2), var(--line-2)) 0 100% / 100% 1px no-repeat;
-  padding-bottom: 0.12em;
-}
-.step :global(.h-item) a:hover {
-  background-image: linear-gradient(currentColor, currentColor);
-}
-.all {
-  margin-top: var(--s-6);
-}
-
-/* ---------- the role he holds now ---------- */
-.roleTitle {
-  max-width: 22ch;
-  margin-bottom: var(--s-6);
-}
-.role {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: clamp(1.5rem, 4vw, 4rem);
-}
-.role li {
-  padding-block: var(--s-4) var(--s-5);
-  border-top: 1px solid var(--line);
+  grid-column: 1 / span 8;
+  margin-bottom: clamp(1.25rem, 2.4vw, 2rem);
   color: var(--ink-2);
 }
-
-/* ---------- About me ---------- */
-.about {
+.leaves {
+  grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: 5fr 3.2fr 2.3fr;
-  column-gap: clamp(1.5rem, 3vw, 2.75rem);
-  row-gap: var(--s-6);
-  align-items: start;
-}
-.aboutSay {
-  font-size: clamp(1.25rem, 1.62vw, 1.5rem);
-}
-.aboutRest {
-  display: grid;
-  row-gap: var(--s-4);
-}
-.photo {
-  width: 100%;
-  margin-top: -0.75rem;
-}
-.now {
-  grid-column: 1 / span 2;
-  display: grid;
-  grid-template-columns: 9rem minmax(0, 1fr);
-  column-gap: var(--s-5);
-  padding-top: var(--s-4);
-  border-top: 1px solid var(--line);
-}
-.now ul {
-  display: grid;
-  row-gap: var(--s-2);
-}
-.now b {
-  color: var(--ink);
-  font-weight: 500;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1rem, 1.8vw, 1.75rem);
 }
 
-/* ---------- Writing and Say hello ---------- */
-.notes {
-  grid-column: 3 / span 5;
-  display: grid;
-  row-gap: var(--s-6);
-}
-.noteTitle {
-  margin-block: var(--s-2) var(--s-2);
-}
-.noteTitle a {
-  text-decoration: none;
-}
-.hello {
-  grid-column: 9 / -1;
-  display: grid;
-  row-gap: var(--s-3);
-  align-content: start;
-  padding-top: 0.5rem;
-}
-
-/* ---------- tablets and phones ---------- */
 @media (max-width: 61.99rem) {
+  .nowLine,
+  .name,
+  .role,
   .verb {
     grid-column: 1 / -1;
-    max-width: 30ch;
+    grid-row: auto;
   }
-  .proof {
-    grid-column: 1 / span 6;
-  }
-  .nowLine {
-    grid-column: 7 / -1;
-  }
-  .about {
-    grid-template-columns: minmax(0, 1fr) 9.5rem;
-  }
-  .aboutSay {
-    grid-column: 1 / -1;
-  }
-  .now {
-    grid-column: 1 / -1;
+  .leaves {
     grid-template-columns: minmax(0, 1fr);
-    row-gap: var(--s-3);
-  }
-  .notes,
-  .hello {
-    grid-column: 1 / -1;
-  }
-}
-@media (max-width: 39.99rem) {
-  .proof,
-  .nowLine {
-    grid-column: 1 / -1;
-  }
-  .steps {
-    grid-template-columns: minmax(0, 1fr);
-    row-gap: var(--s-6);
-  }
-  .step {
-    padding-inline: 0;
-    border-left: 0;
-    padding-top: var(--s-5);
-    border-top: 1px solid var(--line);
-  }
-  .step:first-child {
-    padding-top: 0;
-    border-top: 0;
-  }
-  .role {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .about {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .photo {
-    width: 62%;
-    margin-top: 0;
   }
 }

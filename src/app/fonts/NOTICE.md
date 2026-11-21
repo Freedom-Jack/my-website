@@ -1,12 +1,15 @@
 # Fonts
 
-The three font files in this folder are served with the site. Each is licensed under the SIL Open Font License,
-Version 1.1 (https://openfontlicense.org), and is the Latin subset Google Fonts serves.
+The two font files in this folder are served with the site. Each is licensed under the SIL Open Font License,
+Version 1.1 (https://openfontlicense.org), and is the subset Google Fonts serves for the characters the site sets.
 
-| File                                  | Family                                         | Copyright                      |
-| ------------------------------------- | ---------------------------------------------- | ------------------------------ |
-| `newsreader-italic-display-300.woff2` | Newsreader Italic, optical size 72, weight 300 | The Newsreader Project Authors |
-| `geist.woff2`                         | Geist, variable weight                         | The Geist Project Authors      |
-| `geist-mono-400.woff2`                | Geist Mono, weight 400                         | The Geist Project Authors      |
+| File                           | Family                                     | Copyright                           |
+| ------------------------------ | ------------------------------------------ | ----------------------------------- |
+| `shippori-mincho-b1-500.woff2` | Shippori Mincho B1, weight 500             | The Shippori Mincho Project Authors |
+| `hanken-grotesk.woff2`         | Hanken Grotesk, variable weight 400 to 700 | The Hanken Grotesk Project Authors  |
 
-Sources: https://github.com/productiontype/Newsreader and https://github.com/vercel/geist-font.
+Sources: https://github.com/fontdasu/ShipporiMincho and https://github.com/marcologous/hanken-grotesk.
+
+What is inscribed in the painting (`public/inscriptions/`) is drawn from the outlines of Zhi Mang Xing (SIL Open
+Font License 1.1, The Zhi Mang Xing Project Authors, https://github.com/googlefonts/zhimangxing); no file of that
+face is served.

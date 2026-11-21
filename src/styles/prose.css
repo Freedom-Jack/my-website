@@ -9,53 +9,37 @@
 /* ---------- the brush ---------- */
 .brush {
   font-family: var(--font-brush);
-  font-style: italic;
-  font-weight: 300;
-  letter-spacing: -0.02em;
+  font-weight: 500;
+  letter-spacing: -0.008em;
   font-variant-numeric: lining-nums;
   font-synthesis: none;
 }
-/* a page's title, inscribed in the painting's sky */
+/* a page's title, at the head of its paper */
 .title {
-  font: italic 300 var(--t-place) / 0.94 var(--font-brush);
-  letter-spacing: -0.032em;
+  font: 500 var(--t-place) / 1 var(--font-ink);
+  letter-spacing: -0.02em;
   font-synthesis: none;
   color: var(--ink);
+  text-wrap: balance;
 }
 .title--name {
   font-size: var(--t-name);
-  letter-spacing: -0.038em;
 }
 .title--long {
   font-size: var(--t-title);
-  line-height: 1.02;
-  letter-spacing: -0.022em;
-  max-width: 17ch;
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  max-width: 22ch;
 }
-/* the line under a title: the record's voice */
+/* the line under a title */
 .title__under {
-  margin-top: 0.9em;
-  font: 400 clamp(0.75rem, 0.95vw, 0.875rem) / 1.5 var(--font-record);
-  letter-spacing: 0.02em;
+  font-size: var(--t-small);
+  line-height: 1.55;
   color: var(--ink-2);
-}
-/* a phone's sky is narrow: a title's under-line that would run into the painting there is set with the page's first
-   words instead (.title__under--wide in the sky from 640 px, .title__under--narrow below it) */
-.title__under--narrow {
-  display: none;
-  margin-top: 0;
-}
-@media (max-width: 39.99rem) {
-  .title__under--wide {
-    display: none;
-  }
-  .title__under--narrow {
-    display: block;
-  }
 }
 /* a section's heading */
 .h-brush {
-  font: italic 300 var(--t-h2) / 1.06 var(--font-brush);
+  font: 500 var(--t-h2) / 1.06 var(--font-brush);
   letter-spacing: -0.02em;
   font-synthesis: none;
 }
@@ -82,7 +66,7 @@
 }
 /* a figure: an ink numeral, never alone (its measure stands beside it) */
 .num {
-  font: italic 300 var(--t-num) / 1 var(--font-brush);
+  font: 500 var(--t-num) / 1 var(--font-brush);
   letter-spacing: -0.045em;
   font-variant-numeric: lining-nums;
   font-synthesis: none;
@@ -214,22 +198,4 @@
   .seal {
     outline: 1px solid CanvasText;
   }
-}
-
-/* ---------- the portrait: his photograph, its edge thinning into the paper ---------- */
-.portrait {
-  position: relative;
-  aspect-ratio: 4 / 5;
-  overflow: hidden;
-  -webkit-mask-image: radial-gradient(ellipse 64% 60% at 50% 45%, #000 58%, transparent 100%);
-  mask-image: radial-gradient(ellipse 64% 60% at 50% 45%, #000 58%, transparent 100%);
-}
-/* (the photograph stands on white: it is brought down to the paper's own value, so no lighter card shows around
-   him where the edge thins) */
-.portrait img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 50% 22%;
-  filter: brightness(0.94);
 }

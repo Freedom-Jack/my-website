@@ -6,6 +6,7 @@ import type { Page } from '@playwright/test';
  */
 export const ROUTES = [
   { id: 'home', path: '/', title: 'Qijin (Jack) Xu · Lead AI/ML Architect', page: 'home', current: '/' },
+  { id: 'about', path: '/about/', title: 'Qijin (Jack) Xu · About', page: 'about', current: '/about/' },
   { id: 'work', path: '/work/', title: 'Qijin (Jack) Xu · Work', page: 'work', current: '/work/' },
   {
     id: 'case',

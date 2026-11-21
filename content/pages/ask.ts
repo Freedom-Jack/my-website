@@ -18,9 +18,6 @@ import { askDoor } from './ask-door';
 export const ask = {
   /** label ("Ask the painting": the sheet's label) and door ("Ask") */
   ...askDoor,
-  /** NEW WORDS (for Jack): the tail's line, before one of the examples */
-  invite: 'Ask the painting about my work, for example:',
-  placeholder: 'What did you build for insurers?',
   go: 'Ask',
   /** NEW WORDS (for Jack) */
   close: 'Close',
@@ -36,8 +33,6 @@ export const ask = {
    * model. NEW WORDS (for Jack): the first (it was "What did you build for insurers?", which is not filed).
    */
   tries: ['Have you built a chatbot?', 'What are you working on right now?', 'Where did you study?'],
-  /** the tail's example (one of `tries`) */
-  tailTry: 'What are you working on right now?',
 
   trace: {
     /** NEW WORDS (for Jack): over the steps (it was "What the model did": two of the three steps use no model) */

@@ -7,7 +7,7 @@
  *   npm run build:pdf -- --check          print and gate only; fail if public/resume.pdf's words differ (CI)
  *   npm run build:pdf -- --base http://127.0.0.1:3110     another server (or --url <the résumé page's own address>)
  *
- * The privacy gate (CLAUDE.md, hard rules: no phone number anywhere; it fails loudly and nothing is written):
+ * The privacy gate (AGENTS.md, hard rules: no phone number anywhere; it fails loudly and nothing is written):
  *   1. the page's HTML must hold no phone-number pattern and no tel: link;
  *   2. the PDF's own text (extracted with pdf.js) must hold none either;
  *   3. the extraction must demonstrably work (the name, the city and the public email are found), so an empty or

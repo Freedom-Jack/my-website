@@ -1,12 +1,12 @@
 import type { PageWords } from './types';
 
 /**
- * Home (/): Jack's approved "about me" page. Its first screen (`first`): the name, the verb line, the title line, one
- * counted proof with its measure and the dated line. The words of the first screen are the approved ones,
- * re-cut; where the cut is new it is marked DRAFT (for Jack). The figures and the years come from the cases' own front
- * matter (content/work/*.mdx), never retyped here.
+ * Home (/) and About (/about/): who he is. Home shows `first` (his title line and his sentence about what he does)
+ * and Now (`hero.lead[1]`, then `now`); About shows `about` (his own paragraphs, approved). Where a cut is new it is
+ * marked DRAFT (for Jack). The lines Home no longer shows (the counted proof, "What I work on", "Say hello") are
+ * kept in NEW-WORDS.md, section 10.
  * Inline markup in these strings: CONTENT.md ("**bold**", "[link](/path/)", "{kept together}", "{{years}}").
- * The Writing rows come from content/writing/ (newest first); the photo is public/images/qijin-xu-colour.jpg.
+ * No photograph of him anywhere on the site (his word, 2026-11-19).
  */
 export const home = {
   meta: {
@@ -34,30 +34,10 @@ export const home = {
     verb: '{I design} and ship {production AI} for banks and insurers: {LLM agents,} {retrieval systems,} and the data platforms underneath them.',
     /** DRAFT: the title as a byline (content/resume.json basics.label, the employer, the city). */
     title: 'Lead AI/ML Architect, CGI AI Center of Excellence, Toronto.',
-    /**
-     * The one counted proof: the approved "What I work on" line (workOn.rows[0].line) split round its figure, which is
-     * the case's own (content/work/rag-assistant.mdx `figure`; a unit test keeps the three equal). `case`: the case the
-     * measure line links ("2023 to 2024 · the case →"; the years are the case's).
-     */
-    proof: {
-      case: 'rag-assistant',
-      measure: 'of questions resolved without a person, for **50,000+** users of an insurance support assistant.',
-      more: 'the case',
-    },
-    /** The dated line: the approved second hero sentence (hero.lead[1]); its measure is the agent case's years. */
-    now: { case: 'proprietary-language-agent', inProgress: 'in progress', asOf: 'as of' },
-    /** The small words of the measure lines ("2023 to 2024"). */
-    to: 'to',
   },
 
   about: {
     title: 'About me',
-    photo: {
-      src: '/images/qijin-xu-colour.jpg',
-      width: 720,
-      height: 900,
-      alt: 'Qijin Xu in glasses and a red sweater, head and shoulders',
-    },
     paragraphs: [
       'I’ve spent the last {{years}} years putting AI into production at CGI: LLM agents, RAG platforms, and the data systems they stand on. Along the way the work earned two {CGI Impact Awards}, but the part I enjoy most is still the architecture: how the pieces fit, where the system can break, and how you know it works.',
       'I’m optimistic about AI because it isn’t floating on hype. It sits on real foundations, from cloud platforms and chipmakers to industries like manufacturing and finance that are already seeing the gains.',
@@ -66,32 +46,9 @@ export const home = {
     ],
   },
 
-  workOn: {
-    title: 'What I work on',
-    rows: [
-      {
-        title: 'Assistants that answer from your own knowledge',
-        href: '/work/rag-assistant/',
-        line: 'About **90%** of questions resolved without a person, for **50,000+** users of an insurance support assistant.',
-      },
-      {
-        title: 'Agents for code nobody documented',
-        href: '/work/proprietary-language-agent/',
-        line: 'An agent that documents legacy code in a proprietary language and pulls out its business rules, projected to cut manual work by **50%**.',
-      },
-      {
-        title: 'Data platforms AI can stand on',
-        href: '/work/insurance-data-platform/',
-        line: '**99.9%** uptime on Canada’s largest {auto-insurance} policy-history database, 2 TB on SQL Server.',
-      },
-    ],
-    more: { label: 'All six projects →', href: '/work/' },
-  },
-
   /**
    * "Now": shown only while it has real lines; update the month whenever they change (a unit test fails once the
-   * month is more than 90 days old). `held`: the approved off-hours line, kept word for word but not shown, since
-   * About's last paragraph says the same.
+   * month is more than 90 days old). `held`: the approved off-hours line, shown as Now's third leaf.
    */
   now: {
     title: 'Now',
@@ -104,15 +61,5 @@ export const home = {
       { label: 'Exploring', text: 'an AI-powered stock app.' },
     ],
     held: [{ label: 'Off-hours', text: 'basketball, games, and a long xianxia novel.' }],
-  },
-
-  writing: {
-    title: 'Writing',
-    more: { label: 'All writing →', href: '/writing/' },
-  },
-
-  hello: {
-    title: 'Say hello',
-    line: 'For collaborations on production AI, or an invitation to speak or write about agents and retrieval, email me at [qxjack@gmail.com](mailto:qxjack@gmail.com). I’m also on [LinkedIn](https://www.linkedin.com/in/qijin-x-4899671a9/) and [GitHub](https://github.com/Freedom-Jack).',
   },
 } satisfies PageWords & Record<string, unknown>;

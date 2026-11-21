@@ -1,6 +1,6 @@
 /**
  * The seal: a carved cinnabar stone with his surname cut into it, like a painter's seal. The glyph is the one
- * Chinese character on the site (CLAUDE.md, hard rules). Decorative: always aria-hidden. It signs every page once, at
+ * Chinese character on the site (AGENTS.md, hard rules). Decorative: always aria-hidden. It signs every page once, at
  * the tail (components/layout/Tail), and is pressed when something is done (an answer in Ask, "Copy email").
  *
  * The glyph is an outline, not text, so no CJK font is ever loaded: Noto Serif SC Black at 44 px, centred on

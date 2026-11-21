@@ -102,29 +102,11 @@ describe('content/work/*.mdx', () => {
     ];
     const n = words[cases.length]!;
     expect(work.index.title.toLowerCase()).toContain(`${n} projects`);
-    expect(work.back.label.toLowerCase()).toContain(`${n} projects`);
-    expect(home.workOn.more.label.toLowerCase()).toContain(`${n} projects`);
     expect(work.meta.description.toLowerCase()).toContain(`${n} projects`);
-  });
-  it('Home links every "What I work on" row to a case that exists', () => {
-    const slugs = cases.map((c) => c.slug);
-    for (const row of home.workOn.rows) expect(slugs).toContain(row.href.replace(/^\/work\/|\/$/g, ''));
-  });
-  it('the first screen’s proof is the first "What I work on" row, split round the case’s own figure; its cases exist', () => {
-    const slugs = cases.map((c) => c.slug);
-    expect(slugs).toContain(home.first.proof.case);
-    expect(slugs).toContain(home.first.now.case);
-    const proof = cases.find((c) => c.slug === home.first.proof.case)!.data as { figure: { value: string } };
-    const words = proof.figure.value.trim().split(/\s+/);
-    const value = words.pop();
-    const lead = words.join(' ');
-    // "About **90%** of questions resolved…" = the lead, the figure in bold, the measure
-    expect(home.workOn.rows[0]!.line).toBe(`${lead ? `${lead} ` : ''}**${value}** ${home.first.proof.measure}`);
-    expect(home.workOn.rows[0]!.href).toBe(`/work/${home.first.proof.case}/`);
   });
 });
 
-describe('the hard rules, across every content file (CLAUDE.md)', () => {
+describe('the hard rules, across every content file (AGENTS.md)', () => {
   const files = walk(path.join(process.cwd(), 'content')).filter((f) => /\.(ts|json|mdx|svg)$/.test(f));
   for (const f of files) {
     it(`${path.relative(process.cwd(), f)}: no phone, street address, PMP, CJK or old PDF`, () => {

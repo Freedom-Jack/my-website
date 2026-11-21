@@ -6,7 +6,7 @@ import type { SheetHandle, SheetProps } from './Sheet';
 /**
  * "Ask the painting": the door's script, mounted once in the root layout. All a page pays for before the door is
  * used: one listener for a press on anything marked `data-ask` (the door in the header; the tail's example, whose
- * `data-ask` is its question) and one for "/" outside a field. The sheet's code (Sheet.tsx and everything under it)
+ * `data-ask` is its question) and one for "/" outside a field and Cmd/Ctrl-K. The sheet's code (Sheet.tsx and everything under it)
  * comes with the first opening and stays for the session, so does what it has fetched by then (mind.ts).
  */
 interface Opening {
@@ -41,9 +41,12 @@ export function AskHost() {
       else open(el.dataset.ask ?? '', el);
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey || e.defaultPrevented) return;
+      // "/" outside a field, or Cmd/Ctrl-K anywhere
+      const slash = e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey;
+      const k = (e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey;
+      if ((!slash && !k) || e.defaultPrevented) return;
       const t = e.target instanceof HTMLElement ? e.target : null;
-      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+      if (slash && t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
       e.preventDefault();
       if (sheet.current) sheet.current.focus();
       else open('', null);

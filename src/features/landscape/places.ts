@@ -4,7 +4,7 @@
  * One river runs the whole scroll: it falls from his mountain (Home), runs past the river town where the work gets
  * done (Work and its cases), opens into the still lake by the pavilion where he writes (Writing, the notes), narrows
  * at the foot of the terraced fields of his record (Résumé) and opens into the crossing, where the ferry brings you
- * across to meet him (Contact). Beyond the water, off the map, the path climbs a lone peak into mist (404). One place
+ * across to meet him (Contact). About stands on his mountain too, beside Home. Beyond the water, off the map, the path climbs a lone peak into mist (404). One place
  * per stretch, in the nav's order.
  *
  * The page renders its <main> from this table (components/page/PageMain), and the navigation reads it to
@@ -12,7 +12,7 @@
  */
 
 export type Distance = 'level' | 'high' | 'deep';
-export type PageId = 'home' | 'work' | 'case' | 'writing' | 'article' | 'resume' | 'contact' | 'not-found';
+export type PageId = 'home' | 'about' | 'work' | 'case' | 'writing' | 'article' | 'resume' | 'contact' | 'not-found';
 
 export interface Place {
   /** The page's id: <main data-page>, its CSS Module's scope. */
@@ -46,6 +46,15 @@ export const PLACES: Readonly<Record<PageId, Place>> = {
     distance: 'level',
     presence: 1,
     horizon: 0.6,
+    ground: 'living',
+  },
+  about: {
+    page: 'about',
+    stretch: 0,
+    distance: 'level',
+    presence: 1,
+    horizon: 0.6,
+    // (About stands where Home does, on his mountain: the two pages share the place)
     ground: 'living',
   },
   work: {
@@ -124,6 +133,7 @@ export function normPath(path: string): string {
 export function placeForPath(path: string): Place {
   const p = normPath(path);
   if (p === '/') return PLACES.home;
+  if (p === '/about/') return PLACES.about;
   if (p === '/work/') return PLACES.work;
   if (/^\/work\/[^/]+\/$/.test(p)) return PLACES.case;
   if (p === '/writing/') return PLACES.writing;
@@ -133,8 +143,9 @@ export function placeForPath(path: string): Place {
   return PLACES['not-found'];
 }
 
-/** The five places in the painting's order: the links of the tail's scroll map (components/layout/ScrollMap). `still`
- *  is the place's key into the band manifest's transit `places` (public/scenes/band/manifest.json). */
+/** The five places in the painting's order, one per stretch. `still` is the place's key into the band manifest's
+ *  transit `places` (public/scenes/band/manifest.json): where it stands along the whole scroll's strip, which the
+ *  flight between two pages uses where the engine does not run. */
 export const SCROLL_MAP = [
   { stretch: 0, label: 'Home', href: '/', still: 'home' },
   { stretch: 1, label: 'Work', href: '/work/', still: 'work' },
@@ -144,12 +155,13 @@ export const SCROLL_MAP = [
 ] as const;
 
 /**
- * The way on (components/page/NextPlace): every page but Contact and the 404 ends on the next place downstream. A
- * case ends on the place after the town; a note on the place after the lake. Its name is inscribed in the painting
- * where that place stands.
+ * The place downstream of each page: how far the painting unrolls while the page is read (band-geometry: a share of
+ * the way to it). A case counts from the place after the town; a note from the place after the lake. No page links
+ * to it: a page stands alone, and the way to every other page is the header's.
  */
 export const NEXT_PLACE: Readonly<Partial<Record<PageId, { page: PageId; href: string; label: string }>>> = {
   home: { page: 'work', href: '/work/', label: 'Work' },
+  about: { page: 'work', href: '/work/', label: 'Work' },
   work: { page: 'writing', href: '/writing/', label: 'Writing' },
   case: { page: 'writing', href: '/writing/', label: 'Writing' },
   writing: { page: 'resume', href: '/resume/', label: 'Résumé' },

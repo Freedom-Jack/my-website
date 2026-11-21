@@ -1,36 +1,47 @@
-/* "Ask the painting": the sheet (Sheet.tsx). A sheet of the page's own paper over the reading zone, under the band:
-   the painting stays in view above it. Twelve columns: the instrument's name in the rail, the question line and
+/* "Ask the painting": the panel (Sheet.tsx). A leaf of the page's own paper that drops from the header's bar, as a
+   Mac's search does, over the page. Twelve columns: the instrument's name in the rail, the question line and
    what was found in the middle seven, how it was found as a note in the margin. The site's three voices; no box. */
 
 .sheet {
-  --tuck: 1.5rem; /* how far its top lies under the band's foot (the band is opaque there, and in front) */
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  top: calc(var(--band-rest) - var(--tuck));
-  z-index: var(--z-ask); /* over the page, under the band (--z-band) and what is inscribed in it */
+  left: 50%;
+  translate: -50% 0;
+  top: calc(var(--header-h) + 0.5rem);
+  width: min(66rem, calc(100vw - 2 * var(--gutter)));
+  max-height: calc(100svh - var(--header-h) - 1.5rem);
+  z-index: var(--z-ask); /* over the page and the band's ribbon, under the header's bar */
   overflow-x: clip;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: var(--ink-4) transparent;
-  padding-top: calc(var(--tuck) + clamp(2.25rem, 4.4vh, 3rem)); /* clear of the mist at the band's foot */
-  padding-bottom: max(2rem, env(safe-area-inset-bottom));
+  padding-block: clamp(1.25rem, 2.4vh, 2rem) max(1.5rem, env(safe-area-inset-bottom));
+  border: 1px solid var(--line-2);
+  border-radius: 1rem;
   /* the same paper as the page (base.css html) */
   background: var(--paper) var(--paper-tile, url('../../styles/svg/paper.svg')) 0 0 / var(--paper-tile-size, 256px)
     var(--paper-tile-size, 256px);
+  /* it floats over the page: its own shadow, and the page behind it a shade darker */
+  box-shadow:
+    0 2px 6px rgb(12 21 28 / 0.08),
+    0 28px 70px -20px rgb(12 21 28 / 0.42),
+    0 0 0 100vmax rgb(12 21 28 / 0.16);
+}
+@media (max-width: 39.99rem) {
+  .sheet {
+    width: calc(100vw - 1rem);
+    border-radius: 0.75rem;
+  }
 }
 :global(html) .sheet:focus-visible {
   outline: none;
   box-shadow: none;
 }
+/* (the panel floats: the page is not moved to make room for it. Sheet.tsx reads this probe's box for that) */
 .probe {
   position: absolute;
-  left: 0;
-  top: 0;
-  width: var(--band-run);
-  height: var(--band-rest);
+  width: 0;
+  height: 0;
   visibility: hidden;
   pointer-events: none;
 }
@@ -92,7 +103,7 @@
   border: 0;
   border-radius: 0;
   background: none;
-  font: italic 300 clamp(1.75rem, 2.5vw, 2.375rem) / 1.2 var(--font-brush);
+  font: 500 clamp(1.75rem, 2.5vw, 2.375rem) / 1.2 var(--font-brush);
   letter-spacing: -0.02em;
   font-synthesis: none;
   color: var(--ink);

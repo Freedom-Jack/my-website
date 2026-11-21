@@ -206,7 +206,7 @@ export function Navigation() {
     };
     // A touch gives no warning before its tap. Where the engine does not run (a narrow window, or a wide one the
     // probe has left on the still), the flight's strip is fetched once the page has loaded and the browser is idle,
-    // so the first page change flies too. It is the tail's map as well: the bytes are spent once. Never under
+    // so the first page change flies too. Never under
     // reduced motion, Still or Save-Data.
     let idle = 0;
     const warm = () => {

@@ -339,20 +339,19 @@ export function buildCorpus(): Corpus {
     });
   };
 
-  // Home: its sections across the mountain, in the page's order
+  // Home: who he is, and Now, across the mountain, in the page's order
   const h = home;
   const hf = 'content/pages/home.ts';
   const mountain = (i: number) => spread(i, 5, 0.3, 0.9);
   emit('home', '/', 'Home', [
-    ...h.hero.lead.map((t) => unit(hf, 'First screen', t, mountain(0))),
+    unit(hf, 'First screen', h.first.title, mountain(0)),
+    unit(hf, 'First screen', h.first.verb, mountain(0)),
+    unit(hf, 'Now', h.hero.lead[1]!, mountain(3), 'now-title'),
+    ...[...h.now.lines, ...h.now.held].map((l) => unit(hf, 'Now', `${l.label}: ${l.text}`, mountain(3), 'now-title')),
+  ]);
+  // About: his own paragraphs, on the same mountain
+  emit('about', '/about/', 'About', [
     ...h.about.paragraphs.map((t) => unit(hf, 'About me', t, mountain(1), 'about-title')),
-    unit('content/site.ts', 'About me', site.bio, mountain(1), 'about-title'),
-    ...h.workOn.rows.flatMap((r) => [
-      { ...unit(hf, 'What I work on', r.title, mountain(2), 'work-on-title'), title: true as const },
-      unit(hf, 'What I work on', r.line, mountain(2), 'work-on-title'),
-    ]),
-    ...h.now.lines.map((l) => unit(hf, 'Now', `${l.label}: ${l.text}`, mountain(3), 'now-title')),
-    unit(hf, 'Say hello', h.hello.line, mountain(4), 'say-hello-title'),
   ]);
 
   // Work: the index's own words, at the town's own view
@@ -416,7 +415,10 @@ export function buildCorpus(): Corpus {
 
   // Contact, at the ferry (the crossing's own view)
   const cf = 'content/pages/contact.ts';
-  emit('contact', '/contact/', 'Contact', [unit(cf, 'Contact', contact.intro, null)]);
+  emit('contact', '/contact/', 'Contact', [
+    unit(cf, 'Contact', contact.intro, null),
+    unit('content/site.ts', contact.bio.label, site.bio, null, 'bio-title'),
+  ]);
 
   const hash = sha8(chunks.map((c) => c.text).join('\n'));
   return { chunks, files: [...files.values()], hash };

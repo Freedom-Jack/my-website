@@ -3,15 +3,15 @@ import { bandGeometry } from '@/features/landscape/band-geometry';
 import { PLACES, type PageId } from '@/features/landscape/places';
 import { site } from '@content/site';
 import { JsonLd } from '@/lib/jsonld';
-import { NextPlace } from './NextPlace';
 
 /**
  * A page's <main>: it declares the page's place in the painting (data-stretch, data-distance, data-presence,
  * data-horizon, data-ground, data-inside; the landscape and the navigation read them), holds the engine's anchor
- * (the strip's box at the page's top, out of the flow: styles/shell.css .band-anchor), sets the page's band
- * geometry for its styles (how close it stands, how far it travels: features/landscape/band-geometry) and ends on
- * the way on (NextPlace: every page but Contact and the 404). The print-only name line opens it (every page but the Résumé,
- * which has its own letterhead). The page's own structured data (`ld`) goes first.
+ * (the strip's box at the page's top, out of the flow: styles/shell.css .band-anchor) and sets the page's band
+ * geometry for its styles (how close it stands, how far it travels: features/landscape/band-geometry). A page stands
+ * alone: it ends on its own last word, and the way to every other page is the header's. The print-only name line
+ * opens it (every page but the Résumé, which has its own letterhead). The page's own structured data (`ld`) goes
+ * first.
  */
 export function PageMain({
   page,
@@ -54,7 +54,6 @@ export function PageMain({
         </p>
       ) : null}
       {children}
-      <NextPlace page={page} />
     </main>
   );
 }

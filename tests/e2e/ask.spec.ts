@@ -66,14 +66,6 @@ test('a typed question is searched over these pages and shown as places; "/" ope
   await expect(door(page)).toHaveAttribute('aria-expanded', 'false');
 });
 
-test('the tail’s line asks its own example', async ({ page }) => {
-  await page.goto('/contact/');
-  await settle(page);
-  await page.locator(`.tail [data-ask="${ask.tailTry}"]`).click();
-  await expect(sheet(page)).toBeVisible();
-  await expect(sheet(page).locator('blockquote')).toBeVisible();
-});
-
 test('the closer reading: the model is fetched from this site only when it is asked for', async ({ page }) => {
   test.skip(!process.env.ASK_MODEL, 'fetches the 38 MB model: run with ASK_MODEL=1');
   test.setTimeout(180_000);

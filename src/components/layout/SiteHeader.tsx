@@ -2,14 +2,15 @@
 
 import Link from 'next/link';
 import { site } from '@content/site';
+import { Seal } from '@/components/ui/Seal';
 import { AskDoor } from '@/features/ask/AskDoor';
 import { useCurrent } from '@/features/chrome/current';
 
 /**
- * The header: his name (a link home; its accessible name "Qijin Xu, home") and the four places downstream of Home,
- * in the painting's order (content/site.ts), set straight on the painting's sky and fixed there: the band stands
- * under it on every screen of every page, so the way to each place is always in reach. No menu button: one row at
- * 360 px.
+ * The header: one bar on every page. His seal and name (the way home: a button, its accessible name "Qijin Xu,
+ * home"), the places along the scroll in the painting's order (content/site.ts), and the Ask's field. At a page's
+ * top it stands on the painting's sky; as the page is read it takes its paper, with a ribbon of the painting under
+ * it (styles/shell.css, styles/band.css).
  */
 export function SiteHeader() {
   const current = useCurrent();
@@ -21,7 +22,8 @@ export function SiteHeader() {
         aria-current={current('/') === 'page' ? 'page' : undefined}
         prefetch={false}
       >
-        <span>{site.name}</span>
+        <Seal id="seal-carve-home" />
+        <span className="site-header__name">{site.name}</span>
         <span className="visually-hidden">, home</span>
       </Link>
       <div className="site-header__side">

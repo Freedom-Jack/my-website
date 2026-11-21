@@ -5,16 +5,15 @@ import { work } from '@content/pages/work';
 import { Inscription } from '@/components/page/Inscription';
 import { PageMain } from '@/components/page/PageMain';
 import { Diagram } from '@/components/ui/Diagram';
-import { Go } from '@/components/ui/Go';
 import { MarginNote } from '@/components/ui/MarginNote';
 import { buildCraft } from '@/features/craft/build';
 import type { PieceKind } from '@/features/craft/client/Piece';
 import { Hood } from '@/features/craft/Hood';
 import { splitFigure } from '@/lib/figure';
-import { Inline, InlineLink } from '@/lib/inline';
+import { Inline } from '@/lib/inline';
 import { breadcrumbLd } from '@/lib/jsonld';
 import { plain } from '@/lib/markup';
-import { allCases, type Case } from './cases';
+import type { Case } from './cases';
 import { caseLd } from './jsonld';
 import styles from './work.module.css';
 
@@ -48,9 +47,6 @@ export async function CasePage({ c }: { c: Case }) {
   const live = LIVE[meta.slug];
   // (the piece's size, said before it is reached, and whether the build could make it: computed from content/)
   const craft = live ? buildCraft() : null;
-  const all = await allCases();
-  const at = all.findIndex((x) => x.slug === meta.slug);
-  const beside = [all[at - 1], all[at + 1]].filter((x) => x !== undefined);
 
   const drawing = meta.diagram ? (
     <Diagram
@@ -93,7 +89,7 @@ export async function CasePage({ c }: { c: Case }) {
         ]),
       ]}
     >
-      <Inscription y="1.25rem">
+      <Inscription>
         <h1 className="title title--long" id="case-title">
           <Inline text={meta.title} />
         </h1>
@@ -127,26 +123,11 @@ export async function CasePage({ c }: { c: Case }) {
 
       {live && craft && (live !== 'mask' || craft.mask) ? <Hood kind={live} size={craft.sizes[live]} /> : null}
 
-      <footer className={`row sec ${styles.end}`}>
-        <div className={styles.endSay}>
-          {meta.evidence.length ? null : <p className={`rec ${styles.nda}`}>{casePage.nda}</p>}
-          <p>
-            <Go href={work.back.href}>{work.back.label.replace(/\s*→$/, '')}</Go>
-          </p>
-        </div>
-        <ul className={styles.beside} role="list">
-          {beside.map((x) => (
-            <li key={x.slug}>
-              <p className="rec">{x.years}</p>
-              <p className="h-item">
-                <InlineLink href={x.href}>
-                  <Inline text={x.title} />
-                </InlineLink>
-              </p>
-            </li>
-          ))}
-        </ul>
-      </footer>
+      {meta.evidence.length ? null : (
+        <footer className={`row sec ${styles.end}`}>
+          <p className={`rec ${styles.nda}`}>{casePage.nda}</p>
+        </footer>
+      )}
     </PageMain>
   );
 }

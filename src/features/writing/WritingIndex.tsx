@@ -4,7 +4,7 @@ import { writing } from '@content/pages/writing';
 import { Inscription } from '@/components/page/Inscription';
 import { PageMain } from '@/components/page/PageMain';
 import { Arrow } from '@/components/ui/Arrow';
-import { Go } from '@/components/ui/Go';
+import { Cover } from '@/components/ui/Cover';
 import { allCases } from '@/features/work/cases';
 import { longDate } from '@/lib/dates';
 import { Inline, InlineLink } from '@/lib/inline';
@@ -60,21 +60,32 @@ export async function WritingIndex() {
         </p>
       </Inscription>
 
-      {/* the newest note, open */}
+      {/* the newest note, featured: a wide leaf that opens on the lake */}
       {newest ? (
-        <section className={`row sec sec--first ${styles.first}`} aria-labelledby={`note-${newest.slug}`}>
-          <div className={styles.noteHead}>
-            <Dates note={newest} />
-            <h2 className={`brush ${styles.noteTitle}`} id={`note-${newest.slug}`}>
-              <InlineLink href={newest.href}>{newest.title}</InlineLink>
-            </h2>
-          </div>
-          <div className={styles.noteOpen}>
-            <p className="lead">{newest.description}</p>
-            <p>
-              <Go href={newest.href}>{writing.read}</Go>
-            </p>
-          </div>
+        <section className={`row ${styles.featured}`} aria-labelledby={`note-${newest.slug}`}>
+          <article className={`leaf leaf--link ${styles.feature}`}>
+            <Cover scene="writing" x={78} zoom={150} ratio="auto" className={styles.featureCover} />
+            <div className={`leaf__body ${styles.featureBody}`}>
+              <Dates note={newest} />
+              <h2 className={`brush ${styles.featureTitle}`} id={`note-${newest.slug}`}>
+                <InlineLink href={newest.href} className="leaf__to">
+                  {newest.title}
+                </InlineLink>
+              </h2>
+              <p className="say soft">{newest.description}</p>
+              <p className="leaf__foot">
+                <span className="leaf__go" aria-hidden="true">
+                  {writing.read}
+                  <Arrow />
+                </span>
+              </p>
+            </div>
+          </article>
+          <p className={styles.feed}>
+            <InlineLink href="/writing/feed.xml" className="btn btn--ghost">
+              {writing.feed.link}
+            </InlineLink>
+          </p>
         </section>
       ) : null}
 
@@ -83,20 +94,22 @@ export async function WritingIndex() {
         <Compare id={newest.slug} label={writing.from} head={table.head} rows={table.rows} />
       ) : null}
 
-      {/* the notes before it */}
+      {/* the notes before it: one leaf each */}
       {older.length ? (
-        <div className="row sec">
-          <ol className={`sec__body ${styles.pieces}`} role="list">
-            {older.map((n) => (
-              <li className={styles.piece} key={n.slug}>
-                <h2 className={`brush ${styles.pieceTitle}`}>
-                  <InlineLink href={n.href}>
-                    {n.title}
-                    <Arrow />
-                  </InlineLink>
-                </h2>
-                <p className="small soft">{n.description}</p>
-                <Dates note={n} />
+        <div className={`row sec ${styles.olderSec}`}>
+          <ol className={styles.grid} role="list">
+            {older.map((n, k) => (
+              <li className="leaf leaf--link reveal" key={n.slug}>
+                <Cover scene="writing" x={[30, 55, 92][k % 3]!} zoom={260} />
+                <div className="leaf__body">
+                  <Dates note={n} />
+                  <h2 className="leaf__title">
+                    <InlineLink href={n.href} className="leaf__to">
+                      {n.title}
+                    </InlineLink>
+                  </h2>
+                  <p className="small soft">{n.description}</p>
+                </div>
               </li>
             ))}
           </ol>
@@ -105,38 +118,37 @@ export async function WritingIndex() {
 
       {/* under the hood: three worked pieces, each running on the page of the case it is tied to (they run in the
           reader's browser: without JavaScript their sections are not on the case pages, so they are not listed) */}
-      <section className="row sec" aria-labelledby="hood-title">
-        <div className={`sec__rail ${styles.piecesRail}`} data-js-only="">
-          <h2 className="label" id="hood-title">
+      <section className="row sec" aria-labelledby="hood-title" data-js-only="">
+        <header className="sec-head">
+          <h2 className="sec-head__title" id="hood-title">
             {workCraft.hood.title}
           </h2>
-        </div>
-        <div className="sec__body">
-          <ol className={styles.pieces} role="list" data-js-only="">
-            {PIECES.map((key) => {
-              const piece = hood[key];
-              const held = cases.find((c) => c.slug === piece.case);
-              if (!held) throw new Error(`content/craft/hood.ts: ${key} names a case that does not exist`);
-              return (
-                <li className={styles.piece} key={key}>
-                  <h3 className={`brush ${styles.pieceTitle}`}>
-                    <InlineLink href={`${held.href}#hood-${key}`}>
+        </header>
+        <ol className={styles.grid} role="list">
+          {PIECES.map((key, k) => {
+            const piece = hood[key];
+            const held = cases.find((c) => c.slug === piece.case);
+            if (!held) throw new Error(`content/craft/hood.ts: ${key} names a case that does not exist`);
+            return (
+              <li className="leaf leaf--link reveal" key={key}>
+                <Cover scene="case" x={[18, 52, 86][k % 3]!} zoom={260} />
+                <div className="leaf__body">
+                  <h3 className="leaf__title">
+                    <InlineLink href={`${held.href}#hood-${key}`} className="leaf__to">
                       {workCraft.hood[key].title}
-                      <Arrow />
                     </InlineLink>
                   </h3>
                   <p className="small soft">
                     <Inline text={piece.tie} />
                   </p>
-                  <p className="rec">{held.title}</p>
-                </li>
-              );
-            })}
-          </ol>
-          <p className={`rec ${styles.feed}`}>
-            <InlineLink href="/writing/feed.xml">{writing.feed.link}</InlineLink>
-          </p>
-        </div>
+                  <p className="leaf__foot">
+                    <span className="chip">{held.title}</span>
+                  </p>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
       </section>
     </PageMain>
   );

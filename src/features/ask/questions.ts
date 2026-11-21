@@ -14,11 +14,18 @@
 export const QUESTIONS: [opens: string, questions: string[]][] = [
   // ---------------------------------------------------------------- Home
   [
-    'Lead AI/ML Architect at CGI’s AI Center of Excellence in Toronto. I design',
+    'I design and ship production AI',
     [
       'Who are you?',
       'What do you do?',
       'Tell me about yourself',
+      'What kind of AI do you build?',
+      'Which industries do you work in?',
+    ],
+  ],
+  [
+    'Lead AI/ML Architect, CGI AI Center of Excellence, Toronto.',
+    [
       'What is your job?',
       'What is your job title?',
       'What is your current role?',
@@ -26,8 +33,6 @@ export const QUESTIONS: [opens: string, questions: string[]][] = [
       'Which company do you work for?',
       'Where are you based?',
       'What city are you in?',
-      'What kind of AI do you build?',
-      'Which industries do you work in?',
     ],
   ],
   [
@@ -74,22 +79,6 @@ export const QUESTIONS: [opens: string, questions: string[]][] = [
   ],
   ['Qijin Xu is a Lead AI/ML Architect', ['Who is Qijin Xu?', 'Who is Jack Xu?', 'Give me a short bio']],
   [
-    'About 90% of questions resolved without a person, for 50,000+',
-    [
-      'How many users did the insurance assistant serve?',
-      'How well did the support assistant work?',
-      'What share of questions did the assistant resolve on its own?',
-    ],
-  ],
-  [
-    'An agent that documents legacy code in a proprietary language and pulls out',
-    ['How much manual work will the agent save?', 'What does the legacy code agent pull out?'],
-  ],
-  [
-    '99.9% uptime on Canada’s largest auto-insurance',
-    ['What was the uptime of the database?', 'How big was the policy-history database?'],
-  ],
-  [
     'Building: an agent memory system',
     [
       'What are you building now?',
@@ -99,28 +88,6 @@ export const QUESTIONS: [opens: string, questions: string[]][] = [
     ],
   ],
   ['Exploring: an AI-powered stock app.', ['What are you exploring?', 'What are you curious about lately?']],
-  [
-    'For collaborations on production AI, or an invitation',
-    [
-      'How can I contact you?',
-      'What is your email address?',
-      'How do I reach you?',
-      'Are you on LinkedIn?',
-      'Are you on GitHub?',
-      'Can I invite you to speak?',
-      'Can we work together?',
-      'Are you open to collaborations?',
-      // (the site says nothing about new roles: such a question is shown where to write, nothing more)
-      'Are you open to new opportunities?',
-      'Can I hire you?',
-    ],
-  ],
-
-  // ---------------------------------------------------------------- Work
-  [
-    'Most of what I build runs inside client systems',
-    ['Can I see your code?', 'Is your work open source?', 'Why is the code not public?'],
-  ],
   [
     'A model is only as good as the system around it.',
     ['What is your philosophy on AI?', 'What do you believe about building AI?', 'What matters most in an AI system?'],
@@ -156,6 +123,8 @@ export const QUESTIONS: [opens: string, questions: string[]][] = [
       'What is the proprietary language agent?',
       'Tell me about the legacy code project',
       'What does the code agent do?',
+      'How much manual work will the agent save?',
+      'What does the legacy code agent pull out?',
     ],
   ],
   [
@@ -205,6 +174,9 @@ export const QUESTIONS: [opens: string, questions: string[]][] = [
       'What was the return on investment?',
       'What was the ROI of the chatbot?',
       'Did the assistant win an award?',
+      'How many users did the insurance assistant serve?',
+      'How well did the support assistant work?',
+      'What share of questions did the assistant resolve on its own?',
     ],
   ],
   ['The system runs across Azure, AWS and GCP.', ['Which clouds does the assistant run on?']],
@@ -261,7 +233,13 @@ export const QUESTIONS: [opens: string, questions: string[]][] = [
   // ---------------------------------------------------------------- hockey vision
   [
     'Models that watch a hockey broadcast',
-    ['What is the hockey project?', 'Have you worked in computer vision?', 'Tell me about the hockey video work'],
+    [
+      'What is the hockey project?',
+      'Have you worked in computer vision?',
+      'Tell me about the hockey video work',
+      'What was the uptime of the database?',
+      'How big was the policy-history database?',
+    ],
   ],
   ['AttentiveVision, a startup co-founded', ['What is AttentiveVision?', 'Who was the hockey project for?']],
   [
@@ -361,6 +339,24 @@ export const QUESTIONS: [opens: string, questions: string[]][] = [
   // ---------------------------------------------------------------- Contact
   [
     'I’m always glad to hear about collaborations',
-    ['What would you like to hear about?', 'Do you give talks?', 'Do you write about AI?'],
+    [
+      'What would you like to hear about?',
+      'Do you give talks?',
+      'Do you write about AI?',
+      'How can I contact you?',
+      'What is your email address?',
+      'How do I reach you?',
+      'Are you on LinkedIn?',
+      'Are you on GitHub?',
+      'Can I invite you to speak?',
+      'Can we work together?',
+      'Are you open to collaborations?',
+      'Are you open to new opportunities?',
+      'Can I hire you?',
+      'Most of what I build runs inside client systems',
+      'Can I see your code?',
+      'Is your work open source?',
+      'Why is the code not public?',
+    ],
   ],
 ];

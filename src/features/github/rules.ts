@@ -13,7 +13,7 @@ import { CJK, PHONE } from '@/lib/compliance';
  */
 
 /** Never listed. Personal application materials; and this site's own source, until its public history no longer
- *  holds the old résumé file (CLAUDE.md, hard rules, the launch gate: content/site.ts showSourceCode). */
+ *  holds the old résumé file (AGENTS.md, hard rules, the launch gate: content/site.ts showSourceCode). */
 const DENY = new Set(['job-application', 'my-website']);
 const PLACEHOLDER_KB = 10;
 const PLACEHOLDER = /^(tba|to be (announced|anounced)|coming soon)\.?$/i;

@@ -3,7 +3,6 @@ import { site } from '@content/site';
 import { writing } from '@content/pages/writing';
 import { Inscription } from '@/components/page/Inscription';
 import { PageMain } from '@/components/page/PageMain';
-import { Go } from '@/components/ui/Go';
 import { longDate } from '@/lib/dates';
 import { InlineLink } from '@/lib/inline';
 import { breadcrumbLd } from '@/lib/jsonld';
@@ -103,9 +102,7 @@ export function NotePage({ note }: { note: Note }) {
           </p>
         </Inscription>
         <div className={`row sec sec--first ${styles.prose}`}>
-          <p className={`label ${styles.by}`}>
-            <InlineLink href="/">{site.name}</InlineLink>
-          </p>
+          <p className={`label ${styles.by}`}>{site.name}</p>
           <Body
             components={{
               Quote,
@@ -116,11 +113,6 @@ export function NotePage({ note }: { note: Note }) {
             }}
           />
         </div>
-        <footer className={`row ${styles.end}`}>
-          <p>
-            <Go href={writing.note.more.href}>{writing.note.more.label}</Go>
-          </p>
-        </footer>
       </article>
     </PageMain>
   );

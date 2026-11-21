@@ -1,38 +1,3 @@
-/* Writing (/writing/): the lake pavilion. The newest note open under the mist; its own comparison, turned aspect by
-   aspect; the three worked pieces as a ruled set; the feed. */
-
-/* ---------- the newest note, open ---------- */
-.first {
-  row-gap: var(--s-5);
-  align-items: start;
-}
-.noteHead {
-  grid-column: 1 / span 8;
-}
-/* its title: the page's second brush line, well under the place's own (44 px on a phone, 80 px wide) */
-.noteTitle {
-  margin-top: var(--s-2);
-  margin-left: -0.03em;
-  font-size: clamp(2.75rem, 5.6vw, 5rem);
-  line-height: 1;
-  letter-spacing: -0.03em;
-  color: var(--ink);
-}
-.noteTitle a {
-  text-decoration: none;
-}
-/* the opening beside it: its first line stands level with the title's */
-.noteOpen {
-  grid-column: 9 / -1;
-  padding-top: calc(var(--t-note) * 1.55 + var(--s-2) + 0.35rem);
-}
-.noteOpen :global(.lead) {
-  max-width: 24ch;
-}
-.noteOpen :global(.go) {
-  margin-top: var(--s-3);
-}
-
 /* ---------- the comparison ----------
    One markup, two ways to read it. As written here: every aspect, a plain ruled table (JavaScript off, paper).
    Under html.js, on a screen: the turner (below). Wide, both stand on the page's twelve columns: the aspects'
@@ -78,7 +43,7 @@
   .turnSide dt {
     grid-row: 1;
     padding-bottom: var(--s-4);
-    font: italic 300 var(--t-h2) / 1.06 var(--font-brush);
+    font: 500 var(--t-h2) / 1.06 var(--font-brush);
     letter-spacing: -0.02em;
     font-synthesis: none;
   }
@@ -302,7 +267,7 @@
     align-items: center;
     min-height: 2.75rem;
     margin-bottom: var(--s-1);
-    font: italic 300 clamp(1.75rem, 4.4vw, 2.125rem) / 1.06 var(--font-brush);
+    font: 500 clamp(1.75rem, 4.4vw, 2.125rem) / 1.06 var(--font-brush);
     letter-spacing: -0.02em;
     text-transform: none;
     font-synthesis: none;
@@ -337,119 +302,25 @@
     border-top: 1px solid var(--line);
   }
 }
-
-/* ---------- a ruled set: the worked pieces (and, once there are any, the notes before the newest) ---------- */
-.piecesRail {
-  padding-top: calc(var(--s-5) + 0.85rem);
-}
-.pieces {
-  border-bottom: 1px solid var(--line);
-}
-.piece {
-  display: grid;
-  grid-template-columns: 4fr 4fr 2fr;
-  column-gap: var(--gap);
-  align-items: baseline;
-  padding-block: var(--s-5) var(--s-6);
-  border-top: 1px solid var(--line);
-}
-.pieceTitle {
-  padding-right: var(--s-4);
-  font-size: clamp(1.75rem, 2.5vw, 2.25rem);
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-  color: var(--ink);
-}
-.pieceTitle a {
-  text-decoration: none;
-}
-.pieceTitle :global(.arrow) {
-  display: inline-block;
-  width: 0.5em;
-  height: 0.5em;
-  margin-left: 0.3em;
-  color: var(--ink-3);
-  transition: transform 360ms var(--ease-ink);
-}
-.pieceTitle a:hover :global(.arrow) {
-  color: inherit;
-  transform: translateX(0.2em);
-}
-.piece > :global(.small) {
-  max-width: 44ch;
-  padding-right: var(--s-4);
-}
 .feed {
-  margin-top: var(--s-4);
+  grid-column: 1 / -1;
+  margin-top: var(--s-5);
 }
-.feed a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 2.75rem;
-}
-
-@supports (grid-template-columns: subgrid) {
-  @media (min-width: 62rem) {
-    /* on the page's own columns: the title in 3-6, its tie in 7-10, its case in 11-12 */
-    .pieces {
-      display: grid;
-      grid-template-columns: repeat(10, minmax(0, 1fr));
-      column-gap: var(--gap);
-    }
-    .piece {
-      grid-column: 1 / -1;
-      grid-template-columns: subgrid;
-    }
-    .piece > :nth-child(1) {
-      grid-column: span 4;
-    }
-    .piece > :nth-child(2) {
-      grid-column: span 4;
-    }
-    .piece > :nth-child(3) {
-      grid-column: span 2;
-    }
-  }
-}
-
 @media (max-width: 61.99rem) {
-  .noteHead,
-  .noteOpen {
-    grid-column: 1 / -1;
-  }
-  .noteOpen {
-    padding-top: 0;
-  }
-  .noteOpen :global(.lead) {
-    max-width: 30ch;
-  }
-  .piecesRail {
-    padding-top: 0;
-  }
-  .piece {
-    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-    row-gap: var(--s-2);
-  }
-  .piece > :nth-child(3) {
-    grid-column: 2;
-  }
-}
-@media (max-width: 39.99rem) {
-  .piece {
+  .feature {
     grid-template-columns: minmax(0, 1fr);
-    row-gap: var(--s-3);
   }
-  .piece > :nth-child(3) {
-    grid-column: 1;
+  .featureCover {
+    min-height: 0;
+    aspect-ratio: 5 / 2;
   }
-  .pieceTitle,
-  .piece > :global(.small) {
-    padding-right: 0;
+  .featureCover::after {
+    inset: auto 0 0 0;
+    width: auto;
+    height: 42%;
+    background: linear-gradient(to bottom, rgb(249 250 248 / 0), var(--leaf));
   }
-}
-
-@media print {
-  .turn::after {
-    display: none;
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

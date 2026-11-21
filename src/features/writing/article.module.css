@@ -210,7 +210,7 @@
   padding-block: 0 var(--s-4);
   vertical-align: bottom;
   border-bottom: 1px solid var(--line-2);
-  font: italic 300 clamp(1.75rem, 2.5vw, 2.25rem) / 1.06 var(--font-brush);
+  font: 500 clamp(1.75rem, 2.5vw, 2.25rem) / 1.06 var(--font-brush);
   letter-spacing: -0.02em;
   font-synthesis: none;
 }
@@ -295,22 +295,13 @@
   }
 }
 
-/* ---------- the end: the way back ---------- */
-.end {
-  padding-bottom: clamp(3rem, 6.4vw, 6rem);
-}
-.end > p {
-  grid-column: 3 / -1;
-}
-
 /* ---------- tablets and phones ---------- */
 @media (max-width: 61.99rem) {
   .prose > *,
   .prose > :global(h2),
   .prose > .cols,
   .prose > .quote,
-  .prose > :global(.table-wrap),
-  .end > p {
+  .prose > :global(.table-wrap) {
     grid-column: 1 / -1;
   }
   .prose > .by {
@@ -386,8 +377,7 @@
   .prose > .by,
   .prose > .cols,
   .prose > .quote,
-  .prose > :global(.table-wrap),
-  .end > p {
+  .prose > :global(.table-wrap) {
     grid-column: 1 / -1;
   }
 }

@@ -19,8 +19,8 @@
       1085
      ],
      "bytes": [
-      40112,
-      71862
+      40100,
+      71860
      ]
     },
     "b": {
@@ -35,8 +35,8 @@
       1085
      ],
      "bytes": [
-      37984,
-      63308
+      38024,
+      63312
      ]
     }
    },
@@ -52,7 +52,7 @@
       1146
      ],
      "bytes": [
-      25366
+      25356
      ]
     },
     "b": {
@@ -66,7 +66,7 @@
       1146
      ],
      "bytes": [
-      37288
+      37328
      ]
     }
    },
@@ -303,8 +303,8 @@
       1085
      ],
      "bytes": [
-      34248,
-      65042
+      34242,
+      65084
      ]
     },
     "b": {
@@ -319,8 +319,8 @@
       1085
      ],
      "bytes": [
-      28912,
-      51492
+      28914,
+      51488
      ]
     }
    },
@@ -336,7 +336,7 @@
       1146
      ],
      "bytes": [
-      22238
+      22224
      ]
     },
     "b": {
@@ -350,7 +350,7 @@
       1146
      ],
      "bytes": [
-      27706
+      27710
      ]
     }
    },
@@ -374,8 +374,8 @@
       1085
      ],
      "bytes": [
-      40026,
-      72010
+      39952,
+      72092
      ]
     },
     "b": {
@@ -390,8 +390,8 @@
       1085
      ],
      "bytes": [
-      26310,
-      48592
+      26366,
+      48602
      ]
     }
    },
@@ -407,7 +407,7 @@
       1146
      ],
      "bytes": [
-      25460
+      25434
      ]
     },
     "b": {
@@ -421,7 +421,7 @@
       1146
      ],
      "bytes": [
-      25342
+      25356
      ]
     }
    },
@@ -516,8 +516,8 @@
       1085
      ],
      "bytes": [
-      35534,
-      66812
+      35686,
+      66910
      ]
     },
     "b": {
@@ -526,14 +526,14 @@
       "not-found-wide-b@2x.webp"
      ],
      "x": 0.9986,
-     "w": 0.9352,
+     "w": 0.8131,
      "size": [
-      1347,
+      1171,
       1085
      ],
      "bytes": [
-      17916,
-      34474
+      15994,
+      30134
      ]
     }
    },
@@ -549,7 +549,7 @@
       1146
      ],
      "bytes": [
-      21494
+      21498
      ]
     },
     "b": {
@@ -563,7 +563,78 @@
       1146
      ],
      "bytes": [
-      16842
+      16818
+     ]
+    }
+   },
+   "tabletX": 0.1
+  },
+  "about": {
+   "water": 0.44,
+   "h": 0.7535,
+   "travel": 0.5226,
+   "inside": 1,
+   "wide": {
+    "a": {
+     "files": [
+      "about-wide-a@1x.webp",
+      "about-wide-a@2x.webp"
+     ],
+     "x": 0,
+     "w": 1,
+     "size": [
+      1440,
+      1085
+     ],
+     "bytes": [
+      40066,
+      71868
+     ]
+    },
+    "b": {
+     "files": [
+      "about-wide-b@1x.webp",
+      "about-wide-b@2x.webp"
+     ],
+     "x": 0.9986,
+     "w": 1.1315,
+     "size": [
+      1629,
+      1085
+     ],
+     "bytes": [
+      37934,
+      63262
+     ]
+    }
+   },
+   "phone": {
+    "a": {
+     "files": [
+      "about-phone-a.webp"
+     ],
+     "x": 0.53,
+     "w": 0.5128,
+     "size": [
+      780,
+      1146
+     ],
+     "bytes": [
+      25344
+     ]
+    },
+    "b": {
+     "files": [
+      "about-phone-b.webp"
+     ],
+     "x": 1.0414,
+     "w": 0.9569,
+     "size": [
+      1455,
+      1146
+     ],
+     "bytes": [
+      37310
      ]
     }
    },
@@ -576,7 +647,7 @@
    4248,
    543
   ],
-  "bytes": 39830,
+  "bytes": 39826,
   "from": 0,
   "to": 5.9,
   "water": 0.44,
@@ -590,6 +661,11 @@
   },
   "pages": {
    "home": {
+    "left": 0,
+    "inside": 1,
+    "travel": 0.5226
+   },
+   "about": {
     "left": 0,
     "inside": 1,
     "travel": 0.5226
@@ -631,7 +707,7 @@
    }
   }
  },
- "inputs": "4e8c7b61b1fdaac91314b11b65ce393b17e7868bcf005f78683b5ac79db0ca1a",
+ "inputs": "20ef9846e8a7059878e228b31877fcff37848a2238266fadbfc1f9aeb38e9822",
  "inputList": {
   "src/features/landscape/band-geometry.ts": "a144c54498cf46e9c7f1a02dbfe2d16f35928674b5ff9ee46521f22966d66059",
   "src/features/landscape/band.ts": "15717284f40d8848b9e1157f02646a7b00a1a46618748c41bbc243e93445942c",
@@ -643,7 +719,7 @@
   "src/features/landscape/engine/figures.ts": "7eec7c5615db179bda3496715625193a36d5acefa5a9f2ce4295592f92dcb319",
   "src/features/landscape/engine/figures.worker.ts": "e78143c062279d6ef0875c7373e1671e2bfd765e942990b05dc02af28cdeaff5",
   "src/features/landscape/engine/gl.ts": "5c9c0b61b28f5c5bb864fdc7f022b5248413175593895cccc60976fac1d99608",
-  "src/features/landscape/engine/index.ts": "59d66d07b5a3d90a467d278d83ff50f7ab8155ce8685465adc745c2a19d986ff",
+  "src/features/landscape/engine/index.ts": "7fe715b4849dbf85d630f070001bacc4909b5563dc7fccc23984c12a897ac15a",
   "src/features/landscape/engine/lights.ts": "406ddc6b587c1287a1a3b54792038decdc73a31eba8e3a16536089519bc6d16a",
   "src/features/landscape/engine/palette.ts": "e3de805a55715b40cbd408e52f258ce3b8416eddc3a9d50b86ce4a38d0ba6ed3",
   "src/features/landscape/engine/renderer.ts": "743f9df82b3befaeac113a1bc2236913aa79e01be79f9c30f0e205dc052b92c8",
@@ -657,7 +733,7 @@
   "src/features/landscape/engine/sets/terraces.ts": "5a66635f89f2fa781723a245de920f35d5c7cdebb07eb774499093a1190a98c3",
   "src/features/landscape/engine/sets/young.ts": "6a45fbbd8b39af89c97a45b044e7fddb1c481b5936aa52ec366d14105698a32e",
   "src/features/landscape/engine/shaders.ts": "1fdfe8cc86cb645d6a6f6152531d2fc34cad8826eec7c2b52d3913ec88fece3c",
-  "src/features/landscape/places.ts": "6e89afd71a50ea339c1b5bfb1eca758807facc3af14cada26bb7d35602217c20",
-  "tools/build-band.ts": "89de22d719d7a16089d297f9985dde9e64b2a2f2b963fbfd362db1b2dec80580"
+  "src/features/landscape/places.ts": "680eb9ea3d56d51f00c86213cb4b1861c8b09609ba72eae06c4bf48ef3cd18ab",
+  "tools/build-band.ts": "d50affed4c9c3a31f35364f53c1a55c0848afad298677ec4b93e54bced9fc585"
  }
 }

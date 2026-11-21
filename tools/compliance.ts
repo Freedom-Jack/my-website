@@ -1,5 +1,5 @@
 /**
- * The hard-rule sweep (CLAUDE.md), run in CI after the build and before any commit:
+ * The hard-rule sweep (AGENTS.md), run in CI after the build and before any commit:
  *   no phone number anywhere (site, PDF, JSON, comments) · no street address · no project-management credential ·
  *   never the old résumé PDF (not served, not linked; only its 301 to /resume/) · no Chinese characters at all in
  *   text (the seal's glyph is an outline) · no file name with CJK · the visible name never carries "(Jack)" (that

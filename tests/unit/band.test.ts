@@ -155,7 +155,11 @@ describe('the band’s stills (public/scenes/band/manifest.json)', () => {
       // the second part starts under the first's east edge (no seam), and reaches as far as the page travels
       expect(s.wide.b.x).toBeLessThanOrEqual(s.wide.a.x + s.wide.a.w);
       expect(s.phone.b.x).toBeLessThanOrEqual(s.phone.a.x + s.phone.a.w);
-      expect(s.wide.b.x + s.wide.b.w).toBeGreaterThanOrEqual(1 / BAND.zoom + s.travel - 0.01);
+      // (the 404 is shorter than its travel: the unroll goes at most 0.75 px a px of scroll, on the live stage and on
+      // the still alike, so its still is cut as wide as that page can show: the settled band and no more)
+      expect(s.wide.b.x + s.wide.b.w).toBeGreaterThanOrEqual(
+        1 / BAND.zoom + (page === 'not-found' ? 0 : s.travel) - 0.01,
+      );
     });
     it(`${page}: the still has sky enough for the tallest band of every class`, () => {
       // styles/band.css hangs the still by its waterline: the band's box needs --band-h × --band-water of picture

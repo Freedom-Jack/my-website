@@ -94,7 +94,7 @@ export async function tapsAndOverflow(): Promise<TapsAndOverflow> {
   const sel = 'a[href], button, summary, [role="button"], input:not([type="hidden"]), select, textarea';
   const targets = [...document.querySelectorAll<HTMLElement>(sel)]
     // (the way on is let in over the page's last stretch: unseen at the top, a target at the end)
-    .filter((e) => (e.closest('.inscription--next') || isVisible(e)) && !e.matches('.skip-link') && !srOnly(e))
+    .filter((e) => isVisible(e) && !e.matches('.skip-link') && !srOnly(e))
     .map((e) => ({ e, y: e.getBoundingClientRect().top + startY }))
     .sort((a, b) => a.y - b.y);
   /** An inline target in a block whose words outside any link or button are two or more: judged by the words. */

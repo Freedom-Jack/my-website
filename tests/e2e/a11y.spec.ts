@@ -140,11 +140,11 @@ for (const size of [
 }
 
 // ------------------------------------------------------------------ the words on the painting
-/** The header's words (his name, the four places, the Ask door), then the title, its line, the way on. */
-const HEADER = '.site-header__home > span:first-child, .site-nav a, .ask-door';
-const TITLE = 'main .inscription:not(.inscription--next) :is(h1, .title)';
-const UNDER = 'main .inscription:not(.inscription--next) .title__under';
-const NEXT = '.inscription__next';
+/** The header's words (his name, the five places, the Ask's field), then what is inscribed: the line in English and
+ *  where it is from. (The page's own title and the way on stand on the paper, where axe judges them.) */
+const HEADER = '.site-header__name, .site-nav a, .ask-door';
+const LINE = 'main .inscription .inscription__en > span';
+const FROM = 'main .inscription .inscription__en > cite';
 
 async function wordsOnThePainting(page: Page, route: Route, where: 'top' | 'settled' | 'end') {
   const fail: string[] = [];
@@ -173,17 +173,16 @@ async function wordsOnThePainting(page: Page, route: Route, where: 'top' | 'sett
     }
     return n;
   };
-  // the header's words stand fixed while the painting moves under them: always there, always 4.5:1
-  expect(await sample(HEADER, 4.5), `${route.id}, ${where}: the header's six words`).toBe(6);
-  if (where === 'top') {
-    // the title is inscribed in the sky: large (3:1); the line under it is small (4.5:1)
-    expect(await sample(TITLE, 3), `${route.id}: the title is in the window at the page's top`).toBeGreaterThan(0);
-    await sample(UNDER, 4.5);
-  } else {
-    // (stood back, they are judged at the size they are drawn at)
-    await sample(TITLE);
-    await sample(UNDER);
-    if (where === 'end') await sample(NEXT);
+  // the header's words stand fixed: on the sky at the page's top, on the header's own paper after. Always there,
+  // always 4.5:1 (a narrow phone shows the seal alone for his name: the five places and the Ask at the least)
+  expect(await sample(HEADER, 4.5), `${route.id}, ${where}: the header's words`).toBeGreaterThanOrEqual(6);
+  if (where === 'top' && route.id === 'home') {
+    // what is inscribed in Home's sky: small text, 4.5:1
+    expect(
+      await sample(LINE, 4.5),
+      `${route.id}: the inscription's line is in the window at the page's top`,
+    ).toBeGreaterThan(0);
+    await sample(FROM, 4.5);
   }
   return { fail, read };
 }
@@ -196,7 +195,7 @@ for (const size of [
 ] as const) {
   test.describe(`the words on the painting, ${size.name}`, () => {
     test.use(size.use);
-    test('the header, the title, its line and the way on stay readable as the painting moves', async ({ page }) => {
+    test('the header and what is inscribed stay readable as the painting moves', async ({ page }) => {
       test.setTimeout(120_000);
       const fail: string[] = [];
       for (const r of ROUTES) {

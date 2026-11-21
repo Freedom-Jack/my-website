@@ -27,7 +27,7 @@ export const contact = {
   /** ", 9:41 there" */
   time: ', {time} there',
   /**
-   * NEW WORDS (for Jack): the one label over his third-person line (content/site.ts `bio`) and his portrait, for
+   * NEW WORDS (for Jack): the one label over his third-person line (content/site.ts `bio`), for
    * someone who has to introduce him (an organiser, an editor).
    */
   bio: { label: 'Bio' },

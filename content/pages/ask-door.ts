@@ -8,4 +8,6 @@ export const askDoor = {
   label: 'Ask the painting',
   /** NEW WORDS (for Jack): the door in the header, the short form */
   door: 'Ask',
+  /** the question the field shows before anything is typed (the sheet's own placeholder) */
+  placeholder: 'What did you build for insurers?',
 };

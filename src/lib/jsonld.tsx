@@ -25,7 +25,6 @@ export function personLd() {
     description: site.seo.description,
     url: `${site.url}/`,
     email: `mailto:${site.email}`,
-    image: absolute(home.about.photo.src),
     jobTitle: site.jobTitle,
     worksFor: { '@type': 'Organization', ...site.seo.employer },
     hasOccupation: {
